@@ -1,0 +1,97 @@
+# Miro — Cursor Rules (Project-specific Skills & Conventions)
+
+## Language
+- Always respond in Thai (ไทย).
+
+---
+
+## 🔴 CRITICAL: Food / Nutrition Data — Consistent Pattern Across ALL Screens
+
+ทุกหน้าจอที่เกี่ยวข้องกับ food/nutrition ต้องปฏิบัติตาม pattern นี้ **เหมือนกันทุกจุด**:
+
+### 1. Search From DB First (ค้นจาก Database ก่อนเสมอ)
+- เมื่อผู้ใช้พิมพ์ชื่ออาหาร → ค้นจากลำดับ:
+  1. **My Meals** (เมนูของฉัน) → `allMyMealsProvider`
+  2. **Ingredients** (วัตถุดิบส่วนตัว) → `allIngredientsProvider`
+  3. **Thai Food Database** (ฐานข้อมูลไทย) → `ThaiFoodDatabase.search()`
+- ใช้ `Autocomplete` widget พร้อม fuzzy search (contains)
+- ถ้าไม่พบ → ให้ผู้ใช้กรอกเอง → บันทึกแล้วไปกด Gemini ภายหลัง
+
+### 2. Auto-fill Serving + Nutrition (เติมปริมาณ + โภชนาการอัตโนมัติ)
+- เมื่อเลือกรายการจาก DB → auto-fill ทุกช่อง:
+  - **ปริมาณ** (serving size) — ค่าจาก DB (เช่น 16 ลูก, 1 จาน)
+  - **หน่วย** (serving unit) — ค่าจาก DB (เช่น ลูก, จาน, กรัม)
+  - **แคลอรี่** (kcal) — ค่ารวมจาก DB
+  - **Macro nutrients** (protein, carbs, fat) — ค่ารวมจาก DB
+
+### 3. ⚡ MUST: Base Values Per Unit + Recalculate on Change
+- **เก็บ base values per 1 unit เสมอ:**
+  ```dart
+  _baseCalories = totalCalories / servingSize;  // kcal ต่อ 1 หน่วย
+  _baseProtein  = totalProtein  / servingSize;
+  _baseCarbs    = totalCarbs    / servingSize;
+  _baseFat      = totalFat      / servingSize;
+  ```
+- **เมื่อเปลี่ยนปริมาณ → recalculate อัตโนมัติ:**
+  ```dart
+  kcal = _baseCalories * newServingSize;
+  protein = _baseProtein * newServingSize;
+  carbs = _baseCarbs * newServingSize;
+  fat = _baseFat * newServingSize;
+  ```
+- **ช่อง nutrition ต้อง `readOnly: true`** เมื่อมี base values (คำนวณอัตโนมัติ)
+- **Listener ต้อง addListener ที่ ServingSize controller** ตั้งแต่ initState
+- **ปิด listener ชั่วคราว** ตอน auto-fill (ไม่ให้ trigger ซ้อน)
+
+### 4. FoodEntry Model — Always Store Base Values
+- เมื่อบันทึก `FoodEntry` ต้องเก็บ:
+  - `baseCalories`, `baseProtein`, `baseCarbs`, `baseFat` (ค่าต่อ 1 หน่วย)
+  - `servingSize`, `servingUnit`
+  - `calories`, `protein`, `carbs`, `fat` (ค่ารวม)
+
+### 4.5 MyMeal Model — baseServingDescription Parsing
+- `MyMeal.baseServingDescription` เก็บเป็น string รวม เช่น "16 ลูก", "1 จาน"
+- **ห้าม** hardcode `servingSize: 1` เมื่อดึงจาก MyMeal
+- **ต้องใช้** helper getters:
+  - `meal.parsedServingSize` → 16 (double)
+  - `meal.parsedServingUnit` → "ลูก" (String)
+  - `meal.caloriesPerUnit` → kcal ต่อ 1 หน่วย
+  - `meal.proteinPerUnit`, `meal.carbsPerUnit`, `meal.fatPerUnit`
+- ตัวอย่าง: ลูกชิ้นเนื้อ 450 kcal / 16 ลูก → caloriesPerUnit = 28.125
+
+### 5. Screens That MUST Follow This Pattern
+- `AddFoodBottomSheet` (health_diet_tab.dart) — เพิ่มอาหารใน Diet tab
+- `EditFoodBottomSheet` (edit_food_bottom_sheet.dart) — แก้ไขอาหาร
+- `GeminiAnalysisSheet` (gemini_analysis_sheet.dart) — วิเคราะห์ Gemini
+- `FoodDetailBottomSheet` (food_detail_bottom_sheet.dart) — ดูรายละเอียด
+- `CreateMealSheet` (create_meal_sheet.dart) — สร้างเมนู
+- `IntentHandler` (intent_handler.dart) — บันทึกจาก chat
+- **ทุกจุดใหม่** ที่เพิ่มในอนาคต
+
+### 6. Dropdown Unit — Must Use `value:` Not `initialValue:`
+- `DropdownButtonFormField` ต้องใช้ `value: _servingUnit` ไม่ใช่ `initialValue:`
+- เพื่อให้ unit อัพเดทเมื่อเลือกจาก DB
+
+### 7. 🌍 Unit System — Centralized via UnitConverter
+- **Single source of truth**: `lib/core/utils/unit_converter.dart`
+- **ห้าม** hardcode dropdown items ในแต่ละ file — ใช้ `UnitConverter.allDropdownItems` หรือ `UnitConverter.compactDropdownItems`
+- **ห้าม** hardcode unit validation — ใช้ `UnitConverter.ensureValid(unit)`
+- **All unit keys are English**: `g`, `kg`, `lbs`, `oz`, `ml`, `l`, `cup`, `tbsp`, `tsp`, `fl oz`, `serving`, `piece`, `plate`, `bowl`, `glass`, `egg`, `ball`, etc.
+- **ห้าม** ใช้ Thai unit keys (จาน, ถ้วย, ชิ้น, ลูก...) ใน code ใหม่ — legacy Thai keys ถูก resolve ผ่าน `_legacyMap` ใน UnitConverter
+
+### 8. 🔄 Unit Conversion on Unit Change
+- เมื่อผู้ใช้เปลี่ยนหน่วย (เช่น g → lbs):
+  - **Weight ↔ Weight** หรือ **Volume ↔ Volume**: แปลงปริมาณอัตโนมัติ (kcal คงเดิม, base per unit เปลี่ยน)
+  - **ข้ามประเภท** (เช่น g → piece): ไม่แปลง — keep ปริมาณเดิม
+- ใช้ `UnitConverter.convertServing()` เพื่อ handle ทั้ง 2 กรณี
+- **Dropdown order**: Weight (บน) → Volume → Count → Package (ล่าง)
+
+---
+
+## General Conventions
+- State management: **Riverpod** (`ConsumerStatefulWidget`, providers)
+- Local DB: **Isar**
+- AI: **Gemini API** (user BYOK)
+- All food-related widgets should use `ConsumerStatefulWidget` for access to providers
+- Always `ref.invalidate()` relevant providers after saving data
+- Always check `mounted` before `setState` in async callbacks

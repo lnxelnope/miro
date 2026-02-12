@@ -1,0 +1,8 @@
+# Template สำหรับ key.properties
+# คัดลอกไฟล์นี้เป็น key.properties แล้วกรอกรหัสผ่านของคุณ
+# ไฟล์ key.properties จะถูก ignore โดย .gitignore
+
+storePassword=your_keystore_password_here
+keyPassword=your_key_password_here
+keyAlias=miro
+storeFile=../android/miro-release-key.jks

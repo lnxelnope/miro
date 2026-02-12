@@ -1,0 +1,105 @@
+name: miro_hybrid
+description: "Miro: The Offline Hybrid Life Assistant"
+publish_to: 'none'
+version: 1.0.0+2
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  
+  # Architecture & State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  
+  # Database (Offline First)
+  isar: ^3.1.0+1
+  isar_flutter_libs: ^3.1.0+1
+  path_provider: ^2.1.2
+  share_plus: ^9.0.0
+  
+  # Vision & Scanning (Local AI)
+  google_mlkit_text_recognition: any
+  google_mlkit_image_labeling: any
+  google_mlkit_barcode_scanning: any
+  mobile_scanner: ^5.2.3
+  photo_manager: ^3.6.0
+  camera: any
+  
+  # Networking & Sync (Cloud Layer)
+  http: ^1.2.0
+  googleapis: ^15.0.0
+  google_sign_in: ^6.2.1
+  extension_google_sign_in_as_googleapis_auth: ^2.0.7
+  
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.3.3
+  json_annotation: ^4.9.0
+  
+  # Permission & Storage
+  permission_handler: ^12.0.1
+  shared_preferences: ^2.2.2
+  
+  # Environment Variables
+  flutter_dotenv: ^5.1.0
+  
+  # UI Enhancement
+  shimmer: ^3.0.0
+  image_picker: ^1.0.7
+  flutter_speed_dial: ^7.0.0
+  cached_network_image: ^3.3.1
+  
+  # Storage
+  flutter_secure_storage: ^10.0.0
+  
+  # Charts
+  fl_chart: ^0.66.0
+  
+  # Icons
+  cupertino_icons: ^1.0.6
+  url_launcher: ^6.3.2
+  table_calendar: ^3.1.3
+  
+  # In-App Purchase
+  in_app_purchase: ^3.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+  isar_generator: ^3.1.0+1
+  json_serializable: ^6.8.0
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.0
+
+flutter:
+  generate: true
+  uses-material-design: true
+  assets:
+    - assets/models/
+    - assets/images/
+    - assets/data/
+    - assets/icon/
+    - .env
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/icon/logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/logo.png"
+
+flutter_native_splash:
+  color: "#6366F1"
+  image: "assets/icon/logo.png"
+  android: true
+  android_12:
+    color: "#6366F1"
+    image: "assets/icon/logo.png"

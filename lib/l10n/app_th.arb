@@ -1,0 +1,207 @@
+{
+  "@@locale": "th",
+
+  "appName": "Miro Cal",
+  
+  "save": "บันทึก",
+  "cancel": "ยกเลิก",
+  "delete": "ลบ",
+  "edit": "แก้ไข",
+  "search": "ค้นหา",
+  "loading": "กำลังโหลด...",
+  "error": "เกิดข้อผิดพลาด",
+  "confirm": "ยืนยัน",
+  "close": "ปิด",
+  "done": "เสร็จ",
+  "next": "ถัดไป",
+  "skip": "ข้าม",
+  "retry": "ลองใหม่",
+  "ok": "ตกลง",
+
+  "foodName": "ชื่ออาหาร",
+  "calories": "แคลอรี่",
+  "protein": "โปรตีน",
+  "carbs": "คาร์บ",
+  "fat": "ไขมัน",
+  "servingSize": "ปริมาณ",
+  "servingUnit": "หน่วย",
+  "kcal": "kcal",
+
+  "mealBreakfast": "เช้า",
+  "mealLunch": "กลางวัน",
+  "mealDinner": "เย็น",
+  "mealSnack": "ของว่าง",
+
+  "todaySummary": "สรุปวันนี้",
+  "dateSummary": "สรุป {date}",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "savedSuccess": "บันทึกเรียบร้อย",
+  "deletedSuccess": "ลบเรียบร้อย",
+  "pleaseEnterFoodName": "กรุณากรอกชื่ออาหาร",
+  "noDataYet": "ยังไม่มีข้อมูล",
+  "addFood": "เพิ่มอาหาร",
+  "editFood": "แก้ไขอาหาร",
+  "deleteFood": "ลบอาหาร",
+  "deleteConfirm": "ยืนยันการลบ?",
+  "foodLoggedSuccess": "บันทึกอาหารแล้ว!",
+
+  "noApiKey": "กรุณาตั้งค่า Gemini API Key",
+  "noApiKeyDescription": "ไปที่ โปรไฟล์ → API Settings เพื่อตั้งค่า",
+  "apiKeyTitle": "ตั้งค่า Gemini API Key",
+  "apiKeyRequired": "ต้องการ API Key",
+  "apiKeyFreeNote": "Gemini API ใช้ฟรี ไม่ต้องจ่ายเงิน",
+  "apiKeySetup": "ตั้งค่า API Key",
+  "testConnection": "ทดสอบการเชื่อมต่อ",
+  "connectionSuccess": "เชื่อมต่อสำเร็จ! พร้อมใช้งาน",
+  "connectionFailed": "เชื่อมต่อไม่สำเร็จ",
+  "pasteKey": "วาง",
+  "deleteKey": "ลบ API Key",
+  "openAiStudio": "เปิด Google AI Studio",
+
+  "chatHint": "สั่ง Miro เช่น \"บันทึกข้าวผัด\"...",
+  "chatFoodSaved": "บันทึกอาหารแล้ว!",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "ขออภัย ฟังก์ชันนี้ยังไม่พร้อมในเวอร์ชันนี้",
+
+  "goalCalories": "แคลอรี่/วัน",
+  "goalProtein": "โปรตีน/วัน",
+  "goalCarbs": "คาร์บ/วัน",
+  "goalFat": "ไขมัน/วัน",
+  "goalWater": "น้ำ/วัน",
+  "healthGoals": "เป้าหมายสุขภาพ",
+
+  "profile": "โปรไฟล์",
+  "settings": "การตั้งค่า",
+  "privacyPolicy": "นโยบายความเป็นส่วนตัว",
+  "termsOfService": "เงื่อนไขการใช้งาน",
+  "clearAllData": "ล้างข้อมูลทั้งหมด",
+  "clearAllDataConfirm": "ข้อมูลทั้งหมดจะถูกลบ ลบแล้วกู้คืนไม่ได้!",
+  "about": "เกี่ยวกับแอป",
+  "language": "ภาษา",
+
+  "upgradePro": "อัปเกรด Pro",
+  "proUnlocked": "Miro Cal Pro",
+  "proDescription": "ใช้ AI วิเคราะห์อาหารไม่จำกัด",
+  "aiRemaining": "AI วิเคราะห์: เหลือ {remaining}/{total} ครั้งวันนี้",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "ใช้ AI ครบ 3 ครั้งแล้ววันนี้",
+  "restorePurchase": "กู้คืนการซื้อ",
+
+  "myMeals": "เมนูของฉัน",
+  "createMeal": "สร้างเมนู",
+  "ingredients": "วัตถุดิบ",
+  "addIngredient": "เพิ่มวัตถุดิบ",
+  "searchFood": "ค้นหาอาหาร",
+
+  "analyzing": "กำลังวิเคราะห์...",
+  "analyzeWithAi": "วิเคราะห์ด้วย AI",
+  "analysisComplete": "วิเคราะห์เสร็จ",
+
+  "timeline": "Timeline",
+  "diet": "Diet",
+  "quickAdd": "Quick Add",
+
+  "welcomeTitle": "Miro Cal",
+  "welcomeSubtitle": "บันทึกอาหารง่ายๆ ด้วย AI",
+  "onboardingFeature1": "ถ่ายรูปอาหาร",
+  "onboardingFeature1Desc": "AI วิเคราะห์ kcal อัตโนมัติ",
+  "onboardingFeature2": "พิมพ์แชท",
+  "onboardingFeature2Desc": "บอกว่า \"กินข้าวผัด\" → บันทึกให้เลย",
+  "onboardingFeature3": "สรุปทุกวัน",
+  "onboardingFeature3Desc": "ดู kcal, โปรตีน, คาร์บ, ไขมัน",
+  "basicInfo": "ข้อมูลพื้นฐาน",
+  "basicInfoDesc": "เพื่อคำนวณเป้าหมายแคลอรี่ที่เหมาะกับคุณ",
+  "gender": "เพศ",
+  "male": "ชาย",
+  "female": "หญิง",
+  "age": "อายุ",
+  "weight": "น้ำหนัก",
+  "height": "ส่วนสูง",
+  "activityLevel": "ระดับกิจกรรม",
+  "tdeeResult": "TDEE ของคุณ: {kcal} kcal/วัน",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "ตั้งค่า Gemini AI",
+  "setupAiDesc": "ถ่ายรูปอาหาร → AI วิเคราะห์ให้อัตโนมัติ",
+  "setupNow": "ตั้งค่าเลย",
+  "skipForNow": "ข้ามไปก่อน → เข้าแอป",
+
+  "errorTimeout": "หมดเวลาเชื่อมต่อ — ลองใหม่อีกครั้ง",
+  "errorInvalidKey": "API Key ไม่ถูกต้อง — ตรวจสอบการตั้งค่า",
+  "errorNoInternet": "ไม่มีอินเทอร์เน็ต — ตรวจสอบการเชื่อมต่อ",
+  "errorGeneral": "เกิดข้อผิดพลาด — ลองใหม่อีกครั้ง",
+  "errorQuotaExceeded": "ใช้ API เกินโควต้า — รอสักครู่แล้วลองใหม่",
+
+  "apiKeyScreenTitle": "ตั้งค่า Gemini API Key",
+  "analyzeFoodWithAi": "วิเคราะห์อาหารด้วย AI",
+  "analyzeFoodWithAiDesc": "ถ่ายรูปอาหาร → AI คำนวณแคลอรี่ให้อัตโนมัติ\nGemini API ใช้ฟรี ไม่ต้องจ่ายเงิน!",
+  "openGoogleAiStudio": "เปิด Google AI Studio",
+  "step1Title": "เปิด Google AI Studio",
+  "step1Desc": "กดปุ่มด้านล่างเพื่อไปสร้าง API Key",
+  "step2Title": "ล็อกอิน Google Account",
+  "step2Desc": "ใช้ Gmail หรือ Google Account ที่มีอยู่ (ถ้ายังไม่มี สร้างฟรี)",
+  "step3Title": "คลิก \"Create API Key\"",
+  "step3Desc": "กดปุ่มสีน้ำเงิน \"Create API Key\"\nถ้าถามให้เลือก Project → กด \"Create API key in new project\"",
+  "step4Title": "คัดลอก Key แล้วกลับมาวางด้านล่าง",
+  "step4Desc": "กดปุ่ม Copy ข้างกล่อง Key ที่สร้างเสร็จ\nKey จะหน้าตาประมาณ: AIzaSyxxxx...",
+  "step5Title": "วาง API Key ที่นี่",
+  "pasteApiKeyHint": "วาง API Key ที่คัดลอกมา",
+  "saveApiKey": "บันทึก API Key",
+  "testingConnection": "กำลังทดสอบ...",
+  "testConnection": "ทดสอบการเชื่อมต่อ",
+  "deleteApiKey": "ลบ API Key",
+  "deleteApiKeyConfirm": "ลบ API Key?",
+  "deleteApiKeyConfirmDesc": "จะไม่สามารถใช้ AI วิเคราะห์อาหารได้จนกว่าจะตั้งค่าใหม่",
+  "apiKeySaved": "บันทึก API Key เรียบร้อย",
+  "apiKeyDeleted": "ลบ API Key เรียบร้อย",
+  "pleasePasteApiKey": "กรุณาวาง API Key ก่อน",
+  "apiKeyInvalidFormat": "API Key ไม่ถูกต้อง — ต้องขึ้นต้นด้วย \"AIza\"",
+  "connectionSuccessMessage": "✅ เชื่อมต่อสำเร็จ! พร้อมใช้งาน",
+  "connectionFailedMessage": "❌ เชื่อมต่อไม่สำเร็จ",
+  "faqTitle": "คำถามที่พบบ่อย",
+  "faqFreeQuestion": "ฟรีจริงไหม?",
+  "faqFreeAnswer": "ฟรีจริง! Gemini 2.0 Flash ใช้ฟรี 1,500 ครั้ง/วัน\nสำหรับบันทึกอาหาร (5-15 ครั้ง/วัน) → ฟรีตลอด ไม่ต้องจ่ายเงิน",
+  "faqSafeQuestion": "ปลอดภัยไหม?",
+  "faqSafeAnswer": "API Key เก็บใน Secure Storage ในเครื่องเท่านั้น\nแอปไม่ส่ง Key ไปที่ server ของเรา\nถ้า Key หลุด → ลบทิ้งสร้างใหม่ได้เลย (ไม่ใช่รหัสผ่าน Google)",
+  "faqNoKeyQuestion": "ถ้าไม่สร้าง Key ล่ะ?",
+  "faqNoKeyAnswer": "ยังใช้แอปได้! แต่:\n❌ ไม่สามารถถ่ายรูป → AI วิเคราะห์\n✅ บันทึกอาหารด้วยมือได้\n✅ Quick Add ได้\n✅ ดูสรุป kcal/macro ได้",
+  "faqCreditCardQuestion": "ต้องมีบัตรเครดิตไหม?",
+  "faqCreditCardAnswer": "ไม่ต้อง — สร้าง API Key ได้ฟรีโดยไม่ต้องใส่บัตรเครดิต"
+}

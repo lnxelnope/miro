@@ -1,0 +1,2 @@
+@echo off
+cmd /k "cd /d %~dp0 && echo ======================================== && echo  Miro Hybrid - Web Preview && echo ======================================== && echo. && echo Adding Web Platform... && flutter create --platforms web . 2>nul && echo. && echo Getting Dependencies... && flutter pub get && echo. && echo Launching Chrome... && echo. && echo NOTE: ML Kit and Isar will NOT work on Web && echo This is for UI Preview only && echo. && flutter run -d chrome"

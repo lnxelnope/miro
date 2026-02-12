@@ -1,0 +1,207 @@
+{
+  "@@locale": "en",
+
+  "appName": "Miro Cal",
+  
+  "save": "Save",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "edit": "Edit",
+  "search": "Search",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "confirm": "Confirm",
+  "close": "Close",
+  "done": "Done",
+  "next": "Next",
+  "skip": "Skip",
+  "retry": "Retry",
+  "ok": "OK",
+
+  "foodName": "Food name",
+  "calories": "Calories",
+  "protein": "Protein",
+  "carbs": "Carbs",
+  "fat": "Fat",
+  "servingSize": "Serving size",
+  "servingUnit": "Unit",
+  "kcal": "kcal",
+
+  "mealBreakfast": "Breakfast",
+  "mealLunch": "Lunch",
+  "mealDinner": "Dinner",
+  "mealSnack": "Snack",
+
+  "todaySummary": "Today's Summary",
+  "dateSummary": "Summary for {date}",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "savedSuccess": "Saved successfully",
+  "deletedSuccess": "Deleted successfully",
+  "pleaseEnterFoodName": "Please enter food name",
+  "noDataYet": "No data yet",
+  "addFood": "Add food",
+  "editFood": "Edit food",
+  "deleteFood": "Delete food",
+  "deleteConfirm": "Confirm delete?",
+  "foodLoggedSuccess": "Food logged!",
+
+  "noApiKey": "Please set up Gemini API Key",
+  "noApiKeyDescription": "Go to Profile → API Settings to set up",
+  "apiKeyTitle": "Set up Gemini API Key",
+  "apiKeyRequired": "API Key required",
+  "apiKeyFreeNote": "Gemini API is free to use",
+  "apiKeySetup": "Set up API Key",
+  "testConnection": "Test connection",
+  "connectionSuccess": "Connected successfully! Ready to use",
+  "connectionFailed": "Connection failed",
+  "pasteKey": "Paste",
+  "deleteKey": "Delete API Key",
+  "openAiStudio": "Open Google AI Studio",
+
+  "chatHint": "Tell Miro e.g. \"Log fried rice\"...",
+  "chatFoodSaved": "Food logged!",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "Sorry, this feature is not available yet",
+
+  "goalCalories": "Calories/day",
+  "goalProtein": "Protein/day",
+  "goalCarbs": "Carbs/day",
+  "goalFat": "Fat/day",
+  "goalWater": "Water/day",
+  "healthGoals": "Health Goals",
+
+  "profile": "Profile",
+  "settings": "Settings",
+  "privacyPolicy": "Privacy Policy",
+  "termsOfService": "Terms of Service",
+  "clearAllData": "Clear all data",
+  "clearAllDataConfirm": "All data will be deleted. This cannot be undone!",
+  "about": "About",
+  "language": "Language",
+
+  "upgradePro": "Upgrade to Pro",
+  "proUnlocked": "Miro Cal Pro",
+  "proDescription": "Unlimited AI food analysis",
+  "aiRemaining": "AI analysis: {remaining}/{total} remaining today",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "AI limit reached for today (3/3)",
+  "restorePurchase": "Restore purchase",
+
+  "myMeals": "My Meals",
+  "createMeal": "Create meal",
+  "ingredients": "Ingredients",
+  "addIngredient": "Add ingredient",
+  "searchFood": "Search food",
+
+  "analyzing": "Analyzing...",
+  "analyzeWithAi": "Analyze with AI",
+  "analysisComplete": "Analysis complete",
+
+  "timeline": "Timeline",
+  "diet": "Diet",
+  "quickAdd": "Quick Add",
+
+  "welcomeTitle": "Miro Cal",
+  "welcomeSubtitle": "Easy food logging with AI",
+  "onboardingFeature1": "Snap a photo",
+  "onboardingFeature1Desc": "AI calculates calories automatically",
+  "onboardingFeature2": "Type to log",
+  "onboardingFeature2Desc": "Say \"had fried rice\" and it's logged",
+  "onboardingFeature3": "Daily summary",
+  "onboardingFeature3Desc": "Track kcal, protein, carbs, fat",
+  "basicInfo": "Basic Info",
+  "basicInfoDesc": "To calculate your recommended daily calories",
+  "gender": "Gender",
+  "male": "Male",
+  "female": "Female",
+  "age": "Age",
+  "weight": "Weight",
+  "height": "Height",
+  "activityLevel": "Activity Level",
+  "tdeeResult": "Your TDEE: {kcal} kcal/day",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "Set up Gemini AI",
+  "setupAiDesc": "Snap a photo and AI analyzes it automatically",
+  "setupNow": "Set up now",
+  "skipForNow": "Skip for now",
+
+  "errorTimeout": "Connection timeout — please try again",
+  "errorInvalidKey": "Invalid API Key — check your settings",
+  "errorNoInternet": "No internet connection",
+  "errorGeneral": "An error occurred — please try again",
+  "errorQuotaExceeded": "API quota exceeded — please wait and retry",
+
+  "apiKeyScreenTitle": "Set up Gemini API Key",
+  "analyzeFoodWithAi": "Analyze food with AI",
+  "analyzeFoodWithAiDesc": "Snap a photo → AI calculates calories automatically\nGemini API is free to use!",
+  "openGoogleAiStudio": "Open Google AI Studio",
+  "step1Title": "Open Google AI Studio",
+  "step1Desc": "Click the button below to create an API Key",
+  "step2Title": "Sign in with Google Account",
+  "step2Desc": "Use your Gmail or Google Account (create one for free if you don't have one)",
+  "step3Title": "Click \"Create API Key\"",
+  "step3Desc": "Click the blue \"Create API Key\" button\nIf asked to select a Project → Click \"Create API key in new project\"",
+  "step4Title": "Copy Key and paste below",
+  "step4Desc": "Click Copy next to the created Key\nKey will look like: AIzaSyxxxx...",
+  "step5Title": "Paste API Key here",
+  "pasteApiKeyHint": "Paste the copied API Key",
+  "saveApiKey": "Save API Key",
+  "testingConnection": "Testing...",
+  "testConnection": "Test connection",
+  "deleteApiKey": "Delete API Key",
+  "deleteApiKeyConfirm": "Delete API Key?",
+  "deleteApiKeyConfirmDesc": "You won't be able to use AI food analysis until you set it up again",
+  "apiKeySaved": "API Key saved successfully",
+  "apiKeyDeleted": "API Key deleted successfully",
+  "pleasePasteApiKey": "Please paste API Key first",
+  "apiKeyInvalidFormat": "Invalid API Key — must start with \"AIza\"",
+  "connectionSuccessMessage": "✅ Connected successfully! Ready to use",
+  "connectionFailedMessage": "❌ Connection failed",
+  "faqTitle": "Frequently Asked Questions",
+  "faqFreeQuestion": "Is it really free?",
+  "faqFreeAnswer": "Yes! Gemini 2.0 Flash is free for 1,500 requests/day\nFor food logging (5-15 times/day) → Free forever, no payment required",
+  "faqSafeQuestion": "Is it safe?",
+  "faqSafeAnswer": "API Key is stored in Secure Storage on your device only\nApp doesn't send Key to our server\nIf Key leaks → Delete and create a new one (it's not your Google password)",
+  "faqNoKeyQuestion": "What if I don't create a Key?",
+  "faqNoKeyAnswer": "You can still use the app! But:\n❌ Cannot take photo → AI analysis\n✅ Can log food manually\n✅ Quick Add works\n✅ View kcal/macro summary works",
+  "faqCreditCardQuestion": "Do I need a credit card?",
+  "faqCreditCardAnswer": "No — Create API Key for free without credit card"
+}
