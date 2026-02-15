@@ -13,70 +13,125 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
     
     return energyAsync.when(
       data: (balance) => _buildBadge(context, balance),
-      loading: () => _buildBadge(context, 0),
-      error: (_, __) => _buildBadge(context, 0),
+      loading: () => const SizedBox(
+        width: 60,
+        height: 32,
+        child: Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (error, stack) => GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const EnergyStoreScreen(),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.grey.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey, width: 2),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('⚡', style: TextStyle(fontSize: 16)),
+              SizedBox(width: 4),
+              Text('?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildBadge(BuildContext context, int balance) {
-    // เลือกสีตาม balance
-    final Color color;
-    final Color bgColor;
-    
+    // Determine background color based on balance
+    Color backgroundColor;
     if (balance < 10) {
-      color = Colors.red;
-      bgColor = Colors.red.withOpacity(0.15);
+      backgroundColor = Colors.red.withOpacity(0.1);
     } else if (balance < 30) {
-      color = Colors.orange;
-      bgColor = Colors.orange.withOpacity(0.15);
+      backgroundColor = Colors.orange.withOpacity(0.1);
     } else {
-      color = Colors.green;
-      bgColor = Colors.green.withOpacity(0.15);
+      backgroundColor = Colors.green.withOpacity(0.1);
     }
     
-    // Format ตัวเลข: 1000+ จะแสดงเป็น "1K"
-    final String displayText;
-    if (balance >= 1000) {
-      displayText = '${(balance / 1000).toStringAsFixed(1)}K';
+    // Determine border color
+    Color borderColor;
+    if (balance < 10) {
+      borderColor = Colors.red;
+    } else if (balance < 30) {
+      borderColor = Colors.orange;
     } else {
-      displayText = '$balance';
+      borderColor = Colors.green;
     }
+    
+    // Format display text
+    final displayText = balance >= 1000
+        ? '${(balance / 1000).toStringAsFixed(1)}K'
+        : balance.toString();
     
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const EnergyStoreScreen()),
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const EnergyStoreScreen(),
+          ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color,
-            width: 1.5,
+      child: IntrinsicWidth(
+        child: Container(
+          constraints: const BoxConstraints(
+            minWidth: 60,
+            maxWidth: 120,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '⚡',
-              style: const TextStyle(fontSize: 12),
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: borderColor,
+              width: 2,
             ),
-            const SizedBox(width: 3),
-            Text(
-              displayText,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: color,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '⚡',
+                style: TextStyle(fontSize: 16),
               ),
-            ),
-          ],
+              const SizedBox(width: 4),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    displayText,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: borderColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.visible,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

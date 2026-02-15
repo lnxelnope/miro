@@ -262,28 +262,30 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Tap ✨ button to add food',
-            style: TextStyle(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                onPressed: _showScanOptions,
-                icon: const Icon(Icons.qr_code_scanner),
-                label: const Text('Scan Barcode'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.health,
-                  foregroundColor: Colors.white,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              children: [
+                Text(
+                  'Pull to refresh and I\'ll search for food photos you\'ve taken',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(height: 12),
+                Text(
+                  'or just tell me what you ate today :)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

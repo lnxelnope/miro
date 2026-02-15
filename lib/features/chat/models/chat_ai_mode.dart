@@ -1,11 +1,11 @@
 /// AI mode สำหรับ Chat System
 /// - local: ใช้ Local AI (ฟรี, อังกฤษอย่างเดียว, ความแม่นยำต่ำ)
-/// - miroAi: ใช้ Miro AI (1 Energy/chat, ทุกภาษา, ความแม่นยำสูง)
+/// - miroAi: ใช้ Miro AI (2⚡ base + 1⚡ per item, ทุกภาษา, ความแม่นยำสูง)
 enum ChatAiMode {
   /// Local AI — Free, English only, Regex-based
   local,
   
-  /// Miro AI — 1 Energy/chat, Multi-language, Gemini-powered
+  /// Miro AI — 2⚡ base + 1⚡/item, Multi-language, Gemini-powered
   miroAi;
 
   /// Display name สำหรับแสดงใน UI
@@ -24,7 +24,7 @@ enum ChatAiMode {
       case ChatAiMode.local:
         return 'Free • EN only';
       case ChatAiMode.miroAi:
-        return '2⚡/chat';
+        return '2⚡ + 1⚡/item';
     }
   }
 

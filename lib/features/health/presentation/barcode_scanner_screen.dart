@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
-import '../../../core/constants/ai_loading_messages.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
@@ -15,6 +14,7 @@ import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
 import '../models/food_entry.dart';
 import 'nutrition_label_screen.dart';
+import 'image_analysis_preview_screen.dart';
 
 class BarcodeScannerScreen extends ConsumerStatefulWidget {
   const BarcodeScannerScreen({super.key});
@@ -385,47 +385,21 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         return;
       }
 
-      setState(() => _isProcessing = true);
-
-      // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
-      final hasEnergy = await GeminiService.hasEnergy();
-      if (!hasEnergy) {
-        if (!context.mounted) return;
-        setState(() {
-          _isProcessing = false;
-          _hasScanned = false;
-        });
-        await NoEnergyDialog.show(context);
-        return;
-      }
-      
-      // ────── แสดง loading dialog ──────
       if (!context.mounted) return;
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
+      setState(() {
+        _isProcessing = false;
+        _hasScanned = false;
+      });
+
+      // Navigate to preview screen
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ImageAnalysisPreviewScreen(
+            imageFile: File(photo.path),
+            initialFoodName: barcodeValue ?? 'product',
+          ),
+        ),
       );
-
-      // ────── วิเคราะห์ด้วย Gemini ──────
-      final result = await GeminiService.analyzeBarcodedProduct(
-        File(photo.path),
-        barcodeValue,
-      );
-
-      if (!context.mounted) return;
-      Navigator.pop(context); // ปิด loading dialog
-      setState(() => _isProcessing = false);
-
-      if (result == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ ไม่สามารถวิเคราะห์ได้')),
-        );
-        setState(() => _hasScanned = false);
-        return;
-      }
-
-      _showAnalysisResult(result, barcodeValue, photo.path);
     } catch (e) {
       if (!context.mounted) return;
       setState(() {

@@ -9,10 +9,18 @@ import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import * as crypto from 'crypto';
 import fetch from 'node-fetch';
+import * as admin from 'firebase-admin';
 
 // Define secrets
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const ENERGY_ENCRYPTION_SECRET = defineSecret('ENERGY_ENCRYPTION_SECRET');
+
+// Initialize Firebase Admin (ถ้ายังไม่ได้ init)
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+const db = admin.firestore();
 
 // ───────────────────────────────────────────────────────────
 // 1. CONSTANTS & CONFIG
@@ -34,13 +42,20 @@ const corsHeaders = {
 
 interface EnergyToken {
   userId: string;      // Device ID or User ID
-  balance: number;     // Current energy balance
+  balance?: number;    // ⚠️ PHASE 3: Optional (backward compatible)
   timestamp: number;   // Token creation time
   signature: string;   // HMAC signature
 }
 
 /**
- * ตรวจสอบความถูกต้องของ Energy Token
+ * Verify Energy Token
+ * 
+ * ✅ PHASE 3: รองรับ 2 formats:
+ * - Old format: { userId, balance, timestamp, signature }
+ * - New format: { userId, timestamp, signature } ← ไม่มี balance
+ * 
+ * ⚠️ balance ใน token (ถ้ามี) จะถูก IGNORE
+ * Backend อ่าน balance จาก Firestore เท่านั้น
  */
 function verifyEnergyToken(token: string, secret: string): EnergyToken | null {
   try {
@@ -48,25 +63,54 @@ function verifyEnergyToken(token: string, secret: string): EnergyToken | null {
       Buffer.from(token, 'base64').toString('utf-8')
     ) as EnergyToken;
     
-    // ตรวจสอบว่า token ไม่เก่าเกิน 5 นาที (ป้องกัน replay attack)
-    const now = Date.now();
-    if (now - decoded.timestamp > 5 * 60 * 1000) {
-      console.log('❌ Token expired');
+    const { userId, timestamp, signature } = decoded;
+    
+    // Validate required fields
+    if (!userId || !timestamp || !signature) {
+      console.log('❌ [verifyToken] Missing required fields');
       return null;
     }
     
-    // ตรวจสอบ signature
-    const payload = `${decoded.userId}:${decoded.balance}:${decoded.timestamp}`;
+    // ✅ PHASE 3: ไม่ต้องการ balance ใน token แล้ว
+    // Token เก่าอาจจะมี balance, Token ใหม่ไม่มี
+    const balance = decoded.balance; // อาจจะมีหรือไม่มีก็ได้
+    
+    // Verify signature
+    let payload: string;
+    if (balance !== undefined) {
+      // Old token format (มี balance)
+      payload = `${userId}:${balance}:${timestamp}`;
+    } else {
+      // New token format (ไม่มี balance)
+      payload = `${userId}:${timestamp}`;
+    }
+    
     const expectedSignature = generateSignature(payload, secret);
     
-    if (decoded.signature !== expectedSignature) {
-      console.log('❌ Invalid signature');
+    if (signature !== expectedSignature) {
+      console.log('❌ [verifyToken] Invalid signature');
       return null;
     }
     
-    return decoded;
+    // Check expiry (5 minutes)
+    const now = Date.now();
+    if (now - timestamp > 5 * 60 * 1000) {
+      console.log('❌ [verifyToken] Token expired');
+      return null;
+    }
+    
+    console.log(`✅ [verifyToken] Valid token for user: ${userId}`);
+    
+    // ⚠️ Return balance as undefined — ไม่ใช้อีกต่อไป
+    // Backend จะอ่านจาก Firestore แทน
+    return { 
+      userId, 
+      balance: undefined, // IGNORED
+      timestamp,
+      signature,
+    };
   } catch (error) {
-    console.error('❌ Token verification error:', error);
+    console.log('❌ [verifyToken] Parse error:', error);
     return null;
   }
 }
@@ -79,6 +123,143 @@ function generateSignature(payload: string, secret: string): string {
     .createHmac('sha256', secret)
     .update(payload)
     .digest('hex');
+}
+
+// ===================================================================
+// FIRESTORE HELPERS - Phase 1: Server-side Balance
+// ===================================================================
+
+/**
+ * อ่าน balance จาก Firestore (Server = Source of Truth)
+ * ถ้ายังไม่มี document → สร้างใหม่พร้อม welcome gift
+ */
+async function getServerBalance(deviceId: string): Promise<number> {
+  try {
+    const docRef = db.collection('energy_balances').doc(deviceId);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      // New user — สร้าง document พร้อม welcome gift
+      const welcomeBalance = 100;
+      
+      await docRef.set({
+        balance: welcomeBalance,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        welcomeGiftClaimed: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      
+      console.log(`🎁 [Firestore] New user ${deviceId}: Welcome gift ${welcomeBalance}`);
+      return welcomeBalance;
+    }
+    
+    const balance = doc.data()?.balance ?? 0;
+    console.log(`📊 [Firestore] User ${deviceId}: Balance = ${balance}`);
+    return balance;
+    
+  } catch (error) {
+    console.error(`❌ [Firestore] Error reading balance for ${deviceId}:`, error);
+    throw new Error('Failed to read server balance');
+  }
+}
+
+/**
+ * หัก balance ใน Firestore (Atomic Transaction)
+ * ป้องกัน race condition เมื่อมีหลาย request พร้อมกัน
+ * 
+ * @param deviceId - Device ID ของ user
+ * @param amount - จำนวนที่จะหัก
+ * @returns balance ใหม่หลังหัก
+ */
+async function deductServerBalance(
+  deviceId: string,
+  amount: number
+): Promise<number> {
+  try {
+    const docRef = db.collection('energy_balances').doc(deviceId);
+    
+    // ใช้ Transaction เพื่อป้องกัน race condition
+    const newBalance = await db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(docRef);
+      
+      if (!doc.exists) {
+        throw new Error('User not found in Firestore');
+      }
+      
+      const currentBalance = doc.data()?.balance ?? 0;
+      
+      // ห้าม balance ติดลบ
+      if (currentBalance < amount) {
+        throw new Error(`Insufficient balance: have ${currentBalance}, need ${amount}`);
+      }
+      
+      const updated = currentBalance - amount;
+      
+      transaction.update(docRef, {
+        balance: updated,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      
+      console.log(`💰 [Firestore] ${deviceId}: ${currentBalance} - ${amount} = ${updated}`);
+      return updated;
+    });
+    
+    return newBalance;
+    
+  } catch (error) {
+    console.error(`❌ [Firestore] Error deducting balance for ${deviceId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * เพิ่ม balance ใน Firestore (สำหรับ purchase, gift, etc.)
+ * 
+ * @param deviceId - Device ID ของ user
+ * @param amount - จำนวนที่จะเพิ่ม
+ * @param reason - เหตุผล (purchase, gift, welcome, etc.)
+ * @returns balance ใหม่หลังเพิ่ม
+ * 
+ * ⚠️ ฟังก์ชันนี้ไม่ได้ใช้ใน analyzeFood แต่จะใช้ใน verifyPurchase (Phase 2)
+ * Exported เพื่อให้ function อื่นใช้ได้
+ */
+export async function addServerBalance(
+  deviceId: string,
+  amount: number,
+  reason: string
+): Promise<number> {
+  try {
+    const docRef = db.collection('energy_balances').doc(deviceId);
+    
+    const newBalance = await db.runTransaction(async (transaction) => {
+      const doc = await transaction.get(docRef);
+      
+      const currentBalance = doc.exists ? (doc.data()?.balance ?? 0) : 0;
+      const updated = currentBalance + amount;
+      
+      if (doc.exists) {
+        transaction.update(docRef, {
+          balance: updated,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      } else {
+        transaction.set(docRef, {
+          balance: updated,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+      
+      console.log(`💎 [Firestore] ${deviceId}: ${currentBalance} + ${amount} = ${updated} (${reason})`);
+      return updated;
+    });
+    
+    return newBalance;
+    
+  } catch (error) {
+    console.error(`❌ [Firestore] Error adding balance for ${deviceId}:`, error);
+    throw error;
+  }
 }
 
 // ───────────────────────────────────────────────────────────
@@ -184,6 +365,8 @@ For each food item, provide:
 - serving_size: number (default 1 if not specified)
 - serving_unit: one of these units ONLY [plate, cup, bowl, piece, box, pack, bag, bottle, glass, egg, ball, item, slice, pair, stick, g, kg, ml, l, serving, tbsp, tsp, oz, lbs]. If user doesn't specify or uses unsupported unit, use "serving"
 - calories, protein, carbs, fat: estimated values (best effort)
+- fiber, sugar, sodium: estimated micronutrients (fiber in g, sugar in g, sodium in mg)
+- ingredients_detail: array of ingredient breakdown for this food item. Each ingredient must include name, name_en, amount (number), unit (g/ml/piece/etc), calories, protein, carbs, fat
 
 When providing nutrition estimates, consider:
 - User's health goals (${userContext?.weightGoal || 'not specified'})
@@ -191,24 +374,34 @@ When providing nutrition estimates, consider:
 - Portion sizes appropriate for their profile
 
 IMPORTANT: 
-- Respond in ENGLISH only (but keep food_name_local in original language)
+- Respond in ENGLISH only (but keep food_name_local and ingredient names in original language)
 - Return JSON only, no markdown code blocks
 - If the message is not about food (e.g. asking for health advice), provide personalized advice based on their profile
+- ALWAYS include ingredients_detail for each food item - break down the dish into its main ingredients
 
 Expected JSON format:
 {
   "type": "food_log",
   "items": [
     {
-      "food_name": "...",
-      "food_name_local": "...",
-      "meal_type": "...",
+      "food_name": "Stir-fried basil pork with rice",
+      "food_name_local": "ข้าวกะเพราหมูสับ",
+      "meal_type": "lunch",
       "serving_size": 1.0,
-      "serving_unit": "...",
-      "calories": 0,
-      "protein": 0,
-      "carbs": 0,
-      "fat": 0
+      "serving_unit": "plate",
+      "calories": 520,
+      "protein": 22,
+      "carbs": 55,
+      "fat": 22,
+      "fiber": 3,
+      "sugar": 5,
+      "sodium": 800,
+      "ingredients_detail": [
+        {"name": "Minced pork", "name_en": "Minced pork", "amount": 80, "unit": "g", "calories": 170, "protein": 15, "carbs": 0, "fat": 12},
+        {"name": "Jasmine rice", "name_en": "Jasmine rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 52, "fat": 1},
+        {"name": "Holy basil", "name_en": "Holy basil", "amount": 15, "unit": "g", "calories": 3, "protein": 0.5, "carbs": 0.5, "fat": 0},
+        {"name": "Cooking oil", "name_en": "Cooking oil", "amount": 10, "unit": "ml", "calories": 87, "protein": 0, "carbs": 0, "fat": 10}
+      ]
     }
   ],
   "reply": "Logged X items! Today's total: XXX kcal 💪"
@@ -264,13 +457,16 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
     });
   }
   
+  // Use higher token limit for chat/menu_suggestion (ingredients_detail needs more tokens)
+  const maxTokens = (request.type === 'chat' || request.type === 'menu_suggestion') ? 4096 : 1024;
+  
   const requestBody = {
     contents: [{ parts }],
     generationConfig: {
       temperature: 0.4,
       topK: 32,
       topP: 1,
-      maxOutputTokens: 1024,
+      maxOutputTokens: maxTokens,
     },
   };
   
@@ -363,33 +559,45 @@ export const analyzeFood = onRequest(
       const secret = ENERGY_ENCRYPTION_SECRET.value();
       const token = verifyEnergyToken(energyToken, secret);
       
-      if (!token || token.balance < 1) {
-        res.status(402).json({ 
-          error: 'Insufficient energy', 
-          balance: token?.balance || 0
-        });
+      if (!token) {
+        res.status(401).json({ error: 'Invalid or expired token' });
         return;
       }
       
-      console.log(`✅ Token valid. User: ${token.userId}, Balance: ${token.balance}`);
+      // ✅ PHASE 1: อ่าน balance จาก FIRESTORE (Server = Source of Truth)
+      const deviceId = token.userId;
+      let serverBalance: number;
+      
+      try {
+        serverBalance = await getServerBalance(deviceId);
+      } catch (error) {
+        console.error('[analyzeFood] Failed to get server balance:', error);
+        res.status(500).json({ error: 'Failed to check balance' });
+        return;
+      }
+      
+      console.log(`✅ Token valid. User: ${deviceId}, Server Balance: ${serverBalance}`);
       
       // ────── 4.2. Parse Request ──────
-      const { type, text, prompt, imageBase64, deviceId, userContext } = req.body;
+      const { type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext } = req.body;
       
-      // Determine energy cost based on type
-      const energyCost = (type === 'chat' || type === 'menu_suggestion') ? 2 : 1;
+      // Determine BASE energy cost (chat/menu = 2, others = 1)
+      // For chat: additional +1 per food item will be added AFTER Gemini responds
+      const baseCost = (type === 'chat' || type === 'menu_suggestion') ? 2 : 1;
       
-      // Check if user has enough energy for this operation
-      if (token.balance < energyCost) {
+      // Check if user has enough energy for base cost
+      if (serverBalance < baseCost) {
+        console.log(`❌ [analyzeFood] Insufficient balance: have ${serverBalance}, need ${baseCost}`);
         res.status(402).json({ 
           error: 'Insufficient energy', 
-          balance: token.balance,
-          required: energyCost
+          balance: serverBalance,
+          required: baseCost
         });
         return;
       }
       
-      console.log(`⚡ Energy cost for ${type}: ${energyCost}`);
+      console.log(`✅ [analyzeFood] Balance check passed: ${serverBalance} >= ${baseCost}`);
+      console.log(`⚡ Base energy cost for ${type}: ${baseCost}`);
       
       // Log user context if provided
       if (userContext) {
@@ -397,7 +605,7 @@ export const analyzeFood = onRequest(
       }
       
       // Validate required fields
-      if (!type || !deviceId) {
+      if (!type || !requestDeviceId) {
         res.status(400).json({ error: 'Missing required fields: type and deviceId' });
         return;
       }
@@ -439,24 +647,8 @@ export const analyzeFood = onRequest(
       
       console.log('✅ Gemini API success');
       
-      // ────── 4.4. Deduct Energy & Generate New Token ──────
-      const newBalance = token.balance - energyCost;
-      const newTimestamp = Date.now();
-      const newPayload = `${token.userId}:${newBalance}:${newTimestamp}`;
-      const newSignature = generateSignature(newPayload, secret);
-      
-      const newToken: EnergyToken = {
-        userId: token.userId,
-        balance: newBalance,
-        timestamp: newTimestamp,
-        signature: newSignature,
-      };
-      
-      const newTokenString = Buffer.from(JSON.stringify(newToken)).toString('base64');
-      
-      console.log(`⚡ Energy deducted. New balance: ${newBalance}`);
-      
-      // ────── 4.5. Parse และ validate response (สำหรับ chat และ menu_suggestion type) ──────
+      // ────── 4.4. Parse response & calculate DYNAMIC energy cost ──────
+      // For chat type: parse first to count items, then calculate total cost
       if (type === 'chat' || type === 'menu_suggestion') {
         try {
           // Parse Gemini response text
@@ -475,30 +667,96 @@ export const analyzeFood = onRequest(
           // Validate serving units
           validateServingUnits(parsedResult);
           
-          // Return parsed result
+          // ── Dynamic pricing: base 2 + 1 per food item ──
+          const itemCount = (parsedResult.items && Array.isArray(parsedResult.items)) 
+            ? parsedResult.items.length 
+            : 0;
+          const perItemCost = itemCount; // 1 energy per food item
+          const totalCost = baseCost + perItemCost;
+          
+          // ✅ PHASE 1: เช็คว่า balance พอหรือไม่ (ก่อนหัก)
+          if (serverBalance < totalCost) {
+            console.log(`❌ [analyzeFood] Insufficient balance for dynamic cost: have ${serverBalance}, need ${totalCost}`);
+            res.status(402).json({
+              error: 'Insufficient energy',
+              balance: serverBalance,
+              required: totalCost,
+            });
+            return;
+          }
+          
+          // ✅ PHASE 1: หัก balance ใน Firestore
+          let newBalance: number;
+          try {
+            newBalance = await deductServerBalance(deviceId, totalCost);
+            console.log(`✅ [analyzeFood] Balance updated: ${newBalance} (deducted ${totalCost})`);
+          } catch (error) {
+            console.error('[analyzeFood] Failed to deduct balance:', error);
+            // เกิด error ตอนหัก balance แต่เราเรียก Gemini API ไปแล้ว
+            console.error('⚠️ WARNING: Gemini API called but balance deduction failed!');
+            console.error('⚠️ Manual intervention may be required for user:', deviceId);
+            // เราจะ return result ไปก่อน แต่ไม่อัพเดท balance
+            newBalance = serverBalance;
+          }
+          
+          console.log(`⚡ Dynamic pricing: base=${baseCost} + items=${itemCount}×1 = total ${totalCost} energy`);
+          console.log(`⚡ Deducted: ${totalCost} (balance: ${serverBalance} → ${newBalance})`);
+          
+          // ✅ PHASE 1: ส่ง balance กลับแทน token
+          // Return parsed result with energy breakdown
           res.status(200)
             .set('X-Energy-Balance', newBalance.toString())
             .json({
               success: true,
               ...parsedResult,
-              newEnergyToken: newTokenString,
-              newBalance,
+              balance: newBalance,
+              energyUsed: totalCost,
+              // Energy cost breakdown for client display
+              energyCost: totalCost,
+              energyBreakdown: {
+                baseCost,
+                itemCount,
+                perItemCost,
+                totalCost,
+              },
+              // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
             });
           return;
         } catch (parseError: any) {
           console.error('❌ Error parsing chat response:', parseError);
-          // Fall through to return raw response
+          // Fall through — still deduct base cost even if parsing fails
         }
       }
       
+      // ────── 4.5. Deduct Energy for non-chat types (or chat parse failure) ──────
+      // ✅ PHASE 1: หัก balance ใน Firestore
+      let newBalance: number;
+      
+      try {
+        newBalance = await deductServerBalance(deviceId, baseCost);
+        console.log(`✅ [analyzeFood] Balance updated: ${newBalance} (deducted ${baseCost})`);
+      } catch (error) {
+        console.error('[analyzeFood] Failed to deduct balance:', error);
+        // เกิด error ตอนหัก balance แต่เราเรียก Gemini API ไปแล้ว
+        console.error('⚠️ WARNING: Gemini API called but balance deduction failed!');
+        console.error('⚠️ Manual intervention may be required for user:', deviceId);
+        // เราจะ return result ไปก่อน แต่ไม่อัพเดท balance
+        newBalance = serverBalance;
+      }
+      
+      console.log(`⚡ Energy deducted (base): ${baseCost}. New balance: ${newBalance}`);
+      
       // ────── 4.6. Return Response (สำหรับ type อื่นๆ) ──────
+      // ✅ PHASE 1: ส่ง balance กลับแทน token
       res.status(200)
         .set('X-Energy-Balance', newBalance.toString())
         .json({
           success: true,
           data: geminiResponse,
-          newEnergyToken: newTokenString,
-          newBalance,
+          balance: newBalance,
+          energyUsed: baseCost,
+          energyCost: baseCost,
+          // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
         });
       
     } catch (error: any) {

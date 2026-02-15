@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
 import 'device_id_service.dart';
 
 /// Service สำหรับสร้างและตรวจสอบ Energy Token
@@ -11,22 +11,30 @@ class EnergyTokenService {
   static const String _encryptionSecret = 
       'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2';
   
-  /// สร้าง Energy Token ใหม่
-  /// Format: { userId, balance, timestamp, signature }
-  static Future<String> generateToken(int balance) async {
+  /// สร้าง Energy Token สำหรับ authentication
+  /// 
+  /// ✅ PHASE 3: ไม่มี balance ใน token อีกต่อไป
+  /// Token ใช้เพื่อพิสูจน์ว่า request มาจากแอปของเราเท่านั้น
+  /// Backend จะอ่าน balance จาก Firestore เอง
+  static Future<String> generateToken() async {
     final userId = await DeviceIdService.getDeviceId();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final payload = '$userId:$balance:$timestamp';
+    
+    // ✅ Payload ไม่มี balance แล้ว
+    final payload = '$userId:$timestamp';
     final signature = _generateSignature(payload);
     
     final token = {
       'userId': userId,
-      'balance': balance,
       'timestamp': timestamp,
       'signature': signature,
+      // ไม่มี balance อีกต่อไป
     };
     
-    return base64Encode(utf8.encode(json.encode(token)));
+    final encoded = base64Encode(utf8.encode(json.encode(token)));
+    
+    debugPrint('[EnergyTokenService] ✅ Token generated (no balance)');
+    return encoded;
   }
   
   /// สร้าง HMAC-SHA256 signature

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../providers/health_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../presentation/today_summary_dashboard_screen.dart';
 
 class DailySummaryCard extends ConsumerWidget {
   /// วันที่ที่ต้องการแสดงสรุป (ถ้าไม่ระบุ = วันนี้)
@@ -165,6 +166,34 @@ class DailySummaryCard extends ConsumerWidget {
                           color: AppColors.fat,
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Details button
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const TodaySummaryDashboardScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.analytics_outlined, size: 16),
+                      label: const Text(
+                        'View Details',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
                     ),
                   ],
                 );

@@ -120,9 +120,10 @@ class GeminiChatService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         
-        // Update energy balance from backend response
-        if (data['newEnergyToken'] != null) {
-          await energyService.updateFromBackendToken(data['newEnergyToken'] as String);
+        // ✅ PHASE 1: รับ balance จาก response แล้ว sync
+        if (data['balance'] != null) {
+          final newBalance = data['balance'] as int;
+          await energyService.updateFromServerResponse(newBalance);
         }
         
         return data;
@@ -182,9 +183,10 @@ class GeminiChatService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         
-        // Update energy balance from backend response
-        if (data['newEnergyToken'] != null) {
-          await energyService.updateFromBackendToken(data['newEnergyToken'] as String);
+        // ✅ PHASE 1: รับ balance จาก response แล้ว sync
+        if (data['balance'] != null) {
+          final newBalance = data['balance'] as int;
+          await energyService.updateFromServerResponse(newBalance);
         }
         
         return data;

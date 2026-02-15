@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/disclaimer_widget.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
@@ -625,7 +626,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<String>(
-                      value: _getValidUnit(_servingUnit),
+                      initialValue: _getValidUnit(_servingUnit),
                       isDense: true,
                       style: const TextStyle(fontSize: 14, color: Colors.black87),
                       dropdownColor: Colors.white,
@@ -694,6 +695,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
               _buildEditableIngredientsSection(),
             ],
 
+            const SizedBox(height: 24),
+            const DisclaimerWidget(compact: false, showFullButton: true),
             const SizedBox(height: 24),
 
             // Confirm + Cancel buttons
@@ -896,7 +899,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  value: _getValidUnit(row.unit),
+                  initialValue: _getValidUnit(row.unit),
                   isDense: true,
                   isExpanded: true,
                   style: const TextStyle(fontSize: 12, color: Colors.black87),

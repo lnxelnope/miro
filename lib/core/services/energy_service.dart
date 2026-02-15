@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:isar/isar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import '../models/energy_transaction.dart';
 import 'device_id_service.dart';
 import 'energy_token_service.dart';
@@ -24,10 +27,29 @@ class EnergyService {
   // 1. BALANCE MANAGEMENT
   // ───────────────────────────────────────────────────────────
   
-  /// ดึงยอด Energy ปัจจุบัน (จาก SharedPreferences — เร็วกว่า Isar)
+  /// อ่าน balance จาก local cache
+  /// ⚠️ PHASE 1: นี่เป็นแค่ cache — Server = Source of Truth
   Future<int> getBalance() async {
+    // ลองอ่านจาก SecureStorage ก่อน (encrypted)
+    try {
+      final cached = await _storage.read(key: _keyBalance);
+      if (cached != null) {
+        return int.tryParse(cached) ?? 0;
+      }
+    } catch (e) {
+      debugPrint('[EnergyService] Error reading from SecureStorage: $e');
+    }
+    
+    // Fallback: อ่านจาก SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_keyBalance) ?? 0;
+    final balance = prefs.getInt(_keyBalance) ?? 0;
+    
+    // Migrate ไป SecureStorage
+    if (balance > 0) {
+      await _storage.write(key: _keyBalance, value: balance.toString());
+    }
+    
+    return balance;
   }
   
   /// ตรวจสอบว่ามี Energy พอใช้หรือไม่
@@ -86,9 +108,83 @@ class EnergyService {
   }
   
   /// อัพเดทยอด Energy ใน SharedPreferences
+  /// ⚠️ PHASE 1: เปลี่ยนให้เรียก updateFromServerResponse แทน
   Future<void> _updateBalance(int newBalance) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyBalance, newBalance);
+    await updateFromServerResponse(newBalance);
+  }
+  
+  /// อัพเดท balance จาก Server response
+  /// ✅ PHASE 1: Server = Source of Truth, Client sync ตามนี้
+  /// 
+  /// เรียก method นี้เมื่อ:
+  /// - ได้ response จาก analyzeFood (หลังใช้ energy)
+  /// - ได้ response จาก syncBalance (ตอน app startup)
+  /// - ได้ response จาก verifyPurchase (หลังซื้อ energy)
+  Future<void> updateFromServerResponse(int newBalance) async {
+    try {
+      // เก็บใน SecureStorage (encrypted, primary storage)
+      await _storage.write(
+        key: _keyBalance,
+        value: newBalance.toString(),
+      );
+      
+      // เก็บใน SharedPreferences ด้วย (fast read cache)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_keyBalance, newBalance);
+      
+      debugPrint('[EnergyService] ✅ Balance updated from server: $newBalance');
+      
+    } catch (e) {
+      debugPrint('[EnergyService] ❌ Error updating balance: $e');
+      throw Exception('Failed to update balance');
+    }
+  }
+  
+  /// Sync balance กับ Server (เรียกตอน app startup)
+  /// 
+  /// Migration strategy:
+  /// - ถ้ามี balance เดิมใน local → ส่งไปให้ Server (one-time migration)
+  /// - ถ้า Server มี balance แล้ว → ใช้ค่าจาก Server (server wins)
+  Future<int> syncBalanceWithServer() async {
+    try {
+      // อ่าน balance เดิมจาก local (สำหรับ migration)
+      final localBalance = await getBalance();
+      
+      // ดึง deviceId
+      final deviceId = await DeviceIdService.getDeviceId();
+      
+      // เรียก Backend
+      const url = 'https://us-central1-miro-d6856.cloudfunctions.net/syncBalance';
+      
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'deviceId': deviceId,
+          'localBalance': localBalance > 0 ? localBalance : null,
+          'type': localBalance > 0 ? 'migration' : 'startup',
+        }),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final serverBalance = data['balance'] as int;
+        
+        debugPrint('[EnergyService] ✅ Synced with server: $serverBalance (${data['action']})');
+        
+        // อัพเดท local cache
+        await updateFromServerResponse(serverBalance);
+        
+        return serverBalance;
+      } else {
+        throw Exception('Server returned ${response.statusCode}');
+      }
+      
+    } catch (e) {
+      debugPrint('[EnergyService] ❌ Sync failed: $e');
+      // Fallback: ใช้ local balance
+      return await getBalance();
+    }
   }
   
   // ───────────────────────────────────────────────────────────
@@ -279,17 +375,63 @@ class EnergyService {
   // ───────────────────────────────────────────────────────────
   
   /// สร้าง Energy Token สำหรับส่งให้ Backend
+  /// ✅ PHASE 3: ไม่ต้องส่ง balance อีกต่อไป
   Future<String> generateEnergyToken() async {
-    final balance = await getBalance();
-    return EnergyTokenService.generateToken(balance);
+    return EnergyTokenService.generateToken();
   }
   
   /// อัพเดท Energy จาก Backend response (หลังจากใช้ AI)
   /// Backend จะส่ง newEnergyToken กลับมา
+  /// ⚠️ PHASE 3: Deprecated - ใช้ updateFromServerResponse() แทน
+  @Deprecated('Use updateFromServerResponse() instead (Phase 1)')
   Future<void> updateFromBackendToken(String newToken) async {
     final decoded = EnergyTokenService.decodeToken(newToken);
     if (decoded != null && decoded['balance'] != null) {
       await _updateBalance(decoded['balance'] as int);
+    }
+  }
+  
+  /// Migrate data จาก SharedPreferences → FlutterSecureStorage
+  /// เรียกครั้งเดียวตอน app startup
+  Future<void> migrateToSecureStorage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      // ─── Migrate balance ───
+      final balance = prefs.getInt(_keyBalance);
+      if (balance != null) {
+        // เช็คว่า SecureStorage มีหรือยัง
+        final existing = await _storage.read(key: _keyBalance);
+        if (existing == null) {
+          // ยังไม่มี → migrate
+          await _storage.write(
+            key: _keyBalance,
+            value: balance.toString(),
+          );
+          debugPrint('[EnergyService] 🔄 Migrated balance to SecureStorage: $balance');
+        }
+      }
+      
+      // ─── Migrate welcome gift flag (ถ้ามี) ───
+      final deviceId = await DeviceIdService.getDeviceId();
+      final welcomeKey = '$_keyWelcomeClaimed$deviceId';
+      final welcomeGift = prefs.getBool(welcomeKey);
+      if (welcomeGift != null) {
+        final existing = await _storage.read(key: 'welcome_$deviceId');
+        if (existing == null) {
+          await _storage.write(
+            key: 'welcome_$deviceId',
+            value: welcomeGift.toString(),
+          );
+          debugPrint('[EnergyService] 🔄 Migrated welcome gift flag');
+        }
+      }
+      
+      // ⚠️ ไม่ลบจาก SharedPreferences ทันที
+      // เก็บไว้เป็น fallback สำหรับ user ที่ downgrade app
+      
+    } catch (e) {
+      debugPrint('[EnergyService] ❌ Migration error: $e');
     }
   }
 }

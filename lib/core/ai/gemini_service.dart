@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -247,9 +246,10 @@ class GeminiService {
       final result = json.decode(response.body);
       
       // ────── 5. อัพเดท Energy Balance ──────
-      final newToken = result['newEnergyToken'] as String?;
-      if (newToken != null) {
-        await service.updateFromBackendToken(newToken);
+      // ✅ PHASE 1: รับ balance จาก response แล้ว sync
+      if (result['balance'] != null) {
+        final newBalance = result['balance'] as int;
+        await service.updateFromServerResponse(newBalance);
       }
       
       // ────── 6. Parse Gemini Response ──────
@@ -263,6 +263,36 @@ class GeminiService {
           .trim();
       
       final parsedResult = json.decode(cleanedText);
+      
+      // ────── 6.5. Validate ingredients_detail (MANDATORY) ──────
+      if (type == 'image' && parsedResult is Map<String, dynamic>) {
+        if (!parsedResult.containsKey('ingredients_detail') || 
+            parsedResult['ingredients_detail'] == null ||
+            !(parsedResult['ingredients_detail'] is List) ||
+            (parsedResult['ingredients_detail'] as List).isEmpty) {
+          AppLogger.warn('AI response missing or empty ingredients_detail array - creating fallback');
+          
+          // Create fallback ingredient from main nutrition data
+          final nutrition = parsedResult['nutrition'] as Map<String, dynamic>? ?? {};
+          parsedResult['ingredients_detail'] = [
+            {
+              'name': parsedResult['food_name'] ?? 'Unknown Food',
+              'name_en': parsedResult['food_name_en'] ?? parsedResult['food_name'] ?? 'Unknown Food',
+              'amount': parsedResult['serving_size'] ?? 1,
+              'unit': parsedResult['serving_unit'] ?? 'serving',
+              'calories': nutrition['calories'] ?? 0,
+              'protein': nutrition['protein'] ?? 0,
+              'carbs': nutrition['carbs'] ?? 0,
+              'fat': nutrition['fat'] ?? 0,
+              'fiber': nutrition['fiber'] ?? 0,
+              'sugar': nutrition['sugar'] ?? 0,
+              'sodium': nutrition['sodium'] ?? 0,
+            }
+          ];
+          
+          AppLogger.info('Created fallback ingredient from main nutrition');
+        }
+      }
       
       // ────── 7. Track AI Usage & Start Welcome Offer Timer (after 10 uses) ──────
       try {
@@ -312,7 +342,13 @@ class GeminiService {
   }
 
   // Analyze food image (ใช้ Backend เท่านั้น)
-  static Future<FoodAnalysisResult?> analyzeFoodImage(File imageFile, {EnergyService? energyService}) async {
+  static Future<FoodAnalysisResult?> analyzeFoodImage(
+    File imageFile, {
+    EnergyService? energyService,
+    String? foodName,
+    double? quantity,
+    String? unit,
+  }) async {
     AppLogger.info('Starting image analysis: ${imageFile.path}');
     
     // Check if file exists
@@ -331,7 +367,19 @@ class GeminiService {
       AppLogger.info('Using Backend (Energy System)');
       final base64Image = await _compressImageToBase64(imageFile);
       
-      final prompt = _getImageAnalysisPrompt();
+      String prompt = _getImageAnalysisPrompt();
+      
+      // Add optional user-provided information to prompt
+      if (foodName != null && foodName.isNotEmpty) {
+        prompt += '\n\nThe user has indicated this is: "$foodName".';
+      }
+      
+      if (quantity != null && unit != null) {
+        prompt += '\n\nThe user has specified the quantity as: $quantity $unit.';
+      } else if (quantity != null) {
+        prompt += '\n\nThe user has specified the quantity as: $quantity.';
+      }
+      
       final result = await _callBackend(
         type: 'image',
         prompt: prompt,
@@ -378,12 +426,23 @@ class GeminiService {
 
 This is an image of a product with barcode: $barcodeValue
 
+IMPORTANT REQUIREMENTS:
+1. You MUST provide "ingredients_detail" array with individual ingredients if visible
+2. If nutrition label is visible, extract exact values
+3. If ingredients list is visible, parse each ingredient separately
+4. DO NOT just provide a total summary
+
 Please:
 1. Identify product name (if readable from packaging)
 2. Read Nutrition Facts / nutritional information from label (if visible in image)
 3. If no label visible, estimate from product type seen
+4. Parse ingredients list into ingredients_detail array if visible
 
 Important: If nutrition label is visible, use values from label as primary (more accurate than estimation)
+
+CRITICAL: ingredients_detail array is MANDATORY.
+If ingredients list is visible on label, parse each one separately.
+If not visible, estimate main components.
 
 Respond in JSON format:
 {
@@ -404,20 +463,22 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Product name",
-      "name_en": "Product name",
-      "amount": 1,
-      "unit": "pack",
-      "calories": 150,
-      "protein": 3,
-      "carbs": 20,
-      "fat": 7
+      "name": "Ingredient name",
+      "name_en": "Ingredient name in English",
+      "amount": 0,
+      "unit": "gram",
+      "calories": 0,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0
     }
   ],
   "ingredients": ["Ingredient1", "Ingredient2"],
   "barcode": "$barcodeValue",
   "notes": "Read from nutrition label / Estimated from image"
-}''';
+}
+
+Return ONLY valid JSON.''';
 
       final result = await _callBackend(
         type: 'image',
@@ -461,12 +522,25 @@ Respond in JSON format:
 
       const prompt = '''You are an AI expert in reading Nutrition Facts Labels.
 
-This is a photo of a nutrition label. Please:
+This is a photo of a nutrition label.
+
+IMPORTANT REQUIREMENTS:
+1. Extract serving size and serving unit
+2. Extract ALL nutritional values visible
+3. If ingredients list is visible, parse it into "ingredients_detail" array
+4. Provide exact values, do not estimate
+
+Please:
 1. Read all nutritional information from the label
 2. Specify Serving Size as stated on label
 3. Specify Calories, Protein, Carbohydrate, Fat per 1 serving
+4. If ingredients list is visible, parse each ingredient separately
 
 Important: Use values directly from label, do not estimate
+
+CRITICAL: ingredients_detail array is MANDATORY.
+If ingredients list is visible on the label, parse each ingredient separately.
+If ingredients list is NOT visible, create a single ingredient entry with the product name and total nutrition values.
 
 Respond in JSON format:
 {
@@ -487,19 +561,21 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Product name",
-      "name_en": "Product name",
-      "amount": 1,
-      "unit": "serving",
-      "calories": 150,
-      "protein": 3,
-      "carbs": 20,
-      "fat": 7
+      "name": "Ingredient from ingredients list",
+      "name_en": "Ingredient name in English",
+      "amount": 0,
+      "unit": "gram",
+      "calories": 0,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0
     }
   ],
   "ingredients": [],
   "notes": "Read from nutrition label"
-}''';
+}
+
+Return ONLY valid JSON.''';
 
       final result = await _callBackend(
         type: 'image',
@@ -570,7 +646,13 @@ Respond in JSON format:
   
   static String _getImageAnalysisPrompt() {
     return '''You are an AI expert in nutrition for global cuisine.
-Analyze the food image and estimate nutritional values as accurately as possible.
+Analyze the food image and provide DETAILED nutritional information.
+
+IMPORTANT REQUIREMENTS:
+1. You MUST identify ALL individual ingredients/components visible in the image
+2. You MUST provide nutritional breakdown for EACH ingredient separately
+3. You MUST include the "ingredients_detail" array with ALL ingredients
+4. DO NOT just provide a total summary - break down every ingredient
 
 CRITICAL REQUIREMENTS:
 - food_name: Detect the language in image/context and provide in ORIGINAL language ONLY (Thai if Thai text, English if English text, Japanese if Japanese text, etc.)
@@ -583,9 +665,20 @@ CRITICAL REQUIREMENTS:
 - Do NOT use "g" or "ml" as serving_unit for dishes/bowls/plates — use "serving" as fallback if unsure
 - "g" is only used for individual ingredients in ingredients_detail
 
-Break down each ingredient with quantity and nutritional values.
+CRITICAL RULES:
+- "ingredients_detail" array is MANDATORY and must contain at least 1 ingredient
+- For complex dishes (like steak with fries), list each component separately
+- For simple foods (like an apple), still create 1 ingredient entry
+- The sum of all ingredient nutrition should approximately equal the total nutrition
+- Estimate amounts in grams/ml when possible
+- If you cannot identify ingredients, still provide your best estimate in ingredients_detail
 
-Respond in JSON format following this structure:
+Example for "Steak with French Fries":
+- Ingredient 1: Beef Steak (150g) - 375 kcal, P: 40g, C: 0g, F: 22g
+- Ingredient 2: French Fries (100g) - 220 kcal, P: 3g, C: 30g, F: 11g
+- Ingredient 3: Sauce (if visible, 20ml) - 55 kcal, P: 0g, C: 5g, F: 4g
+
+Respond in JSON format following this EXACT structure:
 {
   "food_name": "Original name detected from image (Thai/English/Japanese/etc.)",
   "food_name_en": "ALWAYS English translation - NEVER leave this in Thai/Japanese/etc.",
@@ -628,7 +721,7 @@ Respond in JSON format following this structure:
   "notes": "Additional notes"
 }
 
-If you can't identify the food, set confidence to 0.0 and make reasonable estimates.''';
+Return ONLY valid JSON, no markdown or explanations.''';
   }
   
   static String _getTextAnalysisPrompt(String foodName, {double? servingSize, String? servingUnit}) {

@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
 import 'usage_limiter.dart';
 import 'energy_service.dart';
 import 'welcome_offer_service.dart';
+import 'device_id_service.dart';
 
 /// จัดการ Google Play In-App Purchase
 class PurchaseService {
@@ -43,6 +47,10 @@ class PurchaseService {
   static final InAppPurchase _iap = InAppPurchase.instance;
   static StreamSubscription<List<PurchaseDetails>>? _subscription;
   static EnergyService? _energyService;
+  
+  // ✅ PHASE 2: Server verification URL
+  static const String _verifyPurchaseUrl =
+      'https://us-central1-miro-d6856.cloudfunctions.net/verifyPurchase';
   
   /// Set EnergyService (required for energy purchases)
   static void setEnergyService(EnergyService energyService) {
@@ -193,72 +201,215 @@ class PurchaseService {
     }
     
     switch (purchase.status) {
+      case PurchaseStatus.pending:
+        debugPrint('[PurchaseService] ⏳ Purchase pending: $productId');
+        // แสดง loading หรือ pending state
+        break;
+
       case PurchaseStatus.purchased:
-        // เพิ่ม Energy
-        await _energyService!.addEnergy(
-          energyAmount,
-          type: productId.contains('welcome') ? 'welcome_offer' : 'purchase',
-          packageId: productId,
-          purchaseToken: purchase.verificationData.serverVerificationData,
-          description: 'Purchased $energyAmount Energy',
-        );
+        debugPrint('[PurchaseService] ✅ Purchase successful: $productId');
         
-        // ถ้าเป็น welcome offer → mark as claimed
-        if (productId.contains('welcome')) {
-          // ตรวจสอบว่าเคยซื้อแล้วหรือยัง (double-check)
-          final hasClaimed = await WelcomeOfferService.hasClaimed();
-          if (hasClaimed) {
-            debugPrint('[PurchaseService] ⚠️ Welcome offer already claimed! This should not happen.');
-            if (purchase.pendingCompletePurchase) {
-              await _iap.completePurchase(purchase);
+        // ✅ PHASE 2: Verify กับ Server ก่อน
+        final verified = await _verifyPurchaseWithServer(
+          purchaseToken: purchase.verificationData.serverVerificationData,
+          productId: productId,
+        );
+
+        if (verified != null && verified['success'] == true) {
+          // Server verify สำเร็จ
+          final newBalance = verified['balance'] as int;
+          final energyAdded = verified['energyAdded'] as int;
+
+          // Sync balance จาก server
+          await _energyService!.updateFromServerResponse(newBalance);
+
+          debugPrint('[PurchaseService] 💎 Server-verified: +$energyAdded → Balance: $newBalance');
+
+          // Complete purchase (tell Google Play we're done)
+          await _iap.completePurchase(purchase);
+
+          // ถ้าเป็น welcome offer → mark as claimed
+          if (productId.contains('welcome')) {
+            // ตรวจสอบว่าเคยซื้อแล้วหรือยัง (double-check)
+            final hasClaimed = await WelcomeOfferService.hasClaimed();
+            if (hasClaimed) {
+              debugPrint('[PurchaseService] ⚠️ Welcome offer already claimed! This should not happen.');
+              return;
             }
-            return;
+            
+            await WelcomeOfferService.markClaimed(productId);
+            
+            // Analytics: track welcome offer purchase
+            await FirebaseAnalytics.instance.logEvent(
+              name: 'welcome_offer_purchased',
+              parameters: {
+                'package_id': productId,
+                'amount': energyAdded,
+              },
+            );
+          } else {
+            // Analytics: track regular purchase
+            await FirebaseAnalytics.instance.logEvent(
+              name: 'energy_purchased',
+              parameters: {
+                'package_id': productId,
+                'amount': energyAdded,
+              },
+            );
           }
           
-          await WelcomeOfferService.markClaimed(productId);
-          
-          // Analytics: track welcome offer purchase
-          await FirebaseAnalytics.instance.logEvent(
-            name: 'welcome_offer_purchased',
-            parameters: {
-              'package_id': productId,
-              'amount': energyAmount,
-            },
-          );
         } else {
-          // Analytics: track regular purchase
-          await FirebaseAnalytics.instance.logEvent(
-            name: 'energy_purchased',
-            parameters: {
-              'package_id': productId,
-              'amount': energyAmount,
-            },
-          );
+          // Server verify ไม่ได้ (error, duplicate, หรือ network issue)
+          debugPrint('[PurchaseService] ⚠️ Server verification failed');
+          
+          // Save pending purchase สำหรับ retry ทีหลัง
+          await _savePendingPurchase(purchase, productId);
+          
+          // แสดง error message
+          // เช่น: "กรุณารอสักครู่ ระบบกำลังตรวจสอบการซื้อของคุณ"
         }
-        
-        debugPrint('[PurchaseService] ✅ Energy purchase completed: +$energyAmount Energy');
         break;
-        
+
       case PurchaseStatus.error:
-        debugPrint('[PurchaseService] ❌ Energy purchase error: ${purchase.error}');
+        debugPrint('[PurchaseService] ❌ Purchase error: ${purchase.error}');
         AppLogger.error('Energy purchase error', purchase.error);
-        break;
-        
-      case PurchaseStatus.pending:
-        debugPrint('[PurchaseService] ⏳ Energy purchase pending...');
         break;
         
       case PurchaseStatus.canceled:
         debugPrint('[PurchaseService] ⚠️ Energy purchase canceled by user');
         break;
         
-      default:
+      case PurchaseStatus.restored:
+        // สำหรับ non-consumable products (subscription, etc.)
+        // Energy เป็น consumable → ไม่ต้อง restore
+        debugPrint('[PurchaseService] 🔄 Purchase restored: $productId');
         break;
     }
     
-    // Complete purchase (consumable)
+    // Complete purchase (consumable) - ถ้ายังไม่ได้ complete
     if (purchase.pendingCompletePurchase) {
       await _iap.completePurchase(purchase);
+    }
+  }
+  
+  /// Verify purchase กับ Backend
+  /// 
+  /// Returns:
+  /// - Map ถ้า verify สำเร็จ: { success: true, balance: xxx, energyAdded: xxx }
+  /// - null ถ้า verify ไม่สำเร็จ (error, duplicate, network issue)
+  static Future<Map<String, dynamic>?> _verifyPurchaseWithServer({
+    required String purchaseToken,
+    required String productId,
+  }) async {
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+
+      debugPrint('[PurchaseService] 🔍 Verifying with server...');
+      debugPrint('[PurchaseService] Product: $productId');
+      debugPrint('[PurchaseService] DeviceId: $deviceId');
+
+      final response = await http.post(
+        Uri.parse(_verifyPurchaseUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'purchaseToken': purchaseToken,
+          'productId': productId,
+          'deviceId': deviceId,
+        }),
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          debugPrint('[PurchaseService] ⏱️ Verification timeout');
+          throw Exception('Verification timeout');
+        },
+      );
+
+      debugPrint('[PurchaseService] Server response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data;
+      } else if (response.statusCode == 409) {
+        // Duplicate purchase
+        debugPrint('[PurchaseService] ⚠️ Duplicate purchase (already verified)');
+        
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        if (data['verified'] == true && data['balance'] != null) {
+          // Token เคยใช้แล้ว แต่เราจะ sync balance ให้
+          await _energyService!.updateFromServerResponse(data['balance'] as int);
+        }
+        
+        return null; // ไม่ให้ถือว่า success (เพราะไม่ได้เพิ่ม energy)
+      } else {
+        // Other errors
+        final errorBody = response.body;
+        debugPrint('[PurchaseService] ❌ Server error: $errorBody');
+        return null;
+      }
+
+    } catch (e) {
+      debugPrint('[PurchaseService] ❌ Verification error: $e');
+      return null;
+    }
+  }
+  
+  /// บันทึก pending purchase สำหรับ retry ทีหลัง
+  static Future<void> _savePendingPurchase(
+    PurchaseDetails purchase,
+    String productId,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pendingKey = 'pending_purchase_${purchase.purchaseID}';
+
+      await prefs.setString(
+        pendingKey,
+        jsonEncode({
+          'purchaseToken': purchase.verificationData.serverVerificationData,
+          'productId': productId,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+        }),
+      );
+
+      debugPrint('[PurchaseService] 💾 Saved pending purchase: $productId');
+    } catch (e) {
+      debugPrint('[PurchaseService] ❌ Failed to save pending purchase: $e');
+    }
+  }
+
+  /// Retry pending purchases (เรียกตอน app startup)
+  static Future<void> retryPendingPurchases() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final keys = prefs.getKeys().where((k) => k.startsWith('pending_purchase_'));
+
+      if (keys.isEmpty) return;
+
+      debugPrint('[PurchaseService] 🔄 Retrying ${keys.length} pending purchases...');
+
+      for (final key in keys) {
+        final json = prefs.getString(key);
+        if (json == null) continue;
+
+        final data = jsonDecode(json) as Map<String, dynamic>;
+        final purchaseToken = data['purchaseToken'] as String;
+        final productId = data['productId'] as String;
+
+        // Retry verification
+        final verified = await _verifyPurchaseWithServer(
+          purchaseToken: purchaseToken,
+          productId: productId,
+        );
+
+        if (verified != null && verified['success'] == true) {
+          // Success — remove from pending
+          await prefs.remove(key);
+          await _energyService!.updateFromServerResponse(verified['balance'] as int);
+          debugPrint('[PurchaseService] ✅ Retry success: $productId');
+        }
+      }
+    } catch (e) {
+      debugPrint('[PurchaseService] ❌ Retry error: $e');
     }
   }
   

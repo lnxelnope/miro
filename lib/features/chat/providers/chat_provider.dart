@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
@@ -8,6 +9,7 @@ import '../../../core/ai/gemini_chat_service.dart';
 import '../../../core/constants/enums.dart';
 import '../models/chat_message.dart';
 import '../models/chat_ai_mode.dart';
+import '../../health/providers/my_meal_provider.dart';
 import '../services/intent_handler.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/models/food_entry.dart';
@@ -162,13 +164,16 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
   /// Handle Miro AI (new flow with Gemini Backend)
   /// Returns reply message string
+  /// 
+  /// Energy pricing: base 2⚡ + 1⚡ per food item detected
+  /// Example: "ate rice, soup, salad, juice" → 2 + 4 = 6⚡
   Future<String> _handleMiroAi(String text) async {
-    // Check Energy balance (2 Energy required)
+    // Check Energy balance (minimum 2 Energy required for base cost)
     final energyService = ref.read(energyServiceProvider);
     final balance = await energyService.getBalance();
     
     if (balance < 2) {
-      throw Exception('Not enough Energy. Please purchase more from the store.');
+      throw Exception('Not enough Energy (minimum 2⚡ required). Please purchase more from the store.');
     }
     
     // Get user profile for personalization
@@ -179,14 +184,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       error: (_, __) => Future.value(null),
     );
     
-    // Call Gemini Backend (backend will deduct energy and return new token)
+    // Call Gemini Backend (backend calculates dynamic cost and deducts)
     final response = await GeminiChatService.analyzeChatMessage(
       message: text,
       energyService: energyService,
       userProfile: profile,
     );
     
-    // Note: Energy is deducted by backend, balance updated in GeminiChatService
+    // Note: Energy is deducted by backend (dynamic pricing), balance updated in GeminiChatService
     
     // Parse response and save food entries
     await _parseMiroAiResponse(response);
@@ -199,12 +204,29 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     ref.invalidate(todayMacrosProvider);
     ref.invalidate(healthTimelineProvider(today));
     
-    // Return reply message
+    // Build reply with actual energy cost breakdown
     final reply = response['reply'] as String? ?? 'Message received';
-    return '$reply\n\n⚡ -2 Energy';
+    final energyCost = response['energyCost'] as int? ?? 2;
+    final breakdown = response['energyBreakdown'] as Map<String, dynamic>?;
+    
+    String energyInfo;
+    if (breakdown != null) {
+      final baseCost = breakdown['baseCost'] as int? ?? 2;
+      final itemCount = breakdown['itemCount'] as int? ?? 0;
+      if (itemCount > 0) {
+        energyInfo = '⚡ -$energyCost Energy (base $baseCost + $itemCount items)';
+      } else {
+        energyInfo = '⚡ -$energyCost Energy';
+      }
+    } else {
+      energyInfo = '⚡ -$energyCost Energy';
+    }
+    
+    return '$reply\n\n$energyInfo';
   }
 
   /// Parse Miro AI response and save food entries
+  /// Also saves ingredients and My Meal if backend returns them
   Future<void> _parseMiroAiResponse(Map<String, dynamic> response) async {
     if (response['type'] != 'food_log') return;
     
@@ -230,6 +252,18 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         default:
           mealType = MealType.snack;
       }
+
+      // Parse ingredients if backend returns them
+      String? ingredientsJsonStr;
+      final ingredientsList = item['ingredients_detail'] as List<dynamic>?;
+      if (ingredientsList != null && ingredientsList.isNotEmpty) {
+        ingredientsJsonStr = jsonEncode(ingredientsList);
+      }
+
+      // Parse micronutrients if available
+      final fiber = (item['fiber'] as num?)?.toDouble();
+      final sugar = (item['sugar'] as num?)?.toDouble();
+      final sodium = (item['sodium'] as num?)?.toDouble();
       
       final foodEntry = FoodEntry()
         ..foodName = item['food_name_local'] as String? ?? item['food_name'] as String
@@ -243,12 +277,40 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         ..mealType = mealType
         ..timestamp = DateTime.now()
         ..source = DataSource.aiAnalyzed
+        ..isVerified = false
         ..baseCalories = (item['calories'] as num?)?.toDouble() ?? 0
         ..baseProtein = (item['protein'] as num?)?.toDouble() ?? 0
         ..baseCarbs = (item['carbs'] as num?)?.toDouble() ?? 0
-        ..baseFat = (item['fat'] as num?)?.toDouble() ?? 0;
+        ..baseFat = (item['fat'] as num?)?.toDouble() ?? 0
+        ..fiber = fiber
+        ..sugar = sugar
+        ..sodium = sodium
+        ..ingredientsJson = ingredientsJsonStr;
       
       await foodNotifier.addFoodEntry(foodEntry);
+
+      // Auto-save ingredients and My Meal if data available
+      if (ingredientsList != null && ingredientsList.isNotEmpty) {
+        try {
+          final ingredientsData = ingredientsList
+              .map((e) => e as Map<String, dynamic>)
+              .toList();
+          
+          await foodNotifier.saveIngredientsAndMeal(
+            mealName: item['food_name_local'] as String? ?? item['food_name'] as String,
+            mealNameEn: item['food_name'] as String?,
+            servingDescription: '${(item['serving_size'] as num?)?.toDouble() ?? 1.0} ${item['serving_unit'] as String? ?? 'serving'}',
+            ingredientsData: ingredientsData,
+          );
+          
+          ref.invalidate(allMyMealsProvider);
+          ref.invalidate(allIngredientsProvider);
+          
+          AppLogger.info('Chat: Auto-saved ${ingredientsList.length} ingredients + 1 meal');
+        } catch (e) {
+          AppLogger.warn('Chat: Could not auto-save meal: $e');
+        }
+      }
     }
   }
 
@@ -383,7 +445,8 @@ final chatNotifierProvider =
 });
 
 /// Provider สำหรับเก็บ AI Mode ที่ user เลือก
-/// Default: ChatAiMode.local (ฟรี, ไม่เสีย Energy)
+/// Default: ChatAiMode.miroAi (แม่นยำสูง, หลายภาษา)
+/// เปลี่ยนได้ใน Settings
 final chatAiModeProvider = StateProvider<ChatAiMode>((ref) {
-  return ChatAiMode.local;
+  return ChatAiMode.miroAi;
 });

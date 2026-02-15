@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/data/thai_food_database.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
@@ -424,69 +423,47 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     });
   }
 
-  /// Search suggestions from My Meals + Ingredients + Thai Food DB
-  List<_FoodSuggestion> _searchSuggestions(String query) {
+  /// Search suggestions from My Meals + Ingredients
+  Future<List<_FoodSuggestion>> _searchSuggestions(String query) async {
     if (query.trim().isEmpty) return [];
     final q = query.trim().toLowerCase();
     final results = <_FoodSuggestion>[];
 
     // 1. Search from My Meals
-    final mealsAsync = ref.read(allMyMealsProvider);
-    mealsAsync.whenData((meals) {
-      for (final meal in meals) {
-        if (meal.name.toLowerCase().contains(q) ||
-            (meal.nameEn?.toLowerCase().contains(q) ?? false)) {
-          results.add(_FoodSuggestion(
-            name: meal.name,
-            nameEn: meal.nameEn,
-            source: 'meal',
-            calories: meal.totalCalories,
-            protein: meal.totalProtein,
-            carbs: meal.totalCarbs,
-            fat: meal.totalFat,
-            servingSize: meal.parsedServingSize,
-            servingUnit: meal.parsedServingUnit,
-            myMealId: meal.id,
-          ));
-        }
+    final mealsAsync = await ref.read(allMyMealsProvider.future);
+    for (final meal in mealsAsync) {
+      if (meal.name.toLowerCase().contains(q) ||
+          (meal.nameEn?.toLowerCase().contains(q) ?? false)) {
+        results.add(_FoodSuggestion(
+          name: meal.name,
+          nameEn: meal.nameEn,
+          source: 'meal',
+          calories: meal.totalCalories,
+          protein: meal.totalProtein,
+          carbs: meal.totalCarbs,
+          fat: meal.totalFat,
+          servingSize: meal.parsedServingSize,
+          servingUnit: meal.parsedServingUnit,
+          myMealId: meal.id,
+        ));
       }
-    });
+    }
 
     // 2. Search from Ingredients (personal ingredients)
-    final ingredientsAsync = ref.read(allIngredientsProvider);
-    ingredientsAsync.whenData((ingredients) {
-      for (final ing in ingredients) {
-        if (ing.name.toLowerCase().contains(q) ||
-            (ing.nameEn?.toLowerCase().contains(q) ?? false)) {
-          results.add(_FoodSuggestion(
-            name: ing.name,
-            nameEn: ing.nameEn,
-            source: 'ingredient',
-            calories: ing.caloriesPerBase,
-            protein: ing.proteinPerBase,
-            carbs: ing.carbsPerBase,
-            fat: ing.fatPerBase,
-            servingSize: ing.baseAmount,
-            servingUnit: ing.baseUnit,
-          ));
-        }
-      }
-    });
-
-    // 3. Search from Thai Food Database (hardcode)
-    final thaiResults = ThaiFoodDatabase.search(q);
-    for (final entry in thaiResults.entries) {
-      // Don't add if name already exists
-      if (!results.any((r) => r.name == entry.key)) {
+    final ingredientsAsync = await ref.read(allIngredientsProvider.future);
+    for (final ing in ingredientsAsync) {
+      if (ing.name.toLowerCase().contains(q) ||
+          (ing.nameEn?.toLowerCase().contains(q) ?? false)) {
         results.add(_FoodSuggestion(
-          name: entry.key,
-          source: 'thai_db',
-          calories: entry.value.calories,
-          protein: entry.value.protein,
-          carbs: entry.value.carbs,
-          fat: entry.value.fat,
-          servingSize: 1,
-          servingUnit: 'serving',
+          name: ing.name,
+          nameEn: ing.nameEn,
+          source: 'ingredient',
+          calories: ing.caloriesPerBase,
+          protein: ing.proteinPerBase,
+          carbs: ing.carbsPerBase,
+          fat: ing.fatPerBase,
+          servingSize: ing.baseAmount,
+          servingUnit: ing.baseUnit,
         ));
       }
     }
@@ -575,8 +552,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             LayoutBuilder(
               builder: (context, constraints) {
                 return Autocomplete<_FoodSuggestion>(
-                  optionsBuilder: (textEditingValue) {
-                    return _searchSuggestions(textEditingValue.text);
+                  optionsBuilder: (textEditingValue) async {
+                    return await _searchSuggestions(textEditingValue.text);
                   },
                   displayStringForOption: (option) => option.name,
                   onSelected: _onSuggestionSelected,

@@ -238,15 +238,16 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () => _handleAnalyze(),
-                            icon: const Icon(Icons.search, size: 18),
+                            icon: const Icon(Icons.auto_awesome, size: 20),
                             label: const Text('AI Analysis'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: const Color(0xFF6366F1),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              elevation: 2,
                             ),
                           ),
                         ),

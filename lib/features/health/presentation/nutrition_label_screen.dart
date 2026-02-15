@@ -11,6 +11,7 @@ import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
 import '../models/food_entry.dart';
+import 'image_analysis_preview_screen.dart';
 
 /// หน้าสแกนฉลากโภชนาการ
 /// ถ่ายรูป Nutrition Facts Label → Gemini อ่านค่าจากฉลาก → บันทึก
@@ -116,7 +117,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 12),
-                    const Text('🧬 ANALYZING NUTRITION LABEL...'),
+                    Text('🧬 ANALYZING NUTRITION LABEL...'),
                   ],
                 )
               : Column(
@@ -179,8 +180,15 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       imageQuality: 90,
     );
 
-    if (photo != null) {
-      setState(() => _capturedImage = File(photo.path));
+    if (photo != null && mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ImageAnalysisPreviewScreen(
+            imageFile: File(photo.path),
+            initialFoodName: 'food',
+          ),
+        ),
+      );
     }
   }
 
@@ -193,8 +201,15 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       imageQuality: 90,
     );
 
-    if (photo != null) {
-      setState(() => _capturedImage = File(photo.path));
+    if (photo != null && mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ImageAnalysisPreviewScreen(
+            imageFile: File(photo.path),
+            initialFoodName: 'food',
+          ),
+        ),
+      );
     }
   }
 

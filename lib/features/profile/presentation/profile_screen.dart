@@ -11,6 +11,10 @@ import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
+import '../../onboarding/presentation/tutorial_food_analysis_screen.dart';
+import '../../legal/presentation/disclaimer_screen.dart';
+import '../../chat/models/chat_ai_mode.dart';
+import '../../chat/providers/chat_provider.dart';
 import 'health_goals_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
@@ -52,6 +56,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   MaterialPageRoute(builder: (_) => const HealthGoalsScreen()),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // AI Chat Mode
+              _buildSectionTitle('🤖 Chat AI Mode'),
+              _buildAiModeSettingCard(context),
               const SizedBox(height: 16),
 
               // Gallery Scan Settings
@@ -138,10 +147,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               _buildSettingCard(
                 context: context,
+                title: 'Health Disclaimer',
+                subtitle: 'Important legal information',
+                leading: const Icon(Icons.warning_amber, color: Colors.orange),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const DisclaimerScreen()),
+                ),
+              ),
+              _buildSettingCard(
+                context: context,
                 title: 'Show Tutorial Again',
                 subtitle: 'View feature tour',
                 leading: const Icon(Icons.lightbulb_outline),
                 onTap: () => _showTutorialAgain(),
+              ),
+              _buildSettingCard(
+                context: context,
+                title: 'Food Analysis Tutorial',
+                subtitle: 'Learn how to use food analysis features',
+                leading: const Icon(Icons.school),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const TutorialFoodAnalysisScreen(),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 32),
             ],
@@ -187,6 +219,163 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             fontWeight: FontWeight.w600,
             color: AppColors.textSecondary,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiModeSettingCard(BuildContext context) {
+    final currentMode = ref.watch(chatAiModeProvider);
+    final isMiroAi = currentMode == ChatAiMode.miroAi;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select which AI powers your chat',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Miro AI option
+            _buildAiModeOption(
+              context: context,
+              icon: Icons.auto_awesome,
+              color: const Color(0xFF6366F1),
+              title: 'Miro AI',
+              subtitle: 'Powered by Gemini • Multi-language • High accuracy',
+              cost: '2⚡ + 1⚡/item',
+              isSelected: isMiroAi,
+              onTap: () {
+                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.miroAi;
+              },
+            ),
+            const SizedBox(height: 8),
+            // Local AI option
+            _buildAiModeOption(
+              context: context,
+              icon: Icons.psychology,
+              color: Colors.green,
+              title: 'Local AI',
+              subtitle: 'On-device • English only • Basic accuracy',
+              cost: 'Free',
+              isSelected: !isMiroAi,
+              onTap: () {
+                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAiModeOption({
+    required BuildContext context,
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String subtitle,
+    required String cost,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Radio indicator
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? color : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: color,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            // Icon
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 12),
+            // Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? color : null,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: cost == 'Free'
+                              ? Colors.green.withOpacity(0.1)
+                              : Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          cost,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: cost == 'Free' ? Colors.green : Colors.orange.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

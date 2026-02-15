@@ -111,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           preferredSize: Size.fromHeight(_showQuickActions ? 74 : 40),
           child: Column(
             children: [
-              _buildAiModeToggle(),
+              _buildAiModeIndicator(),
               if (_showQuickActions) _buildQuickActions(),
             ],
           ),
@@ -164,7 +164,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               'Tell me what you ate today!',
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -186,13 +186,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
-                      const Text(
+                      Text(
                         '💡',
                         style: TextStyle(fontSize: 16),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         'Example:',
                         style: TextStyle(
@@ -223,7 +223,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildExampleMessage(String text) {
     return Text(
       text,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 12,
         color: AppColors.textSecondary,
         height: 1.4,
@@ -336,7 +336,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       },
       backgroundColor: energyCost > 0
           ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
-          : Theme.of(context).colorScheme.surfaceVariant,
+          : Theme.of(context).colorScheme.surfaceContainerHighest,
     );
   }
 
@@ -525,7 +525,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Show Local AI help
   Future<void> _showLocalAiHelp() async {
-    final helpText = '''
+    const helpText = '''
 🤖 Local AI Help
 
 Format: [food] [amount] [unit]
@@ -912,12 +912,13 @@ Switch to Miro AI for better results!
     );
   }
 
-  /// AI Mode Toggle — Local AI vs Miro AI (Compact Version)
-  Widget _buildAiModeToggle() {
+  /// AI Mode Indicator — shows current mode (changeable in Settings)
+  Widget _buildAiModeIndicator() {
     final chatAiMode = ref.watch(chatAiModeProvider);
+    final isMiroAi = chatAiMode == ChatAiMode.miroAi;
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
@@ -929,20 +930,60 @@ Switch to Miro AI for better results!
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _buildModeButton(
-              mode: ChatAiMode.local,
-              isSelected: chatAiMode == ChatAiMode.local,
+          // Current mode badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: isMiroAi
+                  ? const Color(0xFF6366F1).withOpacity(0.1)
+                  : Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isMiroAi
+                    ? const Color(0xFF6366F1).withOpacity(0.3)
+                    : Colors.green.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isMiroAi ? Icons.auto_awesome : Icons.psychology,
+                  size: 14,
+                  color: isMiroAi ? const Color(0xFF6366F1) : Colors.green,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  chatAiMode.displayName,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isMiroAi ? const Color(0xFF6366F1) : Colors.green,
+                  ),
+                ),
+                if (isMiroAi) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    '2⚡+',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Free',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: _buildModeButton(
-              mode: ChatAiMode.miroAi,
-              isSelected: chatAiMode == ChatAiMode.miroAi,
-            ),
-          ),
-          const SizedBox(width: 8),
+          const Spacer(),
           // Quick Actions Toggle
           IconButton(
             icon: Icon(
@@ -959,70 +1000,6 @@ Switch to Miro AI for better results!
             tooltip: 'Quick Actions',
           ),
         ],
-      ),
-    );
-  }
-
-  /// ปุ่มสำหรับแต่ละ Mode (Compact)
-  Widget _buildModeButton({
-    required ChatAiMode mode,
-    required bool isSelected,
-  }) {
-    return InkWell(
-      onTap: () {
-        ref.read(chatAiModeProvider.notifier).state = mode;
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
-            width: 1.5,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              mode.icon,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    mode.displayName,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.onPrimaryContainer
-                          : Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    mode.description,
-                    style: TextStyle(
-                      fontSize: 8,
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7)
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1092,7 +1069,7 @@ Switch to Miro AI for better results!
       final errorMsg = ChatMessage()
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
-        ..content = '❌ Not enough Energy (need 2⚡). Please purchase more from the store.';
+        ..content = '❌ Not enough Energy (minimum 2⚡ required). Please purchase more from the store.';
       
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
       return;

@@ -59,3 +59,12 @@ android/app/miro-release-key.jks
 # Sensitive files (never commit these!)
 **/google-services.json
 **/GoogleService-Info.plist
+
+# Service Account JSON keys (Phase 2 setup)
+miro-d6856-*.json
+*-service-account.json
+play-store-manager*.json
+
+# Senior only documentation (contains sensitive info)
+**/SENIOR_ONLY_SETUP.md
+_project_manager/**/SENIOR_ONLY*.md

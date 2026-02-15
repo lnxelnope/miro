@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -5,8 +6,9 @@ import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../health/presentation/health_page.dart';
+import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
-import '../../feedback/beta_feedback_button.dart'; // TODO: Remove before public launch
+import '../../camera/presentation/camera_screen.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../widgets/magic_button.dart';
 import '../widgets/feature_tour.dart';
@@ -175,11 +177,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Stack(
         children: [
           HealthPage(key: _timelineAreaKey),
-          // TODO: Remove before public launch
-          const BetaFeedbackButton(),
         ],
       ),
-      floatingActionButton: MagicButton(key: _magicButtonKey),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // Camera Button
+            SizedBox(
+              width: 48.0,
+              height: 48.0,
+              child: FloatingActionButton(
+                heroTag: 'camera_fab',
+                onPressed: () async {
+                  if (!mounted) return;
+                  final navigator = Navigator.of(context);
+                  
+                  final File? capturedImage = await navigator.push<File>(
+                    MaterialPageRoute(
+                      builder: (context) => const CameraScreen(),
+                    ),
+                  );
+                  
+                  if (capturedImage != null && mounted) {
+                    // Navigate to preview screen
+                    navigator.push(
+                      MaterialPageRoute(
+                        builder: (context) => ImageAnalysisPreviewScreen(
+                          imageFile: capturedImage,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                backgroundColor: AppColors.primary,
+                child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
+              ),
+            ),
+            const SizedBox(width: 12),
+            
+            // Chat Button
+            MagicButton(key: _magicButtonKey),
+          ],
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }

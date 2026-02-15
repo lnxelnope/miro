@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ─── Energy balances collection ───
+    // ห้าม Client เข้าถึงตรง — เฉพาะ Cloud Functions เท่านั้น
+    match /energy_balances/{deviceId} {
+      allow read, write: if false;
+    }
+    
+    // ─── Purchase records collection ───
+    // ห้าม Client เข้าถึงตรง — เฉพาะ Cloud Functions เท่านั้น
+    match /purchase_records/{purchaseHash} {
+      allow read, write: if false;
+    }
+    
+    // Collections อื่นๆ ที่มีอยู่เดิม...
+    // (ไม่ต้องแก้ rules ของ collection อื่น)
+  }
+}

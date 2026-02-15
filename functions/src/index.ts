@@ -18,3 +18,5 @@ setGlobalOptions({
 
 // Energy System API
 export { analyzeFood } from './analyzeFood';
+export { syncBalance } from './syncBalance';
+export { verifyPurchase } from './verifyPurchase';

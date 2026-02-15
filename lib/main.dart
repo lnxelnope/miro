@@ -52,6 +52,33 @@ void main() async {
   // ────── Initialize Energy System ──────
   final energyService = EnergyService(DatabaseService.isar);
   
+  // ✅ PHASE 3: Migrate to SecureStorage
+  try {
+    await energyService.migrateToSecureStorage();
+    AppLogger.info('✅ Migrated to SecureStorage');
+  } catch (e) {
+    AppLogger.warn('⚠️ Failed to migrate to SecureStorage: $e');
+    // ไม่ block app launch
+  }
+  
+  // ✅ PHASE 1: Sync balance with server ตอน app startup
+  try {
+    await energyService.syncBalanceWithServer();
+    AppLogger.info('✅ Balance synced with server');
+  } catch (e) {
+    AppLogger.warn('⚠️ Failed to sync balance: $e');
+    // ไม่ block app launch
+  }
+  
+  // ✅ PHASE 2: Retry pending purchases
+  try {
+    await PurchaseService.retryPendingPurchases();
+    AppLogger.info('✅ Pending purchases retried');
+  } catch (e) {
+    AppLogger.warn('⚠️ Failed to retry pending purchases: $e');
+    // ไม่ block app launch
+  }
+  
   // ตรวจสอบและมอบ Welcome Gift
   final receivedGift = await energyService.initializeWelcomeGift();
   if (receivedGift) {

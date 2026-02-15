@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/utils/tdee_calculator.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/app_disclaimer.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
-import '../../home/presentation/home_screen.dart';
 import '../../../core/database/database_service.dart';
+import 'tutorial_food_analysis_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -457,12 +459,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // Invalidate profile provider เพื่อ refresh
     ref.invalidate(userProfileProvider);
 
-    // Navigate ไป HomeScreen
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
+    // Check if disclaimer has been shown
+    final prefs = await SharedPreferences.getInstance();
+    final disclaimerShown = prefs.getBool('disclaimer_acknowledged') ?? false;
+
+    if (!disclaimerShown && mounted) {
+      // Show disclaimer dialog
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Text('⚠️', style: TextStyle(fontSize: 24)),
+              SizedBox(width: 12),
+              Text('Important Notice'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Text(
+              'Before you continue, please note:\n\n${AppDisclaimer.short}\n\n'
+              'Do you understand and agree to use MIRO as an informational tool only?',
+              style: const TextStyle(fontSize: 16, height: 1.4),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await prefs.setBool('disclaimer_acknowledged', true);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  // Navigate to food analysis tutorial
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const TutorialFoodAnalysisScreen(),
+                    ),
+                  );
+                }
+              },
+              child: const Text('I Understand and Agree'),
+            ),
+          ],
+        ),
+      );
+    } else if (mounted) {
+      // Navigate to food analysis tutorial
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (_) => false,  // ลบ stack ทั้งหมด
+        MaterialPageRoute(
+          builder: (_) => const TutorialFoodAnalysisScreen(),
+        ),
       );
     }
   }
