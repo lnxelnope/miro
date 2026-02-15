@@ -588,7 +588,7 @@ Switch to Miro AI for better results!
                 maxLines: 2,
                 minLines: 1,
                 decoration: InputDecoration(
-                  hintText: 'พิมพ์ข้อความ...',
+                  hintText: 'Type a message...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,

@@ -276,6 +276,31 @@ interface GeminiRequest {
 /**
  * สร้าง prompt สำหรับ menu_suggestion type
  */
+function getCuisineExamples(cuisine: string): string {
+  const examples: Record<string, string> = {
+    'thai': '- Pad Krapow (Basil Stir-fry), Tom Yum Goong, Som Tam (Papaya Salad), Khao Pad (Fried Rice)',
+    'japanese': '- Teriyaki Salmon, Sushi Rolls, Miso Soup with Tofu, Chicken Katsu Curry',
+    'korean': '- Bibimbap, Bulgogi, Kimchi Jjigae (Kimchi Stew), Korean BBQ',
+    'chinese': '- Kung Pao Chicken, Mapo Tofu, Fried Rice, Steamed Dumplings',
+    'indian': '- Chicken Tikka Masala, Dal Tadka, Palak Paneer, Vegetable Biryani',
+    'american': '- Grilled Chicken Breast, Caesar Salad, Turkey Sandwich, BBQ Ribs',
+    'mexican': '- Chicken Burrito Bowl, Fish Tacos, Fajitas, Black Bean Soup',
+    'italian': '- Grilled Chicken with Vegetables, Minestrone Soup, Caprese Salad, Spaghetti Marinara',
+    'mediterranean': '- Greek Salad, Grilled Fish, Hummus with Vegetables, Chicken Souvlaki',
+    'middle_eastern': '- Shawarma, Falafel, Tabbouleh, Grilled Kebabs',
+    'vietnamese': '- Pho (Noodle Soup), Banh Mi, Spring Rolls, Com Tam (Broken Rice)',
+    'indonesian': '- Nasi Goreng (Fried Rice), Gado-Gado, Satay, Rendang',
+    'filipino': '- Adobo, Sinigang, Pancit, Grilled Bangus',
+    'european': '- Grilled Chicken, Roasted Vegetables, Soup, Fish with Potatoes',
+    'international': '- Mix of healthy dishes from various cuisines worldwide'
+  };
+  
+  return examples[cuisine] || examples['international'];
+}
+
+/**
+ * สร้าง prompt สำหรับ menu_suggestion type
+ */
 function buildMenuSuggestionPrompt(text: string, userContext?: any): string {
   let contextInfo = '';
   
@@ -291,32 +316,40 @@ function buildMenuSuggestionPrompt(text: string, userContext?: any): string {
     if (userContext.proteinGoal) contextInfo += `\n- Protein Goal: ${userContext.proteinGoal}g`;
     if (userContext.carbGoal) contextInfo += `\n- Carb Goal: ${userContext.carbGoal}g`;
     if (userContext.fatGoal) contextInfo += `\n- Fat Goal: ${userContext.fatGoal}g`;
-    if (userContext.preferredLanguage) contextInfo += `\n- Preferred Language: ${userContext.preferredLanguage} (suggest local cuisine)`;
+    if (userContext.cuisinePreference) contextInfo += `\n- Cuisine Preference: ${userContext.cuisinePreference}`;
   }
 
-  return `You are Miro, a friendly nutrition assistant.
+  const cuisinePref = userContext?.cuisinePreference || 'international';
+
+  return `You are Miro, a friendly nutrition assistant for users worldwide.
 
 The user wants meal suggestions.
 
 Context:
 - Recent food log: ${text} (last few days)
 - Remaining calories for today: (if provided)
-- User's typical cuisine: (detect from past meals)${contextInfo}
+- User's cuisine preference: ${cuisinePref}${contextInfo}
+
+CRITICAL INSTRUCTION: The user has specifically chosen "${cuisinePref}" as their preferred cuisine. You MUST suggest ONLY dishes from ${cuisinePref} cuisine.
 
 Suggest 3 meal ideas that:
 1. Fit their remaining calorie budget and macro goals
 2. ${userContext?.weightGoal ? `Match their weight goal (${userContext.weightGoal}) and activity level` : 'Are nutritionally balanced'}
-3. ${userContext?.preferredLanguage === 'th' ? 'Match Thai cuisine preference' : 'Match international cuisine preference'}
+3. **MUST be authentic ${cuisinePref} dishes** — DO NOT suggest dishes from other cuisines
 4. Are balanced (good protein, reasonable carbs/fat according to their goals)
 
+Examples of ${cuisinePref} dishes you should suggest:
+${getCuisineExamples(cuisinePref)}
+
 For each meal:
-- Give a descriptive name${userContext?.preferredLanguage === 'th' ? ' in Thai language' : ' in English'}
-- Estimate calories, protein, carbs, fat
+- Give a descriptive name in the appropriate language for the cuisine
+- Estimate calories, protein, carbs, fat based on typical ${cuisinePref} cuisine portion sizes
 - Make it appealing and practical
 
 IMPORTANT: 
-- ${userContext?.preferredLanguage === 'th' ? 'Respond in Thai language' : 'Respond in English'}
+- Respond in the user's preferred language based on their cuisine preference
 - Tailor suggestions to their specific health goals
+- **ONLY suggest dishes from ${cuisinePref} cuisine** — this is the most important rule
 
 Return JSON:
 {
@@ -352,29 +385,35 @@ function buildChatPrompt(text: string, userContext?: any): string {
     if (userContext.weightGoal) contextInfo += `\n- Weight Goal: ${userContext.weightGoal}`;
     if (userContext.calorieGoal) contextInfo += `\n- Daily Calorie Target: ${userContext.calorieGoal} kcal`;
     if (userContext.proteinGoal) contextInfo += `\n- Protein Goal: ${userContext.proteinGoal}g`;
-    if (userContext.preferredLanguage) contextInfo += `\n- Preferred Language: ${userContext.preferredLanguage}`;
+    if (userContext.cuisinePreference) contextInfo += `\n- Cuisine Preference: ${userContext.cuisinePreference}`;
   }
 
-  return `You are Miro, a friendly nutrition assistant.${contextInfo}
+  const cuisinePref = userContext?.cuisinePreference || 'international';
+
+  return `You are Miro, a friendly nutrition assistant for users worldwide.${contextInfo}
 
 Parse the user's message and extract ALL food items mentioned.
+The user may type in ANY language — detect the language automatically.
+
 For each food item, provide:
-- food_name: English name
-- food_name_local: Original language name (as typed by user, keep original script - Thai, Japanese, Chinese, etc.)
+- food_name: ALWAYS in English (for standardization)
+- food_name_local: Original name as typed by the user (keep original script — any language)
 - meal_type: "breakfast" | "lunch" | "dinner" | "snack" (detect from context/time mentioned, default to current time if not specified)
 - serving_size: number (default 1 if not specified)
 - serving_unit: one of these units ONLY [plate, cup, bowl, piece, box, pack, bag, bottle, glass, egg, ball, item, slice, pair, stick, g, kg, ml, l, serving, tbsp, tsp, oz, lbs]. If user doesn't specify or uses unsupported unit, use "serving"
 - calories, protein, carbs, fat: estimated values (best effort)
 - fiber, sugar, sodium: estimated micronutrients (fiber in g, sugar in g, sodium in mg)
-- ingredients_detail: array of ingredient breakdown for this food item. Each ingredient must include name, name_en, amount (number), unit (g/ml/piece/etc), calories, protein, carbs, fat
+- ingredients_detail: array of ingredient breakdown for this food item. Each ingredient must include name, name_en (ALWAYS English), amount (number), unit (g/ml/piece/etc), calories, protein, carbs, fat
 
-When providing nutrition estimates, consider:
+When estimating nutrition, consider typical portion sizes for ${cuisinePref} cuisine.
+Also consider:
 - User's health goals (${userContext?.weightGoal || 'not specified'})
 - Their typical calorie/macro targets
-- Portion sizes appropriate for their profile
+- Portion sizes appropriate for their profile and cuisine preference
 
 IMPORTANT: 
-- Respond in ENGLISH only (but keep food_name_local and ingredient names in original language)
+- JSON field values for food_name and ingredient name_en must ALWAYS be in English
+- food_name_local preserves the user's original input language
 - Return JSON only, no markdown code blocks
 - If the message is not about food (e.g. asking for health advice), provide personalized advice based on their profile
 - ALWAYS include ingredients_detail for each food item - break down the dish into its main ingredients
@@ -384,23 +423,22 @@ Expected JSON format:
   "type": "food_log",
   "items": [
     {
-      "food_name": "Stir-fried basil pork with rice",
-      "food_name_local": "ข้าวกะเพราหมูสับ",
+      "food_name": "Grilled Chicken Breast with Rice",
+      "food_name_local": "Grilled Chicken Breast with Rice",
       "meal_type": "lunch",
       "serving_size": 1.0,
       "serving_unit": "plate",
-      "calories": 520,
-      "protein": 22,
-      "carbs": 55,
-      "fat": 22,
-      "fiber": 3,
-      "sugar": 5,
-      "sodium": 800,
+      "calories": 480,
+      "protein": 38,
+      "carbs": 52,
+      "fat": 12,
+      "fiber": 2,
+      "sugar": 1,
+      "sodium": 650,
       "ingredients_detail": [
-        {"name": "Minced pork", "name_en": "Minced pork", "amount": 80, "unit": "g", "calories": 170, "protein": 15, "carbs": 0, "fat": 12},
-        {"name": "Jasmine rice", "name_en": "Jasmine rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 52, "fat": 1},
-        {"name": "Holy basil", "name_en": "Holy basil", "amount": 15, "unit": "g", "calories": 3, "protein": 0.5, "carbs": 0.5, "fat": 0},
-        {"name": "Cooking oil", "name_en": "Cooking oil", "amount": 10, "unit": "ml", "calories": 87, "protein": 0, "carbs": 0, "fat": 10}
+        {"name": "Chicken breast", "name_en": "Chicken breast", "amount": 150, "unit": "g", "calories": 165, "protein": 31, "carbs": 0, "fat": 3.6},
+        {"name": "Steamed rice", "name_en": "Steamed rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 52, "fat": 0.5},
+        {"name": "Olive oil", "name_en": "Olive oil", "amount": 10, "unit": "ml", "calories": 88, "protein": 0, "carbs": 0, "fat": 10}
       ]
     }
   ],

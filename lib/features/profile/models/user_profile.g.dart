@@ -47,78 +47,83 @@ const UserProfileSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'fatGoal': PropertySchema(
+    r'cuisinePreference': PropertySchema(
       id: 6,
+      name: r'cuisinePreference',
+      type: IsarType.string,
+    ),
+    r'fatGoal': PropertySchema(
+      id: 7,
       name: r'fatGoal',
       type: IsarType.double,
     ),
     r'gender': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'gender',
       type: IsarType.string,
     ),
     r'hasGeminiApiKey': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'hasGeminiApiKey',
       type: IsarType.bool,
     ),
     r'height': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'height',
       type: IsarType.double,
     ),
     r'isDarkMode': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'isDarkMode',
       type: IsarType.bool,
     ),
     r'isGoogleCalendarConnected': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'isGoogleCalendarConnected',
       type: IsarType.bool,
     ),
     r'isHealthConnectConnected': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'isHealthConnectConnected',
       type: IsarType.bool,
     ),
     r'locale': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'locale',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'name',
       type: IsarType.string,
     ),
     r'onboardingComplete': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'onboardingComplete',
       type: IsarType.bool,
     ),
     r'proteinGoal': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'proteinGoal',
       type: IsarType.double,
     ),
     r'targetWeight': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'targetWeight',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'waterGoal': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'waterGoal',
       type: IsarType.double,
     ),
     r'weight': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'weight',
       type: IsarType.double,
     )
@@ -155,6 +160,7 @@ int _userProfileEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  bytesCount += 3 + object.cuisinePreference.length * 3;
   {
     final value = object.gender;
     if (value != null) {
@@ -188,21 +194,22 @@ void _userProfileSerialize(
   writer.writeDouble(offsets[3], object.calorieGoal);
   writer.writeDouble(offsets[4], object.carbGoal);
   writer.writeDateTime(offsets[5], object.createdAt);
-  writer.writeDouble(offsets[6], object.fatGoal);
-  writer.writeString(offsets[7], object.gender);
-  writer.writeBool(offsets[8], object.hasGeminiApiKey);
-  writer.writeDouble(offsets[9], object.height);
-  writer.writeBool(offsets[10], object.isDarkMode);
-  writer.writeBool(offsets[11], object.isGoogleCalendarConnected);
-  writer.writeBool(offsets[12], object.isHealthConnectConnected);
-  writer.writeString(offsets[13], object.locale);
-  writer.writeString(offsets[14], object.name);
-  writer.writeBool(offsets[15], object.onboardingComplete);
-  writer.writeDouble(offsets[16], object.proteinGoal);
-  writer.writeDouble(offsets[17], object.targetWeight);
-  writer.writeDateTime(offsets[18], object.updatedAt);
-  writer.writeDouble(offsets[19], object.waterGoal);
-  writer.writeDouble(offsets[20], object.weight);
+  writer.writeString(offsets[6], object.cuisinePreference);
+  writer.writeDouble(offsets[7], object.fatGoal);
+  writer.writeString(offsets[8], object.gender);
+  writer.writeBool(offsets[9], object.hasGeminiApiKey);
+  writer.writeDouble(offsets[10], object.height);
+  writer.writeBool(offsets[11], object.isDarkMode);
+  writer.writeBool(offsets[12], object.isGoogleCalendarConnected);
+  writer.writeBool(offsets[13], object.isHealthConnectConnected);
+  writer.writeString(offsets[14], object.locale);
+  writer.writeString(offsets[15], object.name);
+  writer.writeBool(offsets[16], object.onboardingComplete);
+  writer.writeDouble(offsets[17], object.proteinGoal);
+  writer.writeDouble(offsets[18], object.targetWeight);
+  writer.writeDateTime(offsets[19], object.updatedAt);
+  writer.writeDouble(offsets[20], object.waterGoal);
+  writer.writeDouble(offsets[21], object.weight);
 }
 
 UserProfile _userProfileDeserialize(
@@ -218,22 +225,23 @@ UserProfile _userProfileDeserialize(
   object.calorieGoal = reader.readDouble(offsets[3]);
   object.carbGoal = reader.readDouble(offsets[4]);
   object.createdAt = reader.readDateTime(offsets[5]);
-  object.fatGoal = reader.readDouble(offsets[6]);
-  object.gender = reader.readStringOrNull(offsets[7]);
-  object.hasGeminiApiKey = reader.readBool(offsets[8]);
-  object.height = reader.readDoubleOrNull(offsets[9]);
+  object.cuisinePreference = reader.readString(offsets[6]);
+  object.fatGoal = reader.readDouble(offsets[7]);
+  object.gender = reader.readStringOrNull(offsets[8]);
+  object.hasGeminiApiKey = reader.readBool(offsets[9]);
+  object.height = reader.readDoubleOrNull(offsets[10]);
   object.id = id;
-  object.isDarkMode = reader.readBool(offsets[10]);
-  object.isGoogleCalendarConnected = reader.readBool(offsets[11]);
-  object.isHealthConnectConnected = reader.readBool(offsets[12]);
-  object.locale = reader.readStringOrNull(offsets[13]);
-  object.name = reader.readStringOrNull(offsets[14]);
-  object.onboardingComplete = reader.readBool(offsets[15]);
-  object.proteinGoal = reader.readDouble(offsets[16]);
-  object.targetWeight = reader.readDoubleOrNull(offsets[17]);
-  object.updatedAt = reader.readDateTime(offsets[18]);
-  object.waterGoal = reader.readDouble(offsets[19]);
-  object.weight = reader.readDoubleOrNull(offsets[20]);
+  object.isDarkMode = reader.readBool(offsets[11]);
+  object.isGoogleCalendarConnected = reader.readBool(offsets[12]);
+  object.isHealthConnectConnected = reader.readBool(offsets[13]);
+  object.locale = reader.readStringOrNull(offsets[14]);
+  object.name = reader.readStringOrNull(offsets[15]);
+  object.onboardingComplete = reader.readBool(offsets[16]);
+  object.proteinGoal = reader.readDouble(offsets[17]);
+  object.targetWeight = reader.readDoubleOrNull(offsets[18]);
+  object.updatedAt = reader.readDateTime(offsets[19]);
+  object.waterGoal = reader.readDouble(offsets[20]);
+  object.weight = reader.readDoubleOrNull(offsets[21]);
   return object;
 }
 
@@ -257,34 +265,36 @@ P _userProfileDeserializeProp<P>(
     case 5:
       return (reader.readDateTime(offset)) as P;
     case 6:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 8:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 10:
       return (reader.readBool(offset)) as P;
+    case 10:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 11:
       return (reader.readBool(offset)) as P;
     case 12:
       return (reader.readBool(offset)) as P;
     case 13:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 14:
       return (reader.readStringOrNull(offset)) as P;
     case 15:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 16:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 17:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 18:
-      return (reader.readDateTime(offset)) as P;
-    case 19:
       return (reader.readDouble(offset)) as P;
+    case 18:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 19:
+      return (reader.readDateTime(offset)) as P;
     case 20:
+      return (reader.readDouble(offset)) as P;
+    case 21:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -943,6 +953,142 @@ extension UserProfileQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'cuisinePreference',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'cuisinePreference',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'cuisinePreference',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'cuisinePreference',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      cuisinePreferenceIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'cuisinePreference',
+        value: '',
       ));
     });
   }
@@ -2077,6 +2223,20 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByCuisinePreference() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cuisinePreference', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByCuisinePreferenceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cuisinePreference', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByFatGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fatGoal', Sort.asc);
@@ -2341,6 +2501,20 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByCuisinePreference() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cuisinePreference', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByCuisinePreferenceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cuisinePreference', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByFatGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fatGoal', Sort.asc);
@@ -2583,6 +2757,14 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByCuisinePreference(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cuisinePreference',
+          caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByFatGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fatGoal');
@@ -2722,6 +2904,13 @@ extension UserProfileQueryProperty
   QueryBuilder<UserProfile, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<UserProfile, String, QQueryOperations>
+      cuisinePreferenceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cuisinePreference');
     });
   }
 

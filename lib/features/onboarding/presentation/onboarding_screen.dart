@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/utils/tdee_calculator.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_disclaimer.dart';
+import '../../../core/constants/cuisine_options.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../../core/database/database_service.dart';
@@ -26,6 +27,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _weightController = TextEditingController(text: '65');
   final _heightController = TextEditingController(text: '170');
   String _activityLevel = 'moderate';
+  String _selectedCuisine = 'international';
 
   double? _tdee;
   Map<String, int>? _suggestions;
@@ -258,6 +260,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               }
             },
           ),
+          const SizedBox(height: 16),
+
+          // Cuisine Preference
+          const Text('Your typical cuisine', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: CuisineOptions.options.map((option) {
+              final isSelected = _selectedCuisine == option['key'];
+              return ChoiceChip(
+                avatar: Text(option['flag']!, style: const TextStyle(fontSize: 16)),
+                label: Text(option['label']!),
+                selected: isSelected,
+                onSelected: (selected) {
+                  if (selected) setState(() => _selectedCuisine = option['key']!);
+                },
+              );
+            }).toList(),
+          ),
           const SizedBox(height: 24),
 
           // แสดงผล TDEE
@@ -443,6 +465,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     profile.weight = double.tryParse(_weightController.text);
     profile.height = double.tryParse(_heightController.text);
     profile.activityLevel = _activityLevel;
+    profile.cuisinePreference = _selectedCuisine;
     profile.onboardingComplete = true;
 
     // บันทึกเป้าหมาย kcal (ใช้ค่า "ลดน้ำหนัก" เป็น default)

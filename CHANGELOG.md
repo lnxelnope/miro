@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.3+26] - 2026-02-15
+
+### ✨ New Features
+- **Cuisine Preference**: Set your typical cuisine for personalized AI recommendations
+  - Choose from 15 cuisines (Thai, Japanese, Korean, Chinese, etc.)
+  - Available in Onboarding (Page 3) and Profile Settings
+  - AI suggests meals matching your cuisine preference
+  - AI estimates portion sizes based on your cuisine culture
+
+### 🐛 Bug Fixes
+- Fixed chat input hint: Changed "พิมพ์ข้อความ..." to "Type a message..."
+- Improved menu suggestion prompt: AI now strictly recommends dishes from selected cuisine
+
+### 🔧 Technical
+- Added `cuisinePreference` field to UserProfile (default: 'international')
+- Backend prompts updated to use cuisine preference for chat and menu suggestions
+- New `CuisineOptions` constant shared between Onboarding and Settings
+
+---
+
 ## [1.0.3+24] - 2026-02-14
 
 ### 🚀 Production Launch

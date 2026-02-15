@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/constants/cuisine_options.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/constants/enums.dart';
@@ -61,6 +62,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // AI Chat Mode
               _buildSectionTitle('🤖 Chat AI Mode'),
               _buildAiModeSettingCard(context),
+              const SizedBox(height: 16),
+
+              // Cuisine Preference
+              _buildSectionTitle('🍽️ Cuisine Preference'),
+              _buildCuisinePreferenceCard(context, profile),
               const SizedBox(height: 16),
 
               // Gallery Scan Settings
@@ -272,6 +278,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCuisinePreferenceCard(BuildContext context, profile) {
+    return _buildSettingCard(
+      context: context,
+      title: 'Preferred Cuisine',
+      subtitle: CuisineOptions.getLabel(profile.cuisinePreference),
+      leading: Text(
+        CuisineOptions.getFlag(profile.cuisinePreference),
+        style: const TextStyle(fontSize: 20),
+      ),
+      onTap: () => _showCuisineDialog(context, profile),
+    );
+  }
+
+  Future<void> _showCuisineDialog(BuildContext context, profile) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Select Your Cuisine'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: CuisineOptions.options.map((option) {
+                final isSelected = profile.cuisinePreference == option['key'];
+                return ChoiceChip(
+                  avatar: Text(option['flag']!, style: const TextStyle(fontSize: 16)),
+                  label: Text(option['label']!),
+                  selected: isSelected,
+                  onSelected: (selected) async {
+                    if (selected) {
+                      profile.cuisinePreference = option['key']!;
+                      await ref.read(profileNotifierProvider.notifier)
+                          .updateProfile(profile);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
   }

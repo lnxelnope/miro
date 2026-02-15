@@ -18,7 +18,8 @@ class UserProfile {
 
   // Settings
   bool isDarkMode = false;
-  String? locale; // th, en
+  String? locale; // th, en (kept for backward compatibility, not used)
+  String cuisinePreference = 'international'; // NEW: user's typical cuisine
 
   // API Keys (encrypted)
   bool hasGeminiApiKey = false;

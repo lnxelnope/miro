@@ -31,10 +31,8 @@ class GeminiChatService {
     context['carbGoal'] = profile.carbGoal;
     context['fatGoal'] = profile.fatGoal;
 
-    // Language preference
-    if (profile.locale != null) {
-      context['preferredLanguage'] = profile.locale;
-    }
+    // Cuisine preference (replaces old locale/preferredLanguage)
+    context['cuisinePreference'] = profile.cuisinePreference;
 
     // Calculate goal type (gain/lose/maintain weight)
     if (profile.weight != null && profile.targetWeight != null) {
