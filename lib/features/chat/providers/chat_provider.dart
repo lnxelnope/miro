@@ -4,9 +4,15 @@ import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/ai/gemini_chat_service.dart';
+import '../../../core/constants/enums.dart';
 import '../models/chat_message.dart';
+import '../models/chat_ai_mode.dart';
 import '../services/intent_handler.dart';
 import '../../health/providers/health_provider.dart';
+import '../../health/models/food_entry.dart';
+import '../../energy/providers/energy_provider.dart';
+import '../../profile/providers/profile_provider.dart';
 
 // Current session provider
 final currentSessionIdProvider = StateProvider<String>((ref) {
@@ -90,39 +96,53 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final sessionId = ref.read(currentSessionIdProvider);
     
     try {
-      // ใช้ IntentHandler ประมวลผล (ส่ง pageContext ไปด้วย)
-      final response = await _intentHandler.processMessage(userMessage, pageContext: pageContext);
+      // Get current AI mode
+      final aiMode = ref.read(chatAiModeProvider);
+      
+      String replyMessage;
+      String? detectedIntent;
+      
+      if (aiMode == ChatAiMode.local) {
+        // LOCAL AI — Free, use existing IntentHandler flow
+        final response = await _intentHandler.processMessage(userMessage, pageContext: pageContext);
+        replyMessage = response.replyMessage;
+        detectedIntent = response.actionResult?.entryType ?? 'unknown';
+        
+        // Refresh providers if food entry was created
+        if (response.actionResult != null && response.actionResult!.entryType == 'food') {
+          debugPrint('🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
+          final today = DateTime.now();
+          DateTime entryDate = today;
+          if (response.actionResult!.data != null && response.actionResult!.data!['date'] != null) {
+            final parsedDate = DateTime.tryParse(response.actionResult!.data!['date'] as String);
+            if (parsedDate != null) entryDate = parsedDate;
+          }
+          ref.invalidate(foodEntriesByDateProvider(entryDate));
+          ref.invalidate(foodEntriesByDateProvider(today));
+          ref.invalidate(todayCaloriesProvider);
+          ref.invalidate(todayMacrosProvider);
+          ref.invalidate(healthTimelineProvider(entryDate));
+          ref.invalidate(healthTimelineProvider(today));
+        }
+      } else {
+        // MIRO AI — 1 Energy cost, use Gemini Backend
+        final miroResponse = await _handleMiroAi(userMessage);
+        replyMessage = miroResponse;
+        detectedIntent = 'food';
+      }
       
       // สร้าง assistant message
       final assistantMessage = ChatMessage()
         ..sessionId = sessionId
         ..role = MessageRole.assistant
-        ..content = response.replyMessage
-        ..detectedIntent = response.actionResult?.entryType ?? 'unknown';
+        ..content = replyMessage
+        ..detectedIntent = detectedIntent;
 
       await DatabaseService.isar.writeTxn(() async {
         await DatabaseService.chatMessages.put(assistantMessage);
       });
 
       state = [...state, assistantMessage];
-      
-      // ===== Refresh providers หลังเพิ่มข้อมูลสำเร็จ =====
-      if (response.actionResult != null && response.actionResult!.entryType == 'food') {
-        debugPrint('🔄 [ChatProvider] Refreshing food providers after chat food entry...');
-        final today = DateTime.now();
-        // ใช้ date จาก actionResult ถ้ามี
-        DateTime entryDate = today;
-        if (response.actionResult!.data != null && response.actionResult!.data!['date'] != null) {
-          final parsedDate = DateTime.tryParse(response.actionResult!.data!['date'] as String);
-          if (parsedDate != null) entryDate = parsedDate;
-        }
-        ref.invalidate(foodEntriesByDateProvider(entryDate));
-        ref.invalidate(foodEntriesByDateProvider(today));
-        ref.invalidate(todayCaloriesProvider);
-        ref.invalidate(todayMacrosProvider);
-        ref.invalidate(healthTimelineProvider(entryDate));
-        ref.invalidate(healthTimelineProvider(today));
-      }
       
     } catch (e) {
       // Error fallback
@@ -137,6 +157,98 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       });
 
       state = [...state, errorMessage];
+    }
+  }
+
+  /// Handle Miro AI (new flow with Gemini Backend)
+  /// Returns reply message string
+  Future<String> _handleMiroAi(String text) async {
+    // Check Energy balance (2 Energy required)
+    final energyService = ref.read(energyServiceProvider);
+    final balance = await energyService.getBalance();
+    
+    if (balance < 2) {
+      throw Exception('Not enough Energy. Please purchase more from the store.');
+    }
+    
+    // Get user profile for personalization
+    final profileAsync = ref.read(profileNotifierProvider);
+    final profile = await profileAsync.when(
+      data: (data) => Future.value(data),
+      loading: () => Future.value(null),
+      error: (_, __) => Future.value(null),
+    );
+    
+    // Call Gemini Backend (backend will deduct energy and return new token)
+    final response = await GeminiChatService.analyzeChatMessage(
+      message: text,
+      energyService: energyService,
+      userProfile: profile,
+    );
+    
+    // Note: Energy is deducted by backend, balance updated in GeminiChatService
+    
+    // Parse response and save food entries
+    await _parseMiroAiResponse(response);
+    
+    // Refresh providers
+    debugPrint('🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
+    final today = DateTime.now();
+    ref.invalidate(foodEntriesByDateProvider(today));
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
+    ref.invalidate(healthTimelineProvider(today));
+    
+    // Return reply message
+    final reply = response['reply'] as String? ?? 'Message received';
+    return '$reply\n\n⚡ -2 Energy';
+  }
+
+  /// Parse Miro AI response and save food entries
+  Future<void> _parseMiroAiResponse(Map<String, dynamic> response) async {
+    if (response['type'] != 'food_log') return;
+    
+    final items = response['items'] as List<dynamic>?;
+    if (items == null || items.isEmpty) return;
+    
+    final foodNotifier = ref.read(foodEntriesNotifierProvider.notifier);
+    
+    for (final item in items) {
+      // Map meal_type string to MealType enum
+      final mealTypeStr = item['meal_type'] as String? ?? 'snack';
+      MealType mealType;
+      switch (mealTypeStr.toLowerCase()) {
+        case 'breakfast':
+          mealType = MealType.breakfast;
+          break;
+        case 'lunch':
+          mealType = MealType.lunch;
+          break;
+        case 'dinner':
+          mealType = MealType.dinner;
+          break;
+        default:
+          mealType = MealType.snack;
+      }
+      
+      final foodEntry = FoodEntry()
+        ..foodName = item['food_name_local'] as String? ?? item['food_name'] as String
+        ..foodNameEn = item['food_name'] as String
+        ..servingSize = (item['serving_size'] as num?)?.toDouble() ?? 1.0
+        ..servingUnit = item['serving_unit'] as String? ?? 'serving'
+        ..calories = (item['calories'] as num?)?.toDouble() ?? 0
+        ..protein = (item['protein'] as num?)?.toDouble() ?? 0
+        ..carbs = (item['carbs'] as num?)?.toDouble() ?? 0
+        ..fat = (item['fat'] as num?)?.toDouble() ?? 0
+        ..mealType = mealType
+        ..timestamp = DateTime.now()
+        ..source = DataSource.aiAnalyzed
+        ..baseCalories = (item['calories'] as num?)?.toDouble() ?? 0
+        ..baseProtein = (item['protein'] as num?)?.toDouble() ?? 0
+        ..baseCarbs = (item['carbs'] as num?)?.toDouble() ?? 0
+        ..baseFat = (item['fat'] as num?)?.toDouble() ?? 0;
+      
+      await foodNotifier.addFoodEntry(foodEntry);
     }
   }
 
@@ -240,9 +352,38 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     // Create new session
     ref.read(currentSessionIdProvider.notifier).state = const Uuid().v4();
   }
+
+  /// Add a message to chat (for system messages like greeting)
+  Future<void> addMessage(ChatMessage message) async {
+    final sessionId = ref.read(currentSessionIdProvider);
+    message.sessionId = sessionId;
+    
+    await DatabaseService.isar.writeTxn(() async {
+      await DatabaseService.chatMessages.put(message);
+    });
+    
+    state = [...state, message];
+  }
+
+  /// Remove a message from chat (for removing loading messages)
+  Future<void> removeMessage(ChatMessage message) async {
+    // Remove from database
+    await DatabaseService.isar.writeTxn(() async {
+      await DatabaseService.chatMessages.delete(message.id);
+    });
+    
+    // Remove from state
+    state = state.where((msg) => msg.id != message.id).toList();
+  }
 }
 
 final chatNotifierProvider =
     StateNotifierProvider<ChatNotifier, List<ChatMessage>>((ref) {
   return ChatNotifier(ref);
+});
+
+/// Provider สำหรับเก็บ AI Mode ที่ user เลือก
+/// Default: ChatAiMode.local (ฟรี, ไม่เสีย Energy)
+final chatAiModeProvider = StateProvider<ChatAiMode>((ref) {
+  return ChatAiMode.local;
 });

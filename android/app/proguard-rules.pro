@@ -22,6 +22,20 @@
 # Keep model classes (Isar)
 -keep class * extends dev.isar.IsarObject { *; }
 
+# Keep Flutter Secure Storage
+-keep class com.it_nomads.fluttersecurestorage.** { *; }
+-keepclassmembers class com.it_nomads.fluttersecurestorage.** { *; }
+
+# Keep Android Security classes (for flutter_secure_storage)
+-keep class androidx.security.crypto.** { *; }
+-keep class com.google.crypto.tink.** { *; }
+
+# Keep EncryptedSharedPreferences
+-keepclassmembers class * extends androidx.security.crypto.EncryptedSharedPreferences {
+    <fields>;
+    <methods>;
+}
+
 # Ignore missing Play Core classes (not using deferred components)
 -dontwarn com.google.android.play.core.**
 

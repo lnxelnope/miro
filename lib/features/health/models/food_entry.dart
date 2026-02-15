@@ -55,6 +55,7 @@ class FoodEntry {
   late DataSource source;
   double? aiConfidence;
   bool isVerified = false;
+  bool isDeleted = false; // Soft delete - ป้องกันการสแกนรูปซ้ำ
   String? notes;
 
   // ============================================

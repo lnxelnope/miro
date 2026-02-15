@@ -18,6 +18,7 @@ final foodEntriesByDateProvider = FutureProvider.family<List<FoodEntry>, DateTim
   return await DatabaseService.foodEntries
       .filter()
       .timestampBetween(startOfDay, endOfDay)
+      .isDeletedEqualTo(false) // ไม่แสดงรายการที่ถูกลบ
       .sortByTimestampDesc()
       .findAll();
 });
@@ -103,11 +104,16 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         throw Exception('Entry not found');
       }
 
+      // ────── Soft Delete - ทำเครื่องหมายว่าลบแล้ว ──────
+      // ไม่ลบรูปออกจากเครื่อง เพื่อให้ scan controller รู้ว่ารูปนี้เคยถูกสแกนแล้ว
+      entry.isDeleted = true;
+      entry.updatedAt = DateTime.now();
+      
       await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.foodEntries.delete(id);
+        await DatabaseService.foodEntries.put(entry);
       });
 
-      AppLogger.info('FoodEntry deleted successfully: id=$id, name="${entry.foodName}"');
+      AppLogger.info('FoodEntry soft deleted: id=$id, name="${entry.foodName}", imagePath="${entry.imagePath}"');
     } catch (e, stackTrace) {
       AppLogger.error('Error deleting FoodEntry id=$id', e, stackTrace);
       rethrow;

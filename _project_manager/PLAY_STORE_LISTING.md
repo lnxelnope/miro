@@ -2,7 +2,7 @@
 
 ## App Title (30 chars max)
 ```
-MIRO — AI Calorie Tracker
+Miro Cal — AI Calorie Tracker
 ```
 
 ---
@@ -10,7 +10,7 @@ MIRO — AI Calorie Tracker
 ## Short Description (80 chars max)
 
 ```
-AI calorie tracker — snap food photos or just type. Free, private, offline.
+AI calorie tracker — snap food photos or type. 100 free Energy to start!
 ```
 
 ---
@@ -18,9 +18,9 @@ AI calorie tracker — snap food photos or just type. Free, private, offline.
 ## Full Description (4000 chars max)
 
 ```
-MIRO — the simplest AI-powered calorie tracker.
+Miro Cal — the simplest AI-powered calorie tracker.
 
-Snap a photo of your food and let AI calculate calories, protein, carbs, and fat instantly. Or just type what you ate — Miro figures out the rest.
+Snap a photo of your food and let AI calculate calories, protein, carbs, and fat instantly. Or just type what you ate — Miro Cal figures out the rest.
 
 ━━━━━━━━━━━━━━━━━━━━━
 KEY FEATURES
@@ -33,44 +33,50 @@ Take a photo of any meal. AI identifies ingredients, estimates portions, and cal
 Just type "fried rice 1 plate" — AI finds the calories, macros, and ingredients for you. The fastest way to log food.
 
 💬 CHAT WITH AI
-Tell Miro what you ate in natural language. It understands and logs everything automatically.
+Tell Miro Cal what you ate in natural language. It understands and logs everything automatically.
 
 📚 YOUR DATABASE GROWS WITH YOU
-The more you use Miro, the smarter it gets. Your personal food database builds from YOUR eating habits. Custom meals and ingredients are saved locally.
+The more you use Miro Cal, the smarter it gets. Your personal food database builds from YOUR eating habits. Custom meals and ingredients are saved locally.
 
 🔒 PRIVACY FIRST
-All data stored locally on your device. No cloud, no server, no account required. Your food diary stays yours.
+All food data stored locally on your device. No account required. Your food diary stays yours.
 
-🔑 BRING YOUR OWN AI KEY
-Use your own free Gemini API key. No middleman, no hidden costs. Gemini 2.0 Flash free tier is more than enough for daily use.
-
-━━━━━━━━━━━━━━━━━━━━━
-FREE WITH OPTIONAL PRO
-━━━━━━━━━━━━━━━━━━━━━
-
-✅ FREE:
-• 3 AI food analyses per day
-• Unlimited manual food logging
-• Full nutrition dashboard (kcal, protein, carbs, fat)
-• Thai food database built-in
-• Personal meals & ingredients database
-• Chat with AI assistant
-
-⭐ PRO ($9.99 one-time purchase):
-• Unlimited AI food analyses
-• No daily limits — ever
+⚡ ENERGY SYSTEM — PAY AS YOU GO
+No subscription! Use Energy to power AI features. Start with 100 free Energy. Buy more only when you need it.
 
 ━━━━━━━━━━━━━━━━━━━━━
-WHY MIRO?
+⚡ ENERGY SYSTEM
+━━━━━━━━━━━━━━━━━━━━━
+
+1 Energy = 1 AI analysis (photo, text, or chat)
+
+🎁 Every new user gets 100 FREE Energy!
+
+Energy Packages:
+• 100 Energy — $0.99
+• 550 Energy — $4.99 (best for regular use)
+• 1,200 Energy — $7.99 (great value)
+• 2,000 Energy — $9.99 (best value!)
+
+🔥 WELCOME OFFER — 40% OFF!
+After your first few AI analyses, unlock a special 24-hour welcome discount on all packages. One-time only!
+
+✅ Energy never expires
+✅ No subscription — buy only when you need
+✅ Unlimited manual food logging (no Energy needed)
+
+━━━━━━━━━━━━━━━━━━━━━
+WHY MIRO CAL?
 ━━━━━━━━━━━━━━━━━━━━━
 
 Unlike other calorie trackers:
+• No API key needed — AI works out of the box
 • No account creation needed
-• No cloud upload — your data stays on your device
+• Food data stays on your device
 • Edit AI suggestions before saving
 • Database grows from YOUR eating habits
-• No subscription — Pro is one-time $9.99
-• Gemini 2.0 Flash API is FREE for typical daily usage
+• No subscription — pay as you go with Energy
+• Energy never expires
 
 Built for people who want to track what they eat without the hassle.
 
@@ -79,7 +85,7 @@ GETTING STARTED
 ━━━━━━━━━━━━━━━━━━━━━
 
 1. Set your health goals (age, weight, activity level)
-2. (Optional) Add your free Gemini API key for AI features
+2. Get 100 free Energy instantly
 3. Start logging — snap photos, type, or chat
 4. View your daily nutrition summary
 
@@ -87,7 +93,7 @@ GETTING STARTED
 SUPPORT
 ━━━━━━━━━━━━━━━━━━━━━
 
-Questions? Check our in-app FAQ or contact us through the Play Store.
+Questions? Contact us through the Play Store.
 
 Privacy Policy: Available in-app under Profile > Privacy Policy
 ```
@@ -115,8 +121,8 @@ weight loss app
 calorie counting
 macro counting
 protein tracker
-offline calorie tracker
-private food diary
+food photo scanner
+AI nutrition tracker
 ```
 
 ---
@@ -141,7 +147,7 @@ private food diary
 ## Promotional Text (80 chars max — appears at top of listing)
 
 ```
-Snap food → AI calculates calories instantly. Privacy-first & offline.
+Snap food → AI calculates calories instantly. 100 free Energy to start!
 ```
 
 ---
@@ -149,7 +155,7 @@ Snap food → AI calculates calories instantly. Privacy-first & offline.
 ## What's New (Release Notes for v1.0.0)
 
 ```
-🎉 MIRO v1.0 — Initial Release
+🎉 Miro Cal v1.0 — Initial Release
 
 • AI-powered food photo analysis
 • Type or chat to log food
@@ -157,8 +163,8 @@ Snap food → AI calculates calories instantly. Privacy-first & offline.
 • Thai food database included
 • Custom meals & ingredients
 • Daily nutrition dashboard
-• Free tier: 3 AI analyses/day
-• Pro: Unlimited AI analyses ($9.99 one-time)
+• ⚡ Energy system — 100 free Energy to start!
+• 🔥 Welcome Offer — 40% OFF for new users
 
 No account needed — start tracking now!
 ```
@@ -176,7 +182,7 @@ For the 1024x500px feature graphic, use one of these taglines:
    - AI calorie tracking that learns from you
 
 3. **"Your food diary, powered by AI"**
-   - Privacy-first • Offline • No account needed
+   - Privacy-first • No subscription • 100 free Energy
 
 ---
 
@@ -188,8 +194,8 @@ For the 1024x500px feature graphic, use one of these taglines:
 4. **Diet Log**: "View your complete food timeline"
 5. **Edit Ingredients**: "Edit AI suggestions before saving"
 6. **My Meals**: "Build your personal meal database"
-7. **Nutrition Breakdown**: "Detailed macro tracking"
-8. **Pro Upgrade**: "Go Pro for unlimited AI analyses"
+7. **Energy Store**: "Buy Energy as you need — no subscription!"
+8. **Welcome Offer**: "Get 40% OFF Energy — limited-time welcome deal!"
 
 ---
 
@@ -197,22 +203,22 @@ For the 1024x500px feature graphic, use one of these taglines:
 
 **For positive reviews:**
 ```
-Thank you for the 5-star review! We're glad MIRO helps you track your nutrition. 🙌
+Thank you for the 5-star review! We're glad Miro Cal helps you track your nutrition. 🙌
 ```
 
 **For feature requests:**
 ```
-Thanks for the suggestion! We're always improving MIRO. Please check future updates!
+Thanks for the suggestion! We're always improving Miro Cal. Please check future updates!
 ```
 
-**For API key questions:**
+**For Energy questions:**
 ```
-Gemini API key is free to create (no credit card needed) and gives you 1,500+ requests/day. Check our in-app guide under Profile > Gemini API Key for step-by-step instructions. 🔑
+Every new user gets 100 free Energy to start! 1 Energy = 1 AI analysis. You can buy more Energy anytime in the Energy Store. Energy never expires — no rush! ⚡
 ```
 
-**For Pro upgrade questions:**
+**For pricing questions:**
 ```
-Pro ($9.99 one-time) unlocks unlimited AI analyses. Free tier gives 3 AI analyses/day + unlimited manual logging. Both tiers are fully functional! 🌟
+Miro Cal uses a pay-as-you-go Energy system — no subscription! Energy packages start at $0.99 for 100 Energy. Manual food logging is always free and unlimited. 🌟
 ```
 
 ---
@@ -220,28 +226,37 @@ Pro ($9.99 one-time) unlocks unlimited AI analyses. Free tier gives 3 AI analyse
 ## Target Countries (Initial Launch)
 
 **Primary**: 
+- Thailand
+
+**Secondary**:
 - United States
 - United Kingdom
 - Canada
 - Australia
 
-**Secondary** (Thai-speaking):
-- Thailand
-
 **Global**: Available worldwide (English interface)
 
 ---
 
-## Pricing Localization
+## Pricing — Energy Packages
 
-| Country | Pro Price (local) |
-|---------|-------------------|
-| US | $9.99 |
-| UK | £8.99 |
-| EU | €9.99 |
-| Canada | CAD 12.99 |
-| Australia | AUD 14.99 |
-| Thailand | ฿349 |
+### Regular Packages
+
+| Package | Energy | Price (USD) |
+|---------|--------|-------------|
+| Starter | 100 Energy | $0.99 |
+| Popular | 550 Energy | $4.99 |
+| Great Value | 1,200 Energy | $7.99 |
+| Best Value | 2,000 Energy | $9.99 |
+
+### Welcome Offer Packages (40% OFF — 24h only, one-time)
+
+| Package | Energy | Price (USD) | Savings |
+|---------|--------|-------------|---------|
+| Starter | 100 Energy | $0.59 | 40% OFF |
+| Popular | 550 Energy | $2.99 | 40% OFF |
+| Great Value | 1,200 Energy | $4.79 | 40% OFF |
+| Best Value | 2,000 Energy | $5.99 | 40% OFF |
 
 Google Play will auto-convert to local currencies for other regions.
 
@@ -250,26 +265,28 @@ Google Play will auto-convert to local currencies for other regions.
 ## Data Safety Form Answers (for Play Console)
 
 **Does your app collect or share user data?**
-- YES (health data stored locally only)
+- YES (health data stored locally, Energy balance synced via Firebase)
 
 **Data types collected:**
 - Health & Fitness: Calorie intake, nutrition data
 - Personal info: Age, weight, height, gender, health goals
+- Device ID: Used to manage Energy balance
 
 **Is data encrypted in transit?**
-- Not applicable (no server transmission except to Google Gemini API if user enables)
+- YES (HTTPS for all Firebase communication)
 
 **Can users request data deletion?**
-- YES (via in-app "Clear All Data" button)
+- YES (via in-app "Clear All Data" button for local data, Energy data deletion by contacting support)
 
 **Is data shared with third parties?**
-- NO (user's own Gemini API key is used if enabled)
+- NO (data processed through our own Firebase backend)
 
 **Is data collected optional?**
-- YES (app works without API key for manual logging)
+- Health data: Optional (app works for manual logging)
+- Device ID: Required for Energy system
 
 **Data usage:**
-- App functionality only
-- No analytics
+- App functionality
+- Firebase Analytics (anonymous usage data)
 - No advertising
-- No fraud prevention or security
+- Fraud prevention (Energy system integrity)

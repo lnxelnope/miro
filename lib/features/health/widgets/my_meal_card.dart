@@ -51,21 +51,23 @@ class MyMealCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Source badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: meal.source == 'gemini'
-                          ? Colors.purple.withOpacity(0.1)
-                          : AppColors.textTertiary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      meal.source == 'gemini' ? '✨ AI' : '✏️ Manual',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: meal.source == 'gemini' ? Colors.purple : AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
+                  // Source badge (non-interactive)
+                  IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: meal.source == 'gemini'
+                            ? Colors.purple.withOpacity(0.1)
+                            : AppColors.textTertiary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        meal.source == 'gemini' ? '✨ AI' : '✏️ Manual',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: meal.source == 'gemini' ? Colors.purple : AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -102,7 +104,7 @@ class MyMealCard extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: onUse,
                       icon: const Icon(Icons.restaurant, size: 16),
-                      label: const Text('ใช้เมนูนี้', style: TextStyle(fontSize: 13)),
+                      label: const Text('Use This Meal', style: TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.health,
                         side: BorderSide(color: AppColors.health.withOpacity(0.5)),
@@ -116,13 +118,13 @@ class MyMealCard extends StatelessWidget {
                     onPressed: onEdit,
                     icon: const Icon(Icons.edit_outlined, size: 20),
                     color: AppColors.textSecondary,
-                    tooltip: 'แก้ไข',
+                    tooltip: 'Edit',
                   ),
                   IconButton(
                     onPressed: onDelete,
                     icon: const Icon(Icons.delete_outline, size: 20),
                     color: AppColors.error,
-                    tooltip: 'ลบ',
+                    tooltip: 'Delete',
                   ),
                 ],
               ),

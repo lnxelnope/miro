@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/ai/gemini_service.dart';
 import '../../health/presentation/health_page.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../feedback/beta_feedback_button.dart'; // TODO: Remove before public launch
+import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../widgets/magic_button.dart';
+import '../widgets/feature_tour.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -17,12 +21,26 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _hasRequestedPermissions = false;
   
+  // Add GlobalKeys for Feature Tour
+  final _energyBadgeKey = GlobalKey();
+  final _timelineAreaKey = GlobalKey();
+  final _magicButtonKey = GlobalKey();
+  
   @override
   void initState() {
     super.initState();
     // Request permission after build complete
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAndRequestPermissions();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1. Request permissions first
+      await _checkAndRequestPermissions();
+      
+      // 2. Show feature tour (only first time)
+      await _checkAndShowFeatureTour();
+      
+      // 3. Set context for Welcome Offer notifications
+      if (mounted) {
+        GeminiService.setContext(context);
+      }
     });
   }
   
@@ -154,8 +172,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: const HealthPage(),
-      floatingActionButton: const MagicButton(),
+      body: Stack(
+        children: [
+          HealthPage(key: _timelineAreaKey),
+          // TODO: Remove before public launch
+          const BetaFeedbackButton(),
+        ],
+      ),
+      floatingActionButton: MagicButton(key: _magicButtonKey),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
@@ -169,6 +193,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           letterSpacing: 2,
         ),
       ),
+      leading: Padding(
+        key: _energyBadgeKey,
+        padding: const EdgeInsets.only(left: 8.0),
+        child: const Center(
+          child: EnergyBadgeRiverpod(),
+        ),
+      ),
+      leadingWidth: 80, // ปรับความกว้างให้พอดีกับ badge ขนาดเล็ก
       actions: [
         IconButton(
           icon: const Icon(Icons.person),
@@ -184,6 +216,37 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => const ProfileScreen()),
     );
+  }
+
+  /// Check and show feature tour (first time only)
+  Future<void> _checkAndShowFeatureTour() async {
+    final hasCompleted = await FeatureTour.hasCompletedTour();
+    
+    if (!hasCompleted && mounted) {
+      // Wait for UI to render (500ms)
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (!mounted) return;
+      
+      // Build tour targets
+      final targets = [
+        FeatureTour.buildEnergyBadgeTarget(_energyBadgeKey),
+        FeatureTour.buildPullRefreshTarget(_timelineAreaKey),
+        FeatureTour.buildChatButtonTarget(_magicButtonKey),
+      ];
+      
+      // Show tour
+      FeatureTour.show(
+        context: context,
+        targets: targets,
+        onFinish: () {
+          debugPrint('Feature tour completed');
+        },
+        onSkip: () {
+          debugPrint('Feature tour skipped');
+        },
+      );
+    }
   }
 
 }

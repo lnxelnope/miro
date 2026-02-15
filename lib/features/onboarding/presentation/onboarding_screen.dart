@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/tdee_calculator.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../profile/models/user_profile.dart';
-import '../../profile/presentation/api_key_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../home/presentation/home_screen.dart';
 import '../../../core/database/database_service.dart';
@@ -101,8 +100,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon หรือ ภาพประกอบ
-          const Icon(Icons.restaurant_menu, size: 100, color: AppColors.primary),
+          // Logo
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              'assets/icon/logo.png',
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+            ),
+          ),
           const SizedBox(height: 32),
           RichText(
             textAlign: TextAlign.center,
@@ -131,7 +138,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Smart AI-powered food tracking',
+            'the simplest AI-powered\ncalorie tracker.',
+            textAlign: TextAlign.center,
             style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 48),
@@ -149,11 +157,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _buildFeatureRow(Icons.camera_alt, 'ถ่ายรูปอาหาร', 'AI วิเคราะห์ kcal อัตโนมัติ'),
+          _buildFeatureRow(Icons.camera_alt, 'Snap Food Photos', 'AI analyzes calories automatically'),
           const SizedBox(height: 24),
-          _buildFeatureRow(Icons.chat_bubble, 'พิมพ์แชท', 'บอกว่า "กินข้าวผัด" → บันทึกให้เลย'),
+          _buildFeatureRow(Icons.chat_bubble, 'Type in Chat', 'Say "ate fried rice" → logged instantly'),
           const SizedBox(height: 24),
-          _buildFeatureRow(Icons.bar_chart, 'สรุปทุกวัน', 'ดู kcal, โปรตีน, คาร์บ, ไขมัน'),
+          _buildFeatureRow(Icons.bar_chart, 'Daily Summary', 'View kcal, protein, carbs, fat'),
           const SizedBox(height: 48),
           _buildNextButton(),
         ],
@@ -238,7 +246,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             items: TdeeCalculator.activityLevels.map((level) {
               return DropdownMenuItem(
                 value: level['key'],
-                child: Text(level['th']!, style: const TextStyle(fontSize: 13)),
+                child: Text(level['en']!, style: const TextStyle(fontSize: 13)),
               );
             }).toList(),
             onChanged: (v) {
@@ -332,7 +340,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
-  // ============ Page 4: API Key ============
+  // ============ Page 4: Energy System ============
 
   Widget _buildPage4ApiKey() {
     return Padding(
@@ -340,43 +348,57 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.smart_toy, size: 80, color: Colors.blue),
+          const Text('⚡', style: TextStyle(fontSize: 80)),
           const SizedBox(height: 24),
-          const Text('Set up Gemini AI',
+          const Text('Powered by Energy System',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Snap food photos → AI calculates calories automatically\nCreate API Key for free! Takes just 5 minutes',
+            'Snap food photos → AI calculates calories automatically\nYou\'ll receive 100 FREE Energy to get started!',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green, width: 2),
+            ),
+            child: Column(
+              children: [
+                const Text('🎁 Welcome Gift',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text('100 FREE Energy',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
+                const SizedBox(height: 8),
+                Text(
+                  '= 100 AI food analyses',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
             height: 48,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ApiKeyScreen()),
-                );
-              },
-              icon: const Icon(Icons.settings),
-              label: const Text('Set up now'),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: _completeOnboarding,
-              child: const Text('Skip for now'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+              ),
+              child: const Text(
+                'Start Now!',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'You can still log food manually without API Key',
+            'No credit card required • No hidden fees',
             style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
           ),
         ],
@@ -390,7 +412,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: ElevatedButton(
+        child: ElevatedButton(
         onPressed: () {
           if (_currentPage < 3) {
             _pageController.nextPage(
@@ -398,12 +420,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               curve: Curves.easeInOut,
             );
           }
-          // Page 3 → recalculate TDEE ก่อนไปต่อ
+          // Page 3 → recalculate TDEE before next
           if (_currentPage == 2) {
             _recalculate();
           }
         },
-        child: const Text('ถัดไป'),
+        child: const Text('Next'),
       ),
     );
   }

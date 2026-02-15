@@ -1,33 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/services/permission_service.dart';
-import '../../../core/services/usage_limiter.dart';
-import '../../../core/services/purchase_service.dart';
+import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/constants/enums.dart';
+import '../../../core/utils/logger.dart';
+import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
-import 'api_key_screen.dart';
 import 'health_goals_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
+import '../../home/widgets/feature_tour.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(profileNotifierProvider);
-    final hasApiKeyAsync = ref.watch(hasApiKeyProvider);
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
 
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile & Settings'),
       ),
-      body: profileAsync.when(
+      body: ref.watch(profileNotifierProvider).when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, st) => Center(child: Text('Error: $e')),
         data: (profile) => SingleChildScrollView(
@@ -37,76 +40,6 @@ class ProfileScreen extends ConsumerWidget {
               // Avatar
               _buildAvatarSection(context, profile.name ?? 'User'),
               const SizedBox(height: 24),
-
-              // Pro Status / Upgrade
-              _buildSectionTitle('⭐ Pro'),
-              FutureBuilder<bool>(
-                future: UsageLimiter.isPro(),
-                builder: (context, snapshot) {
-                  final isPro = snapshot.data ?? false;
-
-                  if (isPro) {
-                    // Show Pro badge
-                    return _buildSettingCard(
-                      context: context,
-                      title: 'Miro Cal Pro',
-                      subtitle: 'Thank you for your support! Unlimited AI',
-                      leading: const Icon(Icons.star, color: Colors.amber),
-                      trailing: const Icon(Icons.check_circle, color: Colors.green),
-                      showArrow: false,
-                    );
-                  }
-
-                  // Not Pro yet → show upgrade button
-                  return _buildSettingCard(
-                    context: context,
-                    title: 'Upgrade to Pro',
-                    subtitle: 'Unlimited AI food analysis',
-                    leading: const Icon(Icons.star_outline, color: Colors.purple),
-                    onTap: () => PurchaseService.buyPro(),
-                  );
-                },
-              ),
-              FutureBuilder<bool>(
-                future: UsageLimiter.isPro(),
-                builder: (context, snapshot) {
-                  final isPro = snapshot.data ?? false;
-                  if (isPro) return const SizedBox.shrink();
-                  
-                  return _buildSettingCard(
-                    context: context,
-                    title: 'Restore Purchase',
-                    subtitle: 'For device transfer',
-                    leading: const Icon(Icons.restore),
-                    onTap: () async {
-                      await PurchaseService.restorePurchase();
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Checking purchase...')),
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // API Settings
-              _buildSectionTitle('🔑 API Settings'),
-              _buildSettingCard(
-                context: context,
-                title: 'Gemini API Key',
-                subtitle: hasApiKeyAsync.when(
-                  data: (hasKey) => hasKey ? '✅ Connected' : '⚠️ Not configured',
-                  loading: () => 'Loading...',
-                  error: (_, __) => 'Error',
-                ),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ApiKeyScreen()),
-                ),
-              ),
-              const SizedBox(height: 16),
 
               // Health Goals
               _buildSectionTitle('🎯 Health Goals'),
@@ -182,7 +115,7 @@ class ProfileScreen extends ConsumerWidget {
               _buildSettingCard(
                 context: context,
                 title: 'Version',
-                subtitle: '1.0.0',
+                subtitle: '1.0.2',
                 showArrow: false,
               ),
               _buildSettingCard(
@@ -202,6 +135,13 @@ class ProfileScreen extends ConsumerWidget {
                   context,
                   MaterialPageRoute(builder: (_) => const TermsScreen()),
                 ),
+              ),
+              _buildSettingCard(
+                context: context,
+                title: 'Show Tutorial Again',
+                subtitle: 'View feature tour',
+                leading: const Icon(Icons.lightbulb_outline),
+                onTap: () => _showTutorialAgain(),
               ),
               const SizedBox(height: 32),
             ],
@@ -396,19 +336,6 @@ class ProfileScreen extends ConsumerWidget {
   // }
   // ===== จบซ่อน v1.0 =====
 
-  Future<void> _openUrl(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    try {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ไม่สามารถเปิดลิงก์ได้: $url')),
-        );
-      }
-    }
-  }
-
   Future<void> _confirmClearAllData(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -474,6 +401,49 @@ class ProfileScreen extends ConsumerWidget {
         }
       }
     }
+  }
+
+  /// Show feature tour again
+  Future<void> _showTutorialAgain() async {
+    // Show confirmation dialog
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Show Tutorial'),
+        content: const Text(
+          'This will show the feature tour that highlights:\n\n'
+          '• Energy System\n'
+          '• Pull-to-Refresh Photo Scan\n'
+          '• Chat with Miro AI\n\n'
+          'You will return to the Home screen.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Show Tutorial'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm != true || !context.mounted) return;
+    
+    // Reset tutorial flag
+    await FeatureTour.resetTour();
+    
+    // Show success message
+    if (!context.mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tutorial reset! Go to Home screen to view it.'),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 }
 
@@ -635,8 +605,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
       builder: (context) => AlertDialog(
         title: const Text('Reset Scan History?'),
         content: const Text(
-          'All images will be re-scanned based on your day setting.\n'
-          'Duplicate entries may appear.',
+          'All gallery-scanned food entries will be deleted.\n'
+          'Images will be re-scanned based on your day setting.',
         ),
         actions: [
           TextButton(
@@ -645,6 +615,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Reset'),
           ),
         ],
@@ -652,10 +623,32 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     );
 
     if (confirm == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('last_scan_timestamp');
-      if (!mounted) return;
-      _showMessage('Reset complete - pull down to refresh and scan again');
+      try {
+        // 1. ลบ food entries ที่มาจาก gallery scan
+        final scanEntries = await DatabaseService.foodEntries
+            .filter()
+            .sourceEqualTo(DataSource.galleryScanned)
+            .findAll();
+        
+        final ids = scanEntries.map((e) => e.id).toList();
+        
+        await DatabaseService.isar.writeTxn(() async {
+          await DatabaseService.foodEntries.deleteAll(ids);
+        });
+        
+        AppLogger.info('Deleted ${ids.length} gallery-scanned entries');
+        
+        // 2. ลบ last scan timestamp
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('last_scan_timestamp');
+        
+        if (!mounted) return;
+        _showMessage('Reset complete - ${ids.length} entries deleted. Pull down to scan again.');
+      } catch (e) {
+        AppLogger.error('Error resetting scan history', e);
+        if (!mounted) return;
+        _showMessage('Error: $e');
+      }
     }
   }
 

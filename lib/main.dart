@@ -4,18 +4,34 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/database/database_service.dart';
 import 'core/services/purchase_service.dart';
+import 'core/services/energy_service.dart';
 import 'core/ai/llm_service.dart';
+import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/profile/providers/locale_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    AppLogger.info('Firebase initialized successfully');
+  } catch (e) {
+    AppLogger.warn('Firebase initialization failed: $e');
+    // Continue anyway - analytics will fail silently
+  }
   
   // Load environment variables (optional)
   try {
@@ -32,6 +48,32 @@ void main() async {
   
   // Initialize Isar Database
   await DatabaseService.initialize();
+  
+  // ────── Initialize Energy System ──────
+  final energyService = EnergyService(DatabaseService.isar);
+  
+  // ตรวจสอบและมอบ Welcome Gift
+  final receivedGift = await energyService.initializeWelcomeGift();
+  if (receivedGift) {
+    AppLogger.info('🎁 Welcome Gift: 100 Energy!');
+  }
+  
+  // ────── Migrate Existing Users ──────
+  // ตรวจสอบว่าเคยเป็น Pro user หรือไม่
+  final prefs = await SharedPreferences.getInstance();
+  final wasPro = prefs.getBool('was_pro_user') ?? false;
+  
+  // Migrate (ถ้ายังไม่เคยได้ welcome gift)
+  await energyService.migrateFromProSystem(
+    wasProUser: wasPro,
+    isBetaTester: false, // TODO: ตรวจสอบจาก Firebase Auth ถ้ามี
+  );
+  
+  // ────── Register EnergyService ──────
+  GeminiService.setEnergyService(energyService);
+  PurchaseService.setEnergyService(energyService);
+  
+  AppLogger.info('Energy System initialized');
   
   // Load food name database async (doesn't block startup)
   LLMService.loadFoodDatabase();

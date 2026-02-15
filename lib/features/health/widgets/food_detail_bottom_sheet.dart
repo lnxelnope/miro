@@ -7,6 +7,8 @@ import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -33,12 +35,13 @@ class FoodDetailBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
+  bool _isAnalyzing = false; // Prevent double-tap
 
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
     final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
-    // แสดงปุ่ม Gemini เสมอ (วิเคราะห์ได้ทั้งจากรูปและจากชื่อ)
+    // แสดงปุ่ม AI Analysis เสมอ (แต่ถ้า verified แล้วจะถามยืนยันก่อน)
     const canAnalyze = true;
 
     return Container(
@@ -158,7 +161,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: _buildMacroCard(
-                          label: 'ไขมัน',
+                          label: 'Fat',
                           value: entry.fat,
                           unit: 'g',
                           color: AppColors.fat,
@@ -236,7 +239,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                           child: ElevatedButton.icon(
                             onPressed: () => _handleAnalyze(),
                             icon: const Icon(Icons.search, size: 18),
-                            label: const Text('Analyze with Gemini'),
+                            label: const Text('AI Analysis'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
@@ -383,23 +386,56 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
   }
 
   Future<void> _handleAnalyze() async {
+    // Prevent double-tap
+    if (_isAnalyzing) return;
+    
     final entry = widget.entry;
     final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
 
-    // === เพิ่ม Gate Check ===
-    // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
-      if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
-      }
-      return;
+    // === ถ้าวิเคราะห์แล้ว ให้ถามยืนยันก่อน ===
+    if (entry.isVerified && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 12),
+              Text('Re-analyze?'),
+            ],
+          ),
+          content: const Text(
+            'This food has already been analyzed.\n\n'
+            'Analyzing again will use 1 Energy.\n\n'
+            'Continue?',
+            style: TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Re-analyze (1 Energy)'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return; // User cancelled
     }
 
-    // 2. เช็คว่ายังเหลือโควต้า AI ไหม (ใหม่ Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
-    // === จบ Gate Check ===
+    // === ตรวจสอบ Energy ก่อนเรียก AI ===
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
+      return;
+    }
 
     // ใช้ callback ถ้ามี (timeline tab จัดการเอง)
     if (widget.onAnalyze != null) {
@@ -410,6 +446,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
 
     // Default behavior (ใน detail sheet เอง)
     if (!mounted) return;
+    
+    setState(() => _isAnalyzing = true);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -421,14 +460,14 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
             const SizedBox(height: 16),
             Text(
               hasImage
-                ? 'กำลังวิเคราะห์รูปด้วย Gemini AI...'
-                : 'กำลังประเมิน "${entry.foodName}" ด้วย AI...',
+                ? '📸 PROCESSING IMAGE DATA...'
+                : '📝 PARSING FOOD NAME...',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'กรุณารอสักครู่',
+              'Processing advanced nutrition analysis',
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
@@ -456,7 +495,11 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
         // === Record AI Usage หลังสำเร็จ ===
         await UsageLimiter.recordAiUsage();
         
+        // === อัพเดท Energy Badge ===
         if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+        
         Navigator.pop(context); // ปิด loading dialog
         
         // แสดง GeminiAnalysisSheet ให้ user แก้ไขก่อนบันทึก
@@ -509,6 +552,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                   );
                   
                   // Invalidate MyMeal providers to refresh UI
+                  if (!mounted) return;
                   ref.invalidate(allMyMealsProvider);
                   ref.invalidate(allIngredientsProvider);
                   
@@ -518,6 +562,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                 }
               }
 
+              // ────── เช็ค mounted ก่อน invalidate ──────
+              if (!mounted) return;
+              
               if (widget.selectedDate != null) {
                 ref.invalidate(foodEntriesByDateProvider(widget.selectedDate!));
                 ref.invalidate(healthTimelineProvider(widget.selectedDate!));
@@ -553,15 +600,21 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
     } catch (e, stackTrace) {
       AppLogger.error('Error', e, stackTrace);
       
+      setState(() => _isAnalyzing = false);
+      
       if (!mounted) return;
       Navigator.pop(context); // ปิด loading dialog
       if (!mounted) return;
       
-      String errorMessage = 'An error occurred';
-      if (e.toString().contains('API Key')) {
-        errorMessage = 'Gemini API Key not found - please set up in Settings';
-      } else if (e.toString().contains('parse JSON')) {
-        errorMessage = 'Could not read Gemini result - please try again';
+      // ตรวจสอบว่าเป็น Energy error หรือไม่
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+        return;
+      }
+      
+      String errorMessage = 'An error occurred. Please try again.';
+      if (e.toString().contains('parse JSON')) {
+        errorMessage = 'Could not read AI result - please try again';
       } else {
         errorMessage = e.toString().replaceAll('Exception: ', '');
         if (errorMessage.length > 100) {
@@ -610,6 +663,10 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
           // Default behavior
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.deleteFoodEntry(widget.entry.id);
+          
+          // ────── เช็ค mounted ก่อน invalidate ──────
+          if (!mounted) return;
+          
           if (widget.selectedDate != null) {
             ref.invalidate(foodEntriesByDateProvider(widget.selectedDate!));
             ref.invalidate(healthTimelineProvider(widget.selectedDate!));

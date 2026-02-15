@@ -6,8 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UsageLimiter {
   static const int freeAiCallsPerDay = 3;
 
-  /// PRODUCTION: Set to false when ready to sell Pro in production
-  static const bool _forceProDuringDev = false;
+  /// CLOSED BETA: Everyone is Pro during beta testing
+  /// TODO: Set to false before public launch (when removing BetaFeedbackButton)
+  static const bool _forceProDuringDev = true;
 
   // SharedPreferences keys
   static const String _keyDate = 'ai_usage_date';

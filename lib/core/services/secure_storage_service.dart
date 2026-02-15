@@ -1,10 +1,13 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
+import 'package:flutter/foundation.dart';
 
 class SecureStorageService {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
       encryptedSharedPreferences: true,
+      // Reset on error to prevent corrupted data issues
+      resetOnError: true,
     ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock,
@@ -13,18 +16,37 @@ class SecureStorageService {
 
   // Gemini API Key
   static Future<void> saveGeminiApiKey(String apiKey) async {
-    await _storage.write(
-      key: AppConstants.apiKeyStorageKey,
-      value: apiKey,
-    );
+    try {
+      await _storage.write(
+        key: AppConstants.apiKeyStorageKey,
+        value: apiKey,
+      );
+      debugPrint('✅ API Key saved successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to save API Key: $e');
+      rethrow;
+    }
   }
 
   static Future<String?> getGeminiApiKey() async {
-    return await _storage.read(key: AppConstants.apiKeyStorageKey);
+    try {
+      final key = await _storage.read(key: AppConstants.apiKeyStorageKey);
+      debugPrint('🔑 API Key read: ${key != null ? "Found" : "Not found"}');
+      return key;
+    } catch (e) {
+      debugPrint('❌ Failed to read API Key: $e');
+      return null;
+    }
   }
 
   static Future<void> deleteGeminiApiKey() async {
-    await _storage.delete(key: AppConstants.apiKeyStorageKey);
+    try {
+      await _storage.delete(key: AppConstants.apiKeyStorageKey);
+      debugPrint('🗑️ API Key deleted successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to delete API Key: $e');
+      rethrow;
+    }
   }
 
   static Future<bool> hasGeminiApiKey() async {
@@ -34,6 +56,12 @@ class SecureStorageService {
 
   // Clear all
   static Future<void> clearAll() async {
-    await _storage.deleteAll();
+    try {
+      await _storage.deleteAll();
+      debugPrint('🧹 Secure storage cleared');
+    } catch (e) {
+      debugPrint('❌ Failed to clear storage: $e');
+      rethrow;
+    }
   }
 }

@@ -5,7 +5,7 @@ import 'dart:io';
 
 class GalleryService {
   static const String _keyScanLimit = 'scan_image_limit';
-  static const int defaultScanLimit = 500; // Default: สแกน 500 รูป
+  static const int defaultScanLimit = 100; // Default: scan 100 images
   
   /// ดึงจำนวนรูปที่จะสแกน
   Future<int> getScanLimit() async {
@@ -23,14 +23,29 @@ class GalleryService {
   Future<List<AssetEntity>> fetchNewImages({DateTime? after}) async {
     AppLogger.info('Starting to fetch images from Gallery...');
     
-    // Request Permission
+    // Request Permission — ขอเฉพาะ image เท่านั้น (ไม่ขอ video)
     if (Platform.isWindows) {
       AppLogger.info('Gallery scanning on Windows is limited to Picture Library.');
     }
     
     AppLogger.info('Requesting Gallery permission...');
-    final PermissionState ps = await PhotoManager.requestPermissionExtend();
-    if (!ps.isAuth) {
+    final PermissionState ps;
+    if (Platform.isAndroid) {
+      ps = await PhotoManager.requestPermissionExtend(
+        requestOption: const PermissionRequestOption(
+          androidPermission: AndroidPermission(
+            type: RequestType.image,
+            mediaLocation: false,
+          ),
+        ),
+      );
+    } else {
+      ps = await PhotoManager.requestPermissionExtend();
+    }
+    
+    AppLogger.info('PermissionState: ${ps.name}, isAuth: ${ps.isAuth}, hasAccess: ${ps.hasAccess}');
+    
+    if (!ps.isAuth && !ps.hasAccess) {
       AppLogger.error('Gallery access denied');
       return [];
     }

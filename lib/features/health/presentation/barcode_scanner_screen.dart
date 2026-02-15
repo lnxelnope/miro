@@ -6,8 +6,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/constants/ai_loading_messages.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
@@ -43,7 +45,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('สแกนบาร์โค้ด'),
+        title: const Text('Scan Barcode'),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         actions: [
@@ -133,7 +135,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         CircularProgressIndicator(color: Colors.white),
                         SizedBox(height: 8),
                         Text(
-                          'กำลังวิเคราะห์ด้วย Gemini...',
+                          '📱 READING BARCODE DATA...',
                           style: TextStyle(color: Colors.white),
                         ),
                       ],
@@ -153,7 +155,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                     OutlinedButton.icon(
                       onPressed: () => _switchToNutritionLabel(),
                       icon: const Icon(Icons.receipt_long, color: Colors.white),
-                      label: const Text('ถ่ายฉลากโภชนาการแทน', style: TextStyle(color: Colors.white)),
+                      label: const Text('Scan nutrition label instead', style: TextStyle(color: Colors.white)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white54),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -308,13 +310,25 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     } catch (e) {
       debugPrint('❌ [BarcodeScanner] Error: $e');
       if (!context.mounted) return;
+      
+      // ปิด loading dialog ถ้ายังเปิดอยู่
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
       setState(() {
         _isProcessing = false;
         _hasScanned = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ เกิดข้อผิดพลาด: $e')),
-      );
+      
+      // ตรวจสอบว่าเป็น Energy error หรือไม่
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ เกิดข้อผิดพลาด: $e')),
+        );
+      }
     }
   }
 
@@ -323,7 +337,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('พบบาร์โค้ดแล้ว!'),
+        title: const Text('Barcode Found!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -341,14 +355,14 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               Navigator.pop(context);
               setState(() => _hasScanned = false);
             },
-            child: const Text('สแกนใหม่'),
+            child: const Text('Scan Again'),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _captureAndAnalyze(barcodeValue);
             },
-            child: const Text('ถ่ายรูป'),
+            child: const Text('Take Photo'),
           ),
         ],
       ),
@@ -373,12 +387,34 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       setState(() => _isProcessing = true);
 
+      // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy) {
+        if (!context.mounted) return;
+        setState(() {
+          _isProcessing = false;
+          _hasScanned = false;
+        });
+        await NoEnergyDialog.show(context);
+        return;
+      }
+      
+      // ────── แสดง loading dialog ──────
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      // ────── วิเคราะห์ด้วย Gemini ──────
       final result = await GeminiService.analyzeBarcodedProduct(
         File(photo.path),
         barcodeValue,
       );
 
       if (!context.mounted) return;
+      Navigator.pop(context); // ปิด loading dialog
       setState(() => _isProcessing = false);
 
       if (result == null) {

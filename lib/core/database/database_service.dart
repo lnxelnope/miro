@@ -13,6 +13,9 @@ import '../../features/chat/models/chat_message.dart';
 // Profile Models
 import '../../features/profile/models/user_profile.dart';
 
+// Energy Models
+import '../../core/models/energy_transaction.dart';
+
 class DatabaseService {
   static late Isar isar;
 
@@ -33,6 +36,9 @@ class DatabaseService {
         
         // Profile
         UserProfileSchema,
+        
+        // Energy
+        EnergyTransactionSchema,
       ],
       directory: dir.path,
       name: 'miro_db',

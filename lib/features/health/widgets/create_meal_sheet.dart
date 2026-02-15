@@ -5,6 +5,8 @@ import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/my_meal.dart';
 import '../models/my_meal_ingredient.dart';
@@ -40,6 +42,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   // Track original serving size for scaling ingredients when editing
   double? _originalServingSize;
+  
+  // Prevent double-tap on AI lookup
+  final Set<_IngredientRow> _lookingUpRows = {};
 
   bool get _isEditMode => widget.existingMeal != null;
 
@@ -194,6 +199,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       labelText: 'Unit *',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    style: const TextStyle(color: Colors.black),
+                    dropdownColor: Colors.white,
                   ),
                 ),
               ],
@@ -205,14 +212,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               children: [
                 const Text('🥬 Ingredients', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const Spacer(),
-                // ปุ่ม Gemini ค้นหาทุกตัวที่ยังไม่มี nutrition
+                // ปุ่ม AI ค้นหาทุกตัวที่ยังไม่มี nutrition
                 if (_ingredients.any((r) => 
                     r.nameController.text.trim().isNotEmpty && 
                     (double.tryParse(r.calController.text) ?? 0) == 0))
                   TextButton.icon(
                     onPressed: _lookupAllMissingNutrition,
                     icon: const Icon(Icons.auto_awesome, size: 16),
-                    label: const Text('Gemini', style: TextStyle(fontSize: 12)),
+                    label: const Text('AI All', style: TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -328,7 +335,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   onPressed: () => _lookupIngredientNutrition(row),
                   icon: const Icon(Icons.auto_awesome, size: 18),
                   color: AppColors.primary,
-                  tooltip: 'Search nutrition with Gemini',
+                  tooltip: 'Search nutrition with AI',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
@@ -389,7 +396,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
+                  dropdownColor: Colors.white,
                 ),
               ),
             ],
@@ -576,6 +584,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   /// ค้นหาโภชนาการวัตถุดิบด้วย Gemini
   Future<void> _lookupIngredientNutrition(_IngredientRow row) async {
+    // Prevent double-tap
+    if (_lookingUpRows.contains(row)) return;
+    
     final name = row.nameController.text.trim();
     if (name.isEmpty) {
       if (mounted) {
@@ -584,6 +595,45 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         );
       }
       return;
+    }
+
+    // === ถ้ามีข้อมูลอยู่แล้ว ให้ถามยืนยันก่อน ===
+    final currentCal = double.tryParse(row.calController.text) ?? 0;
+    if (currentCal > 0 && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 12),
+              Text('Re-analyze?'),
+            ],
+          ),
+          content: Text(
+            '"$name" already has nutrition data.\n\n'
+            'Analyzing again will use 1 Energy.\n\n'
+            'Continue?',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Re-analyze (1 Energy)'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return; // User cancelled
     }
 
     // ===== Check amount + unit before sending to Gemini =====
@@ -641,20 +691,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     final finalAmount = double.tryParse(row.amountController.text) ?? 100;
     final finalUnit = row.unit.trim().isEmpty ? 'g' : row.unit.trim();
 
-    // === เพิ่ม Gate Check ===
-    // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
-      if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
-      }
+    // === ตรวจสอบ Energy ก่อนเรียก AI ===
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
       return;
     }
-
-    // 2. เช็คว่ายังเหลือโควต้า AI ไหม (ใหม่ Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
-    // === จบ Gate Check ===
 
     setState(() => row.isLookingUp = true);
 
@@ -668,6 +710,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       );
 
       if (result != null && mounted) {
+        // === Record AI Usage หลังสำเร็จ ===
+        await UsageLimiter.recordAiUsage();
+        
+        // === อัพเดท Energy Badge ===
+        if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+        
         setState(() {
           row.calController.text = result.nutrition.calories.toStringAsFixed(0);
           row.proteinController.text = result.nutrition.protein.toStringAsFixed(0);
@@ -701,15 +751,25 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Search failed: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        // ตรวจสอบว่าเป็น Energy error หรือไม่
+        if (e.toString().contains('Insufficient energy')) {
+          await NoEnergyDialog.show(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Search failed: $e'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } finally {
-      if (mounted) setState(() => row.isLookingUp = false);
+      if (mounted) {
+        setState(() {
+          row.isLookingUp = false;
+          _lookingUpRows.remove(row);
+        });
+      }
     }
   }
 
@@ -739,6 +799,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         source: 'gemini',
       );
       // Refresh autocomplete list
+      if (!mounted) return;
       ref.invalidate(allIngredientsProvider);
       AppLogger.info('Ingredient "$name" saved to DB successfully');
     } catch (e) {
@@ -756,17 +817,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   Future<void> _lookupAllMissingNutrition() async {
     // === เพิ่ม Gate Check ===
     // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
-      if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
-      }
+    // เช็ค Energy ก่อนเรียก AI
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
       return;
-    }
-
-    // 2. เช็คว่ายังเหลือโควต้า AI ไหม (ใหม่ Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
+    } // Upsell dialog will show automatically
     // === จบ Gate Check ===
 
     final missingRows = _ingredients.where((r) =>
@@ -854,7 +910,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('ค้นหาสำเร็จ $success/${missingRows.length} รายการ'),
+          content: Text('Search successful: $success/${missingRows.length} items'),
           backgroundColor: success > 0 ? AppColors.success : AppColors.error,
         ),
       );
@@ -868,6 +924,15 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
     final finalAmount = double.tryParse(row.amountController.text) ?? 100;
     final finalUnit = row.unit.trim().isEmpty ? 'g' : row.unit.trim();
+
+    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (mounted) {
+        await NoEnergyDialog.show(context);
+      }
+      return;
+    }
 
     setState(() => row.isLookingUp = true);
 
@@ -883,6 +948,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       if (result != null && mounted) {
         // === Record AI Usage หลังสำเร็จ ===
         await UsageLimiter.recordAiUsage();
+        
+        // === อัพเดท Energy Badge ===
+        if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
         
         setState(() {
           row.calController.text = result.nutrition.calories.toStringAsFixed(0);
@@ -907,8 +977,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       }
     } catch (e) {
       AppLogger.error('Batch lookup failed for "$name"', e);
+      if (mounted && e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+      }
     } finally {
-      if (mounted) setState(() => row.isLookingUp = false);
+      if (mounted) {
+        setState(() {
+          row.isLookingUp = false;
+          _lookingUpRows.remove(row);
+        });
+      }
     }
   }
 
@@ -978,6 +1056,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       widget.onSave(meal);
       
       // Invalidate providers to refresh UI
+      if (!mounted) return;
       ref.invalidate(allMyMealsProvider);
       ref.invalidate(allIngredientsProvider);
       

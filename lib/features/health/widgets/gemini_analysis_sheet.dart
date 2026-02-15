@@ -4,6 +4,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
 
@@ -111,6 +113,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
   late double _baseProtein;
   late double _baseCarbs;
   late double _baseFat;
+  
+  // Prevent double-tap on AI lookup
+  final Set<int> _lookingUpIndices = {};
 
   // ค่าที่คำนวณแล้ว
   double _displayCalories = 0;
@@ -311,6 +316,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
   /// Search ingredient from DB → if not found, query Gemini
   Future<void> _lookupIngredient(int index) async {
+    // Prevent double-tap
+    if (_lookingUpIndices.contains(index)) return;
+    
     final row = _ingredients[index];
     final name = row.nameController.text.trim();
     final amount = double.tryParse(row.amountController.text) ?? 0;
@@ -320,6 +328,44 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         const SnackBar(content: Text('Please enter ingredient name')),
       );
       return;
+    }
+
+    // === ถ้ามีข้อมูลอยู่แล้ว ให้ถามยืนยันก่อน ===
+    if (row.calories > 0 && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 12),
+              Text('Re-analyze?'),
+            ],
+          ),
+          content: Text(
+            '"$name" already has nutrition data.\n\n'
+            'Analyzing again will use 1 Energy.\n\n'
+            'Continue?',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Re-analyze (1 Energy)'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return; // User cancelled
     }
 
     // 1. Search DB first
@@ -350,20 +396,12 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     }
 
     // 2. Not found in DB → query Gemini
-    // === Add Gate Check ===
-    // 1. Check if API Key exists (from Step 30)
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
-      if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
-      }
+    // === ตรวจสอบ Energy ก่อนเรียก AI ===
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
       return;
     }
-
-    // 2. Check if AI quota remaining (new Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
-    // === End Gate Check ===
     
     if (amount <= 0) {
       // Prompt to enter amount first
@@ -371,7 +409,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Amount not specified'),
-          content: Text('Please specify amount for "$name" before searching Gemini\nOr use default 100 g?'),
+          content: Text('Please specify amount for "$name" before AI search\nOr use default 100 g?'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, 'cancel'), child: const Text('Cancel')),
             TextButton(
@@ -389,7 +427,10 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       }
     }
 
-    setState(() => row.isLoading = true);
+    setState(() {
+      _lookingUpIndices.add(index);
+      row.isLoading = true;
+    });
 
     try {
       final queryAmount = double.tryParse(row.amountController.text) ?? 100;
@@ -403,6 +444,11 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         // === Record AI Usage after success ===
         await UsageLimiter.recordAiUsage();
         
+        // === อัพเดท Energy Badge ===
+        if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+        
         setState(() {
           row.calories = result.nutrition.calories;
           row.protein = result.nutrition.protein;
@@ -410,19 +456,23 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           row.fat = result.nutrition.fat;
           row.nameEn = result.foodNameEn;
           row.isLoading = false;
+          _lookingUpIndices.remove(index);
           row.saveBaseValues();
         });
         _recalculate();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gemini: "$name" $queryAmount ${row.unit} → ${result.nutrition.calories.toInt()} kcal'),
+            content: Text('AI: "$name" $queryAmount ${row.unit} → ${result.nutrition.calories.toInt()} kcal'),
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
           ),
         );
       } else {
-        setState(() => row.isLoading = false);
+        setState(() {
+          row.isLoading = false;
+          _lookingUpIndices.remove(index);
+        });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Unable to analyze'), backgroundColor: AppColors.error),
@@ -430,11 +480,19 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         }
       }
     } catch (e) {
-      setState(() => row.isLoading = false);
+      setState(() {
+        row.isLoading = false;
+        _lookingUpIndices.remove(index);
+      });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-        );
+        // ตรวจสอบว่าเป็น Energy error หรือไม่
+        if (e.toString().contains('Insufficient energy')) {
+          await NoEnergyDialog.show(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          );
+        }
       }
     }
   }
@@ -505,7 +563,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'Gemini Analysis Result',
+                    'AI Analysis Result',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -570,6 +628,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       value: _getValidUnit(_servingUnit),
                       isDense: true,
                       style: const TextStyle(fontSize: 14, color: Colors.black87),
+                      dropdownColor: Colors.white,
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -727,7 +786,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
           const SizedBox(height: 6),
           const Text(
-            '💡 Edit name/amount → Tap 🔍 to search from database or Gemini',
+            '💡 Edit name/amount → Tap 🔍 to search from database or AI',
             style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
           ),
         ],
@@ -786,7 +845,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         icon: const Icon(Icons.search, size: 18),
-                        tooltip: 'Search DB / Gemini',
+                        tooltip: 'Search DB / AI',
                         color: Colors.purple,
                         onPressed: () => _lookupIngredient(index),
                       ),
@@ -841,6 +900,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   isDense: true,
                   isExpanded: true,
                   style: const TextStyle(fontSize: 12, color: Colors.black87),
+                  dropdownColor: Colors.white,
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),

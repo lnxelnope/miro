@@ -1,59 +1,76 @@
-# นโยบายความเป็นส่วนตัว — Miro Cal
+# Privacy Policy — Miro Cal
 
-**วันที่มีผลบังคับใช้:** 11 กุมภาพันธ์ 2026
-**อัปเดตล่าสุด:** 11 กุมภาพันธ์ 2026
+**Effective Date:** February 13, 2026  
+**Last Updated:** February 13, 2026
 
-## 1. ข้อมูลที่แอปเก็บรวบรวม
+## 1. Information We Collect
 
-แอป Miro Cal เก็บข้อมูลต่อไปนี้ **ในเครื่องของคุณเท่านั้น** (Offline-first):
+Miro Cal stores the following data **locally on your device** (Offline-first):
 
-- ข้อมูลอาหารที่บันทึก (ชื่อ, แคลอรี่, สารอาหาร)
-- รูปถ่ายอาหาร (เฉพาะที่คุณเลือกส่งให้ AI วิเคราะห์)
-- เป้าหมายสุขภาพ (kcal, macro)
-- ข้อมูลส่วนตัวพื้นฐาน (ชื่อ, เพศ, อายุ, น้ำหนัก, ส่วนสูง)
-- เมนูอาหารที่สร้าง (My Meals)
-- วัตถุดิบที่บันทึก (Ingredients)
+- Food entries (name, calories, nutrients)
+- Food photos (stored locally on your device)
+- Health goals (kcal, macros)
+- Basic personal information (name, gender, age, weight, height)
+- Created meal recipes (My Meals)
+- Saved ingredients (Ingredients)
+- Energy balance (for AI features)
+- Energy purchase history (via Google Play)
 
-## 2. การส่งข้อมูลไปภายนอก
+## 2. Data Transmission to Third Parties
 
-- **รูปอาหาร** → ส่งไปยัง Google Gemini API เพื่อวิเคราะห์โภชนาการ
-  - ใช้ API Key ของผู้ใช้เอง (BYOK — Bring Your Own Key)
-  - ข้อมูลถูกส่งตรงไป Google ไม่ผ่าน server ของเรา
-  - เป็นไปตามนโยบายของ Google Gemini API
-- **เราไม่มี server** — ไม่มีการเก็บข้อมูลบน cloud ของเรา
-- **เราไม่เก็บ API Key ของคุณ** — Key เก็บใน Secure Storage ในเครื่องเท่านั้น
+### 2.1 In-App Purchase
+- **Purchase data** → Processed via Google Play Billing
+  - Payment information is handled by Google, not by us
+  - We only store Product ID and Purchase Token to verify purchases
 
-## 3. การเก็บรักษาข้อมูล
+### 2.2 Firebase Services
+- **Device ID** → Used to manage Energy balance and prevent fraudulent usage
+- **Cloud Functions** → Process AI requests and manage Energy deduction
+- **Firestore** → Stores Energy balance for cross-device synchronization
 
-- ข้อมูลทั้งหมดเก็บใน **เครื่องของคุณ** (Local database)
-- ไม่มี backup บน cloud (ถ้าลบแอป ข้อมูลจะหายไป)
-- ผู้ใช้สามารถลบข้อมูลทั้งหมดได้ทุกเมื่อ (Profile → ล้างข้อมูล)
+## 3. Data Storage
 
-## 4. สิทธิ์การเข้าถึง (Permissions)
+- All food data and personal information stored **locally on your device** (Local database)
+- Energy balance synchronized with Firebase Firestore for cross-device persistence
+- No cloud backup of food data (if you uninstall the app, local food data will be lost)
+- You can delete all local data anytime (Profile → Clear Data)
 
-| Permission | เหตุผล |
-|------------|--------|
-| กล้อง (Camera) | ถ่ายรูปอาหารเพื่อ AI วิเคราะห์ |
-| แกลเลอรี (Photos) | เลือกรูปอาหารจากแกลเลอรี |
-| อินเทอร์เน็ต (Internet) | ส่งรูปไป Gemini API |
+## 4. Required Permissions
 
-## 5. สิทธิ์ของผู้ใช้
+| Permission | Purpose |
+|------------|---------|
+| Camera | Take food photos for AI analysis |
+| Photos/Gallery | Select food photos from gallery |
+| Internet | Send photos to AI API and sync Energy balance |
 
-- ลบข้อมูลทั้งหมดได้ทุกเมื่อ
-- ลบ API Key ได้ทุกเมื่อ
-- ถอนการติดตั้งแอปเพื่อลบข้อมูลทั้งหมด
+## 5. User Rights
 
-## 6. ความปลอดภัย
+- Delete all local data anytime
+- Uninstall the app to remove all local data
+- Energy balance persists across app reinstalls (linked to your device)
+- Request Energy data deletion by contacting support
 
-- API Key เก็บใน Secure Storage (encrypted)
-- ข้อมูลเก็บใน Local Database (Isar) ที่ encrypt ในเครื่อง
-- แอปไม่มี analytics, tracking, หรือ advertising SDK
+## 6. Security
 
-## 7. การเปลี่ยนแปลง
+- Energy transactions secured via Firebase with device authentication
+- Local data stored in encrypted Local Database (Isar)
+- No analytics, tracking, or advertising SDKs
+- Payment processing handled securely by Google Play Billing
 
-เราอาจปรับปรุงนโยบายนี้เป็นครั้งคราว
-การเปลี่ยนแปลงจะแจ้งผ่านอัปเดตแอป
+## 7. Children's Privacy
 
-## 8. ติดต่อ
+Miro Cal is not intended for children under 13 years of age. We do not knowingly collect personal information from children.
 
-หากมีคำถาม: [กรุณาเพิ่ม email ของคุณที่นี่]
+## 8. Data Retention
+
+- Local food data: Retained until you delete it or uninstall the app
+- Energy balance: Retained indefinitely (linked to your device)
+- Purchase records: Retained as required by Google Play and tax regulations
+
+## 9. Changes to This Policy
+
+We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.
+
+## 10. Contact Us
+
+If you have questions about this Privacy Policy, please contact us through **Google Play Store**.

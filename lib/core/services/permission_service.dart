@@ -9,8 +9,8 @@ class PermissionService {
   static const String _keyLastScanTime = 'last_scan_timestamp';
   static const String _keyScanDaysBack = 'scan_days_back';
   
-  // Default: สแกนย้อนหลัง 7 วัน
-  static const int defaultScanDaysBack = 7;
+  // Default: scan back 1 day
+  static const int defaultScanDaysBack = 1;
 
   // ========== Permission Requests ==========
 
@@ -169,18 +169,11 @@ class PermissionService {
     AppLogger.info('Saved scanDaysBack: $days days');
   }
   
-  /// คำนวณวันที่เริ่มต้นสำหรับการสแกน (ใช้ค่าที่ตั้งไว้ หรือ lastScanTime ถ้าใหม่กว่า)
+  /// คำนวณวันที่เริ่มต้นสำหรับการสแกน
+  /// ใช้ daysBack เป็นหลัก เพื่อให้ได้รูปใหม่ทุกครั้งที่สแกน
   Future<DateTime> getScanStartDate() async {
     final daysBack = await getScanDaysBack();
     final daysBackDate = DateTime.now().subtract(Duration(days: daysBack));
-    
-    final lastScanTime = await getLastScanTime();
-    
-    // ใช้วันที่ที่ใหม่กว่า (สแกนน้อยลง)
-    if (lastScanTime != null && lastScanTime.isAfter(daysBackDate)) {
-      AppLogger.info('Using lastScanTime: $lastScanTime');
-      return lastScanTime;
-    }
     
     AppLogger.info('Using daysBack: $daysBack days → $daysBackDate');
     return daysBackDate;

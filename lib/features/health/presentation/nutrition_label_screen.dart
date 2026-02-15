@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
@@ -28,7 +29,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('สแกนฉลากโภชนาการ'),
+        title: const Text('Scan Nutrition Label'),
       ),
       body: _capturedImage == null
           ? _buildEmptyState()
@@ -44,13 +45,13 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
           const Text('📋', style: TextStyle(fontSize: 64)),
           const SizedBox(height: 16),
           const Text(
-            'ถ่ายรูปฉลากโภชนาการ',
+            'Scan a nutrition label',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Gemini จะอ่านค่า Calories, Protein, Carbs, Fat\n'
-            'จากฉลากให้อัตโนมัติ (แม่นยำกว่าการประมาณ)',
+            'AI will read Calories, Protein, Carbs, Fat\n'
+            'automatically from the label (more accurate than estimation)',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary),
           ),
@@ -61,7 +62,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
               ElevatedButton.icon(
                 onPressed: _takePicture,
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('ถ่ายรูป'),
+                label: const Text('Take Photo'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -73,7 +74,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
               OutlinedButton.icon(
                 onPressed: _pickFromGallery,
                 icon: const Icon(Icons.photo_library),
-                label: const Text('จาก Gallery'),
+                label: const Text('From Gallery'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -115,7 +116,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 12),
-                    Text('กำลังอ่านฉลากด้วย Gemini...'),
+                    const Text('🧬 ANALYZING NUTRITION LABEL...'),
                   ],
                 )
               : Column(
@@ -125,7 +126,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                       child: ElevatedButton.icon(
                         onPressed: _analyzeLabel,
                         icon: const Icon(Icons.auto_awesome),
-                        label: const Text('วิเคราะห์ด้วย Gemini'),
+                        label: const Text('AI Analysis'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.purple,
                           foregroundColor: Colors.white,
@@ -141,7 +142,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _takePicture,
                             icon: const Icon(Icons.camera_alt, size: 18),
-                            label: const Text('ถ่ายใหม่'),
+                            label: const Text('Retake'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -153,7 +154,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                           child: OutlinedButton.icon(
                             onPressed: () => Navigator.pop(context),
                             icon: const Icon(Icons.close, size: 18),
-                            label: const Text('ยกเลิก'),
+                            label: const Text('Cancel'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -200,12 +201,29 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
   Future<void> _analyzeLabel() async {
     if (_capturedImage == null) return;
 
+    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (!context.mounted) return;
+      await NoEnergyDialog.show(context);
+      return;
+    }
+
     setState(() => _isAnalyzing = true);
+
+    // ────── แสดง loading dialog ──────
+    if (!context.mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
 
     try {
       final result = await GeminiService.analyzeNutritionLabel(_capturedImage!);
 
       if (!context.mounted) return;
+      Navigator.pop(context); // ปิด loading dialog
       setState(() => _isAnalyzing = false);
 
       if (result == null) {
@@ -286,10 +304,22 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
+      
+      // ปิด loading dialog ถ้ายังเปิดอยู่
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
       setState(() => _isAnalyzing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ $e')),
-      );
+      
+      // ตรวจสอบว่าเป็น Energy error หรือไม่
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ $e')),
+        );
+      }
     }
   }
 

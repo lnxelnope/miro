@@ -1,8 +1,8 @@
+import 'package:isar/isar.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
 import 'package:miro_hybrid/features/scanner/services/qr_parser.dart';
 import 'package:miro_hybrid/core/database/database_service.dart';
-import 'package:miro_hybrid/core/data/global_food_database.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
@@ -45,6 +45,7 @@ class ScanController {
     
     int processedCount = 0;
     int savedCount = 0;
+    int skippedDuplicate = 0;
     
     for (var asset in images) {
       processedCount++;
@@ -53,6 +54,23 @@ class ScanController {
       final file = await _galleryService.getFile(asset);
       if (file == null) {
         AppLogger.warn('Cannot load image file - skipping');
+        continue;
+      }
+      
+      // ⭐ เช็คว่ารูปนี้ถูกสแกนไปแล้วหรือยัง (เช็คจาก imagePath)
+      // รวมถึงรูปที่ถูกลบออกจาก MIRO แล้ว (isDeleted = true)
+      final existingEntry = await DatabaseService.foodEntries
+          .filter()
+          .imagePathEqualTo(file.path)
+          .findFirst();
+      
+      if (existingEntry != null) {
+        if (existingEntry.isDeleted) {
+          AppLogger.info('Image was scanned before but user deleted it - skipping (ID: ${existingEntry.id})');
+        } else {
+          AppLogger.info('Image already scanned - skipping (ID: ${existingEntry.id})');
+        }
+        skippedDuplicate++;
         continue;
       }
 
@@ -80,59 +98,11 @@ class ScanController {
       AppLogger.info('Saved successfully! ($savedCount/${images.length})');
     }
     
-    AppLogger.info('Scan complete! Processed: $processedCount images, Saved: $savedCount entries');
+    AppLogger.info('Scan complete! Processed: $processedCount images, Saved: $savedCount entries, Skipped duplicates: $skippedDuplicate');
     return savedCount;
   }
-  
-  /// แปลง English label เป็นชื่อไทย
-  String _translateLabel(String label) {
-    final translations = {
-      'Egg': 'ไข่',
-      'Rice': 'ข้าว',
-      'Noodle': 'ก๋วยเตี๋ยว',
-      'Soup': 'ซุป',
-      'Salad': 'สลัด',
-      'Pizza': 'พิซซ่า',
-      'Burger': 'เบอร์เกอร์',
-      'Sandwich': 'แซนด์วิช',
-      'Bread': 'ขนมปัง',
-      'Pasta': 'พาสต้า',
-      'Steak': 'สเต็ก',
-      'Chicken': 'ไก่',
-      'Pork': 'หมู',
-      'Fish': 'ปลา',
-      'Seafood': 'อาหารทะเล',
-      'Shrimp': 'กุ้ง',
-      'Vegetable': 'ผัก',
-      'Fruit': 'ผลไม้',
-      'Apple': 'แอปเปิ้ล',
-      'Banana': 'กล้วย',
-      'Orange': 'ส้ม',
-      'Mango': 'มะม่วง',
-      'Coffee': 'กาแฟ',
-      'Tea': 'ชา',
-      'Milk': 'นม',
-      'Juice': 'น้ำผลไม้',
-      'Beer': 'เบียร์',
-      'Wine': 'ไวน์',
-      'Cake': 'เค้ก',
-      'Cookie': 'คุกกี้',
-      'Ice cream': 'ไอศกรีม',
-      'Chocolate': 'ช็อกโกแลต',
-      'Dessert': 'ขนมหวาน',
-      'Fried rice': 'ข้าวผัด',
-      'Curry': 'แกง',
-      'Sushi': 'ซูชิ',
-      'Ramen': 'ราเม็ง',
-      'Food': 'อาหาร',
-      'Drink': 'เครื่องดื่ม',
-      'Meal': 'มื้ออาหาร',
-      'Dish': 'จาน',
-    };
-    return translations[label] ?? label;
-  }
 
-  /// บันทึกรายการอาหารจากการสแกน
+  /// Save a food entry from scanned image
   Future<void> _saveFoodEntry({
     required String imagePath,
     required DateTime timestamp,
@@ -143,127 +113,34 @@ class ScanController {
     AppLogger.info('Label: $label');
     AppLogger.info('All Labels: ${allLabels.join(", ")}');
     
-    // กำหนดมื้ออาหารตามเวลา
+    // Determine meal type based on time
     final mealType = _getMealTypeFromTime(timestamp);
     AppLogger.info('Meal type: ${mealType.displayName}');
     
-    // แปลง label เป็นชื่อไทย
-    final thaiName = _translateLabel(label);
-    AppLogger.info('Thai name: $thaiName');
-    
-    // ถ้า label เป็นคำทั่วไป (Food, Meal, Dish, อาหาร) ให้ไม่ค้นหาใน database
-    final commonLabels = ['Food', 'Meal', 'Dish', 'Cuisine', 'อาหาร', 'จาน', 'มื้ออาหาร'];
-    final isCommonLabel = commonLabels.contains(label) || commonLabels.contains(thaiName);
+    // Skip generic labels - don't search database for these
+    final commonLabels = ['Food', 'Meal', 'Dish', 'Cuisine'];
+    final isCommonLabel = commonLabels.contains(label);
     
     if (isCommonLabel) {
-      AppLogger.warn('Label is generic ("$label") - not searching database');
-      AppLogger.info('   - Will use 0 for all values - user must fill in');
+      AppLogger.warn('Label is generic ("$label") - using as-is');
     }
     
-    // ค้นหาข้อมูลโภชนาการจากฐานข้อมูล
+    // ⭐ ไม่ใช้ Global Food Database แล้ว - ให้บันทึกชื่อ label ที่ได้มา
+    // My Meal และ Ingredient จะถูกค้นหาในขั้นตอนอื่นแทน
     double calories = 0;
     double protein = 0;
     double carbs = 0;
     double fat = 0;
     
-    FoodNutritionData? nutritionData;
-    GlobalFoodData? globalFoodData;
     double servingSize = 1.0;
     String servingUnit = 'serving';
     double? servingGrams;
     
-    // ⭐ ค้นหาจาก Global Food Database โดยใช้ทุก labels จาก ML Kit
-    // Step 1: Try multi-label search first (best for combining labels like "Shrimp" + "Egg")
-    if (allLabels.isNotEmpty) {
-      try {
-        AppLogger.info('Searching with all labels: ${allLabels.join(", ")}');
-        final searchResults = await GlobalFoodDatabase.searchByLabels(allLabels, limit: 1);
-        
-        if (searchResults.isNotEmpty) {
-          globalFoodData = searchResults[0];
-          nutritionData = globalFoodData.toNutritionData();
-          calories = nutritionData.calories;
-          protein = nutritionData.protein;
-          carbs = nutritionData.carbs;
-          fat = nutritionData.fat;
-          servingSize = globalFoodData.servingSize;
-          servingUnit = globalFoodData.servingUnit;
-          servingGrams = globalFoodData.servingUnit == 'g' ? globalFoodData.servingSize : null;
-          AppLogger.info('Found via multi-label search: ${globalFoodData.name}');
-          AppLogger.info('   - Serving: ${globalFoodData.servingSize} ${globalFoodData.servingUnit}');
-          AppLogger.info('   - Calories: $calories kcal, P: ${protein}g, C: ${carbs}g, F: ${fat}g');
-        }
-      } catch (e) {
-        AppLogger.error('Multi-label search error', e);
-      }
-    }
+    // ถ้าเป็น label ทั่วไป ให้ใช้ "Food" เป็นชื่อ
+    final displayName = isCommonLabel ? 'Food' : label;
+    final displayNameEn = isCommonLabel ? 'Food' : label;
     
-    // Step 2: Fallback to exact match by primary label (if multi-label didn't find anything)
-    if (nutritionData == null && !isCommonLabel) {
-      try {
-        AppLogger.info('Trying exact match: "$label"');
-        GlobalFoodData? globalFood = await GlobalFoodDatabase.lookup(label);
-        
-        if (globalFood != null) {
-          globalFoodData = globalFood;
-          nutritionData = globalFood.toNutritionData();
-          calories = nutritionData.calories;
-          protein = nutritionData.protein;
-          carbs = nutritionData.carbs;
-          fat = nutritionData.fat;
-          servingSize = globalFood.servingSize;
-          servingUnit = globalFood.servingUnit;
-          servingGrams = globalFood.servingUnit == 'g' ? globalFood.servingSize : null;
-          AppLogger.info('Found via exact match: ${globalFood.name}');
-        } else {
-          AppLogger.info('No exact match for: "$label"');
-        }
-      } catch (e) {
-        AppLogger.error('Exact match error', e);
-      }
-    }
-    
-    // Step 3: Fallback to fuzzy search by primary label
-    if (nutritionData == null && !isCommonLabel) {
-      try {
-        AppLogger.info('Trying fuzzy search: "$label"');
-        final searchResults = await GlobalFoodDatabase.search(label, limit: 1);
-        
-        if (searchResults.isNotEmpty) {
-          globalFoodData = searchResults[0];
-          nutritionData = globalFoodData.toNutritionData();
-          calories = nutritionData.calories;
-          protein = nutritionData.protein;
-          carbs = nutritionData.carbs;
-          fat = nutritionData.fat;
-          servingSize = globalFoodData.servingSize;
-          servingUnit = globalFoodData.servingUnit;
-          servingGrams = globalFoodData.servingUnit == 'g' ? globalFoodData.servingSize : null;
-          AppLogger.info('Found via fuzzy search: ${globalFoodData.name}');
-        } else {
-          AppLogger.info('No fuzzy match for: "$label"');
-        }
-      } catch (e) {
-        AppLogger.error('Fuzzy search error', e);
-      }
-    }
-    
-    // ถ้ายังไม่พบ หรือเป็นคำทั่วไป ให้ใช้ค่า 0 ทั้งหมด (ให้ผู้ใช้กรอกเอง)
-    if (nutritionData == null) {
-      if (isCommonLabel) {
-        AppLogger.warn('Label is generic - using 0 for all values');
-      } else {
-        AppLogger.warn('Not found in Global Food Database - using 0 for all values');
-      }
-      AppLogger.info('   - User must fill in data');
-      // ใช้ค่าเริ่มต้นสำหรับ serving
-      servingSize = 1.0;
-      servingUnit = label == 'Egg' ? 'ฟอง' : 'จาน';
-    }
-    
-    // Use database name if found, otherwise use original label
-    final displayName = globalFoodData?.name ?? label;
-    final displayNameEn = globalFoodData?.nameEn ?? label;
+    AppLogger.info('Saving entry with name: $displayName (from label: $label)');
     
     final entry = FoodEntry()
       ..foodName = displayName

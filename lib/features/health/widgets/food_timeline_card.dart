@@ -80,27 +80,33 @@ class FoodTimelineCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        _buildCalorieBadge(),
-                        const SizedBox(width: 8),
-                        // ปุ่มวิเคราะห์ด้วย Gemini (แสดงเสมอ ทั้งมีรูปและไม่มีรูป)
+                        Flexible(child: _buildCalorieBadge()),
+                        const SizedBox(width: 6),
+                        // Verified badge
+                        if (entry.isVerified)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Icon(Icons.verified, size: 16, color: Colors.green),
+                          ),
+                        // ปุ่มวิเคราะห์ด้วย AI
                         if (onAnalyze != null)
                           GestureDetector(
                             onTap: onAnalyze,
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Icon(
                                 Icons.auto_awesome,
-                                size: 20,
+                                size: 18,
                                 color: AppColors.primary,
                               ),
                             ),
                           ),
                         if (onAnalyze != null)
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 4),
                         if (onEdit != null)
                           GestureDetector(
                             onTap: onEdit,
@@ -108,21 +114,20 @@ class FoodTimelineCard extends StatelessWidget {
                               padding: const EdgeInsets.all(4),
                               child: const Icon(
                                 Icons.edit,
-                                size: 22,
+                                size: 20,
                                 color: AppColors.textSecondary,
                               ),
                             ),
                           ),
-                        // เพิ่มระยะห่างก่อนปุ่มลบ
                         if (onDelete != null) ...[
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 4),
                           GestureDetector(
                             onTap: onDelete,
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               child: const Icon(
                                 Icons.delete_outline,
-                                size: 22,
+                                size: 20,
                                 color: Colors.red,
                               ),
                             ),

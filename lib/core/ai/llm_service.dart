@@ -6,30 +6,16 @@ import '../utils/logger.dart';
 /// Service for processing text with AI
 /// Uses Gemini API or local regex fallback
 class LLMService {
-  // ===== Food Name Database (loaded from assets/data/food_names.json) =====
-  static List<Map<String, dynamic>>? _foodDb;
-  static bool _foodDbLoaded = false;
-
-  /// Public accessor for food database (used in IntentHandler for multi-food split)
-  static List<Map<String, dynamic>>? get foodDatabase => _foodDb;
+  // ===== Food Name Database (ไม่ใช้แล้ว - เอาออก) =====
+  // static List<Map<String, dynamic>>? _foodDb;
+  // static bool _foodDbLoaded = false;
 
   /// Public accessor for normalize function
   static String normalizeThaiFood(String text) => _normalizeThaiFood(text);
 
-  /// Load food names from JSON (called once)
+  /// ไม่ต้อง load food database แล้ว
   static Future<void> loadFoodDatabase() async {
-    if (_foodDbLoaded) return;
-    try {
-      final jsonStr = await rootBundle.loadString('assets/data/food_names.json');
-      final list = jsonDecode(jsonStr) as List;
-      _foodDb = list.cast<Map<String, dynamic>>();
-      _foodDbLoaded = true;
-      AppLogger.info('Loaded food_names.json: ${_foodDb!.length} items');
-    } catch (e) {
-      AppLogger.warn('food_names.json not found', e);
-      _foodDb = [];
-      _foodDbLoaded = true;
-    }
+    // ไม่ทำอะไร - เก็บไว้เพื่อ backward compatibility
   }
 
   /// Normalize food name — supports both TH + EN
@@ -73,59 +59,9 @@ class LLMService {
     return n;
   }
 
-  /// Search food name from DB (fuzzy match + normalize)
+  /// Search food name from DB (ไม่ใช้แล้ว - ให้ใช้ My Meal และ Ingredient แทน)
   static Map<String, dynamic>? matchFoodFromDb(String query) {
-    if (_foodDb == null || _foodDb!.isEmpty) return null;
-
-    final q = _normalizeThaiFood(query.trim().toLowerCase());
-    if (q.isEmpty) return null;
-
-    AppLogger.info('FoodDB searching: "$q" (normalized from "$query")');
-
-    // 1. Exact match (Thai — normalized)
-    for (final food in _foodDb!) {
-      final th = _normalizeThaiFood((food['th'] as String?)?.toLowerCase() ?? '');
-      if (th.isNotEmpty && th == q) return food;
-    }
-
-    // 2. Exact match (English)
-    for (final food in _foodDb!) {
-      final en = (food['en'] as String?)?.toLowerCase() ?? '';
-      if (en.isNotEmpty && en == q) return food;
-    }
-
-    // 3. Contains match (Thai)
-    Map<String, dynamic>? bestMatch;
-    int bestLen = 0;
-
-    for (final food in _foodDb!) {
-      final th = _normalizeThaiFood((food['th'] as String?)?.toLowerCase() ?? '');
-      if (th.isEmpty || th.length < 3) continue;
-
-      if (th.contains(q) || q.contains(th)) {
-        if (th.length > bestLen) {
-          bestLen = th.length;
-          bestMatch = food;
-        }
-      }
-    }
-
-    if (bestMatch != null) return bestMatch;
-
-    // 4. Contains match (English)
-    for (final food in _foodDb!) {
-      final en = (food['en'] as String?)?.toLowerCase() ?? '';
-      if (en.isEmpty || en.length < 3) continue;
-
-      if (en.contains(q) || q.contains(en)) {
-        if (en.length > bestLen) {
-          bestLen = en.length;
-          bestMatch = food;
-        }
-      }
-    }
-
-    return bestMatch;
+    return null; // ไม่มี database แล้ว
   }
 
   /// Process text and classify intent (Food only for v1.0)
@@ -338,19 +274,8 @@ class LLMService {
 
     AppLogger.info('FoodName cleaned: "$cleaned"');
 
-    // Step 6: Match with food database
-    final dbMatch = matchFoodFromDb(cleaned);
-    if (dbMatch != null) {
-      final thName = dbMatch['th'] as String?;
-      final enName = dbMatch['en'] as String?;
-      if (thName != null && thName.isNotEmpty) {
-        AppLogger.info('FoodDB matched: "$cleaned" → "$thName"');
-        return thName;
-      } else if (enName != null && enName.isNotEmpty) {
-        AppLogger.info('FoodDB matched: "$cleaned" → "$enName"');
-        return enName;
-      }
-    }
+    // ⭐ ลบการ match จาก food_names.json ออก - ให้ใช้แค่ชื่อที่ user พิมพ์มา
+    // My Meal และ Ingredient จะถูกค้นหาในขั้นตอนอื่นแทน
     
     return cleaned;
   }

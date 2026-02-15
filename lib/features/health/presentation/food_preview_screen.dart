@@ -1,20 +1,26 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/constants/ai_loading_messages.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../../core/utils/logger.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 
 class FoodPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
+  final bool autoAnalyze; // วิเคราะห์ด้วย AI อัตโนมัติเมื่อเปิดหน้านี้
 
   const FoodPreviewScreen({
     super.key,
     required this.imageFile,
+    this.autoAnalyze = false,
   });
 
   @override
@@ -75,11 +81,16 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Future<void> _checkAndAnalyze() async {
-    // ไม่ auto-analyze - ให้ผู้ใช้กดปุ่มเลือกเอง
-    final hasKey = await GeminiService.hasApiKey();
+    // ตรวจสอบว่าควรทำ auto-analyze หรือไม่
+    // ตอนนี้ใช้ Energy System แล้ว ไม่ต้องเช็ค API Key
     setState(() {
-      _hasGeminiKey = hasKey;
+      _hasGeminiKey = true; // Energy System พร้อมใช้งานเสมอ
     });
+    
+    // ถ้า autoAnalyze = true (มาจากแชท) ให้วิเคราะห์ทันที
+    if (widget.autoAnalyze && mounted) {
+      await _analyzeFood();
+    }
   }
 
   /// เมื่อ serving size เปลี่ยน → คำนวณ kcal/macro ใหม่จาก base values
@@ -113,7 +124,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('บันทึกอาหาร'),
+        title: const Text('Save Food'),
         actions: [
           if (!_isAnalyzing)
             TextButton(
@@ -283,6 +294,39 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 );
               }).toList(),
             ),
+            
+            // แสดงวัตถุดิบ (ถ้ามี)
+            if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text(
+                '🥘 Ingredients',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _analysisResult!.ingredientsDetail!.map((ingredient) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+            
             const SizedBox(height: 100),
           ],
         ),
@@ -337,7 +381,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           SizedBox(width: 12),
-          Text('✨ AI กำลังวิเคราะห์อาหาร...'),
+          const Text('📸 PROCESSING IMAGE DATA...'),
         ],
       ),
     );
@@ -369,7 +413,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               ),
               TextButton(
                 onPressed: _analyzeFood,
-                child: const Text('ลองอีกครั้ง'),
+                child: const Text('Try Again'),
               ),
             ],
           ),
@@ -398,7 +442,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              '✨ AI วิเคราะห์แล้ว (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
+              '✨ AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
               style: const TextStyle(color: AppColors.success),
             ),
           ),
@@ -422,7 +466,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('✨'),
-          label: Text(_isAnalyzing ? 'กำลังวิเคราะห์...' : 'วิเคราะห์ด้วย Gemini AI'),
+          label: Text(_isAnalyzing ? 'ANALYZING...' : 'AI Analysis'),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.purple,
             side: const BorderSide(color: Colors.purple),
@@ -572,19 +616,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Future<void> _analyzeFood() async {
-    // === เพิ่ม Gate Check ===
-    // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    final hasKey = await GeminiService.hasApiKey();
-    if (!hasKey) {
+    // === ตรวจสอบ Energy ก่อนเรียก API ===
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
       if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
+        await NoEnergyDialog.show(context);
       }
       return;
     }
-
-    // 2. เช็คว่ายังเหลือโควต้า AI ไหม (ใหม่ Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
     // === จบ Gate Check ===
 
     setState(() {
@@ -627,7 +666,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         setState(() => _error = 'ไม่สามารถวิเคราะห์ภาพได้');
       }
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) {
+        // ตรวจสอบว่าเป็น Energy error หรือไม่
+        if (e.toString().contains('Insufficient energy')) {
+          await NoEnergyDialog.show(context);
+        } else {
+          setState(() => _error = e.toString());
+        }
+      }
     } finally {
       setState(() => _isAnalyzing = false);
     }
@@ -637,7 +683,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     // Validation
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('กรุณากรอกชื่ออาหาร')),
+        const SnackBar(content: Text('Please enter food name')),
       );
       return;
     }
@@ -671,6 +717,12 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       ..source = _hasAnalyzed ? DataSource.aiAnalyzed : DataSource.manual
       ..aiConfidence = _analysisResult?.confidence
       ..isVerified = _hasAnalyzed;
+    
+    // บันทึกวัตถุดิบ (ถ้ามี) จาก AI analysis
+    if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) {
+      entry.ingredientsJson = jsonEncode(_analysisResult!.ingredientsDetail);
+      AppLogger.info('Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
+    }
 
     // Save
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
@@ -679,7 +731,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('บันทึกอาหารสำเร็จ! 🎉'),
+          content: Text('Food saved successfully! 🎉'),
           backgroundColor: AppColors.success,
         ),
       );

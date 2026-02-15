@@ -729,6 +729,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       if (value == null || value.isEmpty) return;
                       _onUnitChanged(value);
                     },
+                    style: const TextStyle(color: Colors.black),
+                    dropdownColor: Colors.white,
                   ),
                 ),
               ],

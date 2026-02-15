@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - MIRO</title>
+    <title>Privacy Policy - Miro Cal</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -22,6 +22,10 @@
             color: #4CAF50;
             margin-top: 30px;
         }
+        h3 {
+            color: #66BB6A;
+            margin-top: 20px;
+        }
         .highlight {
             background-color: #E8F5E9;
             border-left: 4px solid #4CAF50;
@@ -38,107 +42,123 @@
         ul {
             margin-left: 20px;
         }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <h1>Privacy Policy</h1>
-    <p><strong>MIRO — My Intake Record Oracle</strong></p>
+    <p><strong>Miro Cal — AI-Powered Nutrition Tracker</strong></p>
+    <p><strong>Effective Date:</strong> February 13, 2026<br>
+    <strong>Last Updated:</strong> February 13, 2026</p>
     
     <div class="highlight">
-        <strong>🔒 Your data stays on your device. No cloud, no servers.</strong>
+        <strong>🔒 Your food data stays on your device. Energy balance synced securely via Firebase.</strong>
     </div>
 
-    <h2>Information We Collect</h2>
-    <p>MIRO collects and stores the following information <strong>locally on your device</strong>:</p>
+    <h2>1. Information We Collect</h2>
+    <p>Miro Cal stores the following data <strong>locally on your device</strong> (Offline-first):</p>
     <ul>
-        <li><strong>Health Data:</strong> Daily calorie intake, macronutrients (protein, carbs, fat), food entries, meal logs</li>
-        <li><strong>User Profile:</strong> Age, weight, height, gender, activity level, health goals</li>
-        <li><strong>Custom Data:</strong> Your personal meals database, custom ingredients, serving sizes</li>
-        <li><strong>Gemini API Key:</strong> If you choose to use AI features, your API key is stored in secure storage on your device</li>
+        <li>Food entries (name, calories, nutrients)</li>
+        <li>Food photos (stored locally on your device)</li>
+        <li>Health goals (kcal, macros)</li>
+        <li>Basic personal information (name, gender, age, weight, height)</li>
+        <li>Created meal recipes (My Meals)</li>
+        <li>Saved ingredients (Ingredients)</li>
+        <li>Energy balance (for AI features)</li>
+        <li>Energy purchase history (via Google Play)</li>
     </ul>
 
-    <h2>How We Store Your Data</h2>
-    <p>All data is stored <strong>LOCALLY</strong> on your device using Isar database.</p>
+    <h2>2. Data Transmission to Third Parties</h2>
+    
+    <h3>2.1 In-App Purchase</h3>
     <ul>
-        <li>We <strong>DO NOT</strong> send your personal data to our servers</li>
-        <li>We <strong>DO NOT</strong> have backend servers or cloud storage</li>
-        <li>We <strong>DO NOT</strong> require account creation or login</li>
-        <li>Your data stays on your device and is never uploaded</li>
+        <li><strong>Purchase data</strong> → Processed via Google Play Billing</li>
+        <li>Payment information is handled by Google, not by us</li>
+        <li>We only store Product ID and Purchase Token to verify purchases</li>
     </ul>
 
-    <h2>Third-Party Services</h2>
-    <h3>Google Gemini API (Optional)</h3>
-    <p>If you choose to use AI food analysis features:</p>
+    <h3>2.2 Firebase Services</h3>
     <ul>
-        <li>You provide your own free Gemini API key</li>
-        <li>Food images and text descriptions are sent to Google Gemini API for analysis</li>
-        <li>Google's privacy policy applies to data sent to their API</li>
-        <li>We do not have access to or store your Gemini usage data</li>
-        <li>You can revoke or delete your API key at any time</li>
-    </ul>
-    <p>Learn more: <a href="https://ai.google.dev/gemini-api/terms">https://ai.google.dev/gemini-api/terms</a></p>
-
-    <h2>Permissions</h2>
-    <p>MIRO requests the following permissions:</p>
-    <ul>
-        <li><strong>Camera:</strong> To take photos of your food for AI analysis</li>
-        <li><strong>Photo Library:</strong> To select food photos from your gallery for scanning</li>
-        <li><strong>Storage:</strong> To read food photos and save app data locally</li>
-    </ul>
-    <p>These permissions are used <strong>ONLY</strong> for app functionality and never to access unrelated personal files.</p>
-
-    <h2>In-App Purchases</h2>
-    <p>MIRO offers an optional Pro upgrade ($9.99 one-time purchase):</p>
-    <ul>
-        <li>Purchase is managed by Google Play Billing</li>
-        <li>Google processes all payment information</li>
-        <li>We only receive notification of successful purchase</li>
-        <li>Purchase is linked to your Google Play account</li>
-        <li>No payment data is stored by MIRO</li>
+        <li><strong>Device ID</strong> → Used to manage Energy balance and prevent fraudulent usage</li>
+        <li><strong>Cloud Functions</strong> → Process AI requests and manage Energy deduction</li>
+        <li><strong>Firestore</strong> → Stores Energy balance for cross-device synchronization</li>
     </ul>
 
-    <h2>Data Security</h2>
+    <h2>3. Data Storage</h2>
     <ul>
-        <li>Your Gemini API key is stored in secure encrypted storage</li>
-        <li>All health data is stored locally in Isar database</li>
-        <li>No data transmission to external servers (except Google Gemini API if you enable it)</li>
-        <li>You can clear all data anytime from Profile settings</li>
+        <li>All food data and personal information stored <strong>locally on your device</strong> (Local database)</li>
+        <li>Energy balance synchronized with Firebase Firestore for cross-device persistence</li>
+        <li>No cloud backup of food data (if you uninstall the app, local food data will be lost)</li>
+        <li>You can delete all local data anytime (Profile → Clear Data)</li>
     </ul>
 
-    <h2>Analytics and Tracking</h2>
-    <p>MIRO does <strong>NOT</strong> use:</p>
+    <h2>4. Required Permissions</h2>
+    <table>
+        <tr>
+            <th>Permission</th>
+            <th>Purpose</th>
+        </tr>
+        <tr>
+            <td>Camera</td>
+            <td>Take food photos for AI analysis</td>
+        </tr>
+        <tr>
+            <td>Photos/Gallery</td>
+            <td>Select food photos from gallery</td>
+        </tr>
+        <tr>
+            <td>Internet</td>
+            <td>Send photos to AI API and sync Energy balance</td>
+        </tr>
+    </table>
+
+    <h2>5. User Rights</h2>
     <ul>
-        <li>Analytics services</li>
-        <li>Advertising networks</li>
-        <li>Tracking pixels or cookies</li>
-        <li>User behavior monitoring</li>
+        <li>Delete all local data anytime</li>
+        <li>Uninstall the app to remove all local data</li>
+        <li>Energy balance persists across app reinstalls (linked to your device)</li>
+        <li>Request Energy data deletion by contacting support</li>
     </ul>
-    <p>We respect your privacy completely.</p>
 
-    <h2>Data Deletion</h2>
-    <p>You have full control over your data:</p>
+    <h2>6. Security</h2>
     <ul>
-        <li>All data is stored locally on your device</li>
-        <li>You can clear all data from Profile → Data → Clear All Data</li>
-        <li>Uninstalling the app permanently deletes all local data</li>
-        <li>No data remains on any server (because we don't have servers)</li>
+        <li>Energy transactions secured via Firebase with device authentication</li>
+        <li>Local data stored in encrypted Local Database (Isar)</li>
+        <li>No analytics, tracking, or advertising SDKs</li>
+        <li>Payment processing handled securely by Google Play Billing</li>
     </ul>
 
-    <h2>Children's Privacy</h2>
-    <p>MIRO is not intended for children under 13. We do not knowingly collect personal information from children under 13.</p>
+    <h2>7. Children's Privacy</h2>
+    <p>Miro Cal is not intended for children under 13 years of age. We do not knowingly collect personal information from children.</p>
 
-    <h2>Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Changes will be posted in the app. Continued use of MIRO constitutes acceptance of the updated policy.</p>
-
-    <h2>Contact</h2>
-    <p>If you have questions about this Privacy Policy, you can:</p>
+    <h2>8. Data Retention</h2>
     <ul>
-        <li>Review the app source code (if open source)</li>
-        <li>Contact us through the Play Store listing</li>
+        <li><strong>Local food data:</strong> Retained until you delete it or uninstall the app</li>
+        <li><strong>Energy balance:</strong> Retained indefinitely (linked to your device)</li>
+        <li><strong>Purchase records:</strong> Retained as required by Google Play and tax regulations</li>
     </ul>
+
+    <h2>9. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+
+    <h2>10. Contact Us</h2>
+    <p>If you have questions about this Privacy Policy, please contact us through <strong>Google Play Store</strong>.</p>
 
     <div class="footer">
-        <p><em>Last updated: February 12, 2026</em></p>
+        <p>&copy; 2026 Miro Cal. All rights reserved.</p>
     </div>
 </body>
 </html>

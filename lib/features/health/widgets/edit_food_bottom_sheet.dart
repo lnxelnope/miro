@@ -8,6 +8,8 @@ import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import '../models/food_entry.dart';
 import '../models/ingredient.dart';
 import '../providers/my_meal_provider.dart';
@@ -103,6 +105,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   late TextEditingController _fatController;
 
   late String _servingUnit;
+  
+  // Prevent double-tap on AI lookup
+  final Set<int> _lookingUpIndices = {};
   late MealType _selectedMealType;
 
   late double _baseCalories, _baseProtein, _baseCarbs, _baseFat;
@@ -318,6 +323,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   }
 
   Future<void> _lookupIngredient(int index) async {
+    // Prevent double-tap
+    if (_lookingUpIndices.contains(index)) return;
+    
     final row = _ingredients[index];
     final name = row.nameController.text.trim();
     final amount = double.tryParse(row.amountController.text) ?? 0;
@@ -327,6 +335,44 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         const SnackBar(content: Text('Please enter ingredient name')),
       );
       return;
+    }
+
+    // === ถ้ามีข้อมูลอยู่แล้ว ให้ถามยืนยันก่อน ===
+    if (row.calories > 0 && mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 12),
+              Text('Re-analyze?'),
+            ],
+          ),
+          content: Text(
+            '"$name" already has nutrition data.\n\n'
+            'Analyzing again will use 1 Energy.\n\n'
+            'Continue?',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Re-analyze (1 Energy)'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return; // User cancelled
     }
 
     // 1. ค้น DB
@@ -373,21 +419,14 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     }
 
     // 3. Gemini lookup
-    // === เพิ่ม Gate Check ===
-    // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
-      if (mounted) {
-        GeminiService.showNoApiKeyDialog(context);
-      }
+    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (!mounted) return;
+      await NoEnergyDialog.show(context);
       return;
     }
 
-    // 2. เช็คว่ายังเหลือโควต้า AI ไหม (ใหม่ Step 31)
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return; // Upsell dialog will show automatically
-    // === จบ Gate Check ===
-    
     setState(() => row.isLoading = true);
     try {
       final queryAmount = double.tryParse(row.amountController.text) ?? 100;
@@ -401,6 +440,11 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         // === Record AI Usage หลังสำเร็จ ===
         await UsageLimiter.recordAiUsage();
         
+        // === อัพเดท Energy Badge ===
+        if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+        
         setState(() {
           row.calories = result.nutrition.calories;
           row.protein = result.nutrition.protein;
@@ -408,19 +452,23 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           row.fat = result.nutrition.fat;
           row.nameEn = result.foodNameEn;
           row.isLoading = false;
+          _lookingUpIndices.remove(index);
           row.saveBaseValues();
         });
         _recalculateFromIngredients();
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Gemini: "$name" → ${result.nutrition.calories.toInt()} kcal'),
+            content: Text('AI: "$name" → ${result.nutrition.calories.toInt()} kcal'),
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
           ),
         );
       } else {
-        setState(() => row.isLoading = false);
+        setState(() {
+          row.isLoading = false;
+          _lookingUpIndices.remove(index);
+        });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Unable to analyze'), backgroundColor: AppColors.error),
@@ -428,11 +476,19 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         }
       }
     } catch (e) {
-      setState(() => row.isLoading = false);
+      setState(() {
+        row.isLoading = false;
+        _lookingUpIndices.remove(index);
+      });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-        );
+        // ตรวจสอบว่าเป็น Energy error หรือไม่
+        if (e.toString().contains('Insufficient energy')) {
+          await NoEnergyDialog.show(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+          );
+        }
       }
     }
   }
@@ -543,6 +599,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       if (value == null || value.isEmpty) return;
                       _onUnitChanged(value);
                     },
+                    style: const TextStyle(color: Colors.black),
+                    dropdownColor: Colors.white,
                   ),
                 ),
               ],
@@ -770,7 +828,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
           const SizedBox(height: 6),
           const Text(
-            '💡 Edit name/amount → Tap 🔍 to search database or Gemini',
+            '💡 Edit name/amount → Tap 🔍 to search database or AI',
             style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
           ),
         ],
@@ -822,7 +880,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       child: IconButton(
                         padding: EdgeInsets.zero,
                         icon: const Icon(Icons.search, size: 18),
-                        tooltip: 'Search DB / Gemini',
+                        tooltip: 'Search DB / AI',
                         color: Colors.purple,
                         onPressed: () => _lookupIngredient(index),
                       ),
@@ -873,6 +931,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   isDense: true,
                   isExpanded: true,
                   style: const TextStyle(fontSize: 12, color: Colors.black87),
+                  dropdownColor: Colors.white,
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),

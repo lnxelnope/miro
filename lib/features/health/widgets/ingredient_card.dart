@@ -56,7 +56,7 @@ class IngredientCard extends StatelessWidget {
               onPressed: onUse,
               icon: const Icon(Icons.add_circle_outline, size: 22),
               color: AppColors.health,
-              tooltip: 'บันทึกรายการนี้',
+              tooltip: 'Save this item',
             ),
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -66,8 +66,8 @@ class IngredientCard extends StatelessWidget {
                 }
               },
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('✏️ แก้ไข')),
-                const PopupMenuItem(value: 'delete', child: Text('🗑️ ลบ')),
+                const PopupMenuItem(value: 'edit', child: Text('✏️ Edit')),
+                const PopupMenuItem(value: 'delete', child: Text('🗑️ Delete')),
               ],
             ),
           ],

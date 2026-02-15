@@ -347,122 +347,19 @@ class IntentHandler {
     return [foodText];
   }
 
-  /// Use food database to find food names in text and split accordingly
-  /// Supports both Thai and English food names
+  /// ไม่ใช้ food database แล้ว - return text เดิม
   List<String> _splitByFoodDatabase(String text) {
-    final foodDb = LLMService.foodDatabase;
-    if (foodDb == null || foodDb.isEmpty) return [text];
-    
-    final lowerText = text.toLowerCase();
-    
-    final matches = <({int pos, int len, String name})>[];
-    
-    for (final food in foodDb) {
-      // Check Thai name
-      final th = ((food['th'] as String?) ?? '').toLowerCase();
-      if (th.length >= 2) {
-        int pos = lowerText.indexOf(th);
-        if (pos >= 0) {
-          matches.add((pos: pos, len: th.length, name: food['th'] as String));
-          continue;
-        }
-        
-        // Try normalized Thai
-        final normalized = LLMService.normalizeThaiFood(th);
-        if (normalized != th) {
-          pos = lowerText.indexOf(normalized);
-          if (pos >= 0) {
-            matches.add((pos: pos, len: normalized.length, name: food['th'] as String));
-            continue;
-          }
-        }
-        
-        // Try normalizing the input text
-        final reverseLower = LLMService.normalizeThaiFood(lowerText);
-        pos = reverseLower.indexOf(th);
-        if (pos >= 0 && pos < lowerText.length) {
-          matches.add((pos: pos, len: th.length, name: food['th'] as String));
-          continue;
-        }
-      }
-      
-      // Check English name
-      final en = ((food['en'] as String?) ?? '').toLowerCase();
-      if (en.length >= 3) {
-        final pos = lowerText.indexOf(en);
-        if (pos >= 0) {
-          matches.add((pos: pos, len: en.length, name: food['en'] as String));
-        }
-      }
-    }
-    
-    if (matches.isEmpty) return [text];
-    
-    // Sort by position
-    matches.sort((a, b) => a.pos.compareTo(b.pos));
-    
-    // Remove overlapping matches (keep longest)
-    final filtered = <({int pos, int len, String name})>[];
-    for (final m in matches) {
-      bool overlaps = false;
-      for (int i = 0; i < filtered.length; i++) {
-        if (m.pos < filtered[i].pos + filtered[i].len && 
-            m.pos + m.len > filtered[i].pos) {
-          // Overlap detected — keep the longer match
-          if (m.len > filtered[i].len) {
-            filtered[i] = m;
-          }
-          overlaps = true;
-          break;
-        }
-      }
-      if (!overlaps) filtered.add(m);
-    }
-    
-    filtered.sort((a, b) => a.pos.compareTo(b.pos));
-    
-    if (filtered.isEmpty) return [text];
-    
-    // Single match — check if there's text before/after
-    if (filtered.length == 1) {
-      if (filtered[0].pos > 2) {
-        final before = text.substring(0, filtered[0].pos).trim();
-        final after = text.substring(filtered[0].pos).trim();
-        if (before.length >= 2 && after.length >= 2) {
-          return [before, after];
-        }
-      }
-      return [text];
-    }
-    
-    // Multiple matches — extract segments
-    final items = <String>[];
-    
-    // Text before first match
-    if (filtered[0].pos > 0) {
-      final before = text.substring(0, filtered[0].pos).trim();
-      if (before.length >= 2) items.add(before);
-    }
-    
-    // Extract each match and text between matches
-    for (int i = 0; i < filtered.length; i++) {
-      final start = filtered[i].pos;
-      final end = i + 1 < filtered.length ? filtered[i + 1].pos : text.length;
-      final item = text.substring(start, end).trim();
-      if (item.length >= 2) items.add(item);
-    }
-    
-    return items;
+    return [text];
   }
 
   /// Extract serving info from food name
-  /// Handles various casual patterns like "2 eggs", "fried rice 1 plate", "another coffee"
+  /// Handles various casual patterns like "2 eggs", "fried rice 1 plate", "pork 50g", "another coffee"
   ({String cleanedName, double size, String unit}) _extractServingFromItem(String foodItem) {
     // Convert word numbers to digits first
     String normalized = _normalizeWordNumbers(foodItem);
     
-    // Pattern 1: Standard "number + unit" at the end
-    // Examples: "fried rice 1 plate", "eggs 2 piece", "coffee 250 ml"
+    // Pattern 1: Standard "number + unit" at the end (with or without space)
+    // Examples: "fried rice 1 plate", "eggs 2 piece", "pork 50g", "chicken 100 g"
     final standardPattern = RegExp(
       r'(?:\s*another\s*)?(\d+(?:\.\d+)?)\s*(plate|plates|cup|cups|bowl|bowls|piece|pieces|box|boxes|pack|packs|bag|bags|bottle|bottles|glass|glasses|egg|eggs|ball|balls|item|items|slice|slices|pair|pairs|stick|sticks|g|gram|grams|kg|ml|milliliter|milliliters|l|liter|liters|serving|servings|tbsp|tsp|oz|ounce|ounces|lbs|pound|pounds)\s*(?:of)?\s*$',
       caseSensitive: false,
@@ -482,10 +379,10 @@ class IntentHandler {
       );
     }
     
-    // Pattern 2: "number + unit" at the beginning
-    // Examples: "2 eggs", "3 plates fried rice", "250 ml water"
+    // Pattern 2: "number + unit" at the beginning (with or without space)
+    // Examples: "2 eggs", "50g pork", "50g of pork", "250ml water"
     final prefixPattern = RegExp(
-      r'^(?:another\s+)?(\d+(?:\.\d+)?)\s*(plate|plates|cup|cups|bowl|bowls|piece|pieces|box|boxes|pack|packs|bag|bags|bottle|bottles|glass|glasses|egg|eggs|ball|balls|item|items|slice|slices|pair|pairs|stick|sticks|g|gram|grams|kg|ml|milliliter|milliliters|l|liter|liters|serving|servings|tbsp|tsp|oz|ounce|ounces|lbs|pound|pounds)\s+(?:of\s+)?',
+      r'^(?:another\s+)?(\d+(?:\.\d+)?)\s*(plate|plates|cup|cups|bowl|bowls|piece|pieces|box|boxes|pack|packs|bag|bags|bottle|bottles|glass|glasses|egg|eggs|ball|balls|item|items|slice|slices|pair|pairs|stick|sticks|g|gram|grams|kg|ml|milliliter|milliliters|l|liter|liters|serving|servings|tbsp|tsp|oz|ounce|ounces|lbs|pound|pounds)\s*(?:of\s+)?',
       caseSensitive: false,
     );
     match = prefixPattern.firstMatch(normalized);

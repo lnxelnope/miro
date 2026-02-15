@@ -54,10 +54,10 @@ class _HealthPageState extends State<HealthPage>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [
-              HealthTimelineTab(),
-              HealthDietTab(),
-              HealthMyMealTab(),
+            children: [
+              HealthTimelineTab(timelineKey: widget.key),
+              const HealthDietTab(),
+              const HealthMyMealTab(),
             ],
           ),
         ),

@@ -99,7 +99,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text(
-              'ฐาน: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
+              'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
               style: const TextStyle(color: AppColors.textSecondary),
             ),
             const SizedBox(height: 20),
@@ -113,8 +113,8 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                     controller: _servingSizeController,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'ปริมาณ',
-                      helperText: 'เดิม ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
+                      labelText: 'Amount',
+                      helperText: 'Original ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
                       helperStyle: TextStyle(fontSize: 11, color: Colors.purple.shade300),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       focusedBorder: OutlineInputBorder(
@@ -181,9 +181,9 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _macroItem('โปรตีน', _protein, AppColors.protein),
-                      _macroItem('คาร์บ', _carbs, AppColors.carbs),
-                      _macroItem('ไขมัน', _fat, AppColors.fat),
+                      _macroItem('Protein', _protein, AppColors.protein),
+                      _macroItem('Carbs', _carbs, AppColors.carbs),
+                      _macroItem('Fat', _fat, AppColors.fat),
                     ],
                   ),
                 ],
@@ -192,7 +192,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
             const SizedBox(height: 16),
 
             // Meal type
-            const Text('มื้ออาหาร', style: TextStyle(fontWeight: FontWeight.w500)),
+            const Text('Meal Type', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -219,7 +219,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('บันทึก', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                child: const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
           ],

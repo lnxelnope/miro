@@ -12,15 +12,26 @@
     
     <!-- Storage permissions for Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <!-- READ_MEDIA_VIDEO not needed - we only use photos for food logging -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/> -->
     
-    <!-- Calendar -->
-    <uses-permission android:name="android.permission.READ_CALENDAR"/>
-    <uses-permission android:name="android.permission.WRITE_CALENDAR"/>
+    <!-- Internet for Gemini API -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    
+    <!-- Billing for In-App Purchase -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+    
+    <!-- Block unwanted permissions from dependencies -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" tools:node="remove"/>
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" tools:node="remove"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
     
     <!-- Features -->
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    
+    <!-- AD_ID Declaration: We do NOT use advertising ID (Android 13+) -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove"/>
     
     <!-- Queries for url_launcher (Android 11+) -->
     <queries>

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/constants/ai_loading_messages.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/daily_summary_card.dart';
@@ -18,12 +19,15 @@ import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
-import '../../profile/presentation/api_key_screen.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import 'barcode_scanner_screen.dart';
 import 'nutrition_label_screen.dart';
 
 class HealthTimelineTab extends ConsumerStatefulWidget {
-  const HealthTimelineTab({super.key});
+  final Key? timelineKey;
+  
+  const HealthTimelineTab({super.key, this.timelineKey});
 
   @override
   ConsumerState<HealthTimelineTab> createState() => _HealthTimelineTabState();
@@ -31,12 +35,16 @@ class HealthTimelineTab extends ConsumerStatefulWidget {
 
 class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   DateTime _selectedDate = DateTime.now();
+  
+  // ป้องกันการ analyze ซ้ำ
+  final Set<int> _analyzingEntryIds = {};
 
   @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
 
     return RefreshIndicator(
+      key: widget.timelineKey,
       onRefresh: () async {
         AppLogger.info('Pull-to-refresh starting...');
         
@@ -55,11 +63,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // API Key Banner
-          SliverToBoxAdapter(
-            child: _buildApiKeyBanner(),
-          ),
-
           // Upsell Banner
           SliverToBoxAdapter(
             child: _buildUpsellBanner(),
@@ -184,51 +187,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildApiKeyBanner() {
-    return FutureBuilder<bool>(
-      future: GeminiService.hasApiKey(),
-      builder: (context, snapshot) {
-        if (snapshot.data == true) return const SizedBox.shrink();
-
-        return Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.blue.shade200),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.smart_toy, color: Colors.blue, size: 28),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Set up Gemini AI',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                    Text('To automatically analyze food from photos',
-                        style: TextStyle(fontSize: 12, color: Colors.black54)),
-                  ],
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ApiKeyScreen()),
-                  );
-                },
-                child: const Text('Set up'),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -385,6 +343,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         onSave: (updatedEntry) async {
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.updateFoodEntry(updatedEntry);
+          
+          // ────── เช็ค mounted ก่อน invalidate ──────
+          if (!mounted) return;
           refreshFoodProviders(ref, _selectedDate);
         },
       ),
@@ -419,6 +380,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         final notifier = ref.read(foodEntriesNotifierProvider.notifier);
         await notifier.deleteFoodEntry(entry.id);
         
+        // ────── เช็ค mounted ก่อน invalidate ──────
+        if (!mounted) return;
         refreshFoodProviders(ref, _selectedDate);
         
         if (!context.mounted) return;
@@ -443,20 +406,75 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
   /// Analyze food with Gemini (supports both image and text-only)
   Future<void> _analyzeFoodWithGemini(FoodEntry entry) async {
-    final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
-
-    // Gate Check
-    final hasApiKey = await GeminiService.hasApiKey();
-    if (!hasApiKey) {
+    // ────── ป้องกันการกดซ้ำ (เช็คก่อนทุกอย่าง) ──────
+    if (_analyzingEntryIds.contains(entry.id)) {
+      AppLogger.info('[Timeline] Already analyzing entry ${entry.id}, skipping duplicate request');
       if (context.mounted) {
-        GeminiService.showNoApiKeyDialog(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⏳ Analysis in progress - please wait'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
       return;
     }
+    
+    // ────── ถ้า entry วิเคราะห์แล้ว ให้ถามยืนยันก่อน ──────
+    if (entry.isVerified && context.mounted) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 12),
+              Expanded(child: Text('Re-analyze?')),
+            ],
+          ),
+          content: Text(
+            '"${entry.foodName}" has already been analyzed.\n\n'
+            'Analyzing again will use 1 Energy.\n\n'
+            'Continue?',
+            style: const TextStyle(fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Re-analyze (1 Energy)'),
+            ),
+          ],
+        ),
+      );
+      
+      if (confirmed != true) return; // User cancelled
+    }
+    
+    // ────── เพิ่ม entry.id เข้า set ทันทีเพื่อป้องกันการกดซ้ำ ──────
+    _analyzingEntryIds.add(entry.id);
+    
+    final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
 
-    final canUse = await GeminiService.checkAndConsumeUsage(context);
-    if (!canUse) return;
-
+    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      _analyzingEntryIds.remove(entry.id);
+      
+      if (context.mounted) {
+        await NoEnergyDialog.show(context);
+      }
+      return;
+    }
+    
     if (!context.mounted) return;
     showDialog(
       context: context,
@@ -469,7 +487,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             const SizedBox(height: 16),
             Text(
               hasImage 
-                ? 'Analyzing image with Gemini AI...'
+                ? AILoadingMessages.getImageMessage(0)
                 : 'Estimating "${entry.foodName}" with AI...',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
@@ -501,6 +519,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       Navigator.pop(context); // Close loading dialog
 
       if (result == null) {
+        _analyzingEntryIds.remove(entry.id);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('❌ Unable to analyze'), backgroundColor: AppColors.error),
         );
@@ -508,9 +527,17 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       }
 
       await UsageLimiter.recordAiUsage();
+      
+      // === อัพเดท Energy Badge ===
+      if (!mounted) return;
+      ref.invalidate(energyBalanceProvider);
+      ref.invalidate(currentEnergyProvider);
 
       if (!context.mounted) return;
-      showModalBottomSheet(
+      
+      // ────── showModalBottomSheet แล้วรอให้ปิด (await) ──────
+      // จะไม่ลบ entry.id ออกจนกว่า sheet จะปิด
+      await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -545,6 +572,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               ingredientsJson: ingredientsJsonStr,
             );
 
+            if (!mounted) return;
             refreshFoodProviders(ref, _selectedDate);
 
             // Auto-save ingredients + meal
@@ -559,7 +587,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   ingredientsData: confirmedData.ingredientsDetail!,
                 );
                 
-                // Invalidate MyMeal providers to refresh UI
+                if (!mounted) return;
                 ref.invalidate(allMyMealsProvider);
                 ref.invalidate(allIngredientsProvider);
                 
@@ -593,17 +621,28 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           },
         ),
       );
+      
+      // ────── ลบ entry.id ออกจาก set หลัง sheet ปิดแล้ว ──────
+      _analyzingEntryIds.remove(entry.id);
+      
     } catch (e, stackTrace) {
       AppLogger.error('Error', e, stackTrace);
+      
+      // ────── ลบ entry.id ออกจาก set ──────
+      _analyzingEntryIds.remove(entry.id);
       
       if (!context.mounted) return;
       Navigator.pop(context); // Close loading dialog
       
+      // ตรวจสอบว่าเป็น Energy error หรือไม่
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+        return;
+      }
+      
       String errorMessage = 'An error occurred';
-      if (e.toString().contains('API Key')) {
-        errorMessage = 'Gemini API Key not found - please set up in Settings';
-      } else if (e.toString().contains('parse JSON')) {
-        errorMessage = 'Could not read Gemini result - please try again';
+      if (e.toString().contains('parse JSON')) {
+        errorMessage = 'Could not read AI result - please try again';
       } else {
         errorMessage = e.toString().replaceAll('Exception: ', '');
         if (errorMessage.length > 100) {
