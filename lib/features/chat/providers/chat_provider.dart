@@ -113,11 +113,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         // Refresh providers if food entry was created
         if (response.actionResult != null && response.actionResult!.entryType == 'food') {
           debugPrint('🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
-          final today = DateTime.now();
+          final today = dateOnly(DateTime.now());
           DateTime entryDate = today;
           if (response.actionResult!.data != null && response.actionResult!.data!['date'] != null) {
             final parsedDate = DateTime.tryParse(response.actionResult!.data!['date'] as String);
-            if (parsedDate != null) entryDate = parsedDate;
+            if (parsedDate != null) entryDate = dateOnly(parsedDate);
           }
           ref.invalidate(foodEntriesByDateProvider(entryDate));
           ref.invalidate(foodEntriesByDateProvider(today));
@@ -198,7 +198,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     
     // Refresh providers
     debugPrint('🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
-    final today = DateTime.now();
+    final today = dateOnly(DateTime.now());
     ref.invalidate(foodEntriesByDateProvider(today));
     ref.invalidate(todayCaloriesProvider);
     ref.invalidate(todayMacrosProvider);

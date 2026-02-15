@@ -655,11 +655,11 @@ IMPORTANT REQUIREMENTS:
 4. DO NOT just provide a total summary - break down every ingredient
 
 CRITICAL REQUIREMENTS:
-- food_name: Detect the language in image/context and provide in ORIGINAL language ONLY (Thai if Thai text, English if English text, Japanese if Japanese text, etc.)
-- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH - If food_name is Thai/Japanese/Chinese/etc., you MUST translate it to English. This is for database standardization.
-- Example 1: If you see "ข้าวผัด" → food_name: "ข้าวผัด", food_name_en: "Fried Rice"
-- Example 2: If you see "Fried Rice" → food_name: "Fried Rice", food_name_en: "Fried Rice"
-- Example 3: If you see "炒飯" → food_name: "炒飯", food_name_en: "Fried Rice"
+- food_name: Detect the language from image/context and provide in the ORIGINAL language as shown (keep whatever language appears in the image or context)
+- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH — always translate to English for database standardization
+- Example 1: If you see text "Fried Rice" → food_name: "Fried Rice", food_name_en: "Fried Rice"
+- Example 2: If you see non-English text → food_name: keep original text, food_name_en: translate to English
+- Example 3: If no text is visible, identify the dish → food_name: English name, food_name_en: English name
 - ingredient names in ingredients_detail: MUST be in English (for standardization)
 - serving_unit must be appropriate for the food, e.g., "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc.
 - Do NOT use "g" or "ml" as serving_unit for dishes/bowls/plates — use "serving" as fallback if unsure
@@ -680,44 +680,44 @@ Example for "Steak with French Fries":
 
 Respond in JSON format following this EXACT structure:
 {
-  "food_name": "Original name detected from image (Thai/English/Japanese/etc.)",
-  "food_name_en": "ALWAYS English translation - NEVER leave this in Thai/Japanese/etc.",
+  "food_name": "Original name detected from image (any language)",
+  "food_name_en": "ALWAYS English translation",
   "confidence": 0.85,
   "serving_size": 1,
   "serving_unit": "plate",
   "serving_grams": 350,
   "nutrition": {
-    "calories": 611,
-    "protein": 27,
-    "carbs": 57,
-    "fat": 29,
-    "fiber": 2,
-    "sugar": 3,
-    "sodium": 850
+    "calories": 550,
+    "protein": 43,
+    "carbs": 30,
+    "fat": 27,
+    "fiber": 3,
+    "sugar": 1,
+    "sodium": 650
   },
   "ingredients_detail": [
     {
-      "name": "Steamed Rice",
-      "name_en": "Steamed Rice",
-      "amount": 200,
+      "name": "Beef Steak",
+      "name_en": "Beef Steak",
+      "amount": 150,
       "unit": "g",
-      "calories": 260,
-      "protein": 5,
-      "carbs": 56,
-      "fat": 0.5
+      "calories": 375,
+      "protein": 40,
+      "carbs": 0,
+      "fat": 22
     },
     {
-      "name": "Minced Pork",
-      "name_en": "Minced Pork",
-      "amount": 80,
+      "name": "French Fries",
+      "name_en": "French Fries",
+      "amount": 100,
       "unit": "g",
-      "calories": 170,
-      "protein": 16,
-      "carbs": 0,
-      "fat": 12
+      "calories": 220,
+      "protein": 3,
+      "carbs": 30,
+      "fat": 11
     }
   ],
-  "ingredients": ["rice", "pork", "basil", "egg"],
+  "ingredients": ["beef", "potato", "oil", "salt"],
   "notes": "Additional notes"
 }
 
@@ -741,16 +741,16 @@ CRITICAL REQUIREMENTS:
 - serving_size must be $servingSizeJson and serving_unit must be "$servingUnitJson"
 - serving_unit should be appropriate, e.g. "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc.
 - Do NOT use "g" as serving_unit for dishes/bowls/plates — use "serving" as fallback
-- food_name: Keep in ORIGINAL language as entered by user (Thai if user entered Thai, English if user entered English, etc.)
-- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH - If food_name is Thai/Japanese/Chinese/etc., you MUST translate it to English. This is for database standardization.
-- Example 1: User enters "ข้าวผัด" → food_name: "ข้าวผัด", food_name_en: "Fried Rice"
+- food_name: Keep in ORIGINAL language as entered by user (preserve whatever language the user typed)
+- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH — always translate to English for database standardization
+- Example 1: User enters a non-English name → food_name: keep original, food_name_en: translate to English
 - Example 2: User enters "Fried Rice" → food_name: "Fried Rice", food_name_en: "Fried Rice"
 - ingredient names in ingredients_detail: MUST be in English (for standardization)
 
 Respond in JSON only:
 {
-  "food_name": "Original name as user entered (keep Thai/Japanese/Chinese/etc.)",
-  "food_name_en": "ALWAYS English translation - NEVER leave this in Thai/Japanese/etc.",
+  "food_name": "Original name as user entered (any language)",
+  "food_name_en": "ALWAYS English translation",
   "confidence": 0.7,
   "serving_size": $servingSizeJson,
   "serving_unit": "$servingUnitJson",

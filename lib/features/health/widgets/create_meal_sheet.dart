@@ -188,7 +188,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
-                    value: _servingUnit,
+                    initialValue: _servingUnit,
                     items: UnitConverter.allDropdownItems,
                     onChanged: (newUnit) {
                       if (newUnit != null) {
@@ -383,7 +383,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               Expanded(
                 flex: 2,
                 child: DropdownButtonFormField<String>(
-                  value: row.unit,
+                  initialValue: row.unit,
                   items: UnitConverter.compactDropdownItems,
                   onChanged: (newUnit) {
                     if (newUnit != null) {
@@ -807,9 +807,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     }
   }
 
+  /// Add new ingredient row (insert at top so user sees it immediately)
   void _addIngredientRow() {
     setState(() {
-      _ingredients.add(_IngredientRow());
+      _ingredients.insert(0, _IngredientRow());
     });
   }
 

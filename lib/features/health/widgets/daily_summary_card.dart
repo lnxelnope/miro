@@ -14,7 +14,7 @@ class DailySummaryCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final date = selectedDate ?? DateTime.now();
+    final date = selectedDate ?? dateOnly(DateTime.now());
     final isToday = _isToday(date);
 
     // ใช้ foodEntriesByDateProvider(date) แทน todayCaloriesProvider

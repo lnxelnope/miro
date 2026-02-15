@@ -8,6 +8,12 @@ import '../../../core/constants/enums.dart';
 import '../models/food_entry.dart';
 import 'my_meal_provider.dart';
 
+// ===== DATE HELPER =====
+/// Normalize DateTime to date-only (midnight) for consistent provider keys.
+/// Without this, DateTime.now() at different times would create different
+/// provider instances in FutureProvider.family, causing refresh failures.
+DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
 // ===== FOOD ENTRIES =====
 
 // Get food entries for a specific date
@@ -25,14 +31,14 @@ final foodEntriesByDateProvider = FutureProvider.family<List<FoodEntry>, DateTim
 
 // Get today's total calories
 final todayCaloriesProvider = FutureProvider<double>((ref) async {
-  final today = DateTime.now();
+  final today = dateOnly(DateTime.now());
   final entries = await ref.watch(foodEntriesByDateProvider(today).future);
   return entries.fold<double>(0, (sum, entry) => sum + entry.calories);
 });
 
 // Get today's macros
 final todayMacrosProvider = FutureProvider<Map<String, double>>((ref) async {
-  final today = DateTime.now();
+  final today = dateOnly(DateTime.now());
   final entries = await ref.watch(foodEntriesByDateProvider(today).future);
   
   double protein = 0, carbs = 0, fat = 0;
@@ -121,11 +127,21 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
   }
 
   /// Analyze food image with Gemini - return result for UI to display
-  Future<FoodAnalysisResult?> analyzeImage(File imageFile) async {
+  Future<FoodAnalysisResult?> analyzeImage(
+    File imageFile, {
+    String? foodName,
+    double? quantity,
+    String? unit,
+  }) async {
     AppLogger.info('[FoodEntriesNotifier] Analyzing image with Gemini...');
     
     try {
-      final result = await GeminiService.analyzeFoodImage(imageFile);
+      final result = await GeminiService.analyzeFoodImage(
+        imageFile,
+        foodName: foodName,
+        quantity: quantity,
+        unit: unit,
+      );
       
       if (result == null) {
         throw Exception('Unable to analyze image');
@@ -272,10 +288,12 @@ final foodEntriesNotifierProvider =
 });
 
 // ===== HELPER: Refresh providers for a date =====
-/// Call when food data changes to refresh UI
+/// Call when food data changes to refresh UI.
+/// Normalizes date to date-only to match provider keys consistently.
 void refreshFoodProviders(WidgetRef ref, DateTime date) {
-  ref.invalidate(healthTimelineProvider(date));
-  ref.invalidate(foodEntriesByDateProvider(date));
+  final d = dateOnly(date);
+  ref.invalidate(healthTimelineProvider(d));
+  ref.invalidate(foodEntriesByDateProvider(d));
   ref.invalidate(todayCaloriesProvider);
   ref.invalidate(todayMacrosProvider);
 }

@@ -21,7 +21,7 @@ class HealthDietTab extends ConsumerStatefulWidget {
 }
 
 class _HealthDietTabState extends ConsumerState<HealthDietTab> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = dateOnly(DateTime.now());
 
   @override
   Widget build(BuildContext context) {

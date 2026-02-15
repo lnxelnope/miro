@@ -501,9 +501,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     _recalculateFromIngredients();
   }
 
+  /// Add new ingredient (insert at top so user sees it immediately)
   void _addIngredient() {
     setState(() {
-      _ingredients.add(_EditableIngredient(
+      _ingredients.insert(0, _EditableIngredient(
         name: '',
         amount: 0,
         unit: 'g',

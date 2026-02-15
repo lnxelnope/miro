@@ -5,6 +5,7 @@ import '../../../core/widgets/disclaimer_widget.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../core/utils/logger.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -462,9 +463,21 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         });
         _recalculate();
 
+        // ===== บันทึกลง Ingredient DB ทันที =====
+        await _saveIngredientToDb(
+          name: result.foodName.isNotEmpty ? result.foodName : name,
+          nameEn: result.foodNameEn,
+          amount: queryAmount,
+          unit: row.unit,
+          calories: result.nutrition.calories,
+          protein: result.nutrition.protein,
+          carbs: result.nutrition.carbs,
+          fat: result.nutrition.fat,
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('AI: "$name" $queryAmount ${row.unit} → ${result.nutrition.calories.toInt()} kcal'),
+            content: Text('AI: "$name" $queryAmount ${row.unit} → ${result.nutrition.calories.toInt()} kcal — ingredient saved'),
             backgroundColor: Colors.purple,
             duration: const Duration(seconds: 3),
           ),
@@ -498,6 +511,40 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     }
   }
 
+  /// บันทึก ingredient ลง DB ทันทีหลัง AI lookup สำเร็จ
+  /// เพื่อให้ autocomplete และ ingredient list ใช้ได้ทันทีครั้งต่อไป
+  Future<void> _saveIngredientToDb({
+    required String name,
+    String? nameEn,
+    required double amount,
+    required String unit,
+    required double calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+  }) async {
+    try {
+      final notifier = ref.read(myMealNotifierProvider.notifier);
+      await notifier.saveIngredient(
+        name: name,
+        nameEn: nameEn,
+        baseAmount: amount,
+        baseUnit: unit,
+        calories: calories,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        source: 'gemini',
+      );
+      // Refresh ingredient list
+      if (!mounted) return;
+      ref.invalidate(allIngredientsProvider);
+      AppLogger.info('Ingredient "$name" saved to DB from GeminiAnalysisSheet');
+    } catch (e) {
+      debugPrint('⚠️ [GeminiAnalysisSheet] บันทึกวัตถุดิบล้มเหลว: $e');
+    }
+  }
+
   /// Remove ingredient
   void _removeIngredient(int index) {
     setState(() {
@@ -507,10 +554,10 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     _recalculate();
   }
 
-  /// Add new ingredient
+  /// Add new ingredient (insert at top so user sees it immediately)
   void _addIngredient() {
     setState(() {
-      _ingredients.add(_EditableIngredient(
+      _ingredients.insert(0, _EditableIngredient(
         name: '',
         amount: 0,
         unit: 'g',

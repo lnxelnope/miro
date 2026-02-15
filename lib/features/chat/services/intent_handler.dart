@@ -338,7 +338,7 @@ class IntentHandler {
       }
     }
     
-    // 3. Food database matching (for Thai text or known dishes)
+    // 3. Food database matching (for known dishes)
     // Skip this for English text with conjunctions (already handled above)
     final dbItems = _splitByFoodDatabase(foodText);
     if (dbItems.length > 1) return dbItems;
@@ -617,7 +617,7 @@ class IntentHandler {
         replyMessage: '🍽️ Please specify the meal name\n\n'
             'Try saying:\n'
             '• "Create new meal **fried rice** ingredients: rice 200g shrimp 100g egg 1 piece"\n'
-            '• "Add meal pad thai ingredients: noodle 200g tofu 50g"',
+            '• "Add meal chicken salad ingredients: chicken 150g lettuce 100g"',
         actionResult: null,
       );
     }

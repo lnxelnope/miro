@@ -172,8 +172,9 @@ class _ImageAnalysisPreviewScreenState
 
             // Refresh timeline to show the new entry immediately
             if (mounted) {
-              final today = DateTime.now();
+              final today = dateOnly(DateTime.now());
               ref.invalidate(healthTimelineProvider(today));
+              ref.invalidate(foodEntriesByDateProvider(today));
               // Also refresh the food entries list
               ref.invalidate(foodEntriesNotifierProvider);
             }

@@ -233,22 +233,16 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                       ),
                       const SizedBox(width: 8),
 
-                      // ปุ่มค้นด้วย Gemini (ถ้ามีรูปและยังไม่ verified)
+                      // ปุ่ม AI Analysis
                       if (canAnalyze)
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _handleAnalyze(),
-                            icon: const Icon(Icons.auto_awesome, size: 20),
-                            label: const Text('AI Analysis'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF6366F1),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                            ),
+                        IconButton(
+                          onPressed: () => _handleAnalyze(),
+                          icon: const Icon(Icons.auto_awesome, size: 20),
+                          color: const Color(0xFF6366F1),
+                          tooltip: 'AI Analysis',
+                          style: IconButton.styleFrom(
+                            backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                            padding: const EdgeInsets.all(12),
                           ),
                         ),
 
@@ -393,6 +387,16 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
     final entry = widget.entry;
     final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
 
+    // ────── ถ้ามี onAnalyze callback (เรียกจาก Timeline) ──────
+    // ให้ Timeline tab จัดการ dialog + analysis เอง เพื่อไม่ให้ซ้ำซ้อน
+    if (widget.onAnalyze != null) {
+      Navigator.pop(context); // ปิด detail sheet ก่อน
+      await widget.onAnalyze!(entry);
+      return;
+    }
+
+    // ────── Default behavior (เรียกจาก Diet tab) ──────
+
     // === ถ้าวิเคราะห์แล้ว ให้ถามยืนยันก่อน ===
     if (entry.isVerified && mounted) {
       final confirmed = await showDialog<bool>(
@@ -431,17 +435,19 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
       if (confirmed != true) return; // User cancelled
     }
 
+    // ────── แสดง Confirmation Dialog ──────
+    if (!mounted) return;
+    final analyzeParams = await _showAnalyzeConfirmation(entry);
+    if (analyzeParams == null) return; // User cancelled
+
+    final String confirmedFoodName = analyzeParams['foodName'] as String;
+    final double confirmedQuantity = analyzeParams['quantity'] as double;
+    final String confirmedUnit = analyzeParams['unit'] as String;
+
     // === ตรวจสอบ Energy ก่อนเรียก AI ===
     final hasEnergy = await GeminiService.hasEnergy();
     if (!hasEnergy && mounted) {
       await NoEnergyDialog.show(context);
-      return;
-    }
-
-    // ใช้ callback ถ้ามี (timeline tab จัดการเอง)
-    if (widget.onAnalyze != null) {
-      Navigator.pop(context); // ปิด detail sheet ก่อน
-      await widget.onAnalyze!(entry);
       return;
     }
 
@@ -482,13 +488,18 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
 
       if (hasImage) {
         AppLogger.info('Starting Gemini image analysis...');
-        result = await GeminiService.analyzeFoodImage(File(entry.imagePath!));
+        result = await GeminiService.analyzeFoodImage(
+          File(entry.imagePath!),
+          foodName: confirmedFoodName.isNotEmpty ? confirmedFoodName : null,
+          quantity: confirmedQuantity > 0 ? confirmedQuantity : null,
+          unit: confirmedUnit,
+        );
       } else {
         AppLogger.info('Starting Gemini analysis from name...');
         result = await GeminiService.analyzeFoodByName(
-          entry.foodName,
-          servingSize: entry.servingSize,
-          servingUnit: entry.servingUnit,
+          confirmedFoodName.isNotEmpty ? confirmedFoodName : entry.foodName,
+          servingSize: confirmedQuantity > 0 ? confirmedQuantity : entry.servingSize,
+          servingUnit: confirmedUnit,
         );
       }
 
@@ -697,4 +708,171 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
       }
     }
   }
+
+  /// แสดง Confirmation Dialog ก่อนส่งวิเคราะห์
+  /// Return null = user cancelled
+  /// Return Map = { foodName, quantity, unit }
+  Future<Map<String, dynamic>?> _showAnalyzeConfirmation(FoodEntry entry) async {
+    final foodNameController = TextEditingController(
+      text: entry.foodName == 'food' ? '' : entry.foodName,
+    );
+    final quantityController = TextEditingController(
+      text: entry.servingSize > 0 ? entry.servingSize.toString() : '',
+    );
+    final entryUnit = entry.servingUnit.isNotEmpty ? entry.servingUnit : 'serving';
+    final List<String> unitOptions = _servingUnits.contains(entryUnit)
+        ? _servingUnits
+        : [entryUnit, ..._servingUnits];
+    String selectedUnit = entryUnit;
+
+    final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
+
+    return showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final theme = Theme.of(ctx);
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      Row(
+                        children: [
+                          const Icon(Icons.auto_awesome, color: Colors.amber),
+                          const SizedBox(width: 8),
+                          Text('Analyze with AI', style: theme.textTheme.titleLarge),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Image Preview
+                      if (hasImage) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(entry.imagePath!),
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Food Name
+                      const Text('Food Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: foodNameController,
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. Pad Krapow, Salmon Sushi...',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Quantity
+                      const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      TextField(
+                        controller: quantityController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. 300',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Unit
+                      const Text('Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(height: 4),
+                      DropdownButtonFormField<String>(
+                        value: selectedUnit,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: unitOptions.map((u) =>
+                          DropdownMenuItem(value: u, child: Text(u)),
+                        ).toList(),
+                        onChanged: (v) {
+                          if (v != null) setDialogState(() => selectedUnit = v);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Info
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('⚡', style: TextStyle(fontSize: 16)),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'This will use 1 Energy.\nProviding food name & quantity improves accuracy.',
+                                style: TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Actions
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, null),
+                            child: const Text('Cancel'),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx, {
+                                'foodName': foodNameController.text.trim(),
+                                'quantity': double.tryParse(quantityController.text.trim()) ?? 0.0,
+                                'unit': selectedUnit,
+                              });
+                            },
+                            icon: const Icon(Icons.auto_awesome, size: 18),
+                            label: const Text('Analyze'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
+
+/// Serving unit options
+const _servingUnits = [
+  'serving', 'plate', 'cup', 'bowl', 'piece', 'box', 'pack', 'bag',
+  'bottle', 'glass', 'egg', 'ball', 'item', 'slice', 'pair', 'stick',
+  'g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'oz', 'lbs',
+];

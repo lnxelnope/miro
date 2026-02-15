@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import '../utils/unit_converter.dart';
 import '../utils/logger.dart';
 
@@ -18,8 +17,8 @@ class LLMService {
     // ไม่ทำอะไร - เก็บไว้เพื่อ backward compatibility
   }
 
-  /// Normalize food name — supports both TH + EN
-  static String normalizeFoodName(String name, {String locale = 'th'}) {
+  /// Normalize food name — supports both EN + TH (and other languages)
+  static String normalizeFoodName(String name, {String locale = 'en'}) {
     var result = name.trim().toLowerCase();
     
     if (locale == 'en' || !_isThaiText(result)) {
