@@ -277,7 +277,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         ..mealType = mealType
         ..timestamp = DateTime.now()
         ..source = DataSource.aiAnalyzed
-        ..isVerified = false
+        ..isVerified = true  // ✅ FIX: Chat AI ก็วิเคราะห์แล้ว → mark verified เพื่อเตือนก่อน re-analyze
         ..baseCalories = (item['calories'] as num?)?.toDouble() ?? 0
         ..baseProtein = (item['protein'] as num?)?.toDouble() ?? 0
         ..baseCarbs = (item['carbs'] as num?)?.toDouble() ?? 0
