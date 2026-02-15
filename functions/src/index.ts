@@ -20,3 +20,6 @@ setGlobalOptions({
 export { analyzeFood } from './analyzeFood';
 export { syncBalance } from './syncBalance';
 export { verifyPurchase } from './verifyPurchase';
+
+// Transfer Key API
+export { generateTransferKey, redeemTransferKey } from './transferKey';

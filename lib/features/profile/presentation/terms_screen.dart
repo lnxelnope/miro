@@ -65,9 +65,31 @@ class TermsScreen extends StatelessWidget {
               'User Data and Responsibilities',
               [
                 '• You are responsible for the accuracy of data you enter',
-                '• The app does not provide cloud backup — uninstalling the app will delete local food data',
-                '• Energy balance is preserved across reinstalls (linked to your device)',
-                '• We recommend regularly exporting your data (when feature is available)',
+                '• Food data is stored locally on your device',
+                '• Energy balance is stored on our server, linked to your device identifier',
+                '• You can backup your data (Energy + Food History) using the Backup feature in Settings',
+                '• The backup file contains a one-time Transfer Key for moving Energy to a new device',
+                '• Photos are NOT included in backup files — they are stored on your device only',
+                '• If your photos are backed up via Google Photos or similar services, they may appear automatically on your new device, but this is not guaranteed',
+                '• We are NOT responsible for data loss due to:',
+                '  - Failure to create a backup before switching devices',
+                '  - Lost or shared backup files',
+                '  - Expired Transfer Keys (valid for 30 days)',
+                '• Transfer Keys are single-use: once redeemed, the key becomes invalid',
+                '• Creating a new backup invalidates any previous unused Transfer Key',
+              ],
+            ),
+            _buildSection(
+              'Backup & Transfer',
+              [
+                '• Backup files contain your food history, settings, and a Transfer Key',
+                '• Transfer Keys are valid for 30 days from creation',
+                '• Each Transfer Key can only be used once',
+                '• Using a Transfer Key transfers ALL Energy from the source device to the destination device (source device Energy becomes 0)',
+                '• Only one active Transfer Key can exist per device — creating a new backup invalidates the previous key',
+                '• You cannot restore a backup on the same device that created it',
+                '• We are not responsible for unauthorized use of your backup file or Transfer Key',
+                '• Keep your backup file secure — anyone with the file can redeem your Energy',
               ],
             ),
             _buildSection(
@@ -113,7 +135,8 @@ class TermsScreen extends StatelessWidget {
               'Service Termination',
               [
                 '• You may stop using the app at any time by uninstalling it',
-                '• Uninstalling the app will delete all local data (but Energy balance is preserved)',
+                '• Uninstalling the app will delete all local data (but Energy balance is preserved on our server)',
+                '• We recommend creating a backup before uninstalling to preserve your food history',
                 '• We reserve the right to suspend accounts engaged in fraudulent activity',
               ],
             ),
@@ -163,7 +186,7 @@ class TermsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Effective Date: February 13, 2026',
+              'Last updated: February 15, 2026',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade600,
@@ -228,7 +251,7 @@ class TermsScreen extends StatelessWidget {
               ),
             ),
           );
-        }).toList(),
+        }),
         const SizedBox(height: 20),
       ],
     );

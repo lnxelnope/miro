@@ -34,12 +34,7 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         },
         child: Container(
           margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey, width: 2),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -87,24 +82,11 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
           ),
         );
       },
-      child: IntrinsicWidth(
-        child: Container(
-          constraints: const BoxConstraints(
-            minWidth: 60,
-            maxWidth: 120,
-          ),
+      child: Container(
           margin: const EdgeInsets.only(right: 8),
           padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: borderColor,
-              width: 2,
-            ),
+            horizontal: 8,
+            vertical: 4,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -112,23 +94,18 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
             children: [
               const Text(
                 '⚡',
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 18),
               ),
               const SizedBox(width: 4),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    displayText,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: borderColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.visible,
-                  ),
+              Text(
+                displayText,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: borderColor,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
