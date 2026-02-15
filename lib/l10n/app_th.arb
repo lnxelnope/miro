@@ -1,7 +1,7 @@
 {
   "@@locale": "th",
 
-  "appName": "Miro Cal",
+  "appName": "MiRO",
   
   "save": "บันทึก",
   "cancel": "ยกเลิก",
@@ -103,7 +103,7 @@
   "language": "ภาษา",
 
   "upgradePro": "อัปเกรด Pro",
-  "proUnlocked": "Miro Cal Pro",
+  "proUnlocked": "MiRO Pro",
   "proDescription": "ใช้ AI วิเคราะห์อาหารไม่จำกัด",
   "aiRemaining": "AI วิเคราะห์: เหลือ {remaining}/{total} ครั้งวันนี้",
   "@aiRemaining": {
@@ -133,7 +133,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "Miro Cal",
+  "welcomeTitle": "MiRO",
   "welcomeSubtitle": "บันทึกอาหารง่ายๆ ด้วย AI",
   "onboardingFeature1": "ถ่ายรูปอาหาร",
   "onboardingFeature1Desc": "AI วิเคราะห์ kcal อัตโนมัติ",

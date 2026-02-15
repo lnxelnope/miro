@@ -100,7 +100,7 @@ abstract class L10n {
   /// No description provided for @appName.
   ///
   /// In th, this message translates to:
-  /// **'Miro Cal'**
+  /// **'MiRO'**
   String get appName;
 
   /// No description provided for @save.
@@ -515,7 +515,7 @@ abstract class L10n {
   /// No description provided for @proUnlocked.
   ///
   /// In th, this message translates to:
-  /// **'Miro Cal Pro'**
+  /// **'MiRO Pro'**
   String get proUnlocked;
 
   /// No description provided for @proDescription.
@@ -611,7 +611,7 @@ abstract class L10n {
   /// No description provided for @welcomeTitle.
   ///
   /// In th, this message translates to:
-  /// **'Miro Cal'**
+  /// **'MiRO'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.

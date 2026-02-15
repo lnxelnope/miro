@@ -20,7 +20,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               'Information We Collect',
               [
-                'Miro Cal stores the following data locally on your device (Offline-first):',
+                'MiRO stores the following data locally on your device (Offline-first):',
                 '',
                 '• Food entries (name, calories, nutrients)',
                 '• Food photos (stored locally on your device)',
@@ -60,7 +60,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               'Required Permissions',
               [
-                'Miro Cal requests the following permissions:',
+                'MiRO requests the following permissions:',
                 '',
                 '• Camera: Take food photos for AI analysis',
                 '• Photos/Gallery: Select food photos from gallery',
@@ -96,7 +96,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               'Children\'s Privacy',
               [
-                'Miro Cal is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
+                'MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
               ],
             ),
             _buildSection(
@@ -140,7 +140,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Miro Cal — AI-Powered Nutrition Tracker',
+          'MiRO — My Intake Record Oracle',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey.shade700,
@@ -203,7 +203,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ),
             ),
           );
-        }).toList(),
+        }),
         const SizedBox(height: 20),
       ],
     );

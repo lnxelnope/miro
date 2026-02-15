@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "appName": "Miro Cal",
+  "appName": "MiRO",
   
   "save": "Save",
   "cancel": "Cancel",
@@ -103,7 +103,7 @@
   "language": "Language",
 
   "upgradePro": "Upgrade to Pro",
-  "proUnlocked": "Miro Cal Pro",
+  "proUnlocked": "MiRO Pro",
   "proDescription": "Unlimited AI food analysis",
   "aiRemaining": "AI analysis: {remaining}/{total} remaining today",
   "@aiRemaining": {
@@ -133,7 +133,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "Miro Cal",
+  "welcomeTitle": "MiRO",
   "welcomeSubtitle": "Easy food logging with AI",
   "onboardingFeature1": "Snap a photo",
   "onboardingFeature1Desc": "AI calculates calories automatically",

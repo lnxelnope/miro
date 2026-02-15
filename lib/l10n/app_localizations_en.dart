@@ -9,7 +9,7 @@ class L10nEn extends L10n {
   L10nEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Miro Cal';
+  String get appName => 'MiRO';
 
   @override
   String get save => 'Save';
@@ -222,7 +222,7 @@ class L10nEn extends L10n {
   String get upgradePro => 'Upgrade to Pro';
 
   @override
-  String get proUnlocked => 'Miro Cal Pro';
+  String get proUnlocked => 'MiRO Pro';
 
   @override
   String get proDescription => 'Unlimited AI food analysis';
@@ -272,7 +272,7 @@ class L10nEn extends L10n {
   String get quickAdd => 'Quick Add';
 
   @override
-  String get welcomeTitle => 'Miro Cal';
+  String get welcomeTitle => 'MiRO';
 
   @override
   String get welcomeSubtitle => 'Easy food logging with AI';

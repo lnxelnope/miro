@@ -20,13 +20,13 @@ class TermsScreen extends StatelessWidget {
             _buildSection(
               'Acceptance of Terms',
               [
-                'By downloading, installing, or using Miro Cal, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
+                'By downloading, installing, or using MiRO, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
               ],
             ),
             _buildSection(
               'Service Description',
               [
-                'Miro Cal is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
+                'MiRO is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
               ],
             ),
             _buildSection(
@@ -50,7 +50,7 @@ class TermsScreen extends StatelessWidget {
                 '• Energy balance is linked to your device and persists across app reinstalls',
                 '',
                 'Energy Disputes:',
-                '• All decisions made by the Miro Cal system regarding Energy balance are final',
+                '• All decisions made by the MiRO system regarding Energy balance are final',
                 '• In case of technical errors affecting Energy balance, contact support with transaction details',
                 '• We reserve the right to investigate and adjust Energy balances in cases of verified system errors',
                 '• Fraudulent attempts to manipulate Energy balance may result in account suspension',
@@ -117,7 +117,7 @@ class TermsScreen extends StatelessWidget {
               'Intellectual Property',
               [
                 '• All app code, UI design, and content are proprietary and protected by copyright',
-                '• The Miro Cal name and logo are trademarks',
+                '• The MiRO name and logo are trademarks',
                 '• You may not copy, modify, or distribute app content without permission',
               ],
             ),
@@ -173,7 +173,7 @@ class TermsScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'By using Miro Cal, you acknowledge that you have read, understood, and agree to these Terms of Service.',
+                      'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.orange.shade900,
@@ -213,7 +213,7 @@ class TermsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Miro Cal — AI-Powered Nutrition Tracker',
+          'MiRO — My Intake Record Oracle',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey.shade700,
