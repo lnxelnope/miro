@@ -99,7 +99,7 @@ firebase init functions
 firebase functions:secrets:set GEMINI_API_KEY
 
 # ระบบจะขอให้ใส่ค่า:
-# Enter value for GEMINI_API_KEY: AIzaSy...your_actual_key_here
+# Enter value for GEMINI_API_KEY: [สร้างใหม่จาก Google AI Studio]
 
 # ตั้งค่า Energy Encryption Secret
 firebase functions:secrets:set ENERGY_ENCRYPTION_SECRET

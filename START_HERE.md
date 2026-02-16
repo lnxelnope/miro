@@ -175,8 +175,8 @@ static const List<String> emails = [
 ### 4. Gemini API Key (Backend)
 ```bash
 # ตั้งใน Supabase Dashboard → Edge Functions → Secrets
-GEMINI_API_KEY = AIzaSy...your_actual_key_here
-ENERGY_ENCRYPTION_SECRET = (same as above)
+GEMINI_API_KEY = [สร้างใหม่จาก Google AI Studio]
+ENERGY_ENCRYPTION_SECRET = [สร้างจาก: openssl rand -hex 32]
 ```
 
 ---

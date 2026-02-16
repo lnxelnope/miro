@@ -14,8 +14,8 @@ https://us-central1-miro-d6856.cloudfunctions.net/analyzeFood
 ```
 
 ### Secrets ที่ตั้งค่าแล้ว
-1. **GEMINI_API_KEY**: `AIzaSyCno1eYt7UhvSnUkH2Kfz_MtYoJP92Z27c`
-2. **ENERGY_ENCRYPTION_SECRET**: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2`
+1. **GEMINI_API_KEY**: `[REDACTED - ตรวจสอบใน Firebase Console → Functions → Secrets]`
+2. **ENERGY_ENCRYPTION_SECRET**: `[REDACTED - ควรใช้ค่าที่สร้างจาก openssl rand -hex 32]`
 
 ---
 
