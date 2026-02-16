@@ -422,31 +422,44 @@ class GeminiService {
     try {
       final base64Image = await _compressImageToBase64(imageFile);
 
-      final prompt = '''You are an AI expert in nutrition and food label reading.
+      final prompt = '''You are a Food Scientist specializing in packaged food analysis and nutrition label reading.
 
 This is an image of a product with barcode: $barcodeValue
 
-IMPORTANT REQUIREMENTS:
-1. You MUST provide "ingredients_detail" array with individual ingredients if visible
-2. If nutrition label is visible, extract exact values
-3. If ingredients list is visible, parse each ingredient separately
-4. DO NOT just provide a total summary
+STEP-BY-STEP ANALYSIS:
 
-Please:
-1. Identify product name (if readable from packaging)
-2. Read Nutrition Facts / nutritional information from label (if visible in image)
-3. If no label visible, estimate from product type seen
-4. Parse ingredients list into ingredients_detail array if visible
+Step 1 — PRODUCT IDENTIFICATION:
+- Read the product name, brand, and variant from packaging
+- If it is a convenience store product (7-Eleven, FamilyMart, CP, etc.), cross-reference against known Thai/Asian convenience store product databases for accuracy
+- Note the product category (ready-to-eat meal, snack, beverage, etc.)
 
-Important: If nutrition label is visible, use values from label as primary (more accurate than estimation)
+Step 2 — NUTRITION LABEL EXTRACTION:
+- If a Nutrition Facts label is visible, extract EXACT values (do not estimate)
+- Note serving size as stated on label
+- Capture all available micronutrients (fiber, sugar, sodium, saturated fat, trans fat)
 
-CRITICAL: ingredients_detail array is MANDATORY.
-If ingredients list is visible on label, parse each one separately.
-If not visible, estimate main components.
+Step 3 — INGREDIENT DECONSTRUCTION:
+- If ingredients list is visible on label, parse EVERY ingredient into specific entries
+- NEVER use generic names: instead of "Sauce", specify "Teriyaki Sauce (soy sauce, sugar, mirin, corn starch)"
+- Identify hidden additives: preservatives, colorings, flavor enhancers (MSG), sweeteners
+- For composite ingredients (e.g., "seasoning powder"), break down known sub-components
+- Include a "detail" field describing each ingredient's role and composition
+
+Step 4 — HIDDEN CALORIE SOURCES:
+- Identify cooking oils used in preparation (visible from oily sheen or listed in ingredients)
+- Note sugar content in sauces and marinades
+- Flag high-sodium seasonings
+
+CRITICAL RULES:
+- "ingredients_detail" array is MANDATORY
+- If nutrition label is visible, use label values as primary source
+- If ingredients list is visible, parse each one separately with specificity
+- If not visible, estimate main components based on product type
+- All ingredient names must be in English with descriptive detail
 
 Respond in JSON format:
 {
-  "food_name": "Product name (in English)",
+  "food_name": "Product name (original language from packaging)",
   "food_name_en": "English product name",
   "confidence": 0.95,
   "serving_size": 1,
@@ -463,19 +476,20 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Ingredient name",
-      "name_en": "Ingredient name in English",
+      "name": "Specific Ingredient Name",
+      "name_en": "Specific Ingredient Name in English",
+      "detail": "Preparation state and composition details",
       "amount": 0,
-      "unit": "gram",
+      "unit": "g",
       "calories": 0,
       "protein": 0,
       "carbs": 0,
       "fat": 0
     }
   ],
-  "ingredients": ["Ingredient1", "Ingredient2"],
+  "ingredients": ["ingredient1", "ingredient2"],
   "barcode": "$barcodeValue",
-  "notes": "Read from nutrition label / Estimated from image"
+  "notes": "Source: nutrition label / estimated. Flag any high sodium/sugar/additive concerns."
 }
 
 Return ONLY valid JSON.''';
@@ -645,80 +659,142 @@ Return ONLY valid JSON.''';
   // ───────────────────────────────────────────────────────────
   
   static String _getImageAnalysisPrompt() {
-    return '''You are an AI expert in nutrition for global cuisine.
-Analyze the food image and provide DETAILED nutritional information.
+    return '''You are a Food Scientist and Nutrition Expert specializing in deconstructing dishes into precise ingredients.
+Your job is to "dissect" every visible food item in the image with professional-level specificity.
 
-IMPORTANT REQUIREMENTS:
-1. You MUST identify ALL individual ingredients/components visible in the image
-2. You MUST provide nutritional breakdown for EACH ingredient separately
-3. You MUST include the "ingredients_detail" array with ALL ingredients
-4. DO NOT just provide a total summary - break down every ingredient
+STEP-BY-STEP ANALYSIS (you MUST follow this order):
 
-CRITICAL REQUIREMENTS:
-- food_name: Detect the language from image/context and provide in the ORIGINAL language as shown (keep whatever language appears in the image or context)
-- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH — always translate to English for database standardization
-- Example 1: If you see text "Fried Rice" → food_name: "Fried Rice", food_name_en: "Fried Rice"
-- Example 2: If you see non-English text → food_name: keep original text, food_name_en: translate to English
-- Example 3: If no text is visible, identify the dish → food_name: English name, food_name_en: English name
-- ingredient names in ingredients_detail: MUST be in English (for standardization)
-- serving_unit must be appropriate for the food, e.g., "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc.
-- Do NOT use "g" or "ml" as serving_unit for dishes/bowls/plates — use "serving" as fallback if unsure
-- "g" is only used for individual ingredients in ingredients_detail
+Step 1 — IDENTIFY COOKING STATE:
+For each ingredient, determine its cooking method and state (e.g., Stir-fried in oil, Deep-fried, Grilled, Steamed, Boiled, Raw, Marinated, Braised). This affects calorie estimation significantly due to hidden oil/fat absorption.
+
+Step 2 — INGREDIENT SPECIFICITY (CRITICAL):
+NEVER use generic names. Always use specific descriptive names:
+  ❌ BAD: "Pork", "Rice", "Sauce", "Vegetables"
+  ✅ GOOD: "Stir-fried Pork Belly Slices (high fat, marinated in soy sauce)", "Steamed Jasmine Rice", "Sweet Chili Dipping Sauce (contains sugar, vinegar, garlic)", "Stir-fried Morning Glory with Garlic and Oyster Sauce"
+
+Step 3 — HIDDEN SEASONINGS & CONDIMENTS:
+Always account for hidden ingredients that add significant calories:
+  - Cooking oil (estimate amount absorbed during frying/stir-frying)
+  - Sugar in sauces (oyster sauce, sweet chili, teriyaki, ketchup)
+  - Sodium-heavy seasonings (fish sauce, soy sauce, MSG, salt)
+  - Paste/curry bases (Gochujang, Thai curry paste, miso)
+  - Dressings and dips served alongside
+  List these as SEPARATE ingredient entries with estimated amounts.
+
+Step 4 — CROSS-REFERENCE:
+If the food appears to be from a convenience store (7-Eleven, FamilyMart, Lawson) or chain restaurant, reference known product databases for more accurate nutrition data.
+
+NAMING REQUIREMENTS:
+- food_name: Detect language from image/context, keep ORIGINAL language
+- food_name_en: MUST ALWAYS be in English for database standardization
+- ingredient names in ingredients_detail: MUST be in English with descriptive cooking state
+- serving_unit: "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc. Do NOT use "g" or "ml" as serving_unit for dishes.
 
 CRITICAL RULES:
-- "ingredients_detail" array is MANDATORY and must contain at least 1 ingredient
-- For complex dishes (like steak with fries), list each component separately
-- For simple foods (like an apple), still create 1 ingredient entry
-- The sum of all ingredient nutrition should approximately equal the total nutrition
-- Estimate amounts in grams/ml when possible
-- If you cannot identify ingredients, still provide your best estimate in ingredients_detail
+- "ingredients_detail" array is MANDATORY with at least 1 ingredient
+- For complex dishes, list EVERY component separately including sauces and oils
+- The sum of all ingredient nutrition must approximately equal the total nutrition
+- Include a "detail" field for each ingredient describing its preparation state
+- Estimate amounts in grams/ml
 
-Example for "Steak with French Fries":
-- Ingredient 1: Beef Steak (150g) - 375 kcal, P: 40g, C: 0g, F: 22g
-- Ingredient 2: French Fries (100g) - 220 kcal, P: 3g, C: 30g, F: 11g
-- Ingredient 3: Sauce (if visible, 20ml) - 55 kcal, P: 0g, C: 5g, F: 4g
-
-Respond in JSON format following this EXACT structure:
+Example for "Kimchi Fried Rice with Pork":
 {
-  "food_name": "Original name detected from image (any language)",
-  "food_name_en": "ALWAYS English translation",
-  "confidence": 0.85,
+  "food_name": "김치볶음밥",
+  "food_name_en": "Kimchi Fried Rice with Pork",
+  "confidence": 0.88,
   "serving_size": 1,
   "serving_unit": "plate",
-  "serving_grams": 350,
+  "serving_grams": 380,
   "nutrition": {
-    "calories": 550,
-    "protein": 43,
-    "carbs": 30,
-    "fat": 27,
+    "calories": 620,
+    "protein": 22,
+    "carbs": 75,
+    "fat": 25,
     "fiber": 3,
-    "sugar": 1,
-    "sodium": 650
+    "sugar": 6,
+    "sodium": 1100
   },
   "ingredients_detail": [
     {
-      "name": "Beef Steak",
-      "name_en": "Beef Steak",
-      "amount": 150,
+      "name": "Steamed Jasmine Rice",
+      "name_en": "Steamed Jasmine Rice",
+      "detail": "Day-old rice, stir-fried — absorbs oil during cooking",
+      "amount": 200,
       "unit": "g",
-      "calories": 375,
-      "protein": 40,
-      "carbs": 0,
-      "fat": 22
+      "calories": 260,
+      "protein": 5,
+      "carbs": 56,
+      "fat": 1
     },
     {
-      "name": "French Fries",
-      "name_en": "French Fries",
-      "amount": 100,
+      "name": "Stir-fried Pork Belly Slices",
+      "name_en": "Stir-fried Pork Belly Slices",
+      "detail": "High-fat cut, rendered in own fat during stir-frying",
+      "amount": 60,
       "unit": "g",
-      "calories": 220,
-      "protein": 3,
-      "carbs": 30,
-      "fat": 11
+      "calories": 155,
+      "protein": 9,
+      "carbs": 0,
+      "fat": 13
+    },
+    {
+      "name": "Fermented Napa Cabbage Kimchi",
+      "name_en": "Fermented Napa Cabbage Kimchi",
+      "detail": "Contains gochugaru chili flakes, garlic, fish sauce, sugar",
+      "amount": 50,
+      "unit": "g",
+      "calories": 25,
+      "protein": 1,
+      "carbs": 4,
+      "fat": 0.5
+    },
+    {
+      "name": "Gochujang Chili Paste",
+      "name_en": "Gochujang Chili Paste",
+      "detail": "Fermented red pepper paste — contains corn syrup and rice flour",
+      "amount": 15,
+      "unit": "g",
+      "calories": 40,
+      "protein": 1,
+      "carbs": 9,
+      "fat": 0.3
+    },
+    {
+      "name": "Vegetable Oil (cooking)",
+      "name_en": "Vegetable Oil for Stir-frying",
+      "detail": "Absorbed during high-heat stir-frying of rice and pork",
+      "amount": 12,
+      "unit": "ml",
+      "calories": 105,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 12
+    },
+    {
+      "name": "Sesame Oil (finishing)",
+      "name_en": "Sesame Oil Drizzle",
+      "detail": "Added at the end for aroma",
+      "amount": 3,
+      "unit": "ml",
+      "calories": 27,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 3
+    },
+    {
+      "name": "Soy Sauce",
+      "name_en": "Light Soy Sauce",
+      "detail": "Seasoning — high sodium",
+      "amount": 8,
+      "unit": "ml",
+      "calories": 5,
+      "protein": 1,
+      "carbs": 0.5,
+      "fat": 0
     }
   ],
-  "ingredients": ["beef", "potato", "oil", "salt"],
-  "notes": "Additional notes"
+  "ingredients": ["jasmine rice", "pork belly", "kimchi", "gochujang", "vegetable oil", "sesame oil", "soy sauce", "garlic", "sugar", "egg"],
+  "notes": "High sodium from kimchi + soy sauce + gochujang. Oil absorbed during stir-frying adds ~130 hidden calories."
 }
 
 Return ONLY valid JSON, no markdown or explanations.''';
@@ -734,18 +810,39 @@ Return ONLY valid JSON, no markdown or explanations.''';
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
     
     return '''
-Analyze the nutrition of this food: "$foodName"
-Provide nutritional values for: $servingDesc
+You are a Food Scientist. Deconstruct this food into precise ingredients with professional-level specificity.
 
-CRITICAL REQUIREMENTS:
-- serving_size must be $servingSizeJson and serving_unit must be "$servingUnitJson"
-- serving_unit should be appropriate, e.g. "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc.
-- Do NOT use "g" as serving_unit for dishes/bowls/plates — use "serving" as fallback
-- food_name: Keep in ORIGINAL language as entered by user (preserve whatever language the user typed)
-- food_name_en: THIS FIELD MUST ALWAYS BE IN ENGLISH — always translate to English for database standardization
-- Example 1: User enters a non-English name → food_name: keep original, food_name_en: translate to English
-- Example 2: User enters "Fried Rice" → food_name: "Fried Rice", food_name_en: "Fried Rice"
-- ingredient names in ingredients_detail: MUST be in English (for standardization)
+Food to analyze: "$foodName"
+Serving: $servingDesc
+
+STEP-BY-STEP ANALYSIS:
+
+Step 1 — IDENTIFY COOKING STATE:
+Determine typical preparation method for "$foodName" (stir-fried, deep-fried, grilled, steamed, boiled, raw, braised, etc.). This affects fat/calorie estimation due to oil absorption.
+
+Step 2 — INGREDIENT SPECIFICITY:
+NEVER use generic names. Be specific about every ingredient:
+  ❌ BAD: "Pork", "Rice", "Sauce"
+  ✅ GOOD: "Stir-fried Minced Pork (lean)", "Steamed Jasmine Rice", "Oyster Sauce (contains sugar, soy, corn starch)"
+
+Step 3 — HIDDEN SEASONINGS & COOKING FATS:
+Account for all hidden calorie sources typically used in this dish:
+  - Cooking oil (type and estimated amount)
+  - Sugar in sauces/marinades
+  - Sodium-heavy seasonings (fish sauce, soy sauce, MSG)
+  - Paste/curry bases
+  List these as SEPARATE ingredients with estimated amounts.
+
+Step 4 — CROSS-REFERENCE:
+If this is a well-known dish (e.g., Thai street food, convenience store meal, restaurant chain item), reference typical recipes and portion sizes for accurate estimation.
+
+FIELD REQUIREMENTS:
+- serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
+- Do NOT use "g" as serving_unit for dishes — use "plate", "bowl", "cup", "piece", "serving", etc.
+- food_name: Keep in ORIGINAL language as user entered
+- food_name_en: MUST ALWAYS be in English
+- All ingredient names: MUST be in English with cooking state description
+- Include "detail" field for each ingredient
 
 Respond in JSON only:
 {
@@ -764,11 +861,12 @@ Respond in JSON only:
     "sugar": 3,
     "sodium": 800
   },
-  "ingredients": ["Ingredient1 in English", "Ingredient2 in English"],
+  "ingredients": ["ingredient1", "ingredient2"],
   "ingredients_detail": [
     {
-      "name": "Ingredient name in English",
-      "name_en": "Ingredient name in English",
+      "name": "Specific Ingredient with Cooking State",
+      "name_en": "Specific Ingredient with Cooking State",
+      "detail": "Preparation method, composition, hidden calories note",
       "amount": 100,
       "unit": "g",
       "calories": 100,
@@ -777,7 +875,7 @@ Respond in JSON only:
       "fat": 3
     }
   ],
-  "notes": "Additional notes"
+  "notes": "Flag hidden calorie sources and high sodium/sugar concerns"
 }''';
   }
 }

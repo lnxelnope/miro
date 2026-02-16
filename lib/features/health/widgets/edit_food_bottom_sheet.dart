@@ -20,6 +20,7 @@ class _EditableIngredient {
   final TextEditingController amountController;
   String unit;
   String? nameEn;
+  final String originalName; // เก็บชื่อเดิมเพื่อเช็คว่าเปลี่ยนหรือไม่
 
   double baseCalories, baseProtein, baseCarbs, baseFat, baseAmount;
   double calories, protein, carbs, fat;
@@ -37,6 +38,7 @@ class _EditableIngredient {
     required this.fat,
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(text: amount > 0 ? amount.toStringAsFixed(0) : ''),
+        originalName = name, // บันทึกชื่อเดิมไว้
         baseAmount = amount > 0 ? amount : 1,
         baseCalories = amount > 0 ? calories / amount : calories,
         baseProtein = amount > 0 ? protein / amount : protein,
@@ -309,17 +311,44 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   }
 
   // ===== DB Lookup =====
+  /// ค้นหาวัตถุดิบใน database ด้วย contains match
+  /// Priority: exact match > starts with > contains
   Ingredient? _findInDb(String name) {
     final allIngredients = ref.read(allIngredientsProvider).valueOrNull ?? [];
     final query = name.trim().toLowerCase();
     if (query.isEmpty) return null;
+    
+    Ingredient? exactMatch;
+    Ingredient? startsWithMatch;
+    Ingredient? containsMatch;
+    
     for (final ing in allIngredients) {
-      if (ing.name.toLowerCase() == query ||
-          (ing.nameEn?.toLowerCase() == query)) {
-        return ing;
+      final ingName = ing.name.toLowerCase();
+      final ingNameEn = ing.nameEn?.toLowerCase();
+      
+      // 1. Exact match (highest priority)
+      if (ingName == query || ingNameEn == query) {
+        exactMatch = ing;
+        break;
+      }
+      
+      // 2. Starts with (medium priority)
+      if (startsWithMatch == null) {
+        if (ingName.startsWith(query) || (ingNameEn?.startsWith(query) ?? false)) {
+          startsWithMatch = ing;
+        }
+      }
+      
+      // 3. Contains (lowest priority)
+      if (containsMatch == null) {
+        if (ingName.contains(query) || (ingNameEn?.contains(query) ?? false)) {
+          containsMatch = ing;
+        }
       }
     }
-    return null;
+    
+    // Return ตามลำดับความตรง
+    return exactMatch ?? startsWithMatch ?? containsMatch;
   }
 
   Future<void> _lookupIngredient(int index) async {
@@ -337,8 +366,12 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       return;
     }
 
-    // === ถ้ามีข้อมูลอยู่แล้ว ให้ถามยืนยันก่อน ===
-    if (row.calories > 0 && mounted) {
+    // === เช็คว่าชื่อเปลี่ยนจากเดิมหรือไม่ ===
+    final nameChanged = name.toLowerCase() != row.originalName.toLowerCase();
+    
+    // === ถ้าชื่อเหมือนเดิม และมีข้อมูลอยู่แล้ว → ถามยืนยันก่อน ===
+    // === ถ้าชื่อเปลี่ยน → ไม่ถาม (ถือว่าเป็น ingredient ใหม่) ===
+    if (!nameChanged && row.calories > 0 && mounted) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -854,20 +887,102 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: row.nameController,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: 'Ingredient name',
-                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                  ),
+                // ===== Autocomplete widget แทน TextField ธรรมดา =====
+                child: Autocomplete<Ingredient>(
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const Iterable<Ingredient>.empty();
+                    }
+                    final allIngredients = ref.read(allIngredientsProvider).valueOrNull ?? [];
+                    final query = textEditingValue.text.toLowerCase();
+                    return allIngredients.where((ing) {
+                      return ing.name.toLowerCase().contains(query) ||
+                             (ing.nameEn?.toLowerCase().contains(query) ?? false);
+                    }).take(8);
+                  },
+                  displayStringForOption: (Ingredient ing) => ing.name,
+                  onSelected: (Ingredient selection) {
+                    // Auto-fill จาก DB (ไม่เสีย Energy)
+                    final amt = double.tryParse(row.amountController.text) ?? selection.baseAmount;
+                    final ratio = amt / selection.baseAmount;
+                    setState(() {
+                      row.nameController.text = selection.name;
+                      row.nameEn = selection.nameEn;
+                      row.calories = selection.caloriesPerBase * ratio;
+                      row.protein = selection.proteinPerBase * ratio;
+                      row.carbs = selection.carbsPerBase * ratio;
+                      row.fat = selection.fatPerBase * ratio;
+                      row.isFromDb = true;
+                      row.saveBaseValues();
+                    });
+                    _recalculateFromIngredients();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Auto-filled from DB: ${selection.name}'),
+                        backgroundColor: AppColors.success,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4,
+                        borderRadius: BorderRadius.circular(8),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 200, maxWidth: 280),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, idx) {
+                              final ing = options.elementAt(idx);
+                              return ListTile(
+                                dense: true,
+                                title: Text(ing.name, style: const TextStyle(fontSize: 13)),
+                                subtitle: Text(
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                                trailing: Text(
+                                  'x${ing.usageCount}',
+                                  style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                                ),
+                                onTap: () => onSelected(ing),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                    // Sync กับ row.nameController
+                    if (textEditingController.text.isEmpty && row.nameController.text.isNotEmpty) {
+                      textEditingController.text = row.nameController.text;
+                    }
+                    textEditingController.addListener(() {
+                      row.nameController.text = textEditingController.text;
+                    });
+                    return TextField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        hintText: 'Ingredient name',
+                        hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        suffixIcon: Icon(Icons.arrow_drop_down, size: 18, color: Colors.grey[600]),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 4),

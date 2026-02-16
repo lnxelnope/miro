@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/unit_converter.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
@@ -241,7 +242,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                           color: const Color(0xFF6366F1),
                           tooltip: 'AI Analysis',
                           style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1).withOpacity(0.1),
+                            backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.1),
                             padding: const EdgeInsets.all(12),
                           ),
                         ),
@@ -252,7 +253,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                         icon: const Icon(Icons.delete_outline),
                         color: AppColors.error,
                         style: IconButton.styleFrom(
-                          backgroundColor: AppColors.error.withOpacity(0.1),
+                          backgroundColor: AppColors.error.withValues(alpha: 0.1),
                           padding: const EdgeInsets.all(12),
                         ),
                       ),
@@ -272,7 +273,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
       width: double.infinity,
       height: 250,
       decoration: BoxDecoration(
-        color: AppColors.health.withOpacity(0.1),
+        color: AppColors.health.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Center(
@@ -294,7 +295,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -341,7 +342,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -720,10 +721,8 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
       text: entry.servingSize > 0 ? entry.servingSize.toString() : '',
     );
     final entryUnit = entry.servingUnit.isNotEmpty ? entry.servingUnit : 'serving';
-    final List<String> unitOptions = _servingUnits.contains(entryUnit)
-        ? _servingUnits
-        : [entryUnit, ..._servingUnits];
-    String selectedUnit = entryUnit;
+    final validatedUnit = UnitConverter.ensureValid(entryUnit);
+    String selectedUnit = validatedUnit;
 
     final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
 
@@ -798,17 +797,15 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                       const Text('Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                       const SizedBox(height: 4),
                       DropdownButtonFormField<String>(
-                        value: selectedUnit,
+                        initialValue: selectedUnit,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
-                        items: unitOptions.map((u) =>
-                          DropdownMenuItem(value: u, child: Text(u)),
-                        ).toList(),
+                        items: UnitConverter.allDropdownItems,
                         onChanged: (v) {
-                          if (v != null) setDialogState(() => selectedUnit = v);
+                          if (v != null && v.isNotEmpty) setDialogState(() => selectedUnit = v);
                         },
                       ),
                       const SizedBox(height: 16),
@@ -817,9 +814,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
+                          color: Colors.amber.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
                           children: [
@@ -869,10 +866,3 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet> {
     );
   }
 }
-
-/// Serving unit options
-const _servingUnits = [
-  'serving', 'plate', 'cup', 'bowl', 'piece', 'box', 'pack', 'bag',
-  'bottle', 'glass', 'egg', 'ball', 'item', 'slice', 'pair', 'stick',
-  'g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'oz', 'lbs',
-];

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/unit_converter.dart';
 import '../../../core/constants/ai_loading_messages.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -21,8 +22,6 @@ import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
-import 'barcode_scanner_screen.dart';
-import 'nutrition_label_screen.dart';
 
 class HealthTimelineTab extends ConsumerStatefulWidget {
   final Key? timelineKey;
@@ -152,7 +151,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isToday
-                    ? AppColors.primary.withOpacity(0.1)
+                    ? AppColors.primary.withValues(alpha: 0.1)
                     : AppColors.surfaceVariant,
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -675,66 +674,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     }
   }
 
-  /// Show scan options bottom sheet
-  void _showScanOptions() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Drag handle
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.textTertiary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Select Scan Method',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.qr_code_scanner, color: AppColors.health),
-              title: const Text('Scan Barcode'),
-              subtitle: const Text('Scan food product barcode'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BarcodeScannerScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.receipt_long, color: AppColors.health),
-              title: const Text('Scan Nutrition Label'),
-              subtitle: const Text('Take photo of Nutrition Facts Label'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const NutritionLabelScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// แสดง Confirmation Dialog ก่อนส่งวิเคราะห์
   /// Return null = user cancelled
   /// Return Map = { foodName, quantity, unit }
@@ -745,13 +684,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final quantityController = TextEditingController(
       text: entry.servingSize > 0 ? entry.servingSize.toString() : '',
     );
-    // ────── ตรวจสอบว่า unit อยู่ใน list หรือไม่ ──────
     final entryUnit = entry.servingUnit.isNotEmpty ? entry.servingUnit : 'serving';
-    // ถ้า unit ไม่อยู่ใน list → เพิ่มเข้าไปชั่วคราว เพื่อไม่ให้ Dropdown crash
-    final List<String> unitOptions = _servingUnits.contains(entryUnit)
-        ? _servingUnits
-        : [entryUnit, ..._servingUnits];
-    String selectedUnit = entryUnit;
+    final validatedUnit = UnitConverter.ensureValid(entryUnit);
+    String selectedUnit = validatedUnit;
 
     final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
 
@@ -826,17 +761,15 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                       const Text('Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                       const SizedBox(height: 4),
                       DropdownButtonFormField<String>(
-                        value: selectedUnit,
+                        initialValue: selectedUnit,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                           isDense: true,
                         ),
-                        items: unitOptions.map((u) =>
-                          DropdownMenuItem(value: u, child: Text(u)),
-                        ).toList(),
+                        items: UnitConverter.allDropdownItems,
                         onChanged: (v) {
-                          if (v != null) setDialogState(() => selectedUnit = v);
+                          if (v != null && v.isNotEmpty) setDialogState(() => selectedUnit = v);
                         },
                       ),
                       const SizedBox(height: 16),
@@ -845,9 +778,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.1),
+                          color: Colors.amber.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                         ),
                         child: const Row(
                           children: [
@@ -897,10 +830,3 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     );
   }
 }
-
-/// Serving unit options
-const _servingUnits = [
-  'serving', 'plate', 'cup', 'bowl', 'piece', 'box', 'pack', 'bag',
-  'bottle', 'glass', 'egg', 'ball', 'item', 'slice', 'pair', 'stick',
-  'g', 'kg', 'ml', 'l', 'tbsp', 'tsp', 'oz', 'lbs',
-];

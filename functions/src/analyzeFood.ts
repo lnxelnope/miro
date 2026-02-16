@@ -390,55 +390,73 @@ function buildChatPrompt(text: string, userContext?: any): string {
 
   const cuisinePref = userContext?.cuisinePreference || 'international';
 
-  return `You are Miro, a friendly nutrition assistant for users worldwide.${contextInfo}
+  return `You are Miro, a friendly nutrition assistant AND food scientist for users worldwide.${contextInfo}
 
 Parse the user's message and extract ALL food items mentioned.
 The user may type in ANY language — detect the language automatically.
+
+INGREDIENT DECONSTRUCTION RULES (CRITICAL):
+For EVERY food item, you MUST deconstruct it into specific ingredients following these rules:
+
+1. IDENTIFY COOKING STATE: For each ingredient, specify how it was prepared (stir-fried, deep-fried, grilled, steamed, boiled, braised, raw, marinated). This affects calorie estimation.
+
+2. INGREDIENT SPECIFICITY — NEVER use generic names:
+   ❌ BAD: "Pork", "Rice", "Sauce", "Vegetables"
+   ✅ GOOD: "Stir-fried Pork Belly (high fat, marinated in soy sauce)", "Steamed Jasmine Rice", "Oyster Sauce (sugar, soy, corn starch)", "Stir-fried Chinese Broccoli with Garlic Oil"
+
+3. HIDDEN SEASONINGS: Always include cooking oil, sugar in sauces, fish sauce, soy sauce, MSG, curry paste, sesame oil, etc. as SEPARATE ingredient entries with estimated amounts.
+
+4. CROSS-REFERENCE: For ${cuisinePref} cuisine, reference typical recipes and portion sizes for accuracy. For convenience store items (7-Eleven, FamilyMart, CP), reference known product databases.
 
 For each food item, provide:
 - food_name: ALWAYS in English (for standardization)
 - food_name_local: Original name as typed by the user (keep original script — any language)
 - meal_type: "breakfast" | "lunch" | "dinner" | "snack" (detect from context/time mentioned, default to current time if not specified)
 - serving_size: number (default 1 if not specified)
-- serving_unit: one of these units ONLY [plate, cup, bowl, piece, box, pack, bag, bottle, glass, egg, ball, item, slice, pair, stick, g, kg, ml, l, serving, tbsp, tsp, oz, lbs]. If user doesn't specify or uses unsupported unit, use "serving"
-- calories, protein, carbs, fat: estimated values (best effort)
+- serving_unit: one of these units ONLY [g, kg, mg, oz, lbs, ml, l, fl oz, cup, tbsp, tsp, serving, piece, slice, plate, bowl, cup_c, glass, egg, ball, fruit, skewer, whole, sheet, pair, bunch, leaf, stick, scoop, handful, pack, bag, wrap, box, can, bottle, bar]. If user doesn't specify or uses unsupported unit, use "serving"
+- calories, protein, carbs, fat: estimated values with cooking method factored in
 - fiber, sugar, sodium: estimated micronutrients (fiber in g, sugar in g, sodium in mg)
-- ingredients_detail: array of ingredient breakdown for this food item. Each ingredient must include name, name_en (ALWAYS English), amount (number), unit (g/ml/piece/etc), calories, protein, carbs, fat
+- ingredients_detail: array of SPECIFIC ingredient breakdown. Each ingredient must include name, name_en (English with cooking state), detail (preparation notes), amount (number), unit (g/ml/piece/etc), calories, protein, carbs, fat
 
 When estimating nutrition, consider typical portion sizes for ${cuisinePref} cuisine.
 Also consider:
 - User's health goals (${userContext?.weightGoal || 'not specified'})
 - Their typical calorie/macro targets
 - Portion sizes appropriate for their profile and cuisine preference
+- Hidden calories from cooking oils, sauces, and marinades
 
 IMPORTANT: 
 - JSON field values for food_name and ingredient name_en must ALWAYS be in English
 - food_name_local preserves the user's original input language
 - Return JSON only, no markdown code blocks
 - If the message is not about food (e.g. asking for health advice), provide personalized advice based on their profile
-- ALWAYS include ingredients_detail for each food item - break down the dish into its main ingredients
+- ALWAYS include ingredients_detail — break down EVERY dish into specific ingredients including hidden seasonings
 
 Expected JSON format:
 {
   "type": "food_log",
   "items": [
     {
-      "food_name": "Grilled Chicken Breast with Rice",
-      "food_name_local": "Grilled Chicken Breast with Rice",
+      "food_name": "Pad Kra Pao (Thai Basil Stir-fried Pork with Rice)",
+      "food_name_local": "ข้าวกะเพราหมู",
       "meal_type": "lunch",
       "serving_size": 1.0,
       "serving_unit": "plate",
-      "calories": 480,
-      "protein": 38,
-      "carbs": 52,
-      "fat": 12,
+      "calories": 650,
+      "protein": 28,
+      "carbs": 70,
+      "fat": 28,
       "fiber": 2,
-      "sugar": 1,
-      "sodium": 650,
+      "sugar": 4,
+      "sodium": 1200,
       "ingredients_detail": [
-        {"name": "Chicken breast", "name_en": "Chicken breast", "amount": 150, "unit": "g", "calories": 165, "protein": 31, "carbs": 0, "fat": 3.6},
-        {"name": "Steamed rice", "name_en": "Steamed rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 52, "fat": 0.5},
-        {"name": "Olive oil", "name_en": "Olive oil", "amount": 10, "unit": "ml", "calories": 88, "protein": 0, "carbs": 0, "fat": 10}
+        {"name": "Stir-fried Minced Pork", "name_en": "Stir-fried Minced Pork (regular fat)", "detail": "High-heat wok stir-fried, absorbs cooking oil", "amount": 100, "unit": "g", "calories": 210, "protein": 22, "carbs": 0, "fat": 13},
+        {"name": "Steamed Jasmine Rice", "name_en": "Steamed Jasmine Rice", "detail": "Thai long-grain white rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 56, "fat": 0.5},
+        {"name": "Vegetable Oil (stir-frying)", "name_en": "Vegetable Oil for Wok Stir-frying", "detail": "High-heat cooking — significant oil absorption by minced pork", "amount": 15, "unit": "ml", "calories": 130, "protein": 0, "carbs": 0, "fat": 15},
+        {"name": "Thai Holy Basil Leaves", "name_en": "Thai Holy Basil Leaves", "detail": "Flash-fried in oil for aroma", "amount": 10, "unit": "g", "calories": 2, "protein": 0.3, "carbs": 0.3, "fat": 0},
+        {"name": "Fish Sauce", "name_en": "Fish Sauce", "detail": "Primary seasoning — very high sodium", "amount": 10, "unit": "ml", "calories": 6, "protein": 1, "carbs": 0.5, "fat": 0},
+        {"name": "Oyster Sauce", "name_en": "Oyster Sauce", "detail": "Contains sugar, soy extract, corn starch", "amount": 8, "unit": "ml", "calories": 9, "protein": 0.2, "carbs": 2, "fat": 0},
+        {"name": "Thai Chilies & Garlic", "name_en": "Crushed Thai Bird's Eye Chilies with Garlic", "detail": "Pounded and stir-fried in oil", "amount": 10, "unit": "g", "calories": 8, "protein": 0.3, "carbs": 1.5, "fat": 0.2}
       ]
     }
   ],
@@ -453,9 +471,12 @@ User message: "${text}"`;
  */
 function validateServingUnits(result: any): void {
   const validUnits = [
-    'plate', 'cup', 'bowl', 'piece', 'box', 'pack', 'bag', 
-    'bottle', 'glass', 'egg', 'ball', 'item', 'slice', 'pair', 
-    'stick', 'g', 'kg', 'ml', 'l', 'serving', 'tbsp', 'tsp', 'oz', 'lbs'
+    'g', 'kg', 'mg', 'oz', 'lbs', 
+    'ml', 'l', 'fl oz', 'cup', 'tbsp', 'tsp', 
+    'serving', 'piece', 'slice', 'plate', 'bowl', 'cup_c', 'glass', 
+    'egg', 'ball', 'fruit', 'skewer', 'whole', 'sheet', 'pair', 
+    'bunch', 'leaf', 'stick', 'scoop', 'handful', 
+    'pack', 'bag', 'wrap', 'box', 'can', 'bottle', 'bar'
   ];
 
   if (result.items && Array.isArray(result.items)) {
@@ -496,14 +517,19 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
   }
   
   // Use higher token limit for chat/menu_suggestion (ingredients_detail needs more tokens)
-  const maxTokens = (request.type === 'chat' || request.type === 'menu_suggestion') ? 4096 : 1024;
+  const maxTokens = (request.type === 'chat' || request.type === 'menu_suggestion') ? 4096 : 2048;
+  
+  // Tune generation parameters per request type:
+  // - Food analysis (image/text/barcode): low temperature for accuracy & consistency
+  // - Chat/menu_suggestion: slightly higher temperature for natural conversation
+  const isAnalysis = ['image', 'text', 'barcode'].includes(request.type);
   
   const requestBody = {
     contents: [{ parts }],
     generationConfig: {
-      temperature: 0.4,
-      topK: 32,
-      topP: 1,
+      temperature: isAnalysis ? 0.15 : 0.4,
+      topK: isAnalysis ? 10 : 32,
+      topP: isAnalysis ? 0.8 : 0.95,
       maxOutputTokens: maxTokens,
     },
   };

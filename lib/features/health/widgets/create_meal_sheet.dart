@@ -238,9 +238,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary.withOpacity(0.1),
+                  color: AppColors.textTertiary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.textTertiary.withOpacity(0.3), style: BorderStyle.solid),
+                  border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3), style: BorderStyle.solid),
                 ),
                 child: const Center(
                   child: Text(
@@ -263,7 +263,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.health.withOpacity(0.1),
+                color: AppColors.health.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -309,10 +309,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   Widget _buildIngredientRow(_IngredientRow row, int index) {
     return Container(
+      key: row.key,
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -573,7 +574,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             labelText: 'Ingredient Name',
             isDense: true,
             border: InputBorder.none,
-            suffixIcon: Icon(Icons.search, size: 14, color: AppColors.textTertiary.withOpacity(0.5)),
+            suffixIcon: Icon(Icons.search, size: 14, color: AppColors.textTertiary.withValues(alpha: 0.5)),
             suffixIconConstraints: const BoxConstraints(maxWidth: 20, maxHeight: 20),
           ),
           style: const TextStyle(fontSize: 14),
@@ -807,7 +808,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     }
   }
 
-  /// Add new ingredient row (insert at top so user sees it immediately)
+  /// Add new ingredient row (insert at top for visibility)
   void _addIngredientRow() {
     setState(() {
       _ingredients.insert(0, _IngredientRow());
@@ -816,16 +817,6 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   /// ค้นหาโภชนาการด้วย Gemini สำหรับทุกวัตถุดิบที่ยังไม่มี nutrition (kcal=0)
   Future<void> _lookupAllMissingNutrition() async {
-    // === เพิ่ม Gate Check ===
-    // 1. เช็คว่ามี API Key ไหม (จาก Step 30)
-    // เช็ค Energy ก่อนเรียก AI
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy && mounted) {
-      await NoEnergyDialog.show(context);
-      return;
-    } // Upsell dialog will show automatically
-    // === จบ Gate Check ===
-
     final missingRows = _ingredients.where((r) =>
       r.nameController.text.trim().isNotEmpty &&
       (double.tryParse(r.calController.text) ?? 0) == 0
@@ -837,6 +828,57 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           const SnackBar(content: Text('No ingredients need nutrition lookup')),
         );
       }
+      return;
+    }
+
+    // === แจ้งผู้ใช้ก่อนว่าจะใช้กี่ Energy ===
+    if (mounted) {
+      final itemCount = missingRows.length;
+      final ingredientNames = missingRows
+          .map((r) => '• ${r.nameController.text.trim()}')
+          .join('\n');
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.auto_awesome, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('AI Analyze All'),
+            ],
+          ),
+          content: Text(
+            'Will analyze $itemCount items:\n$ingredientNames\n\n'
+            'This will use $itemCount Energy ($itemCount × 1 Energy)\n\n'
+            'Continue?',
+            style: const TextStyle(fontSize: 14),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.auto_awesome, size: 16),
+              label: Text('Analyze ($itemCount Energy)'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
+    // === เช็คว่ามี Energy เพียงพอหรือไม่ ===
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
       return;
     }
 
@@ -1075,6 +1117,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 }
 
 class _IngredientRow {
+  _IngredientRow() : key = UniqueKey();
+
+  /// Unique key สำหรับ widget tree — ป้องกัน Flutter reuse state ผิดตัว
+  final Key key;
+
   final nameController = TextEditingController();
   final amountController = TextEditingController();
   String unit = 'g'; // เปลี่ยนจาก TextEditingController เป็น String (เลือกจาก dropdown)

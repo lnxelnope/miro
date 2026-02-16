@@ -5,6 +5,7 @@ import 'package:miro_hybrid/core/ai/gemini_service.dart';
 import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/core/utils/error_handler.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
+import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
@@ -12,20 +13,6 @@ import 'package:miro_hybrid/features/health/widgets/gemini_analysis_sheet.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/services/usage_limiter.dart';
 import 'dart:convert';
-
-/// Available serving units for food
-const List<String> servingUnits = [
-  'serving',
-  'plate',
-  'bowl',
-  'cup',
-  'piece',
-  'slice',
-  'gram',
-  'ounce',
-  'tablespoon',
-  'teaspoon',
-];
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -330,14 +317,9 @@ class _ImageAnalysisPreviewScreenState
                               vertical: 12,
                             ),
                           ),
-                          items: servingUnits.map((unit) {
-                            return DropdownMenuItem(
-                              value: unit,
-                              child: Text(unit),
-                            );
-                          }).toList(),
+                          items: UnitConverter.allDropdownItems,
                           onChanged: (value) {
-                            if (value != null) {
+                            if (value != null && value.isNotEmpty) {
                               setState(() {
                                 _selectedUnit = value;
                               });

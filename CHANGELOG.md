@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.1.3+27] - 2026-02-16
+
+### 🐛 Bug Fixes
+- **Create New Meal**: Fixed ingredient order bug — new items no longer replace/edit wrong rows
+  - Added `UniqueKey` per ingredient row to prevent Flutter state reuse
+  - New ingredients still appear at top when tapping Add
+- **Unit Dropdown**: Replaced hardcoded unit lists with `UnitConverter.allDropdownItems` (36 units)
+  - Image Analysis Preview, Food Detail, Health Timeline dialogs now show full unit list
+  - Backend `analyzeFood.ts` prompt and validation updated to match
+
+### ✨ Improvements
+- **AI All (Create Meal)**: Now shows confirmation dialog before analyzing
+  - Displays ingredient list and Energy cost (1 per item)
+  - User must confirm before Energy is deducted
+- **Individual AI lookup**: Still deducts 1 Energy directly (no confirmation needed)
+
+### 🔧 Technical
+- Removed unused `_showScanOptions` and imports (health_timeline_tab)
+- Replaced deprecated `withOpacity` → `withValues` (health_timeline_tab, food_detail_bottom_sheet, create_meal_sheet)
+- Replaced deprecated `value` → `initialValue` in DropdownButtonFormField
+
+---
+
 ## [1.1.3+26] - 2026-02-15
 
 ### ✨ New Features
