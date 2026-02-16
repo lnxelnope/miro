@@ -1,0 +1,43 @@
+---
+description: เมื่ออัปเดต build version ต้องแก้ทั้ง pubspec และ Android build.gradle
+globs: "{pubspec.yaml,android/app/build.gradle.kts}"
+alwaysApply: false
+---
+
+# 📦 Version & Build Sync
+
+## ⚠️ กฎสำคัญ
+
+**เมื่ออัปเดต build number ต้องแก้ทั้ง 2 ไฟล์:**
+
+1. **`pubspec.yaml`** — แก้ `version: X.Y.Z+NN`
+2. **`android/app/build.gradle.kts`** — แก้ `versionCode = NN` และ `versionName = "X.Y.Z"`
+
+---
+
+## ✅ ตัวอย่าง
+
+ถ้าอัปเดตเป็น build 28:
+
+**pubspec.yaml:**
+```yaml
+version: 1.1.3+28
+```
+
+**android/app/build.gradle.kts:**
+```kotlin
+versionCode = 28
+versionName = "1.1.3"
+```
+
+---
+
+## 📋 Checklist
+
+- [ ] `pubspec.yaml` — version (X.Y.Z+NN)
+- [ ] `android/app/build.gradle.kts` — versionCode = NN, versionName = "X.Y.Z"
+- [ ] `CHANGELOG.md` — เพิ่ม entry สำหรับ version ใหม่
+
+---
+
+**Remember:** อย่าอัปเดตแค่ไฟล์เดียว — ต้อง sync ทั้งคู่!
