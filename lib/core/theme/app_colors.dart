@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary
-  static const Color primary = Color(0xFF6366F1);      // Indigo-500
-  static const Color primaryLight = Color(0xFFA5B4FC); // Indigo-300
-  static const Color primaryDark = Color(0xFF4F46E5);  // Indigo-600
+  static const Color primary = Color(0xFF2D8B75);      // Teal-600 (Airbnb style)
+  static const Color primaryLight = Color(0xFF5BB5A2); // Teal-400
+  static const Color primaryDark = Color(0xFF1F6F5C);  // Teal-700
   
   // Categories
   static const Color finance = Color(0xFF10B981);      // Emerald-500
