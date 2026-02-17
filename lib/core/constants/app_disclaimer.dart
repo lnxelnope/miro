@@ -3,8 +3,7 @@ class AppDisclaimer {
   AppDisclaimer._();
 
   /// Short disclaimer for inline display
-  static const String short = 
-      'MIRO is an informational tool only. '
+  static const String short = 'MIRO is an informational tool only. '
       'Nutritional data are approximations and not medical advice. '
       'Consult healthcare professionals for dietary guidance.';
 

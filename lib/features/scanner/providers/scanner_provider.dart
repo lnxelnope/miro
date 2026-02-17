@@ -44,14 +44,14 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
   Future<int> scanNewImages() async {
     AppLogger.info('scanNewImages() starting');
     state = const AsyncValue.loading();
-    
+
     try {
       // ตรวจสอบ permission
       AppLogger.info('Checking Gallery permission...');
       final permService = ref.read(permissionServiceProvider);
       final hasPermission = await permService.hasGalleryPermission();
       AppLogger.info('Permission status: $hasPermission');
-      
+
       if (!hasPermission) {
         AppLogger.warn('No permission - requesting permission...');
         final granted = await permService.requestGalleryPermission();
@@ -62,24 +62,24 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
           return 0;
         }
       }
-      
+
       // ดึงวันที่เริ่มต้นสำหรับสแกน (ตามการตั้งค่า)
       AppLogger.info('Getting scan start date...');
       final scanStartDate = await permService.getScanStartDate();
       final daysBack = await permService.getScanDaysBack();
       AppLogger.info('Scanning back: $daysBack days');
       AppLogger.info('Start date: ${scanStartDate.toString()}');
-      
+
       // สแกนรูป
       AppLogger.info('Calling ScanController.scanNewImages()...');
       final controller = ref.read(scanControllerProvider);
       final savedCount = await controller.scanNewImages(after: scanStartDate);
       AppLogger.info('Scan complete - saved: $savedCount entries');
-      
+
       // อัปเดตเวลาสแกน
       AppLogger.info('Updating last scan time...');
       await permService.setLastScanTime(DateTime.now());
-      
+
       state = AsyncValue.data(savedCount);
       AppLogger.info('scanNewImages() complete - return: $savedCount');
       return savedCount;
@@ -96,7 +96,7 @@ class ScanResult {
   final String type; // 'health' หรือ 'finance'
   final int? entryId;
   final String? message;
-  
+
   ScanResult({required this.type, this.entryId, this.message});
 }
 
@@ -111,35 +111,35 @@ class SingleImagePicker extends _$SingleImagePicker {
   /// เลือกรูปเดียวจาก Gallery แล้วสแกน
   Future<ScanResult?> pickAndScanImage() async {
     state = const AsyncValue.loading();
-    
+
     try {
       // เปิด Image Picker
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      
+
       if (pickedFile == null) {
         state = const AsyncValue.data(null);
         return null;
       }
-      
+
       // Process image
       final file = File(pickedFile.path);
       final visionProcessor = VisionProcessor();
-      
+
       final result = await visionProcessor.processImage(file);
-      
+
       if (result == null) {
         state = AsyncValue.error('No data found in image', StackTrace.current);
         visionProcessor.dispose();
         return null;
       }
-      
+
       ScanResult? scanResult;
-      
+
       if (result['type'] == 'health') {
         // Save as FoodEntry
         final mealType = _getMealTypeFromTime(DateTime.now());
-        
+
         final entry = FoodEntry()
           ..foodName = result['label'] as String? ?? 'Food'
           ..foodNameEn = result['label'] as String? ?? 'Food'
@@ -158,11 +158,11 @@ class SingleImagePicker extends _$SingleImagePicker {
           ..notes = 'Selected from Gallery - please verify and edit'
           ..createdAt = DateTime.now()
           ..updatedAt = DateTime.now();
-        
+
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.foodEntries.put(entry);
         });
-        
+
         scanResult = ScanResult(
           type: 'health',
           entryId: entry.id,
@@ -170,10 +170,10 @@ class SingleImagePicker extends _$SingleImagePicker {
         );
         AppLogger.info('FoodEntry saved ID: ${entry.id}');
       }
-      
+
       // Cleanup
       visionProcessor.dispose();
-      
+
       state = AsyncValue.data(scanResult);
       return scanResult;
     } catch (e, stack) {
@@ -182,7 +182,7 @@ class SingleImagePicker extends _$SingleImagePicker {
       return null;
     }
   }
-  
+
   /// กำหนดมื้ออาหารตามเวลา
   MealType _getMealTypeFromTime(DateTime time) {
     final hour = time.hour;

@@ -31,156 +31,171 @@ class DailySummaryCard extends ConsumerWidget {
       },
       child: Container(
         margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(20),  // เปลี่ยนจาก 16 → 20
+        padding: const EdgeInsets.all(20), // เปลี่ยนจาก 16 → 20
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,  // เปลี่ยนจาก gradient → สีขาว/เทา
+          color: Theme.of(context).cardColor, // เปลี่ยนจาก gradient → สีขาว/เทา
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),  // เปลี่ยน shadow
+              color: Colors.black.withOpacity(0.06), // เปลี่ยน shadow
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,  // เพิ่มบรรทัดนี้
-        children: [
-          // ===== ส่วนที่ 1: Title + Circular Progress =====
-          profileAsync.when(
-            loading: () => const CircularProgressIndicator(),
-            error: (_, __) => const SizedBox(),
-            data: (profile) => foodsAsync.when(
+          crossAxisAlignment: CrossAxisAlignment.start, // เพิ่มบรรทัดนี้
+          children: [
+            // ===== ส่วนที่ 1: Title + Circular Progress =====
+            profileAsync.when(
               loading: () => const CircularProgressIndicator(),
-              error: (_, __) => const Text('Error'),
-              data: (entries) {
-                final calories = entries.fold<double>(0, (sum, e) => sum + e.calories);
-                final protein = entries.fold<double>(0, (sum, e) => sum + e.protein);
-                final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
-                final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
-                
-                final goal = profile.calorieGoal;
-                final percent = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
-                
-                return Column(
-                  children: [
-                    // Row 1: Title ซ้าย + Circular Progress ขวา
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ===== ฝั่งซ้าย: Title + Subtitle =====
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isToday ? "Today's Intake" : "Daily Intake",
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 24,
+              error: (_, __) => const SizedBox(),
+              data: (profile) => foodsAsync.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (_, __) => const Text('Error'),
+                data: (entries) {
+                  final calories =
+                      entries.fold<double>(0, (sum, e) => sum + e.calories);
+                  final protein =
+                      entries.fold<double>(0, (sum, e) => sum + e.protein);
+                  final carbs =
+                      entries.fold<double>(0, (sum, e) => sum + e.carbs);
+                  final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
+
+                  final goal = profile.calorieGoal;
+                  final percent =
+                      goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
+
+                  return Column(
+                    children: [
+                      // Row 1: Title ซ้าย + Circular Progress ขวา
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ===== ฝั่งซ้าย: Title + Subtitle =====
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isToday ? "Today's Intake" : "Daily Intake",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 24,
+                                      ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isToday 
-                                    ? DateFormat('EEEE, d MMM', 'en').format(date)
-                                    : DateFormat('d MMMM yyyy', 'en').format(date),
-                                style: TextStyle(
-                                  color: Theme.of(context).textTheme.bodySmall?.color,
-                                  fontSize: 14,
+                                const SizedBox(height: 4),
+                                Text(
+                                  isToday
+                                      ? DateFormat('EEEE, d MMM', 'en')
+                                          .format(date)
+                                      : DateFormat('d MMMM yyyy', 'en')
+                                          .format(date),
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        // ===== ฝั่งขวา: Circular Progress =====
-                        SizedBox(
-                          width: 90,
-                          height: 90,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                height: 90,
-                                child: CircularProgressIndicator(
-                                  value: percent,
-                                  strokeWidth: 8,
-                                  backgroundColor: Colors.grey.shade200,
-                                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                          const SizedBox(width: 16),
+                          // ===== ฝั่งขวา: Circular Progress =====
+                          SizedBox(
+                            width: 90,
+                            height: 90,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 90,
+                                  height: 90,
+                                  child: CircularProgressIndicator(
+                                    value: percent,
+                                    strokeWidth: 8,
+                                    backgroundColor: Colors.grey.shade200,
+                                    valueColor: const AlwaysStoppedAnimation(
+                                        AppColors.primary),
+                                  ),
                                 ),
-                              ),
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    '${calories.toInt()}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${calories.toInt()}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '/ ${goal.toInt()}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade600,
+                                    Text(
+                                      '/ ${goal.toInt()}',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600,
+                                      ),
                                     ),
-                                  ),
-                                  const Text(
-                                    'kcal',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
+                                    const Text(
+                                      'kcal',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Row 2: Macros
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildMacroItem(
-                          label: 'Protein',
-                          value: protein,
-                          goal: profile.proteinGoal,
-                          color: AppColors.protein,
-                        ),
-                        _buildMacroItem(
-                          label: 'Carbs',
-                          value: carbs,
-                          goal: profile.carbGoal,
-                          color: AppColors.carbs,
-                        ),
-                        _buildMacroItem(
-                          label: 'Fat',
-                          value: fat,
-                          goal: profile.fatGoal,
-                          color: AppColors.fat,
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Row 2: Macros
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildMacroItem(
+                            label: 'Protein',
+                            value: protein,
+                            goal: profile.proteinGoal,
+                            color: AppColors.protein,
+                          ),
+                          _buildMacroItem(
+                            label: 'Carbs',
+                            value: carbs,
+                            goal: profile.carbGoal,
+                            color: AppColors.carbs,
+                          ),
+                          _buildMacroItem(
+                            label: 'Fat',
+                            value: fat,
+                            goal: profile.fatGoal,
+                            color: AppColors.fat,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 
   bool _isToday(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   Widget _buildMacroItem({

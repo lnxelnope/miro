@@ -10,41 +10,54 @@ import '../services/usage_limiter.dart';
 import '../services/purchase_service.dart';
 import '../services/welcome_offer_service.dart';
 import '../../features/energy/widgets/welcome_offer_unlocked_dialog.dart';
+import '../../features/energy/providers/gamification_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/logger.dart';
+import '../constants/enums.dart';
 
 class GeminiService {
   // Backend URL (Firebase Cloud Function)
-  static const String _backendUrl = 
+  static const String _backendUrl =
       'https://us-central1-miro-d6856.cloudfunctions.net/analyzeFood';
-  
+
   // EnergyService instance (required for Backend calls)
   final EnergyService? _energyService;
-  
+
   GeminiService(this._energyService);
-  
+
   // Static instance for backward compatibility (deprecated)
   static EnergyService? _staticEnergyService;
-  
+
   /// BuildContext for showing dialogs (optional)
   static BuildContext? _globalContext;
-  
+
   /// Set EnergyService for static methods (deprecated - use instance methods instead)
   static void setEnergyService(EnergyService energyService) {
     _staticEnergyService = energyService;
   }
-  
+
   /// Set global context for showing dialogs
   static void setContext(BuildContext context) {
     _globalContext = context;
   }
-  
+
+  /// Cuisine preference for biasing AI analysis toward user's typical cuisine
+  static String _cuisinePreference = 'international';
+
+  /// Set cuisine preference (call when profile loads or user changes preference)
+  static void setCuisinePreference(String cuisine) {
+    _cuisinePreference = cuisine;
+  }
+
   /// Get EnergyService instance (for checking energy before API calls)
   static EnergyService? get energyService => _staticEnergyService;
 
   /// Check if user has enough energy (for UI checks before API calls)
   static Future<bool> hasEnergy() async {
     final service = _staticEnergyService;
-    if (service == null) return true; // Fallback: allow if service not initialized
+    if (service == null) {
+      return true; // Fallback: allow if service not initialized
+    }
     return await service.hasEnergy();
   }
 
@@ -53,7 +66,8 @@ class GeminiService {
   static Future<String> _compressImageToBase64(File imageFile) async {
     final bytes = await imageFile.readAsBytes();
     final originalSizeKB = bytes.length / 1024;
-    AppLogger.info('📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB');
+    AppLogger.info(
+        '📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB');
 
     // Decode image
     final codec = await ui.instantiateImageCodec(
@@ -77,7 +91,8 @@ class GeminiService {
     // Since dart:ui doesn't support JPEG quality, we use PNG with resize
     final compressedBytes = byteData.buffer.asUint8List();
     final compressedSizeKB = compressedBytes.length / 1024;
-    AppLogger.info('📷 Compressed: ${compressedSizeKB.toStringAsFixed(0)} KB (was ${originalSizeKB.toStringAsFixed(0)} KB)');
+    AppLogger.info(
+        '📷 Compressed: ${compressedSizeKB.toStringAsFixed(0)} KB (was ${originalSizeKB.toStringAsFixed(0)} KB)');
 
     // If compressed is still too large (>500KB) or larger than original, use original resized
     if (compressedSizeKB > 500 && compressedSizeKB > originalSizeKB * 0.8) {
@@ -93,7 +108,8 @@ class GeminiService {
 
       if (byteData2 != null) {
         final smallerBytes = byteData2.buffer.asUint8List();
-        AppLogger.info('📷 Re-compressed: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
+        AppLogger.info(
+            '📷 Re-compressed: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
         return base64Encode(smallerBytes);
       }
     }
@@ -168,7 +184,7 @@ class GeminiService {
   // ───────────────────────────────────────────────────────────
   // BACKEND WRAPPER (New Energy System)
   // ───────────────────────────────────────────────────────────
-  
+
   /// Call Backend API (Firebase Cloud Function) with Energy Token
   static Future<Map<String, dynamic>?> _callBackend({
     required String type,
@@ -179,21 +195,24 @@ class GeminiService {
   }) async {
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
-      throw Exception('EnergyService not initialized. Please call GeminiService.setEnergyService() first.');
+      throw Exception(
+          'EnergyService not initialized. Please call GeminiService.setEnergyService() first.');
     }
-    
+
     try {
       // ────── 1. ตรวจสอบว่ามี Energy พอหรือไม่ ──────
       final hasEnergy = await service.hasEnergy();
       if (!hasEnergy) {
         throw Exception('Insufficient energy');
       }
-      
+
       // ────── 2. สร้าง Energy Token ──────
       final energyToken = await service.generateEnergyToken();
       final deviceId = await DeviceIdService.getDeviceId();
-      
+
       // ────── 3. เรียก Backend ──────
+      final timezoneOffset = DateTime.now().timeZoneOffset.inMinutes;
+      
       final response = await http.post(
         Uri.parse(_backendUrl),
         headers: {
@@ -205,79 +224,126 @@ class GeminiService {
           'type': type,
           'prompt': prompt,
           'deviceId': deviceId,
+          'timezoneOffset': timezoneOffset, // ← ใหม่!
           if (imageBase64 != null) 'imageBase64': imageBase64,
         }),
       );
-      
+
       // ────── 4. ตรวจสอบ Response ──────
       if (response.statusCode == 402) {
         // Insufficient energy
         throw Exception('Insufficient energy');
       }
-      
+
       // Handle 429 (Rate Limit) with user-friendly message
       if (response.statusCode == 429) {
         throw Exception(
-          'AI service is temporarily busy. Please try again in a few seconds.\n\n'
-          'Your Energy has not been deducted.'
-        );
+            'AI service is temporarily busy. Please try again in a few seconds.\n\n'
+            'Your Energy has not been deducted.');
       }
-      
+
       if (response.statusCode != 200) {
         try {
           final error = json.decode(response.body);
           final errorMsg = error['error'];
-          
+
           // Check if it's a Gemini API error with status code
           if (errorMsg is Map && errorMsg['code'] == 429) {
             throw Exception(
-              'AI service is experiencing high demand. Please try again in a minute.\n\n'
-              'Your Energy has not been deducted.'
-            );
+                'AI service is experiencing high demand. Please try again in a minute.\n\n'
+                'Your Energy has not been deducted.');
           }
-          
+
           throw Exception(errorMsg?.toString() ?? 'Backend error');
         } catch (e) {
           if (e.toString().contains('429')) rethrow;
           throw Exception('Server error: ${response.statusCode}');
         }
       }
-      
+
       final result = json.decode(response.body);
+
+      // ────── 5. Handle Free AI และ Streak ──────
+      final wasFreeAi = result['wasFreeAi'] == true;
       
-      // ────── 5. อัพเดท Energy Balance ──────
+      if (wasFreeAi) {
+        AppLogger.info('[AI] ✅ Free AI used today!');
+      }
+
+      // ────── 6. อัพเดท Energy Balance และ Gamification ──────
       // ✅ PHASE 1: รับ balance จาก response แล้ว sync
       if (result['balance'] != null) {
         final newBalance = result['balance'] as int;
         await service.updateFromServerResponse(newBalance);
       }
-      
-      // ────── 6. Parse Gemini Response ──────
+
+      // Update gamification state (ถ้ามี provider)
+      try {
+        // ใช้ global provider container ถ้ามี
+        final container = ProviderScope.containerOf(_globalContext ?? service as BuildContext, listen: false);
+        container.read(gamificationProvider.notifier).updateFromAiResponse(result);
+      } catch (e) {
+        // ไม่มี provider หรือ context → skip
+        AppLogger.debug('[AI] Could not update gamification state: $e');
+      }
+
+      // ────── 7. Parse Gemini Response ──────
       final geminiData = result['data'];
-      final text = geminiData['candidates'][0]['content']['parts'][0]['text'] as String;
-      
+      final text =
+          geminiData['candidates'][0]['content']['parts'][0]['text'] as String;
+
       // ลบ markdown code block (```json ... ```)
       final cleanedText = text
           .replaceAll(RegExp(r'```json\s*'), '')
           .replaceAll(RegExp(r'```\s*$'), '')
           .trim();
-      
-      final parsedResult = json.decode(cleanedText);
-      
+
+      // ตรวจสอบว่า AI ตอบกลับเป็น JSON หรือไม่
+      // ถ้าไม่ใช่ JSON (เช่น ภาพไม่ใช่อาหาร) → แสดงข้อความที่เข้าใจง่าย
+      if (cleanedText.isEmpty ||
+          (!cleanedText.startsWith('{') && !cleanedText.startsWith('['))) {
+        // AI ตอบเป็นข้อความธรรมดา → ไม่ใช่อาหาร หรือวิเคราะห์ไม่ได้
+        final lowerText = cleanedText.toLowerCase();
+        if (lowerText.contains('sorry') ||
+            lowerText.contains('cannot') ||
+            lowerText.contains('not contain') ||
+            lowerText.contains('unable') ||
+            lowerText.contains('not a food') ||
+            lowerText.contains('no food')) {
+          throw Exception(
+              'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง');
+        }
+        throw Exception(
+            'AI ไม่สามารถวิเคราะห์ภาพนี้ได้\n\nกรุณาลองถ่ายภาพใหม่อีกครั้ง');
+      }
+
+      late final dynamic parsedResult;
+      try {
+        parsedResult = json.decode(cleanedText);
+      } on FormatException {
+        // JSON ไม่ถูกต้อง → อาจเป็นข้อความตอบกลับปนกับ JSON
+        throw Exception(
+            'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง');
+      }
+
       // ────── 6.5. Validate ingredients_detail (MANDATORY) ──────
       if (type == 'image' && parsedResult is Map<String, dynamic>) {
-        if (!parsedResult.containsKey('ingredients_detail') || 
+        if (!parsedResult.containsKey('ingredients_detail') ||
             parsedResult['ingredients_detail'] == null ||
-            !(parsedResult['ingredients_detail'] is List) ||
+            parsedResult['ingredients_detail'] is! List ||
             (parsedResult['ingredients_detail'] as List).isEmpty) {
-          AppLogger.warn('AI response missing or empty ingredients_detail array - creating fallback');
-          
+          AppLogger.warn(
+              'AI response missing or empty ingredients_detail array - creating fallback');
+
           // Create fallback ingredient from main nutrition data
-          final nutrition = parsedResult['nutrition'] as Map<String, dynamic>? ?? {};
+          final nutrition =
+              parsedResult['nutrition'] as Map<String, dynamic>? ?? {};
           parsedResult['ingredients_detail'] = [
             {
               'name': parsedResult['food_name'] ?? 'Unknown Food',
-              'name_en': parsedResult['food_name_en'] ?? parsedResult['food_name'] ?? 'Unknown Food',
+              'name_en': parsedResult['food_name_en'] ??
+                  parsedResult['food_name'] ??
+                  'Unknown Food',
               'amount': parsedResult['serving_size'] ?? 1,
               'unit': parsedResult['serving_unit'] ?? 'serving',
               'calories': nutrition['calories'] ?? 0,
@@ -289,17 +355,19 @@ class GeminiService {
               'sodium': nutrition['sodium'] ?? 0,
             }
           ];
-          
+
           AppLogger.info('Created fallback ingredient from main nutrition');
         }
       }
-      
+
       // ────── 7. Track AI Usage & Start Welcome Offer Timer (after 10 uses) ──────
       try {
-        final timerStarted = await WelcomeOfferService.incrementUsageAndCheckTimer();
+        final timerStarted =
+            await WelcomeOfferService.incrementUsageAndCheckTimer();
         if (timerStarted) {
-          debugPrint('[GeminiService] 🎉 Welcome Offer unlocked! (10 AI uses reached)');
-          
+          debugPrint(
+              '[GeminiService] 🎉 Welcome Offer unlocked! (10 AI uses reached)');
+
           // แสดง dialog แจ้งเตือน (ถ้ามี context)
           if (_globalContext != null && _globalContext!.mounted) {
             // รอ 500ms เพื่อให้ current dialog/sheet ปิดก่อน
@@ -313,7 +381,7 @@ class GeminiService {
         // Silent fail
         debugPrint('[GeminiService] Welcome offer error: $e');
       }
-      
+
       // ────── 8. Analytics (Firebase) ──────
       await FirebaseAnalytics.instance.logEvent(
         name: 'ai_analysis_success',
@@ -322,12 +390,11 @@ class GeminiService {
           'energy_used': 1,
         },
       );
-      
+
       return parsedResult;
-      
     } catch (e) {
       print('❌ Gemini Backend Error: $e');
-      
+
       // Analytics: log failure
       await FirebaseAnalytics.instance.logEvent(
         name: 'ai_analysis_failed',
@@ -336,7 +403,7 @@ class GeminiService {
           'error': e.toString(),
         },
       );
-      
+
       rethrow;
     }
   }
@@ -348,38 +415,45 @@ class GeminiService {
     String? foodName,
     double? quantity,
     String? unit,
+    FoodSearchMode searchMode = FoodSearchMode.normal,
   }) async {
-    AppLogger.info('Starting image analysis: ${imageFile.path}');
-    
+    AppLogger.info(
+        'Starting image analysis: ${imageFile.path} (mode: ${searchMode.name})');
+
     // Check if file exists
     if (!await imageFile.exists()) {
       AppLogger.error('File not found: ${imageFile.path}');
       throw Exception('Image file not found');
     }
-    
+
     // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
     }
-    
+
     try {
       AppLogger.info('Using Backend (Energy System)');
       final base64Image = await _compressImageToBase64(imageFile);
-      
-      String prompt = _getImageAnalysisPrompt();
-      
+
+      // Choose prompt based on search mode
+      String prompt = searchMode == FoodSearchMode.product
+          ? _getProductImageAnalysisPrompt()
+          : _getImageAnalysisPrompt();
+
       // Add optional user-provided information to prompt
       if (foodName != null && foodName.isNotEmpty) {
-        prompt += '\n\nThe user has indicated this is: "$foodName".';
+        prompt += searchMode == FoodSearchMode.product
+            ? '\n\nThe user has indicated this product is: "$foodName".'
+            : '\n\nThe user has indicated this is: "$foodName".';
       }
-      
+
       if (quantity != null && unit != null) {
-        prompt += '\n\nThe user has specified the quantity as: $quantity $unit.';
+        prompt += '\n\nThe user has specified the portion as: $quantity $unit.';
       } else if (quantity != null) {
         prompt += '\n\nThe user has specified the quantity as: $quantity.';
       }
-      
+
       final result = await _callBackend(
         type: 'image',
         prompt: prompt,
@@ -387,18 +461,17 @@ class GeminiService {
         description: 'Food image analysis',
         energyService: service,
       );
-      
+
       if (result != null) {
         return FoodAnalysisResult.fromJson(result);
       }
-      
+
       throw Exception('No result from AI analysis');
     } catch (e) {
       AppLogger.error('❌ Backend analysis error', e);
       rethrow;
     }
   }
-
 
   /// Analyze product from image + barcode (ใช้ Backend เท่านั้น)
   /// Used when scanning barcode with product packaging image
@@ -408,21 +481,22 @@ class GeminiService {
     EnergyService? energyService,
   }) async {
     AppLogger.info('Analyzing product barcode: $barcodeValue');
-    
+
     if (!await imageFile.exists()) {
       throw Exception('Image file not found');
     }
-    
+
     // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
     }
-    
+
     try {
       final base64Image = await _compressImageToBase64(imageFile);
 
-      final prompt = '''You are a Food Scientist specializing in packaged food analysis and nutrition label reading.
+      final prompt =
+          '''You are a Food Scientist specializing in packaged food analysis and nutrition label reading.
 
 This is an image of a product with barcode: $barcodeValue
 
@@ -501,11 +575,11 @@ Return ONLY valid JSON.''';
         description: 'Barcode product analysis: $barcodeValue',
         energyService: service,
       );
-      
+
       if (result != null) {
         return FoodAnalysisResult.fromJson(result);
       }
-      
+
       throw Exception('No result from AI analysis');
     } catch (e) {
       AppLogger.error('❌ Barcode analysis error', e);
@@ -520,17 +594,17 @@ Return ONLY valid JSON.''';
     EnergyService? energyService,
   }) async {
     AppLogger.info('🔍 Reading nutrition label from image');
-    
+
     if (!await imageFile.exists()) {
       throw Exception('Image file not found');
     }
-    
+
     // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
     }
-    
+
     try {
       final base64Image = await _compressImageToBase64(imageFile);
 
@@ -598,11 +672,11 @@ Return ONLY valid JSON.''';
         description: 'Nutrition label analysis',
         energyService: service,
       );
-      
+
       if (result != null) {
         return FoodAnalysisResult.fromJson(result);
       }
-      
+
       throw Exception('No result from AI analysis');
     } catch (e) {
       AppLogger.error('❌ Nutrition label analysis error', e);
@@ -613,40 +687,50 @@ Return ONLY valid JSON.''';
   /// Analyze food by name (no image - Text Only)
   /// Used when user logs food via chat or manual and wants AI to estimate nutrition
   /// [servingSize] and [servingUnit] are user-specified amounts (if provided)
+  /// [searchMode] tells AI whether to treat as regular food or packaged product
   static Future<FoodAnalysisResult?> analyzeFoodByName(
     String foodName, {
     double? servingSize,
     String? servingUnit,
     EnergyService? energyService,
+    FoodSearchMode searchMode = FoodSearchMode.normal,
   }) async {
-    AppLogger.info('Analyzing food from name: "$foodName" (${servingSize ?? "?"} ${servingUnit ?? "?"})');
+    AppLogger.info(
+        'Analyzing food from name: "$foodName" (${servingSize ?? "?"} ${servingUnit ?? "?"}) mode: ${searchMode.name}');
 
     // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
     }
-    
+
     try {
       AppLogger.info('Using Backend (Energy System) for text analysis');
-      
-      final prompt = _getTextAnalysisPrompt(
-        foodName,
-        servingSize: servingSize,
-        servingUnit: servingUnit,
-      );
-      
+
+      // Choose prompt based on search mode
+      final prompt = searchMode == FoodSearchMode.product
+          ? _getProductTextAnalysisPrompt(
+              foodName,
+              servingSize: servingSize,
+              servingUnit: servingUnit,
+            )
+          : _getTextAnalysisPrompt(
+              foodName,
+              servingSize: servingSize,
+              servingUnit: servingUnit,
+            );
+
       final result = await _callBackend(
         type: 'text',
         prompt: prompt,
         description: 'Food nutrition lookup: $foodName',
         energyService: service,
       );
-      
+
       if (result != null) {
         return FoodAnalysisResult.fromJson(result);
       }
-      
+
       throw Exception('No result from AI analysis');
     } catch (e) {
       AppLogger.error('❌ Backend text analysis error', e);
@@ -657,11 +741,27 @@ Return ONLY valid JSON.''';
   // ───────────────────────────────────────────────────────────
   // PROMPT HELPERS (สำหรับ Backend)
   // ───────────────────────────────────────────────────────────
-  
+
   static String _getImageAnalysisPrompt() {
+    // Build cuisine bias instruction
+    final cuisineBias = _cuisinePreference != 'international'
+        ? '''
+
+CUISINE CONTEXT (CRITICAL for accurate identification):
+The user's cuisine preference is: "${_cuisinePreference.toUpperCase()}".
+When the food in the image is visually ambiguous (e.g., curry, rice dish, noodles, soup, stew, grilled meat), 
+you MUST bias your identification toward ${_cuisinePreference} cuisine FIRST.
+- Example: A curry dish → identify as ${_cuisinePreference} curry (with typical ${_cuisinePreference} ingredients, spices, and cooking methods)
+- Example: A rice dish → identify as ${_cuisinePreference}-style rice (with typical ${_cuisinePreference} seasonings and sides)
+- Example: A noodle soup → identify as ${_cuisinePreference}-style noodle soup
+- Use ${_cuisinePreference} ingredient names, cooking techniques, and typical portion sizes
+- Only override this bias if the food is CLEARLY from another cuisine (e.g., sushi is clearly Japanese even if user prefers Thai)
+'''
+        : '';
+
     return '''You are a Food Scientist and Nutrition Expert specializing in deconstructing dishes into precise ingredients.
 Your job is to "dissect" every visible food item in the image with professional-level specificity.
-
+$cuisineBias
 STEP-BY-STEP ANALYSIS (you MUST follow this order):
 
 Step 1 — IDENTIFY COOKING STATE:
@@ -690,10 +790,73 @@ NAMING REQUIREMENTS:
 - ingredient names in ingredients_detail: MUST be in English with descriptive cooking state
 - serving_unit: "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc. Do NOT use "g" or "ml" as serving_unit for dishes.
 
+INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
+
+1. "ingredients_detail" contains ONLY recognizable food components at the ROOT level.
+   These ROOT items are what get COUNTED for total calories.
+   
+2. Each ROOT ingredient MAY have "sub_ingredients" — these are the atomic breakdown
+   showing what the component is made of. Sub-ingredients are INFORMATIONAL ONLY.
+   
+3. CALORIE RULES:
+   - sum(ROOT.calories) MUST equal nutrition.calories (the total)
+   - sum(sub_ingredients.calories) ≈ parent ROOT ingredient calories
+   - NEVER put both a composite AND its raw materials at ROOT level
+   
+4. When to use sub_ingredients:
+   - Deep-fried items → show meat + batter + absorbed oil as subs
+   - Sauces → show base ingredients (sugar, vinegar, chili) as subs
+   - Processed foods → show components as subs
+   - Simple items (plain rice, raw egg) → no sub_ingredients needed
+   - Multi-item foods → show per-unit breakdown as subs
+
+5. Each ingredient and sub_ingredient should include:
+   - "name": English name with cooking state
+   - "name_en": English name (same as name)
+   - "detail": Preparation/composition description (optional)
+   - "amount", "unit": Quantity
+   - "calories", "protein", "carbs", "fat": Macros
+   - "sub_ingredients": Array of sub-components (optional, ROOT only)
+
+WRONG (double counting):
+{
+  "ingredients_detail": [
+    {"name": "Fried Battered Chicken Breast", "calories": 150},
+    {"name": "Chicken Breast", "calories": 100},     ← DUPLICATE!
+    {"name": "Flour Batter", "calories": 30},        ← DUPLICATE!
+    {"name": "Frying Oil", "calories": 80}           ← DUPLICATE!
+  ]
+}
+Sum = 360 kcal ≠ nutrition.calories (250 kcal) ❌
+
+CORRECT (hierarchical):
+{
+  "nutrition": {"calories": 250, ...},
+  "ingredients_detail": [
+    {
+      "name": "Deep-fried Battered Chicken Breast Pieces",
+      "name_en": "Deep-fried Battered Chicken Breast Pieces",
+      "detail": "Bite-sized chicken coated in seasoned flour, deep-fried",
+      "calories": 250,
+      "protein": 18,
+      "carbs": 12,
+      "fat": 15,
+      "sub_ingredients": [
+        {"name": "Chicken Breast Meat", "name_en": "Chicken Breast Meat", "detail": "Lean white meat", "amount": 80, "unit": "g", "calories": 132, "protein": 17, "carbs": 0, "fat": 3},
+        {"name": "Seasoned Flour Batter", "name_en": "Seasoned Flour Batter", "detail": "Contains wheat flour, corn starch, salt, spices", "amount": 25, "unit": "g", "calories": 48, "protein": 1, "carbs": 12, "fat": 0},
+        {"name": "Absorbed Frying Oil", "name_en": "Absorbed Frying Oil", "detail": "Oil absorbed during deep-frying", "amount": 8, "unit": "ml", "calories": 70, "protein": 0, "carbs": 0, "fat": 8}
+      ]
+    }
+  ]
+}
+Sum(ROOT) = 250 kcal ✅
+Sum(SUB) = 132 + 48 + 70 = 250 ≈ parent ✅
+
 CRITICAL RULES:
 - "ingredients_detail" array is MANDATORY with at least 1 ingredient
-- For complex dishes, list EVERY component separately including sauces and oils
-- The sum of all ingredient nutrition must approximately equal the total nutrition
+- For complex dishes, use sub_ingredients to show composition
+- The sum of ROOT ingredient calories must EXACTLY equal total nutrition.calories
+- sub_ingredients should NOT have nested sub_ingredients (max 1 level)
 - Include a "detail" field for each ingredient describing its preparation state
 - Estimate amounts in grams/ml
 
@@ -799,19 +962,102 @@ Example for "Kimchi Fried Rice with Pork":
 
 Return ONLY valid JSON, no markdown or explanations.''';
   }
-  
-  static String _getTextAnalysisPrompt(String foodName, {double? servingSize, String? servingUnit}) {
-    final hasUserServing = servingSize != null && servingSize > 0 && 
-        servingUnit != null && !((servingUnit == 'g' || servingUnit == 'กรัม') && servingSize <= 1);
-    final servingDesc = hasUserServing
-        ? '$servingSize $servingUnit'
-        : '1 standard serving';
+
+  /// Prompt for analyzing PACKAGED PRODUCTS from image
+  /// Focuses on reading nutrition labels and using known product data
+  static String _getProductImageAnalysisPrompt() {
+    final cuisineHint = _cuisinePreference != 'international'
+        ? '\nThe user typically consumes ${_cuisinePreference} food products. If the product origin is ambiguous, prioritize ${_cuisinePreference} market products and brands.\n'
+        : '';
+
+    return '''You are a Nutrition Label Expert and Packaged Food Specialist.
+This image shows a WELL-KNOWN PACKAGED PRODUCT (snack, beverage, ready-to-eat meal, etc.) that has a Nutrition Facts label.
+$cuisineHint
+
+YOUR PRIORITY ORDER:
+1. If a Nutrition Facts label is visible → extract EXACT values from the label
+2. If the product is recognizable (brand name visible) → use known official nutrition data
+3. If neither → estimate based on product type and packaging
+
+STEP-BY-STEP ANALYSIS:
+
+Step 1 — PRODUCT IDENTIFICATION:
+- Read brand name, product name, variant/flavor from packaging
+- Identify the product category (snack, beverage, dairy, candy, ready meal, etc.)
+- Cross-reference against known product databases for accuracy
+
+Step 2 — NUTRITION LABEL EXTRACTION:
+- If a Nutrition Facts label is visible, extract EXACT values (do NOT estimate)
+- Note the serving size as stated on label
+- Note servings per container if visible
+
+Step 3 — PORTION CALCULATION:
+- Use the portion the user specifies (e.g., "1 bag", "1 serving", "1 bottle")
+- If user says "1 bag/box/bottle" and label shows multiple servings per container, multiply accordingly
+- Calculate total nutrition for the specified portion
+
+CRITICAL RULES:
+- "ingredients_detail" array is MANDATORY
+- For packaged products, the main item IS the product itself
+- If ingredients list is visible, parse it; otherwise use the product as single ingredient
+- Use EXACT label values when visible, do NOT estimate
+- serving_unit should match what the user specified or what makes sense for the product (e.g., "bag", "bottle", "box", "bar", "pack", "can", "serving")
+
+Respond in JSON format:
+{
+  "food_name": "Product name (original language from packaging)",
+  "food_name_en": "English product name with brand",
+  "confidence": 0.95,
+  "serving_size": 1,
+  "serving_unit": "bag",
+  "serving_grams": 28,
+  "nutrition": {
+    "calories": 150,
+    "protein": 2,
+    "carbs": 15,
+    "fat": 10,
+    "fiber": 1,
+    "sugar": 1,
+    "sodium": 170
+  },
+  "ingredients_detail": [
+    {
+      "name": "Product Name",
+      "name_en": "Product Name in English",
+      "detail": "Source: nutrition label / known product data",
+      "amount": 28,
+      "unit": "g",
+      "calories": 150,
+      "protein": 2,
+      "carbs": 15,
+      "fat": 10
+    }
+  ],
+  "ingredients": ["ingredient1", "ingredient2"],
+  "notes": "Source: nutrition label / known product database. Per [portion specified]."
+}
+
+Return ONLY valid JSON, no markdown or explanations.''';
+  }
+
+  static String _getTextAnalysisPrompt(String foodName,
+      {double? servingSize, String? servingUnit}) {
+    final hasUserServing = servingSize != null &&
+        servingSize > 0 &&
+        servingUnit != null &&
+        !((servingUnit == 'g' || servingUnit == 'กรัม') && servingSize <= 1);
+    final servingDesc =
+        hasUserServing ? '$servingSize $servingUnit' : '1 standard serving';
     final servingSizeJson = hasUserServing ? servingSize : 1;
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
-    
+
+    final cuisineBias = _cuisinePreference != 'international'
+        ? 'The user\'s cuisine preference is "${_cuisinePreference}". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a ${_cuisinePreference} dish with typical ${_cuisinePreference} ingredients and cooking methods.\n'
+        : '';
+
     return '''
 You are a Food Scientist. Deconstruct this food into precise ingredients with professional-level specificity.
-
+$cuisineBias
 Food to analyze: "$foodName"
 Serving: $servingDesc
 
@@ -843,6 +1089,57 @@ FIELD REQUIREMENTS:
 - food_name_en: MUST ALWAYS be in English
 - All ingredient names: MUST be in English with cooking state description
 - Include "detail" field for each ingredient
+
+INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
+
+1. "ingredients_detail" contains ONLY recognizable food components at the ROOT level.
+   These ROOT items are what get COUNTED for total calories.
+   
+2. Each ROOT ingredient MAY have "sub_ingredients" — these are the atomic breakdown
+   showing what the component is made of. Sub-ingredients are INFORMATIONAL ONLY.
+   
+3. CALORIE RULES:
+   - sum(ROOT.calories) MUST equal nutrition.calories (the total)
+   - sum(sub_ingredients.calories) ≈ parent ROOT ingredient calories
+   - NEVER put both a composite AND its raw materials at ROOT level
+   
+4. When to use sub_ingredients:
+   - Deep-fried items → show meat + batter + absorbed oil as subs
+   - Sauces → show base ingredients (sugar, vinegar, chili) as subs
+   - Processed foods → show components as subs
+   - Simple items (plain rice, raw egg) → no sub_ingredients needed
+
+WRONG example (double counting):
+{
+  "ingredients_detail": [
+    {"name": "Fried Chicken", "calories": 150},
+    {"name": "Chicken", "calories": 100},  ← DUPLICATE!
+    {"name": "Flour", "calories": 30},     ← DUPLICATE!
+    {"name": "Oil", "calories": 20}        ← DUPLICATE!
+  ]
+}
+
+CORRECT example (hierarchical):
+{
+  "ingredients_detail": [
+    {
+      "name": "Deep-fried Chicken Pieces",
+      "name_en": "Deep-fried Chicken Pieces",
+      "detail": "Coated in batter and deep-fried",
+      "amount": 100,
+      "unit": "g",
+      "calories": 150,
+      "protein": 15,
+      "carbs": 8,
+      "fat": 8,
+      "sub_ingredients": [
+        {"name": "Chicken Meat", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
+        {"name": "Flour Batter", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
+        {"name": "Absorbed Oil", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
+      ]
+    }
+  ]
+}
 
 Respond in JSON only:
 {
@@ -877,6 +1174,81 @@ Respond in JSON only:
   ],
   "notes": "Flag hidden calorie sources and high sodium/sugar concerns"
 }''';
+  }
+
+  /// Prompt for analyzing PACKAGED PRODUCTS by name (text only)
+  /// Uses known nutrition facts data for well-known products
+  static String _getProductTextAnalysisPrompt(String productName,
+      {double? servingSize, String? servingUnit}) {
+    final hasUserServing = servingSize != null &&
+        servingSize > 0 &&
+        servingUnit != null &&
+        servingUnit.isNotEmpty;
+    final servingDesc =
+        hasUserServing ? '$servingSize $servingUnit' : '1 serving';
+    final servingSizeJson = hasUserServing ? servingSize : 1;
+    final servingUnitJson = hasUserServing ? servingUnit : 'serving';
+
+    return '''You are a Packaged Food & Nutrition Label Expert.
+
+The user wants nutrition data for a WELL-KNOWN PACKAGED PRODUCT (with a Nutrition Facts label).
+
+Product: "$productName"
+Portion: $servingDesc
+
+YOUR TASK:
+1. Identify the product (brand, variant, flavor)
+2. Use the OFFICIAL nutrition facts data for this product
+3. Calculate nutrition for the specified portion
+
+IMPORTANT RULES:
+- Use known/official nutrition data — do NOT estimate like regular food
+- If the product has a known Nutrition Facts label, use those exact values
+- If the user says "1 bag" or "1 bottle" and the product has multiple servings per container, calculate for the ENTIRE container
+- If you don't recognize the product, indicate low confidence and estimate based on similar products
+- serving_unit should match what makes sense: "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving"
+
+FIELD REQUIREMENTS:
+- serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
+- food_name: Keep original name as user entered
+- food_name_en: MUST ALWAYS be in English (include brand name)
+- "ingredients_detail" array is MANDATORY
+
+Respond in JSON only:
+{
+  "food_name": "$productName",
+  "food_name_en": "English product name with brand",
+  "confidence": 0.9,
+  "serving_size": $servingSizeJson,
+  "serving_unit": "$servingUnitJson",
+  "serving_grams": 28,
+  "nutrition": {
+    "calories": 150,
+    "protein": 2,
+    "carbs": 15,
+    "fat": 10,
+    "fiber": 1,
+    "sugar": 5,
+    "sodium": 170
+  },
+  "ingredients_detail": [
+    {
+      "name": "$productName",
+      "name_en": "English product name",
+      "detail": "Source: official nutrition facts. Per $servingDesc.",
+      "amount": $servingSizeJson,
+      "unit": "$servingUnitJson",
+      "calories": 150,
+      "protein": 2,
+      "carbs": 15,
+      "fat": 10
+    }
+  ],
+  "ingredients": [],
+  "notes": "Source: official nutrition facts for $productName. Portion: $servingDesc."
+}
+
+Return ONLY valid JSON.''';
   }
 }
 
@@ -913,14 +1285,16 @@ class FoodAnalysisResult {
     // Validate serving_unit: if Gemini returns "g" / "ml" with serving_size <= 1 → fallback to "serving"
     var rawUnit = json['serving_unit'] as String? ?? 'serving';
     var rawSize = (json['serving_size'] ?? 1).toDouble();
-    
+
     // "1 g" for a plate of food is unreasonable → change to "serving"
-    if ((rawUnit == 'g' || rawUnit == 'กรัม' || rawUnit == 'ml') && rawSize <= 1) {
-      AppLogger.warn('serving_unit "$rawUnit" with size $rawSize is unreasonable → fallback to "serving"');
+    if ((rawUnit == 'g' || rawUnit == 'กรัม' || rawUnit == 'ml') &&
+        rawSize <= 1) {
+      AppLogger.warn(
+          'serving_unit "$rawUnit" with size $rawSize is unreasonable → fallback to "serving"');
       rawUnit = 'serving';
       rawSize = 1.0;
     }
-    
+
     return FoodAnalysisResult(
       foodName: json['food_name'] ?? 'Unknown',
       foodNameEn: json['food_name_en'],
@@ -945,34 +1319,44 @@ class FoodAnalysisResult {
 class IngredientDetail {
   final String name;
   final String? nameEn;
+  final String? detail; // NEW
   final double amount;
   final String unit;
   final double calories;
   final double protein;
   final double carbs;
   final double fat;
+  final List<IngredientDetail>? subIngredients; // NEW: recursive
 
   IngredientDetail({
     required this.name,
     this.nameEn,
+    this.detail, // NEW
     required this.amount,
     required this.unit,
     required this.calories,
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.subIngredients, // NEW
   });
 
   factory IngredientDetail.fromJson(Map<String, dynamic> json) {
     return IngredientDetail(
       name: json['name'] ?? '',
       nameEn: json['name_en'],
+      detail: json['detail'], // NEW
       amount: (json['amount'] ?? 0).toDouble(),
       unit: json['unit'] ?? 'g',
       calories: (json['calories'] ?? 0).toDouble(),
       protein: (json['protein'] ?? 0).toDouble(),
       carbs: (json['carbs'] ?? 0).toDouble(),
       fat: (json['fat'] ?? 0).toDouble(),
+      subIngredients: json['sub_ingredients'] != null // NEW
+          ? (json['sub_ingredients'] as List)
+              .map((e) => IngredientDetail.fromJson(e))
+              .toList()
+          : null,
     );
   }
 }

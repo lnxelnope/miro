@@ -29,11 +29,15 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Handle app lifecycle to properly manage camera
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
     if (state == AppLifecycleState.inactive) {
+      // Mark as not initialized BEFORE disposing to prevent buildPreview() on disposed controller
+      if (mounted) {
+        setState(() {
+          _isInitialized = false;
+        });
+      }
       _cameraController?.dispose();
+      _cameraController = null;
     } else if (state == AppLifecycleState.resumed) {
       _initializeCamera();
     }
@@ -69,7 +73,10 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _cameraController?.dispose();
+    final controller = _cameraController;
+    _cameraController = null;
+    _isInitialized = false;
+    controller?.dispose();
     super.dispose();
   }
 
@@ -154,24 +161,28 @@ class _CameraScreenState extends State<CameraScreen>
 
   /// Build camera preview with correct aspect ratio (fill screen, crop excess)
   Widget _buildCameraPreview() {
-    if (!_isInitialized || _cameraController == null) {
+    if (!_isInitialized ||
+        _cameraController == null ||
+        !_cameraController!.value.isInitialized) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
-    // previewSize จาก camera package อยู่ในรูปแบบ landscape เสมอ
-    // เช่น Size(1920, 1080) → width=1920(ยาว), height=1080(สั้น)
-    // เมื่อถือแนวตั้ง ต้องสลับ: portrait width = 1080, portrait height = 1920
-    final previewSize = _cameraController!.value.previewSize!;
+    final previewSize = _cameraController!.value.previewSize;
+    if (previewSize == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
 
     return SizedBox.expand(
       child: FittedBox(
         fit: BoxFit.cover,
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
-          width: previewSize.height,  // portrait width
-          height: previewSize.width,  // portrait height
+          width: previewSize.height, // portrait width
+          height: previewSize.width, // portrait height
           child: CameraPreview(_cameraController!),
         ),
       ),
@@ -303,7 +314,8 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildTopButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildTopButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

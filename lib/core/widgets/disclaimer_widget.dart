@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:miro_hybrid/core/constants/app_disclaimer.dart';
+import '../theme/app_icons.dart';
 import 'package:miro_hybrid/features/legal/presentation/disclaimer_screen.dart';
 
 /// Reusable disclaimer widget that can be added to any screen
@@ -32,7 +32,7 @@ class DisclaimerWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('⚠️', style: TextStyle(fontSize: 16)),
+          Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

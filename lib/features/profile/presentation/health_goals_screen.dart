@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -39,7 +40,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _proteinController = TextEditingController();
     _carbController = TextEditingController();
     _fatController = TextEditingController();
-    
+
     // Listen for changes
     _calorieController.addListener(_onCalorieChanged);
     _proteinController.addListener(() => _onMacroChanged('protein'));
@@ -73,7 +74,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _proteinController.text = pGram.toInt().toString();
     _carbController.text = cGram.toInt().toString();
     _fatController.text = fGram.toInt().toString();
-    
+
     // ────── ถ้ามี 2 macros ล็อคอยู่แล้ว คำนวณ unlocked macro ทันที ──────
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
@@ -87,15 +88,19 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   double get _fatGrams => double.tryParse(_fatController.text) ?? 0;
 
   // ===== Lock helpers =====
-  int get _lockedCount => 
+  int get _lockedCount =>
       (_proteinLocked ? 1 : 0) + (_carbLocked ? 1 : 0) + (_fatLocked ? 1 : 0);
 
   bool _isLocked(String macro) {
     switch (macro) {
-      case 'protein': return _proteinLocked;
-      case 'carbs': return _carbLocked;
-      case 'fat': return _fatLocked;
-      default: return false;
+      case 'protein':
+        return _proteinLocked;
+      case 'carbs':
+        return _carbLocked;
+      case 'fat':
+        return _fatLocked;
+      default:
+        return false;
     }
   }
 
@@ -104,15 +109,21 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     if (_isLocked(macro)) {
       setState(() {
         switch (macro) {
-          case 'protein': _proteinLocked = false; break;
-          case 'carbs': _carbLocked = false; break;
-          case 'fat': _fatLocked = false; break;
+          case 'protein':
+            _proteinLocked = false;
+            break;
+          case 'carbs':
+            _carbLocked = false;
+            break;
+          case 'fat':
+            _fatLocked = false;
+            break;
         }
       });
       // หลังปลดล็อค ไม่ต้องคำนวณ (ให้ user แก้เอง)
       return;
     }
-    
+
     // Can only lock if less than 2 are locked
     if (_lockedCount >= 2) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -123,15 +134,21 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       );
       return;
     }
-    
+
     setState(() {
       switch (macro) {
-        case 'protein': _proteinLocked = true; break;
-        case 'carbs': _carbLocked = true; break;
-        case 'fat': _fatLocked = true; break;
+        case 'protein':
+          _proteinLocked = true;
+          break;
+        case 'carbs':
+          _carbLocked = true;
+          break;
+        case 'fat':
+          _fatLocked = true;
+          break;
       }
     });
-    
+
     // ────── หลังล็อค macro ที่ 2 ให้คำนวณ macro ที่ unlocked ทันที ──────
     _autoCalculateUnlocked();
   }
@@ -150,21 +167,21 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       _autoCalculateUnlocked();
       return;
     }
-    
+
     // If this is the unlocked macro and 2 are locked, don't trigger recalculation
     // (let user type freely)
     if (_lockedCount == 2) return;
-    
+
     setState(() {});
   }
 
   /// Auto-calculate the unlocked macro based on calories and locked macros
   void _autoCalculateUnlocked() {
     if (_lockedCount != 2) return;
-    
+
     final targetCalories = _calories;
     if (targetCalories <= 0) return;
-    
+
     // Find which macro is unlocked
     String? unlockedMacro;
     if (!_proteinLocked) {
@@ -174,16 +191,18 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     } else if (!_fatLocked) {
       unlockedMacro = 'fat';
     }
-    
+
     if (unlockedMacro == null) return;
-    
+
     // Calculate remaining calories
-    final lockedCalories = (_proteinLocked ? _proteinGrams * _kCalPerGramProtein : 0) +
-                           (_carbLocked ? _carbGrams * _kCalPerGramCarbs : 0) +
-                           (_fatLocked ? _fatGrams * _kCalPerGramFat : 0);
-    
-    final remainingCalories = (targetCalories - lockedCalories).clamp(0, targetCalories);
-    
+    final lockedCalories =
+        (_proteinLocked ? _proteinGrams * _kCalPerGramProtein : 0) +
+            (_carbLocked ? _carbGrams * _kCalPerGramCarbs : 0) +
+            (_fatLocked ? _fatGrams * _kCalPerGramFat : 0);
+
+    final remainingCalories =
+        (targetCalories - lockedCalories).clamp(0, targetCalories);
+
     // Calculate grams for unlocked macro
     double unlockedGrams;
     switch (unlockedMacro) {
@@ -200,7 +219,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
         _fatController.text = unlockedGrams.round().toString();
         break;
     }
-    
+
     setState(() {});
   }
 
@@ -238,7 +257,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                         child: Text(
                           'Set your daily calorie goal, then enter macro values in grams.\n'
                           '🔒 Lock up to 2 macros; the 3rd will auto-calculate to match calories.',
-                          style: TextStyle(color: AppColors.primary, fontSize: 13),
+                          style:
+                              TextStyle(color: AppColors.primary, fontSize: 13),
                         ),
                       ),
                     ],
@@ -285,9 +305,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                 const SizedBox(height: 28),
 
                 // ===== Quick Presets =====
-                const Text(
-                  '⚡ Quick Presets',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                AppIcons.iconWithLabel(
+                  AppIcons.target,
+                  'Quick Presets',
+                  iconColor: AppIcons.targetColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -296,23 +319,38 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   children: [
                     _buildPresetChip(
                       label: 'Lose Weight',
-                      cal: 1500, pGram: 131, cGram: 150, fGram: 42,
+                      cal: 1500,
+                      pGram: 131,
+                      cGram: 150,
+                      fGram: 42,
                     ),
                     _buildPresetChip(
                       label: 'Maintain',
-                      cal: 2000, pGram: 150, cGram: 225, fGram: 56,
+                      cal: 2000,
+                      pGram: 150,
+                      cGram: 225,
+                      fGram: 56,
                     ),
                     _buildPresetChip(
                       label: 'Build Muscle',
-                      cal: 2500, pGram: 219, cGram: 281, fGram: 56,
+                      cal: 2500,
+                      pGram: 219,
+                      cGram: 281,
+                      fGram: 56,
                     ),
                     _buildPresetChip(
                       label: 'Keto',
-                      cal: 1800, pGram: 113, cGram: 23, fGram: 140,
+                      cal: 1800,
+                      pGram: 113,
+                      cGram: 23,
+                      fGram: 140,
                     ),
                     _buildPresetChip(
                       label: 'Balanced',
-                      cal: 2000, pGram: 150, cGram: 200, fGram: 67,
+                      cal: 2000,
+                      pGram: 150,
+                      cGram: 200,
+                      fGram: 67,
                     ),
                   ],
                 ),
@@ -333,10 +371,14 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        : const Text('Save',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -355,9 +397,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '🔥 Daily Calorie Goal',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        AppIcons.iconWithLabel(
+          AppIcons.calories,
+          'Daily Calorie Goal',
+          iconColor: AppIcons.caloriesColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
         TextField(
@@ -395,7 +440,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     final grams = double.tryParse(controller.text) ?? 0;
     final kcal = grams * kcalPerGram;
     final isLocked = _isLocked(macroKey);
-    
+
     // แสดง "auto" badge ถ้า macro นี้ไม่ได้ล็อคและมี 2 macros ถูกล็อคแล้ว
     final isAutoCalculated = !isLocked && _lockedCount == 2;
 
@@ -431,7 +476,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     if (isAutoCalculated) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -492,12 +538,14 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   fontSize: 12,
                   color: isAutoCalculated ? Colors.grey[500] : Colors.grey[600],
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: color, width: 2),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               ),
             ),
           ),
@@ -513,9 +561,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '💧 Daily Water Goal',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        AppIcons.iconWithLabel(
+          Icons.water_drop_rounded,
+          'Daily Water Goal',
+          iconColor: Colors.blue.shade600,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
         TextField(

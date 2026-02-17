@@ -26,7 +26,7 @@ class GoalsVsActualTable extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Table
             Table(
               columnWidths: const {
@@ -52,7 +52,7 @@ class GoalsVsActualTable extends StatelessWidget {
                     _buildHeaderCell('Diff'),
                   ],
                 ),
-                
+
                 // Calories row
                 _buildDataRow(
                   'Calories',
@@ -61,7 +61,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.caloriesDifference,
                   summary.isCaloriesOver,
                 ),
-                
+
                 // Protein row
                 _buildDataRow(
                   'Protein',
@@ -70,7 +70,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.proteinDifference,
                   summary.isProteinOver,
                 ),
-                
+
                 // Carbs row
                 _buildDataRow(
                   'Carbohydrates',
@@ -79,7 +79,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.carbsDifference,
                   summary.isCarbsOver,
                 ),
-                
+
                 // Fat row
                 _buildDataRow(
                   'Fat',
@@ -117,7 +117,9 @@ class GoalsVsActualTable extends StatelessWidget {
     double difference,
     bool isOver,
   ) {
-    final diffText = difference >= 0 ? '+${difference.toStringAsFixed(0)}' : difference.toStringAsFixed(0);
+    final diffText = difference >= 0
+        ? '+${difference.toStringAsFixed(0)}'
+        : difference.toStringAsFixed(0);
     final diffColor = isOver ? Colors.red : Colors.green;
 
     return TableRow(

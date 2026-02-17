@@ -5,12 +5,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../health/presentation/health_page.dart';
+import '../../health/presentation/health_timeline_tab.dart';
+import '../../health/presentation/health_my_meal_tab.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
-import '../../profile/presentation/profile_screen.dart';
 import '../../camera/presentation/camera_screen.dart';
+import '../../chat/presentation/chat_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
-import '../widgets/magic_button.dart';
 import '../widgets/feature_tour.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -22,12 +24,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _hasRequestedPermissions = false;
-  
-  // Add GlobalKeys for Feature Tour
+  int _currentIndex = 0;
+
+  // Add GlobalKey for Feature Tour (Energy Badge only)
   final _energyBadgeKey = GlobalKey();
-  final _timelineAreaKey = GlobalKey();
-  final _magicButtonKey = GlobalKey();
-  
+
   @override
   void initState() {
     super.initState();
@@ -35,28 +36,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // 1. Request permissions first
       await _checkAndRequestPermissions();
-      
+
       // 2. Show feature tour (only first time)
       await _checkAndShowFeatureTour();
-      
+
       // 3. Set context for Welcome Offer notifications
       if (mounted) {
         GeminiService.setContext(context);
       }
+
+      // 4. Set cuisine preference for AI analysis bias
+      try {
+        final profile = await ref.read(userProfileProvider.future);
+        GeminiService.setCuisinePreference(profile.cuisinePreference);
+      } catch (_) {
+        // Silent fail — defaults to 'international'
+      }
     });
   }
-  
+
   Future<void> _checkAndRequestPermissions() async {
     if (_hasRequestedPermissions) return;
     _hasRequestedPermissions = true;
-    
+
     AppLogger.info('Checking and requesting permissions...');
-    
+
     final permissionService = PermissionService();
     final isFirstLaunch = await permissionService.isFirstLaunch();
-    
+
     AppLogger.info('isFirstLaunch: $isFirstLaunch');
-    
+
     if (isFirstLaunch) {
       // Show permission dialog
       if (mounted) {
@@ -67,17 +76,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // Check existing permissions
       final hasGallery = await permissionService.hasGalleryPermission();
       AppLogger.info('hasGalleryPermission: $hasGallery');
-      
+
       if (!hasGallery && mounted) {
         // Request permission if not granted
         await permissionService.requestGalleryPermission();
       }
     }
   }
-  
+
   Future<void> _showPermissionDialog() async {
     AppLogger.info('Showing Permission Dialog...');
-    
+
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -128,18 +137,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
-  
+
   Future<void> _requestAllPermissions() async {
     AppLogger.info('Requesting all permissions...');
-    
+
     final permissionService = PermissionService();
     final results = await permissionService.requestInitialPermissions();
-    
+
     AppLogger.info('Permission results: $results');
-    
+
     if (mounted) {
       final allGranted = results.values.every((granted) => granted);
-      
+
       if (allGranted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -148,11 +157,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         );
       } else {
-        final denied = results.entries
-            .where((e) => !e.value)
-            .map((e) => e.key)
-            .join(', ');
-        
+        final denied =
+            results.entries.where((e) => !e.value).map((e) => e.key).join(', ');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Permission denied: $denied'),
@@ -172,69 +179,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Map display index: Camera (2) is fullscreen, so IndexedStack skips it
+    final stackIndex = _currentIndex > 2 ? _currentIndex - 1 : _currentIndex;
+
     return Scaffold(
       appBar: _buildAppBar(),
-      body: Stack(
-        children: [
-          HealthPage(key: _timelineAreaKey),
+      body: IndexedStack(
+        index: stackIndex,
+        children: const [
+          HealthTimelineTab(), // 0: Dashboard
+          HealthMyMealTab(), // 1: My Meals
+          ChatScreen(), // 2 (mapped from 3): Chat
         ],
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Camera Button
-            SizedBox(
-              width: 48.0,
-              height: 48.0,
-              child: FloatingActionButton(
-                heroTag: 'camera_fab',
-                onPressed: () async {
-                  if (!mounted) return;
-                  final navigator = Navigator.of(context);
-                  
-                  final File? capturedImage = await navigator.push<File>(
-                    MaterialPageRoute(
-                      builder: (context) => const CameraScreen(),
-                    ),
-                  );
-                  
-                  if (capturedImage != null && mounted) {
-                    // Navigate to preview screen
-                    navigator.push(
-                      MaterialPageRoute(
-                        builder: (context) => ImageAnalysisPreviewScreen(
-                          imageFile: capturedImage,
-                        ),
-                      ),
-                    );
-                  }
-                },
-                backgroundColor: AppColors.primary,
-                child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
-              ),
-            ),
-            const SizedBox(width: 12),
-            
-            // Chat Button
-            MagicButton(key: _magicButtonKey),
-          ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
+    String title;
+    switch (_currentIndex) {
+      case 0:
+        title = "Today's Intake";
+        break;
+      case 1:
+        title = 'My Meals';
+        break;
+      case 2:
+        title = 'Camera';
+        break;
+      case 3:
+        title = 'AI Chat';
+        break;
+      default:
+        title = 'MIRO';
+    }
+
     return AppBar(
-      title: const Text(
-        'MIRO',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          letterSpacing: 2,
-        ),
-      ),
+      title: Text(title),
       leading: Padding(
         key: _energyBadgeKey,
         padding: const EdgeInsets.only(left: 8.0),
@@ -242,42 +224,100 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: EnergyBadgeRiverpod(),
         ),
       ),
-      leadingWidth: 80, // ปรับความกว้างให้พอดีกับ badge ขนาดเล็ก
+      leadingWidth: 80,
       actions: [
+        // Profile icon button (top-right)
         IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: () => _openProfile(),
+          icon: const Icon(Icons.person_outline),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+            );
+          },
+          tooltip: 'Profile',
         ),
       ],
     );
   }
 
-
-  void _openProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+  Widget _buildBottomNav() {
+    return BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        if (index == 2) {
+          // Camera → open fullscreen route (don't embed in IndexedStack)
+          _openFullScreenCamera();
+          return;
+        }
+        setState(() => _currentIndex = index);
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.textSecondary,
+      selectedFontSize: 12,
+      unselectedFontSize: 12,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.restaurant_menu_outlined),
+          activeIcon: Icon(Icons.restaurant_menu),
+          label: 'My Meals',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.camera_alt_outlined),
+          activeIcon: Icon(Icons.camera_alt),
+          label: 'Camera',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.auto_awesome_outlined),
+          activeIcon: Icon(Icons.auto_awesome),
+          label: 'AI Chat',
+        ),
+      ],
     );
   }
 
+  /// Open Camera as fullscreen route, then navigate to analysis if photo taken
+  Future<void> _openFullScreenCamera() async {
+    final File? capturedImage = await Navigator.push<File>(
+      context,
+      MaterialPageRoute(builder: (context) => const CameraScreen()),
+    );
+
+    if (capturedImage != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ImageAnalysisPreviewScreen(
+            imageFile: capturedImage,
+          ),
+        ),
+      );
+    }
+  }
+
   /// Check and show feature tour (first time only)
+  /// Simplified to show only Energy Badge
   Future<void> _checkAndShowFeatureTour() async {
     final hasCompleted = await FeatureTour.hasCompletedTour();
-    
+
     if (!hasCompleted && mounted) {
-      // Wait for UI to render (500ms)
-      await Future.delayed(const Duration(milliseconds: 500));
-      
+      // Wait for UI to render (800ms)
+      await Future.delayed(const Duration(milliseconds: 800));
+
       if (!mounted) return;
-      
-      // Build tour targets
+
+      // Build tour target (Energy Badge only)
       final targets = [
         FeatureTour.buildEnergyBadgeTarget(_energyBadgeKey),
-        FeatureTour.buildPullRefreshTarget(_timelineAreaKey),
-        FeatureTour.buildChatButtonTarget(_magicButtonKey),
       ];
-      
-      // Show tour
+
+      // Show tour (auto-dismiss after 5 seconds)
       FeatureTour.show(
         context: context,
         targets: targets,
@@ -290,5 +330,4 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
   }
-
 }

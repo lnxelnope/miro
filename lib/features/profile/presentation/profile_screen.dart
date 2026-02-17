@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/constants/cuisine_options.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/ai/gemini_service.dart';
 import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
@@ -22,6 +24,10 @@ import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 import '../../home/widgets/feature_tour.dart';
 import '../../../core/services/backup_service.dart';
+import '../../../features/energy/providers/gamification_provider.dart';
+import '../../subscription/presentation/subscription_screen.dart';
+import '../../referral/presentation/referral_screen.dart';
+import 'package:flutter/services.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -34,202 +40,474 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Profile & Settings'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          'Profile & Settings',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        centerTitle: true,
       ),
       body: ref.watch(profileNotifierProvider).when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
-        data: (profile) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Avatar
-              _buildAvatarSection(context, profile.name ?? 'User'),
-              const SizedBox(height: 24),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Center(child: Text('Error: $e')),
+            data: (profile) => SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Modern Avatar Section
+                  _buildModernAvatarSection(context, profile.name ?? 'User'),
+                  const SizedBox(height: 28),
 
-              // Health Goals
-              _buildSectionTitle('🎯 Health Goals'),
-              _buildSettingCard(
-                context: context,
-                title: 'Daily Goals',
-                subtitle: '${profile.calorieGoal.toInt()} kcal • P ${profile.proteinGoal.toInt()}g • C ${profile.carbGoal.toInt()}g • F ${profile.fatGoal.toInt()}g',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HealthGoalsScreen()),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // AI Chat Mode
-              _buildSectionTitle('🤖 Chat AI Mode'),
-              _buildAiModeSettingCard(context),
-              const SizedBox(height: 16),
-
-              // Cuisine Preference
-              _buildSectionTitle('🍽️ Cuisine Preference'),
-              _buildCuisinePreferenceCard(context, profile),
-              const SizedBox(height: 16),
-
-              // Gallery Scan Settings
-              _buildSectionTitle('📸 Photo Scan'),
-              _ScanSettingsCard(),
-              const SizedBox(height: 16),
-
-              // ===== ซ่อนสำหรับ v1.0 =====
-              // Connections
-              // _buildSectionTitle('📅 การเชื่อมต่อ'),
-              // _buildGoogleCalendarCard(context),
-              // _buildSettingCard(
-              //   context: context,
-              //   title: 'Health Connect',
-              //   subtitle: profile.isHealthConnectConnected
-              //       ? '✅ เชื่อมต่อแล้ว'
-              //       : 'ยังไม่เชื่อมต่อ',
-              //   onTap: () => _showComingSoon(context, 'Health Connect'),
-              // ),
-              // const SizedBox(height: 16),
-
-              // Insights
-              // _buildSectionTitle('📊 Insights'),
-              // _buildSettingCard(
-              //   context: context,
-              //   title: 'สรุปสัปดาห์',
-              //   subtitle: 'ดูสถิติและแนวโน้ม',
-              //   onTap: () => Navigator.push(
-              //     context,
-              //     MaterialPageRoute(builder: (_) => const WeeklySummaryScreen()),
-              //   ),
-              // ),
-              // const SizedBox(height: 16),
-              // ===== จบซ่อน v1.0 =====
-
-              // Data
-              _buildSectionTitle('💾 Data'),
-              // ===== Backup & Restore (v1.1.3+) =====
-              _buildSettingCard(
-                context: context,
-                title: 'Backup Data',
-                subtitle: 'Energy + Food History → save as file',
-                leading: const Icon(Icons.backup, color: Colors.blue),
-                onTap: () => _handleBackup(context),
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Restore from Backup',
-                subtitle: 'Import data from backup file',
-                leading: const Icon(Icons.restore, color: Colors.green),
-                onTap: () => _handleRestore(context),
-              ),
-              // ===== End Backup & Restore =====
-              _buildSettingCard(
-                context: context,
-                title: 'Clear All Data',
-                textColor: AppColors.error,
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                onTap: () => _confirmClearAllData(context),
-              ),
-              const SizedBox(height: 16),
-
-              // About
-              _buildSectionTitle('ℹ️ About'),
-              _buildSettingCard(
-                context: context,
-                title: 'Version',
-                subtitle: '1.0.2',
-                showArrow: false,
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Privacy Policy',
-                leading: const Icon(Icons.privacy_tip_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
-                ),
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Terms of Service',
-                leading: const Icon(Icons.description_outlined),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const TermsScreen()),
-                ),
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Health Disclaimer',
-                subtitle: 'Important legal information',
-                leading: const Icon(Icons.warning_amber, color: Colors.orange),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DisclaimerScreen()),
-                ),
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Show Tutorial Again',
-                subtitle: 'View feature tour',
-                leading: const Icon(Icons.lightbulb_outline),
-                onTap: () => _showTutorialAgain(),
-              ),
-              _buildSettingCard(
-                context: context,
-                title: 'Food Analysis Tutorial',
-                subtitle: 'Learn how to use food analysis features',
-                leading: const Icon(Icons.school),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const TutorialFoodAnalysisScreen(),
+                  // Health Goals
+                  _buildModernSectionTitle('🎯 Health Goals'),
+                  const SizedBox(height: 12),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Daily Goals',
+                    subtitle:
+                        '${profile.calorieGoal.toInt()} kcal • P ${profile.proteinGoal.toInt()}g • C ${profile.carbGoal.toInt()}g • F ${profile.fatGoal.toInt()}g',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const HealthGoalsScreen()),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // AI Chat Mode
+                  _buildModernSectionTitle('🤖 Chat AI Mode'),
+                  const SizedBox(height: 12),
+                  _buildAiModeSettingCard(context),
+                  const SizedBox(height: 24),
+
+                  // Cuisine Preference
+                  _buildModernSectionTitle('🍽️ Cuisine Preference'),
+                  const SizedBox(height: 12),
+                  _buildCuisinePreferenceCard(context, profile),
+                  const SizedBox(height: 24),
+
+                  // Gallery Scan Settings
+                  _buildModernSectionTitle('📸 Photo Scan'),
+                  const SizedBox(height: 12),
+                  _ScanSettingsCard(),
+                  const SizedBox(height: 24),
+
+                  // Account
+                  _buildModernSectionTitle('🆔 Account'),
+                  const SizedBox(height: 12),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final gamification = ref.watch(gamificationProvider);
+                      return _buildModernSettingCard(
+                        context: context,
+                        title: 'MiRO ID',
+                        subtitle: gamification.miroId.isEmpty
+                            ? 'Loading...'
+                            : gamification.miroId,
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.badge_outlined,
+                              color: Colors.purple.shade600, size: 20),
+                        ),
+                        showArrow: false,
+                        trailing: gamification.miroId.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.copy, size: 18),
+                                onPressed: () {
+                                  Clipboard.setData(
+                                    ClipboardData(text: gamification.miroId),
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('MiRO ID copied!'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              )
+                            : null,
+                      );
+                    },
+                  ),
+                  // Phase 4: Referral
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Invite Friends',
+                    subtitle: 'Share your referral code and earn rewards!',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.people_outline,
+                          color: Colors.green.shade600, size: 20),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ReferralScreen(),
+                      ),
+                    ),
+                  ),
+                  // Phase 5: Subscription
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final gamification = ref.watch(gamificationProvider);
+                      return _buildModernSettingCard(
+                        context: context,
+                        title: 'Energy Pass',
+                        subtitle: gamification.isSubscriber
+                            ? 'Active subscription'
+                            : 'Unlimited AI + Double rewards',
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(Icons.diamond,
+                              color: Colors.purple.shade600, size: 20),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SubscriptionScreen(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Data
+                  _buildModernSectionTitle('💾 Data'),
+                  const SizedBox(height: 12),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Backup Data',
+                    subtitle: 'Energy + Food History → save as file',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.backup,
+                          color: Colors.blue.shade600, size: 20),
+                    ),
+                    onTap: () => _handleBackup(context),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Restore from Backup',
+                    subtitle: 'Import data from backup file',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.restore,
+                          color: Colors.green.shade600, size: 20),
+                    ),
+                    onTap: () => _handleRestore(context),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Clear All Data',
+                    textColor: AppColors.error,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.delete_forever,
+                          color: Colors.red.shade600, size: 20),
+                    ),
+                    onTap: () => _confirmClearAllData(context),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // About
+                  _buildModernSectionTitle('ℹ️ About'),
+                  const SizedBox(height: 12),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Version',
+                    subtitle: '1.0.2',
+                    showArrow: false,
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Privacy Policy',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.privacy_tip_outlined,
+                          color: Colors.purple.shade600, size: 20),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const PrivacyPolicyScreen()),
+                    ),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Terms of Service',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.description_outlined,
+                          color: Colors.indigo.shade600, size: 20),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TermsScreen()),
+                    ),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Health Disclaimer',
+                    subtitle: 'Important legal information',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.warning_amber,
+                          color: Colors.orange.shade600, size: 20),
+                    ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const DisclaimerScreen()),
+                    ),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Show Tutorial Again',
+                    subtitle: 'View feature tour',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.lightbulb_outline,
+                          color: Colors.amber.shade700, size: 20),
+                    ),
+                    onTap: () => _showTutorialAgain(),
+                  ),
+                  _buildModernSettingCard(
+                    context: context,
+                    title: 'Food Analysis Tutorial',
+                    subtitle: 'Learn how to use food analysis features',
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(Icons.school,
+                          color: Colors.teal.shade600, size: 20),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const TutorialFoodAnalysisScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 40),
+                ],
               ),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 
-  Widget _buildAvatarSection(BuildContext context, String name) {
+  Widget _buildModernAvatarSection(BuildContext context, String name) {
     return Column(
       children: [
-        const CircleAvatar(
-          radius: 50,
-          backgroundColor: AppColors.primaryLight,
-          child: Icon(
-            Icons.person,
-            size: 50,
-            color: AppColors.primary,
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [AppColors.primary, AppColors.health],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.white,
+            child: Icon(
+              Icons.person,
+              size: 50,
+              color: AppColors.primary,
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Text(
           name,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+  Widget _buildModernSectionTitle(String title) {
+    // Helper method to extract icon and label from emoji-prefixed title
+    IconData? icon;
+    String label;
+    
+    if (title.startsWith('🎯')) {
+      icon = AppIcons.target;
+      label = title.substring(2).trim();
+    } else if (title.startsWith('🤖')) {
+      icon = AppIcons.ai;
+      label = title.substring(2).trim();
+    } else if (title.startsWith('🍽️')) {
+      icon = AppIcons.meal;
+      label = title.substring(3).trim();
+    } else if (title.startsWith('📸')) {
+      icon = AppIcons.camera;
+      label = title.substring(2).trim();
+    } else if (title.startsWith('💾')) {
+      icon = AppIcons.save;
+      label = title.substring(2).trim();
+    } else if (title.startsWith('ℹ️')) {
+      icon = AppIcons.info;
+      label = title.substring(2).trim();
+    } else {
+      label = title;
+    }
+    
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: icon != null
+          ? AppIcons.iconWithLabel(
+              icon,
+              label,
+              iconColor: AppIcons.infoColor,
+              iconSize: 20,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            )
+          : Text(
+              label,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.3,
+              ),
+            ),
+    );
+  }
+
+  Widget _buildModernSettingCard({
+    required BuildContext context,
+    required String title,
+    String? subtitle,
+    Widget? leading,
+    Widget? trailing,
+    Color? textColor,
+    VoidCallback? onTap,
+    bool showArrow = true,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                if (leading != null) ...[
+                  leading,
+                  const SizedBox(width: 14),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trailing != null)
+                  trailing
+                else if (showArrow)
+                  Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey.shade400,
+                    size: 20,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -262,7 +540,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: const Color(0xFF6366F1),
               title: 'Miro AI',
               subtitle: 'Powered by Gemini • Multi-language • High accuracy',
-              cost: '2⚡ + 1⚡/item',
+              cost: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  const Text('2 + ', style: TextStyle(fontSize: 12)),
+                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  const Text('/item', style: TextStyle(fontSize: 12)),
+                ],
+              ),
               isSelected: isMiroAi,
               onTap: () {
                 ref.read(chatAiModeProvider.notifier).state = ChatAiMode.miroAi;
@@ -276,7 +562,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: Colors.green,
               title: 'Local AI',
               subtitle: 'On-device • English only • Basic accuracy',
-              cost: 'Free',
+              cost: const Text('Free', style: TextStyle(fontSize: 12)),
               isSelected: !isMiroAi,
               onTap: () {
                 ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
@@ -315,14 +601,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: CuisineOptions.options.map((option) {
                 final isSelected = profile.cuisinePreference == option['key'];
                 return ChoiceChip(
-                  avatar: Text(option['flag']!, style: const TextStyle(fontSize: 16)),
+                  avatar: Text(option['flag']!,
+                      style: const TextStyle(fontSize: 16)),
                   label: Text(option['label']!),
                   selected: isSelected,
                   onSelected: (selected) async {
                     if (selected) {
                       profile.cuisinePreference = option['key']!;
-                      await ref.read(profileNotifierProvider.notifier)
+                      await ref
+                          .read(profileNotifierProvider.notifier)
                           .updateProfile(profile);
+                      // Sync cuisine preference to AI analysis
+                      GeminiService.setCuisinePreference(option['key']!);
                       if (ctx.mounted) Navigator.pop(ctx);
                     }
                   },
@@ -347,7 +637,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required Color color,
     required String title,
     required String subtitle,
-    required String cost,
+    required Widget cost,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -360,7 +650,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           color: isSelected ? color.withOpacity(0.08) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
+            color: isSelected
+                ? color.withOpacity(0.4)
+                : Colors.grey.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -411,20 +703,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: cost == 'Free'
-                              ? Colors.green.withOpacity(0.1)
-                              : Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Text(
-                          cost,
+                        child: DefaultTextStyle(
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: cost == 'Free' ? Colors.green : Colors.orange.shade700,
+                            color: Colors.orange.shade700,
                           ),
+                          child: cost,
                         ),
                       ),
                     ],
@@ -454,32 +745,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     bool showArrow = true,
     VoidCallback? onTap,
     Widget? leading,
-    Widget? trailing,
   }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: leading,
-        title: Text(
-          title,
-          style: TextStyle(
-            color: textColor ?? AppColors.textPrimary,
-          ),
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle,
-                style: const TextStyle(color: AppColors.textSecondary),
-              )
-            : null,
-        trailing: trailing ?? (showArrow
-            ? const Icon(
-                Icons.chevron_right,
-                color: AppColors.textSecondary,
-              )
-            : null),
-        onTap: onTap,
-      ),
+    // Delegate to modern version
+    return _buildModernSettingCard(
+      context: context,
+      title: title,
+      subtitle: subtitle,
+      leading: leading,
+      textColor: textColor,
+      onTap: onTap,
+      showArrow: showArrow,
     );
   }
 
@@ -618,7 +893,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete All', style: TextStyle(color: Colors.white)),
+            child:
+                const Text('Delete All', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -683,15 +959,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
     );
-    
+
     if (confirm != true || !context.mounted) return;
-    
+
     // Reset tutorial flag
     await FeatureTour.resetTour();
-    
+
     // Show success message
     if (!context.mounted) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Tutorial reset! Go to Home screen to view it.'),
@@ -844,9 +1120,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Text(
-              '⚠️ Important:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            Row(
+              children: [
+                Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
+                const SizedBox(width: 4),
+                const Text(
+                  'Important:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             const Text(
@@ -898,7 +1180,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Preview Info
-              _buildInfoRow('Backup from:', info.deviceInfo ?? 'Unknown device'),
+              _buildInfoRow(
+                  'Backup from:', info.deviceInfo ?? 'Unknown device'),
               _buildInfoRow(
                 'Date:',
                 _formatDate(info.createdAt),
@@ -995,12 +1278,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             _buildInfoRow('New Energy Balance:', '${result.newEnergyBalance}'),
-            _buildInfoRow('Food Entries Imported:', '${result.foodEntriesImported}'),
+            _buildInfoRow(
+                'Food Entries Imported:', '${result.foodEntriesImported}'),
             _buildInfoRow('My Meals Imported:', '${result.myMealsImported}'),
             const SizedBox(height: 16),
-            const Text(
-              '✨ Your app will refresh to show the restored data.',
-              style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+            Row(
+              children: [
+                Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
+                const SizedBox(width: 4),
+                const Text(
+                  'Your app will refresh to show the restored data.',
+                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                ),
+              ],
             ),
           ],
         ),
@@ -1098,10 +1388,10 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
   Future<void> _loadSettings() async {
     final permService = PermissionService();
     final galleryService = GalleryService();
-    
+
     _scanDaysBack = await permService.getScanDaysBack();
     _scanImageLimit = await galleryService.getScanLimit();
-    
+
     if (mounted) setState(() {});
   }
 
@@ -1115,15 +1405,18 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
             leading: const Icon(Icons.history, color: AppColors.primary),
             title: const Text('Scan history'),
             subtitle: Text('$_scanDaysBack days'),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            trailing:
+                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             onTap: _showScanDaysBackDialog,
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
+            leading: const Icon(Icons.photo_library_outlined,
+                color: AppColors.primary),
             title: const Text('Images to scan'),
             subtitle: Text('$_scanImageLimit images'),
-            trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            trailing:
+                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             onTap: _showScanLimitDialog,
           ),
           const Divider(height: 1),
@@ -1258,21 +1551,22 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
             .filter()
             .sourceEqualTo(DataSource.galleryScanned)
             .findAll();
-        
+
         final ids = scanEntries.map((e) => e.id).toList();
-        
+
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.foodEntries.deleteAll(ids);
         });
-        
+
         AppLogger.info('Deleted ${ids.length} gallery-scanned entries');
-        
+
         // 2. ลบ last scan timestamp
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('last_scan_timestamp');
-        
+
         if (!mounted) return;
-        _showMessage('Reset complete - ${ids.length} entries deleted. Pull down to scan again.');
+        _showMessage(
+            'Reset complete - ${ids.length} entries deleted. Pull down to scan again.');
       } catch (e) {
         AppLogger.error('Error resetting scan history', e);
         if (!mounted) return;

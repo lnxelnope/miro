@@ -44,7 +44,8 @@ class QuickAddItem {
 }
 
 /// ดึง Top 5 อาหารที่กินบ่อยสุด (จาก MyMeal + Ingredient)
-final topQuickAddItemsProvider = FutureProvider<List<QuickAddItem>>((ref) async {
+final topQuickAddItemsProvider =
+    FutureProvider<List<QuickAddItem>>((ref) async {
   final items = <QuickAddItem>[];
 
   // 1. ดึง MyMeal ที่ใช้บ่อยสุด
@@ -113,7 +114,8 @@ final topQuickAddItemsProvider = FutureProvider<List<QuickAddItem>>((ref) async 
 });
 
 /// ดึง entries ของเมื่อวาน แยกตามมื้อ
-final yesterdayEntriesProvider = FutureProvider<Map<MealType, List<FoodEntry>>>((ref) async {
+final yesterdayEntriesProvider =
+    FutureProvider<Map<MealType, List<FoodEntry>>>((ref) async {
   final yesterday = DateTime.now().subtract(const Duration(days: 1));
   final startOfDay = DateTime(yesterday.year, yesterday.month, yesterday.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -158,12 +160,13 @@ class RepeatDayInfo {
 /// ดึง repeat day option (ถ้าเมื่อวานมีรายการ)
 final repeatDayProvider = FutureProvider<RepeatDayInfo?>((ref) async {
   final grouped = await ref.watch(yesterdayEntriesProvider.future);
-  
+
   if (grouped.isEmpty) return null;
-  
+
   final allEntries = grouped.values.expand((list) => list).toList();
-  final totalCal = allEntries.fold<double>(0, (sum, entry) => sum + entry.calories);
-  
+  final totalCal =
+      allEntries.fold<double>(0, (sum, entry) => sum + entry.calories);
+
   return RepeatDayInfo(
     entries: allEntries,
     totalCalories: totalCal,
@@ -175,7 +178,8 @@ final repeatOptionsProvider = FutureProvider<List<RepeatMealInfo>>((ref) async {
   final grouped = await ref.watch(yesterdayEntriesProvider.future);
 
   return grouped.entries.map((e) {
-    final totalCal = e.value.fold<double>(0, (sum, entry) => sum + entry.calories);
+    final totalCal =
+        e.value.fold<double>(0, (sum, entry) => sum + entry.calories);
     return RepeatMealInfo(
       mealType: e.key,
       entries: e.value,

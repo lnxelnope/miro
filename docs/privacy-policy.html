@@ -61,104 +61,165 @@
 <body>
     <h1>Privacy Policy</h1>
     <p><strong>MiRO — My Intake Record Oracle</strong></p>
-    <p><strong>Effective Date:</strong> February 13, 2026<br>
-    <strong>Last Updated:</strong> February 13, 2026</p>
+    <p><strong>Effective Date:</strong> February 17, 2026<br>
+    <strong>Last Updated:</strong> February 17, 2026</p>
     
     <div class="highlight">
-        <strong>🔒 Your food data stays on your device. Energy balance synced securely via Firebase.</strong>
+        <strong>Your food data stays on your device. No account required. No personal data collected. Energy balance synced securely via Firebase.</strong>
     </div>
 
     <h2>1. Information We Collect</h2>
-    <p>MiRO stores the following data <strong>locally on your device</strong> (Offline-first):</p>
-    <ul>
-        <li>Food entries (name, calories, nutrients)</li>
-        <li>Food photos (stored locally on your device)</li>
-        <li>Health goals (kcal, macros)</li>
-        <li>Basic personal information (name, gender, age, weight, height)</li>
-        <li>Created meal recipes (My Meals)</li>
-        <li>Saved ingredients (Ingredients)</li>
-        <li>Energy balance (for AI features)</li>
-        <li>Energy purchase history (via Google Play)</li>
-    </ul>
-
-    <h2>2. Data Transmission to Third Parties</h2>
     
-    <h3>2.1 In-App Purchase</h3>
+    <h3>1.1 Data Stored Locally on Your Device (Offline-First)</h3>
+    <p>The following data is stored <strong>only on your device</strong> and is never transmitted to our servers:</p>
     <ul>
-        <li><strong>Purchase data</strong> → Processed via Google Play Billing</li>
-        <li>Payment information is handled by Google, not by us</li>
-        <li>We only store Product ID and Purchase Token to verify purchases</li>
+        <li>Food entries (name, calories, nutrients, photos)</li>
+        <li>Health goals (daily calorie goal, macro targets, water goal)</li>
+        <li>Basic personal information (name, gender, age, weight, height, activity level)</li>
+        <li>Cuisine preference (your typical cuisine selection)</li>
+        <li>Created meal recipes (My Meals) and saved ingredients</li>
+        <li>AI Chat history and chat sessions</li>
+        <li>App settings and preferences</li>
     </ul>
 
-    <h3>2.2 Firebase Services</h3>
+    <h3>1.2 Data Transmitted to Our Servers</h3>
     <ul>
-        <li><strong>Device ID</strong> → Used to manage Energy balance and prevent fraudulent usage</li>
-        <li><strong>Cloud Functions</strong> → Process AI requests and manage Energy deduction</li>
-        <li><strong>Firestore</strong> → Stores Energy balance for cross-device synchronization</li>
+        <li><strong>Device ID</strong> — A unique identifier generated for your device, used to manage Energy balance and prevent fraud. This is NOT linked to your personal identity.</li>
+        <li><strong>Energy balance</strong> — Synced with Firebase Firestore for persistence across app reinstalls.</li>
+        <li><strong>Food photos (temporarily)</strong> — When you use AI analysis, your food photo is sent to our backend server (Firebase Cloud Functions) for processing by Google Gemini AI. Photos are processed in real-time and are <strong>not stored</strong> on our servers.</li>
+        <li><strong>Chat messages (temporarily)</strong> — When using MiRO AI chat, your messages are sent to our backend for AI processing. Messages are processed in real-time and are <strong>not stored</strong> on our servers.</li>
+        <li><strong>Referral codes</strong> — If you use the referral system, your MiRO ID and referral interactions are stored in Firebase.</li>
     </ul>
 
-    <h2>3. Data Storage</h2>
+    <h3>1.3 Data We Do NOT Collect</h3>
     <ul>
-        <li>All food data and personal information stored <strong>locally on your device</strong> (Local database)</li>
-        <li>Energy balance synchronized with Firebase Firestore for cross-device persistence</li>
-        <li>No cloud backup of food data (if you uninstall the app, local food data will be lost)</li>
-        <li>You can delete all local data anytime (Profile → Clear Data)</li>
+        <li>No email address</li>
+        <li>No phone number</li>
+        <li>No real name (unless you optionally set one in your profile)</li>
+        <li>No location data</li>
+        <li>No contacts or address book</li>
+        <li>No advertising identifiers</li>
     </ul>
 
-    <h2>4. Required Permissions</h2>
+    <h2>2. Third-Party Services</h2>
+    
+    <h3>2.1 Google Play Billing</h3>
+    <ul>
+        <li>Energy Token purchases and Energy Pass subscriptions are processed via Google Play Billing</li>
+        <li>Payment information is handled entirely by Google — we never see your credit card or payment details</li>
+        <li>We only store the Product ID and Purchase Token to verify purchases</li>
+    </ul>
+
+    <h3>2.2 Firebase Services (Google)</h3>
+    <ul>
+        <li><strong>Cloud Functions</strong> — Processes AI analysis requests and manages Energy deduction</li>
+        <li><strong>Firestore</strong> — Stores Energy balance, subscription status, referral data, and gamification state</li>
+        <li><strong>Firebase Analytics</strong> — Collects anonymous usage statistics (e.g., which features are used most, error rates). No personal data is included. You can opt out via your device's analytics settings.</li>
+    </ul>
+
+    <h3>2.3 Google Gemini AI</h3>
+    <ul>
+        <li>Food photos and text descriptions are processed by Google Gemini AI via our Firebase backend</li>
+        <li>Data is processed in real-time and not stored by our backend</li>
+        <li>Google's AI processing is subject to <a href="https://policies.google.com/privacy">Google's Privacy Policy</a></li>
+    </ul>
+
+    <h2>3. Gallery Access</h2>
+    <ul>
+        <li>MiRO can scan your photo gallery for food photos (Pull-to-Refresh feature)</li>
+        <li>Gallery scanning is performed <strong>entirely on your device</strong> using ML Kit (on-device machine learning)</li>
+        <li>No gallery photos are uploaded to our servers unless you explicitly choose to analyze a photo with AI</li>
+        <li>You can control gallery scan settings (date range, image limit) in Profile → Photo Scan Settings</li>
+    </ul>
+
+    <h2>4. Subscription Data</h2>
+    <ul>
+        <li>If you subscribe to Energy Pass, your subscription status is stored in Firebase Firestore (linked to your Device ID)</li>
+        <li>Subscription management (renewal, cancellation) is handled through Google Play</li>
+        <li>We store: subscription status, start date, expiry date, and product ID</li>
+    </ul>
+
+    <h2>5. Referral System</h2>
+    <ul>
+        <li>Your MiRO ID (a unique code) may be shared voluntarily with friends for referral rewards</li>
+        <li>Referral interactions (who referred whom) are stored in Firebase Firestore</li>
+        <li>No personal information is shared between referrer and referee — only MiRO IDs</li>
+    </ul>
+
+    <h2>6. Required Permissions</h2>
     <table>
         <tr>
             <th>Permission</th>
             <th>Purpose</th>
+            <th>Required?</th>
         </tr>
         <tr>
             <td>Camera</td>
             <td>Take food photos for AI analysis</td>
+            <td>Optional (needed for photo analysis)</td>
         </tr>
         <tr>
             <td>Photos/Gallery</td>
-            <td>Select food photos from gallery</td>
+            <td>Select food photos from gallery; auto-scan for food photos</td>
+            <td>Optional (needed for gallery features)</td>
         </tr>
         <tr>
             <td>Internet</td>
-            <td>Send photos to AI API and sync Energy balance</td>
+            <td>Send photos to AI backend; sync Energy balance; process purchases</td>
+            <td>Required for AI features; not needed for manual logging</td>
         </tr>
     </table>
 
-    <h2>5. User Rights</h2>
+    <h2>7. Data Storage and Security</h2>
     <ul>
-        <li>Delete all local data anytime</li>
-        <li>Uninstall the app to remove all local data</li>
-        <li>Energy balance persists across app reinstalls (linked to your device)</li>
-        <li>Request Energy data deletion by contacting support</li>
-    </ul>
-
-    <h2>6. Security</h2>
-    <ul>
+        <li>All food data and personal information stored <strong>locally on your device</strong></li>
+        <li>Energy balance and subscription data synchronized with Firebase Firestore (encrypted in transit)</li>
+        <li>Sensitive data (Energy tokens) stored using Flutter Secure Storage (encrypted at rest)</li>
         <li>Energy transactions secured via Firebase with device authentication</li>
-        <li>Local data stored in encrypted Local Database (Isar)</li>
-        <li>No analytics, tracking, or advertising SDKs</li>
         <li>Payment processing handled securely by Google Play Billing</li>
     </ul>
 
-    <h2>7. Children's Privacy</h2>
+    <h2>8. Backup and Data Portability</h2>
+    <ul>
+        <li>You can export your food data and Energy balance using the Backup feature (Profile → Backup Data)</li>
+        <li>Backup files are saved locally on your device — we do not have access to them</li>
+        <li>You can import data from a backup file (Profile → Restore from Backup)</li>
+        <li>Transfer Keys are one-time use and expire after 30 days</li>
+    </ul>
+
+    <h2>9. User Rights</h2>
+    <ul>
+        <li>Delete all local data anytime (Profile → Clear All Data)</li>
+        <li>Uninstall the app to remove all local data</li>
+        <li>Energy balance persists across app reinstalls (linked to your device)</li>
+        <li>Request server-side data deletion (Energy balance, referral data) by contacting support</li>
+        <li>Export your data at any time using the Backup feature</li>
+    </ul>
+
+    <h2>10. Children's Privacy</h2>
     <p>MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.</p>
 
-    <h2>8. Data Retention</h2>
+    <h2>11. Data Retention</h2>
     <ul>
         <li><strong>Local food data:</strong> Retained until you delete it or uninstall the app</li>
         <li><strong>Energy balance:</strong> Retained indefinitely (linked to your device)</li>
+        <li><strong>Subscription data:</strong> Retained while subscription is active, plus as required by law</li>
+        <li><strong>Referral data:</strong> Retained indefinitely</li>
         <li><strong>Purchase records:</strong> Retained as required by Google Play and tax regulations</li>
+        <li><strong>Analytics data:</strong> Subject to Google's data retention policies</li>
     </ul>
 
-    <h2>9. Changes to This Policy</h2>
+    <h2>12. International Users</h2>
+    <p>MiRO is available globally. Data processing occurs on Firebase servers (Google Cloud). By using MiRO, you consent to the processing of your data as described in this policy, regardless of your location.</p>
+
+    <h2>13. Changes to This Policy</h2>
     <p>We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
 
-    <h2>10. Contact Us</h2>
-    <p>If you have questions about this Privacy Policy, please contact us through <strong>Google Play Store</strong>.</p>
+    <h2>14. Contact Us</h2>
+    <p>If you have questions about this Privacy Policy, please contact us through <strong>Google Play Store</strong> or via the app's support channel.</p>
 
     <div class="footer">
-        <p>&copy; 2026 MiRO. All rights reserved.</p>
+        <p>&copy; 2026 MiRO — My Intake Record Oracle. All rights reserved.</p>
     </div>
 </body>
 </html>

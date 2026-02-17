@@ -43,7 +43,7 @@ class _MicronutrientChartsSectionState
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.show_chart,
                         color: AppColors.primary,
                         size: 24,
@@ -59,9 +59,7 @@ class _MicronutrientChartsSectionState
                         ),
                       ),
                       Icon(
-                        _isExpanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
                         color: Colors.grey[600],
                       ),
                     ],
@@ -104,7 +102,7 @@ class _MicronutrientChartsSectionState
                           ],
                         ),
                       ),
-                      
+
                       const SizedBox(height: 24),
 
                       // Individual micronutrient charts
@@ -114,28 +112,28 @@ class _MicronutrientChartsSectionState
                           Colors.green,
                           Icons.grass,
                         ),
-                      
+
                       if (stats.sugar != null)
                         _buildMicronutrientCard(
                           stats.sugar!,
                           Colors.pink,
                           Icons.cake,
                         ),
-                      
+
                       if (stats.sodium != null)
                         _buildMicronutrientCard(
                           stats.sodium!,
                           Colors.orange,
                           Icons.water_drop,
                         ),
-                      
+
                       if (stats.cholesterol != null)
                         _buildMicronutrientCard(
                           stats.cholesterol!,
                           Colors.red,
                           Icons.favorite,
                         ),
-                      
+
                       if (stats.saturatedFat != null)
                         _buildMicronutrientCard(
                           stats.saturatedFat!,
@@ -202,9 +200,9 @@ class _MicronutrientChartsSectionState
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Average values
           Row(
             children: [
@@ -236,9 +234,9 @@ class _MicronutrientChartsSectionState
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Chart (last 30 days)
           if (stats.dailyValues.isNotEmpty) ...[
             const Text(
@@ -283,7 +281,7 @@ class _MicronutrientChartsSectionState
           ),
           const SizedBox(height: 4),
           Text(
-            '${value.toStringAsFixed(1)}',
+            value.toStringAsFixed(1),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -315,7 +313,9 @@ class _MicronutrientChartsSectionState
         .map((entry) => FlSpot(entry.key.toDouble(), entry.value.value))
         .toList();
 
-    final maxY = stats.dailyValues.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
+    final maxY =
+        stats.dailyValues.map((e) => e.value).reduce((a, b) => a > b ? a : b) *
+            1.2;
 
     return LineChart(
       LineChartData(
@@ -332,13 +332,15 @@ class _MicronutrientChartsSectionState
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: stats.dailyValues.length > 10 ? stats.dailyValues.length / 5 : 1,
+              interval: stats.dailyValues.length > 10
+                  ? stats.dailyValues.length / 5
+                  : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < stats.dailyValues.length) {
@@ -380,7 +382,7 @@ class _MicronutrientChartsSectionState
             color: color,
             barWidth: 3,
             isStrokeCapRound: true,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               color: color.withOpacity(0.15),

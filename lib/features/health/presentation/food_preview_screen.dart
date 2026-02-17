@@ -3,13 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/constants/ai_loading_messages.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../core/widgets/search_mode_selector.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 
@@ -29,10 +30,12 @@ class FoodPreviewScreen extends ConsumerStatefulWidget {
 
 class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   bool _isAnalyzing = false;
+  bool _isCancelled = false;
   bool _hasAnalyzed = false;
   bool _hasGeminiKey = false;
   FoodAnalysisResult? _analysisResult;
   String? _error;
+  FoodSearchMode _searchMode = FoodSearchMode.normal;
 
   // Editable fields
   late TextEditingController _nameController;
@@ -41,7 +44,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   late TextEditingController _carbsController;
   late TextEditingController _fatController;
   late TextEditingController _servingSizeController;
-  
+
   String _servingUnit = 'serving';
   MealType _selectedMealType = MealType.lunch;
 
@@ -61,13 +64,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     _carbsController = TextEditingController(text: '0');
     _fatController = TextEditingController(text: '0');
     _servingSizeController = TextEditingController(text: '1');
-    
+
     // Detect meal type based on time
     _selectedMealType = _detectMealType();
-    
+
     // ฟัง serving size เปลี่ยน → recalculate kcal/macro
     _servingSizeController.addListener(_onServingSizeChanged);
-    
+
     // Check if API key exists and start analysis
     _checkAndAnalyze();
   }
@@ -86,7 +89,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     setState(() {
       _hasGeminiKey = true; // Energy System พร้อมใช้งานเสมอ
     });
-    
+
     // ถ้า autoAnalyze = true (มาจากแชท) ให้วิเคราะห์ทันที
     if (widget.autoAnalyze && mounted) {
       await _analyzeFood();
@@ -101,7 +104,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     if (newServing <= 0) return;
 
     setState(() {
-      _caloriesController.text = (_baseCalories * newServing).round().toString();
+      _caloriesController.text =
+          (_baseCalories * newServing).round().toString();
       _proteinController.text = (_baseProtein * newServing).round().toString();
       _carbsController.text = (_baseCarbs * newServing).round().toString();
       _fatController.text = (_baseFat * newServing).round().toString();
@@ -110,6 +114,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
   @override
   void dispose() {
+    _isCancelled = true;
     _servingSizeController.removeListener(_onServingSizeChanged);
     _nameController.dispose();
     _caloriesController.dispose();
@@ -120,9 +125,61 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     super.dispose();
   }
 
+  /// เตือนผู้ใช้ก่อนออกขณะ AI กำลังวิเคราะห์
+  Future<bool> _onWillPop() async {
+    if (!_isAnalyzing) return true;
+
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            SizedBox(width: 12),
+            Expanded(child: Text('กำลังวิเคราะห์อยู่')),
+          ],
+        ),
+        content: const Text(
+          'AI กำลังวิเคราะห์อาหารอยู่\n\n'
+          'ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป '
+          'และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('รอต่อ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('ออกเลย'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLeave == true) {
+      _isCancelled = true;
+      return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !_isAnalyzing,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldLeave = await _onWillPop();
+        if (shouldLeave && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Save Food'),
         actions: [
@@ -158,7 +215,19 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             // Analysis status
             if (_isAnalyzing) _buildAnalyzingIndicator(),
             if (_error != null) _buildErrorMessage(),
-            if (_hasAnalyzed && _analysisResult != null) _buildAnalysisSuccess(),
+            if (_hasAnalyzed && _analysisResult != null)
+              _buildAnalysisSuccess(),
+
+            // Search Mode Toggle (show before analysis)
+            if (!_hasAnalyzed && !_isAnalyzing)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: SearchModeSelector(
+                  selectedMode: _searchMode,
+                  onChanged: (mode) => setState(() => _searchMode = mode),
+                ),
+              ),
 
             // Manual analyze button (if no auto-analyze)
             if (!_hasAnalyzed && !_isAnalyzing) _buildAnalyzeButton(),
@@ -187,11 +256,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   flex: 2,
                   child: TextField(
                     controller: _servingSizeController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'ปริมาณ',
-                      helperText: _hasBaseValues ? 'เปลี่ยน → แคลเปลี่ยนตาม' : null,
-                      helperStyle: TextStyle(fontSize: 11, color: Colors.purple.shade300),
+                      helperText:
+                          _hasBaseValues ? 'เปลี่ยน → แคลเปลี่ยนตาม' : null,
+                      helperStyle: TextStyle(
+                          fontSize: 11, color: Colors.purple.shade300),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -211,7 +283,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     ),
                     items: UnitConverter.allDropdownItems,
                     onChanged: (value) {
-                      if (value != null && value.isNotEmpty) setState(() => _servingUnit = value);
+                      if (value != null && value.isNotEmpty) {
+                        setState(() => _servingUnit = value);
+                      }
                     },
                   ),
                 ),
@@ -233,7 +307,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 14, color: AppColors.textSecondary),
+                    const Icon(Icons.info_outline,
+                        size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -252,32 +327,38 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             const SizedBox(height: 24),
 
             // Macros
-            const Text(
-              '💪 Macros',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            AppIcons.iconWithLabel(
+              AppIcons.macros,
+              'Macros',
+              iconColor: AppIcons.macrosColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _buildMacroInput('Protein', _proteinController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        'Protein', _proteinController, AppColors.health)),
                 const SizedBox(width: 8),
-                Expanded(child: _buildMacroInput('Carbs', _carbsController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        'Carbs', _carbsController, AppColors.health)),
                 const SizedBox(width: 8),
-                Expanded(child: _buildMacroInput('Fat', _fatController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        'Fat', _fatController, AppColors.health)),
               ],
             ),
             const SizedBox(height: 24),
 
             // Meal type
-            const Text(
-              '🍽️ มื้ออาหาร',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            AppIcons.iconWithLabel(
+              AppIcons.meal,
+              'มื้ออาหาร',
+              iconColor: AppIcons.mealColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -285,7 +366,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               children: MealType.values.map((type) {
                 final isSelected = _selectedMealType == type;
                 return ChoiceChip(
-                  label: Text('${type.icon} ${type.displayName}'),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(type.icon, size: 16, color: type.iconColor),
+                      const SizedBox(width: 6),
+                      Text(type.displayName),
+                    ],
+                  ),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) setState(() => _selectedMealType = type);
@@ -294,16 +382,18 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 );
               }).toList(),
             ),
-            
+
             // แสดงวัตถุดิบ (ถ้ามี)
-            if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
+            if (_hasAnalyzed &&
+                _analysisResult?.ingredientsDetail != null &&
+                _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
               const SizedBox(height: 24),
-              const Text(
-                '🥘 Ingredients',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              AppIcons.iconWithLabel(
+                Icons.restaurant_menu_rounded,
+                'Ingredients',
+                iconColor: AppIcons.mealColor,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               const SizedBox(height: 8),
               Container(
@@ -314,7 +404,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _analysisResult!.ingredientsDetail!.map((ingredient) {
+                  children:
+                      _analysisResult!.ingredientsDetail!.map((ingredient) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Text(
@@ -326,7 +417,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 100),
           ],
         ),
@@ -353,16 +444,24 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    '💾 บันทึก',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(AppIcons.save, size: 20, color: Colors.white),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'บันทึก',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -381,7 +480,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           SizedBox(width: 12),
-          const Text('📸 PROCESSING IMAGE DATA...'),
+          Text('PROCESSING IMAGE DATA...'),
         ],
       ),
     );
@@ -441,9 +540,15 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           const Icon(Icons.check_circle, color: AppColors.success),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              '✨ AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
-              style: const TextStyle(color: AppColors.success),
+            child: Row(
+              children: [
+                Icon(AppIcons.aiAnalyzed, size: 16, color: AppColors.success),
+                const SizedBox(width: 4),
+                Text(
+                  'AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
+                  style: const TextStyle(color: AppColors.success),
+                ),
+              ],
             ),
           ),
         ],
@@ -459,13 +564,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: _isAnalyzing ? null : _analyzeFood,
-          icon: _isAnalyzing 
+          icon: _isAnalyzing
               ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('✨'),
+              : Icon(AppIcons.aiAnalyzed, size: 20, color: Colors.purple),
           label: Text(_isAnalyzing ? 'ANALYZING...' : 'AI Analysis'),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.purple,
@@ -475,7 +580,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         ),
       );
     }
-    
+
     // Manual input hint
     return Container(
       margin: const EdgeInsets.all(0),
@@ -514,12 +619,12 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       ),
       child: Column(
         children: [
-          const Text(
-            '🔥 CALORIES',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.health,
-            ),
+          AppIcons.iconWithLabel(
+            AppIcons.calories,
+            'CALORIES',
+            iconColor: AppIcons.caloriesColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 8),
           Row(
@@ -584,7 +689,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     );
   }
 
-  Widget _buildMacroInput(String label, TextEditingController controller, Color color) {
+  Widget _buildMacroInput(
+      String label, TextEditingController controller, Color color) {
     return Column(
       children: [
         Text(
@@ -628,25 +734,34 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     setState(() {
       _isAnalyzing = true;
+      _isCancelled = false;
       _error = null;
     });
 
     try {
-      final result = await GeminiService.analyzeFoodImage(widget.imageFile);
-      
+      final result = await GeminiService.analyzeFoodImage(
+        widget.imageFile,
+        searchMode: _searchMode,
+      );
+
+      // ถ้า user กดออกระหว่างรอ → หยุดทำงาน
+      if (_isCancelled || !mounted) return;
+
       if (result != null) {
         // === Record AI Usage หลังสำเร็จ ===
         await UsageLimiter.recordAiUsage();
+        if (_isCancelled || !mounted) return;
         setState(() {
           _analysisResult = result;
           _hasAnalyzed = true;
-          
+
           // Fill in fields
           _nameController.text = result.foodName;
           _servingUnit = _getValidUnit(result.servingUnit);
 
           // คำนวณ base values (ต่อ 1 หน่วย) จาก Gemini
-          final geminiServing = result.servingSize > 0 ? result.servingSize : 1.0;
+          final geminiServing =
+              result.servingSize > 0 ? result.servingSize : 1.0;
           _baseCalories = result.nutrition.calories / geminiServing;
           _baseProtein = result.nutrition.protein / geminiServing;
           _baseCarbs = result.nutrition.carbs / geminiServing;
@@ -655,7 +770,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
           // ต้อง remove listener ก่อน set text เพื่อไม่ให้ trigger ซ้ำ
           _servingSizeController.removeListener(_onServingSizeChanged);
-          _caloriesController.text = result.nutrition.calories.toInt().toString();
+          _caloriesController.text =
+              result.nutrition.calories.toInt().toString();
           _proteinController.text = result.nutrition.protein.toInt().toString();
           _carbsController.text = result.nutrition.carbs.toInt().toString();
           _fatController.text = result.nutrition.fat.toInt().toString();
@@ -666,16 +782,17 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         setState(() => _error = 'ไม่สามารถวิเคราะห์ภาพได้');
       }
     } catch (e) {
-      if (mounted) {
-        // ตรวจสอบว่าเป็น Energy error หรือไม่
-        if (e.toString().contains('Insufficient energy')) {
-          await NoEnergyDialog.show(context);
-        } else {
-          setState(() => _error = e.toString());
-        }
+      if (_isCancelled || !mounted) return;
+      // ตรวจสอบว่าเป็น Energy error หรือไม่
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+      } else {
+        setState(() => _error = e.toString());
       }
     } finally {
-      setState(() => _isAnalyzing = false);
+      if (mounted) {
+        setState(() => _isAnalyzing = false);
+      }
     }
   }
 
@@ -690,7 +807,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     final calories = double.tryParse(_caloriesController.text) ?? 0;
     // อนุญาตให้บันทึกด้วยค่า 0 ได้ (จะวิเคราะห์ด้วย Gemini ทีหลัง)
-    
+
     // Create entry
     final protein = double.tryParse(_proteinController.text) ?? 0;
     final carbs = double.tryParse(_carbsController.text) ?? 0;
@@ -698,7 +815,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
     final entry = FoodEntry()
-      ..foodName = _nameController.text.trim().isEmpty ? 'อาหาร (รอวิเคราะห์)' : _nameController.text.trim()
+      ..foodName = _nameController.text.trim().isEmpty
+          ? 'อาหาร (รอวิเคราะห์)'
+          : _nameController.text.trim()
       ..foodNameEn = _analysisResult?.foodNameEn
       ..calories = calories
       ..protein = protein
@@ -717,11 +836,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       ..source = _hasAnalyzed ? DataSource.aiAnalyzed : DataSource.manual
       ..aiConfidence = _analysisResult?.confidence
       ..isVerified = _hasAnalyzed;
-    
+
     // บันทึกวัตถุดิบ (ถ้ามี) จาก AI analysis
-    if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) {
+    if (_hasAnalyzed &&
+        _analysisResult?.ingredientsDetail != null &&
+        _analysisResult!.ingredientsDetail!.isNotEmpty) {
       entry.ingredientsJson = jsonEncode(_analysisResult!.ingredientsDetail);
-      AppLogger.info('Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
+      AppLogger.info(
+          'Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
     }
 
     // Save
@@ -731,7 +853,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Food saved successfully! 🎉'),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.success, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              const Text('Food saved successfully!'),
+            ],
+          ),
           backgroundColor: AppColors.success,
         ),
       );

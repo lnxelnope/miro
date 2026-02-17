@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
@@ -145,7 +146,13 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text('✏️ Edit Ingredient', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            AppIcons.iconWithLabel(
+              AppIcons.edit,
+              'Edit Ingredient',
+              iconColor: AppIcons.editColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
             const SizedBox(height: 20),
 
             // Name (Thai)
@@ -189,7 +196,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<String>(
-                    value: _baseUnit,
+                    initialValue: _baseUnit,
                     items: UnitConverter.compactDropdownItems,
                     onChanged: (newUnit) {
                       if (newUnit != null) {
@@ -220,7 +227,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '📊 Nutrition per ${_baseAmountController.text.isEmpty ? "..." : _baseAmountController.text} $_baseUnit',
+                    'Nutrition per ${_baseAmountController.text.isEmpty ? "..." : _baseAmountController.text} $_baseUnit',
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                   const SizedBox(height: 12),
@@ -229,7 +236,8 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Calories (kcal)',
-                      prefixText: '🔥 ',
+                      prefixIcon: Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
+                      prefixText: '',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
@@ -279,7 +287,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                '💡 Nutrition calculated per ${_baseAmountController.text} $_baseUnit — system will auto-calculate based on actual amount consumed',
+                'Nutrition calculated per ${_baseAmountController.text} $_baseUnit — system will auto-calculate based on actual amount consumed',
                 style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ),

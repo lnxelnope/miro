@@ -10,10 +10,10 @@ final energyServiceProvider = Provider<EnergyService>((ref) {
 /// Provider สำหรับ Energy Balance (auto-refresh)
 final energyBalanceProvider = StreamProvider<int>((ref) async* {
   final energyService = ref.watch(energyServiceProvider);
-  
+
   // Yield initial value
   yield await energyService.getBalance();
-  
+
   // Refresh every 5 seconds
   await for (final _ in Stream.periodic(const Duration(seconds: 5))) {
     yield await energyService.getBalance();

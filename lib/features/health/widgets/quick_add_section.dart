@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
@@ -75,7 +76,19 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final totalCount = quickCount + repeatCount + (hasRepeatDay ? 1 : 0);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -87,32 +100,41 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  const Icon(Icons.bolt, size: 16, color: Colors.amber),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Quick Add',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  const Icon(Icons.bolt, size: 18, color: Colors.amber),
                   const SizedBox(width: 6),
+                  Text(
+                    'Quick Add',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.health.withOpacity(0.15),
+                      color: AppColors.health.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '$totalCount',
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.health),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.health,
+                      ),
                     ),
                   ),
                   const Spacer(),
                   RotationTransition(
-                    turns: Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
-                    child: const Icon(Icons.expand_more, size: 20, color: AppColors.textSecondary),
+                    turns:
+                        Tween(begin: 0.0, end: 0.5).animate(_expandAnimation),
+                    child: Icon(
+                      Icons.expand_more,
+                      size: 20,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
                   ),
                 ],
               ),
@@ -126,7 +148,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 6),
+                const SizedBox(height: 12),
 
                 // "Same as Yesterday" (ทั้งวัน) — แสดงก่อนสุด
                 repeatDayAsync.when(
@@ -150,9 +172,13 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
                     return Wrap(
                       spacing: 8,
                       runSpacing: 6,
-                      children: items.map((item) => _buildQuickChip(
-                        context, ref, item,
-                      )).toList(),
+                      children: items
+                          .map((item) => _buildQuickChip(
+                                context,
+                                ref,
+                                item,
+                              ))
+                          .toList(),
                     );
                   },
                 ),
@@ -168,9 +194,13 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 6,
-                        children: options.map((opt) => _buildRepeatChip(
-                          context, ref, opt,
-                        )).toList(),
+                        children: options
+                            .map((opt) => _buildRepeatChip(
+                                  context,
+                                  ref,
+                                  opt,
+                                ))
+                            .toList(),
                       ),
                     );
                   },
@@ -186,9 +216,10 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
   }
 
   /// Chip สำหรับ "Same as Yesterday" (คัดลอกทั้งวัน)
-  Widget _buildRepeatDayChip(BuildContext context, WidgetRef ref, RepeatDayInfo repeatDay) {
+  Widget _buildRepeatDayChip(
+      BuildContext context, WidgetRef ref, RepeatDayInfo repeatDay) {
     return ActionChip(
-      avatar: const Text('🔄', style: TextStyle(fontSize: 14)),
+      avatar: Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
       label: Text(
         'Same as Yesterday (${repeatDay.totalCalories.toInt()} kcal)',
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
@@ -201,7 +232,8 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
   }
 
   /// Chip สำหรับ quick add (1 tap = บันทึกทันที)
-  Widget _buildQuickChip(BuildContext context, WidgetRef ref, QuickAddItem item) {
+  Widget _buildQuickChip(
+      BuildContext context, WidgetRef ref, QuickAddItem item) {
     return InputChip(
       avatar: Text(item.emoji, style: const TextStyle(fontSize: 14)),
       label: Text(
@@ -218,7 +250,8 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
   }
 
   /// Chip สำหรับ repeat yesterday
-  Widget _buildRepeatChip(BuildContext context, WidgetRef ref, RepeatMealInfo option) {
+  Widget _buildRepeatChip(
+      BuildContext context, WidgetRef ref, RepeatMealInfo option) {
     // แสดงชื่อตามประเภท: breakfast → "Yesterday Breakfast"
     String label;
     switch (option.mealType) {
@@ -235,9 +268,9 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
         label = 'Yesterday Snack';
         break;
     }
-    
+
     return ActionChip(
-      avatar: const Text('🔄', style: TextStyle(fontSize: 14)),
+      avatar: Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
       label: Text(
         '$label (${option.totalCalories.toInt()} kcal)',
         style: const TextStyle(fontSize: 12),
@@ -283,20 +316,31 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
 
     // เพิ่ม usage count
     if (item.myMealId != null) {
-      await ref.read(myMealNotifierProvider.notifier).incrementMealUsage(item.myMealId!);
+      await ref
+          .read(myMealNotifierProvider.notifier)
+          .incrementMealUsage(item.myMealId!);
     }
     if (item.ingredientId != null) {
-      await ref.read(myMealNotifierProvider.notifier).incrementIngredientUsage(item.ingredientId!);
+      await ref
+          .read(myMealNotifierProvider.notifier)
+          .incrementIngredientUsage(item.ingredientId!);
     }
 
     ref.invalidate(topQuickAddItemsProvider);
 
     if (!context.mounted) return;
-    
+
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     scaffoldMessenger.showSnackBar(
       SnackBar(
-        content: Text('⚡ บันทึก "${item.name}" ${item.calories.toInt()} kcal'),
+        content: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(AppIcons.energy, size: 16, color: AppIcons.energyColor),
+            const SizedBox(width: 4),
+            Text('บันทึก "${item.name}" ${item.calories.toInt()} kcal'),
+          ],
+        ),
         backgroundColor: AppColors.success,
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
@@ -310,7 +354,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
         ),
       ),
     );
-    
+
     // Auto-dismiss หลังจาก 1 วินาที (แม้จะมี action button)
     Timer(const Duration(seconds: 1), () {
       if (context.mounted) {
@@ -342,7 +386,14 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('🔄 $label'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(AppIcons.repeat, size: 20, color: AppIcons.repeatColor),
+            const SizedBox(width: 4),
+            Text(label),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,12 +404,12 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
             ),
             const SizedBox(height: 8),
             ...option.entries.map((e) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                '  • ${e.foodName} (${e.calories.toInt()} kcal)',
-                style: const TextStyle(fontSize: 13),
-              ),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Text(
+                    '  • ${e.foodName} (${e.calories.toInt()} kcal)',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                )),
           ],
         ),
         actions: [
@@ -421,7 +472,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '🔄 Copied ${option.entries.length} entries from $label '
+          'Copied ${option.entries.length} entries from $label '
           '(${option.totalCalories.toInt()} kcal)',
         ),
         backgroundColor: AppColors.success,
@@ -440,7 +491,8 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
   }
 
   /// ลบรายการออกจาก Quick Add (ลด usage count หรือลบ MyMeal/Ingredient)
-  Future<void> _deleteQuickAddItem(BuildContext context, WidgetRef ref, QuickAddItem item) async {
+  Future<void> _deleteQuickAddItem(
+      BuildContext context, WidgetRef ref, QuickAddItem item) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -491,7 +543,14 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('🔄 Same as Yesterday'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(AppIcons.repeat, size: 20, color: AppIcons.repeatColor),
+            const SizedBox(width: 4),
+            const Text('Same as Yesterday'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,7 +626,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '🔄 Copied ${repeatDay.entries.length} entries from yesterday '
+          'Copied ${repeatDay.entries.length} entries from yesterday '
           '(${repeatDay.totalCalories.toInt()} kcal)',
         ),
         backgroundColor: AppColors.success,

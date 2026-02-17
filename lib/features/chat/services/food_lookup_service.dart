@@ -49,16 +49,15 @@ class FoodLookupResult {
 }
 
 enum FoodLookupType {
-  fromMeal,        // พบใน MyMeal
-  fromIngredient,  // พบใน Ingredient
-  notFound,        // ไม่พบ → ใช้ค่า 0
+  fromMeal, // พบใน MyMeal
+  fromIngredient, // พบใน Ingredient
+  notFound, // ไม่พบ → ใช้ค่า 0
 }
 
 /// Service สำหรับค้นหาอาหารจาก MyMeal + Ingredient DB
 class FoodLookupService {
-
   /// ค้นหาอาหารจากชื่อ
-  /// 
+  ///
   /// [foodName] ชื่ออาหาร เช่น "ผัดกระเพราหมู"
   /// [servingSize] ปริมาณที่กิน เช่น 1.0
   /// [servingUnit] หน่วย เช่น "จาน"
@@ -78,7 +77,8 @@ class FoodLookupService {
     // ===== Step 1: ค้นหาจาก MyMeal =====
     final mealResult = await _searchMyMeal(foodName);
     if (mealResult != null) {
-      AppLogger.info('Found in MyMeal: "${mealResult.name}" (id=${mealResult.id})');
+      AppLogger.info(
+          'Found in MyMeal: "${mealResult.name}" (id=${mealResult.id})');
 
       // ดึง ingredients ของ meal
       final mealIngredients = await DatabaseService.myMealIngredients
@@ -97,7 +97,8 @@ class FoodLookupService {
           if (_fuzzyMatch(ing.ingredientName, ex)) {
             excluded = true;
             removedIngs.add(ing);
-            debugPrint('   ❌ ลบ: ${ing.ingredientName} (${ing.calories.toInt()} kcal)');
+            debugPrint(
+                '   ❌ ลบ: ${ing.ingredientName} (${ing.calories.toInt()} kcal)');
             break;
           }
         }
@@ -119,7 +120,8 @@ class FoodLookupService {
       // สร้าง display name
       String displayName = mealResult.name;
       if (excludeIngredients.isNotEmpty && removedIngs.isNotEmpty) {
-        displayName += ' (ไม่ใส่${removedIngs.map((e) => e.ingredientName).join(", ")})';
+        displayName +=
+            ' (ไม่ใส่${removedIngs.map((e) => e.ingredientName).join(", ")})';
       }
 
       // เพิ่ม usage count
@@ -137,7 +139,9 @@ class FoodLookupService {
         carbs: totalC,
         fat: totalF,
         servingSize: servingSize,
-        servingUnit: servingUnit.isNotEmpty ? servingUnit : mealResult.baseServingDescription,
+        servingUnit: servingUnit.isNotEmpty
+            ? servingUnit
+            : mealResult.baseServingDescription,
         displayName: displayName,
       );
     }
@@ -145,7 +149,8 @@ class FoodLookupService {
     // ===== Step 2: ค้นหาจาก Ingredient =====
     final ingredientResult = await _searchIngredient(foodName);
     if (ingredientResult != null) {
-      AppLogger.info('Found in Ingredient: "${ingredientResult.name}" (id=${ingredientResult.id})');
+      AppLogger.info(
+          'Found in Ingredient: "${ingredientResult.name}" (id=${ingredientResult.id})');
 
       final cal = ingredientResult.calcCalories(servingSize);
       final prot = ingredientResult.calcProtein(servingSize);
@@ -166,8 +171,10 @@ class FoodLookupService {
         carbs: carb,
         fat: fat2,
         servingSize: servingSize,
-        servingUnit: servingUnit.isNotEmpty ? servingUnit : ingredientResult.baseUnit,
-        displayName: '${ingredientResult.name} ${servingSize.toStringAsFixed(0)} ${ingredientResult.baseUnit}',
+        servingUnit:
+            servingUnit.isNotEmpty ? servingUnit : ingredientResult.baseUnit,
+        displayName:
+            '${ingredientResult.name} ${servingSize.toStringAsFixed(0)} ${ingredientResult.baseUnit}',
       );
     }
 
@@ -293,7 +300,8 @@ class FoodLookupService {
       v1[0] = i + 1;
       for (int j = 0; j < t.length; j++) {
         final cost = s[i] == t[j] ? 0 : 1;
-        v1[j + 1] = [v1[j] + 1, v0[j + 1] + 1, v0[j] + cost].reduce((a, b) => a < b ? a : b);
+        v1[j + 1] = [v1[j] + 1, v0[j + 1] + 1, v0[j] + cost]
+            .reduce((a, b) => a < b ? a : b);
       }
       final temp = v0;
       v0 = v1;

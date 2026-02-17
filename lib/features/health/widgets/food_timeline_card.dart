@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
 import '../models/food_entry.dart';
@@ -39,7 +40,8 @@ class FoodTimelineCard extends StatelessWidget {
                   color: AppColors.health.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: entry.imagePath != null && File(entry.imagePath!).existsSync()
+                child: entry.imagePath != null &&
+                        File(entry.imagePath!).existsSync()
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.file(
@@ -51,7 +53,7 @@ class FoodTimelineCard extends StatelessWidget {
                     : _buildPlaceholderIcon(),
               ),
               const SizedBox(width: 12),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -59,9 +61,10 @@ class FoodTimelineCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
+                        Icon(
                           entry.mealType.icon,
-                          style: const TextStyle(fontSize: 14),
+                          size: 16,
+                          color: entry.mealType.iconColor,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -86,7 +89,8 @@ class FoodTimelineCard extends StatelessWidget {
                         if (entry.isVerified)
                           const Padding(
                             padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.verified, size: 16, color: Colors.green),
+                            child: Icon(Icons.verified,
+                                size: 16, color: Colors.green),
                           ),
                         // ปุ่มวิเคราะห์ด้วย AI
                         if (onAnalyze != null)
@@ -105,8 +109,7 @@ class FoodTimelineCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        if (onAnalyze != null)
-                          const SizedBox(width: 4),
+                        if (onAnalyze != null) const SizedBox(width: 4),
                         if (onEdit != null)
                           GestureDetector(
                             onTap: onEdit,
@@ -175,7 +178,7 @@ class FoodTimelineCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 12)),
+          Icon(AppIcons.calories, size: 14, color: AppIcons.caloriesColor),
           const SizedBox(width: 2),
           Text(
             '${entry.calories.toInt()} kcal',

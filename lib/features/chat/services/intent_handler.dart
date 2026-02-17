@@ -14,10 +14,12 @@ class IntentHandler {
   final LLMService _llmService = LLMService();
 
   /// Process message and execute based on intent
-  Future<IntentResponse> processMessage(String message, {String pageContext = 'health'}) async {
+  Future<IntentResponse> processMessage(String message,
+      {String pageContext = 'health'}) async {
     try {
       // 1. Use AI to analyze text
-      final jsonResult = await _llmService.classifyAndParse(message, pageContext: pageContext);
+      final jsonResult =
+          await _llmService.classifyAndParse(message, pageContext: pageContext);
       final parsed = jsonDecode(jsonResult);
 
       final type = parsed['type'] as String? ?? 'unknown';
@@ -36,7 +38,8 @@ class IntentHandler {
         case 'task':
         case 'reminder':
           return IntentResponse(
-            replyMessage: 'Sorry, this feature is not available in this version.\n'
+            replyMessage:
+                'Sorry, this feature is not available in this version.\n'
                 'Currently only food logging is supported.',
             actionResult: ActionResult.failure('Feature not available in v1.0'),
           );
@@ -76,45 +79,54 @@ class IntentHandler {
     String category,
     Map<String, dynamic> parsed,
   ) async {
-    AppLogger.info('[IntentHandler] _handleHealth: category=$category, title=$title');
-    
-    if (category == 'Food' || original.toLowerCase().contains('eat') || original.toLowerCase().contains('ate') || original.toLowerCase().contains('had')) {
+    AppLogger.info(
+        '[IntentHandler] _handleHealth: category=$category, title=$title');
+
+    if (category == 'Food' ||
+        original.toLowerCase().contains('eat') ||
+        original.toLowerCase().contains('ate') ||
+        original.toLowerCase().contains('had')) {
       // Extract date
       DateTime entryDate = DateTime.now();
       if (parsed['date'] != null) {
         final parsedDate = DateTime.tryParse(parsed['date'] as String);
         if (parsedDate != null) entryDate = parsedDate;
       }
-      
+
       // Extract meal type
       final mealTypeStr = parsed['meal_type'] as String?;
-      final mealType = mealTypeStr != null 
-          ? _mapMealTypeFromString(mealTypeStr) 
+      final mealType = mealTypeStr != null
+          ? _mapMealTypeFromString(mealTypeStr)
           : _detectMealType();
 
       // Detect multiple food items
       final cleanedFoodText = _cleanFoodText(original);
       final foodItems = _splitMultipleFoods(cleanedFoodText);
-      
+
       if (foodItems.length > 1) {
         AppLogger.info('Found ${foodItems.length} food items: $foodItems');
         return await _handleMultipleFoods(foodItems, mealType, entryDate);
       }
 
       // Single food
-      var servingSizeFromAI = (parsed['serving_size'] as num?)?.toDouble() ?? 1.0;
+      var servingSizeFromAI =
+          (parsed['serving_size'] as num?)?.toDouble() ?? 1.0;
       var servingUnitFromAI = parsed['serving_unit'] as String? ?? 'serving';
-      
+
       // Validate unreasonable serving
-      if ((servingUnitFromAI == 'g' || servingUnitFromAI == 'ml') && servingSizeFromAI <= 1) {
-        AppLogger.warn('serving "$servingSizeFromAI $servingUnitFromAI" is unreasonable → fallback "1 serving"');
+      if ((servingUnitFromAI == 'g' || servingUnitFromAI == 'ml') &&
+          servingSizeFromAI <= 1) {
+        AppLogger.warn(
+            'serving "$servingSizeFromAI $servingUnitFromAI" is unreasonable → fallback "1 serving"');
         servingSizeFromAI = 1.0;
         servingUnitFromAI = 'serving';
       }
       final servingGramsFromAI = (parsed['serving_grams'] as num?)?.toDouble();
-      final excludeIngredients = (parsed['exclude_ingredients'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList() ?? [];
+      final excludeIngredients =
+          (parsed['exclude_ingredients'] as List<dynamic>?)
+                  ?.map((e) => e.toString())
+                  .toList() ??
+              [];
       final isCreateMeal = parsed['is_create_meal'] as bool? ?? false;
 
       // Search from MyMeal / Ingredient DB
@@ -163,8 +175,10 @@ class IntentHandler {
         ..protein = protein
         ..carbs = carbs
         ..fat = fat
-        ..baseCalories = servingSizeFromAI > 0 ? calories / servingSizeFromAI : calories
-        ..baseProtein = servingSizeFromAI > 0 ? protein / servingSizeFromAI : protein
+        ..baseCalories =
+            servingSizeFromAI > 0 ? calories / servingSizeFromAI : calories
+        ..baseProtein =
+            servingSizeFromAI > 0 ? protein / servingSizeFromAI : protein
         ..baseCarbs = servingSizeFromAI > 0 ? carbs / servingSizeFromAI : carbs
         ..baseFat = servingSizeFromAI > 0 ? fat / servingSizeFromAI : fat
         ..mealType = mealType
@@ -187,21 +201,26 @@ class IntentHandler {
 
       // Build reply message
       String replyMessage;
-      
+
       switch (lookupResult.type) {
         case FoodLookupType.fromMeal:
           String macrosText = '';
           if (protein > 0 || carbs > 0 || fat > 0) {
-            macrosText = '\n💪 P: ${protein.toInt()}g | C: ${carbs.toInt()}g | F: ${fat.toInt()}g';
+            macrosText =
+                '\n💪 P: ${protein.toInt()}g | C: ${carbs.toInt()}g | F: ${fat.toInt()}g';
           }
           String modifierText = '';
           if (lookupResult.removedIngredients.isNotEmpty) {
-            final removedNames = lookupResult.removedIngredients.map((e) => e.ingredientName).join(', ');
-            final removedCal = lookupResult.removedIngredients.fold<double>(0, (sum, e) => sum + e.calories);
-            modifierText = '\n🚫 Excluded: $removedNames (-${removedCal.toInt()} kcal)';
+            final removedNames = lookupResult.removedIngredients
+                .map((e) => e.ingredientName)
+                .join(', ');
+            final removedCal = lookupResult.removedIngredients
+                .fold<double>(0, (sum, e) => sum + e.calories);
+            modifierText =
+                '\n🚫 Excluded: $removedNames (-${removedCal.toInt()} kcal)';
           }
           String dateText = _getDateText(entryDate);
-          
+
           replyMessage = '✅ Food logged!\n\n'
               '🍽️ **${lookupResult.displayName}** (${_getMealTypeText(mealType)})'
               '$dateText\n'
@@ -214,7 +233,7 @@ class IntentHandler {
 
         case FoodLookupType.fromIngredient:
           String dateText = _getDateText(entryDate);
-          
+
           replyMessage = '✅ Food logged!\n\n'
               '🥬 **${lookupResult.displayName}** (${_getMealTypeText(mealType)})'
               '$dateText\n'
@@ -228,9 +247,10 @@ class IntentHandler {
           String dateText = _getDateText(entryDate);
           String createMealHint = '';
           if (isCreateMeal) {
-            createMealHint = '\n\n🆕 Want to create a new meal? Go to My Meal > Create New Meal';
+            createMealHint =
+                '\n\n🆕 Want to create a new meal? Go to My Meal > Create New Meal';
           }
-          
+
           replyMessage = '✅ Food logged!\n\n'
               '🍽️ **$foodName** (${_getMealTypeText(mealType)})'
               '$dateText\n'
@@ -249,7 +269,7 @@ class IntentHandler {
           entryType: 'food',
           entryId: entry.id,
           data: {
-            'name': foodName, 
+            'name': foodName,
             'calories': calories,
             'protein': protein,
             'carbs': carbs,
@@ -271,7 +291,7 @@ class IntentHandler {
       actionResult: null,
     );
   }
-  
+
   // ============================================
   // MULTI-FOOD HANDLING
   // ============================================
@@ -279,56 +299,80 @@ class IntentHandler {
   /// Remove prefixes/meal words/suffixes, keep only food name
   String _cleanFoodText(String original) {
     String cleaned = original;
-    
+
     // Remove time prefixes (today, yesterday, tomorrow, etc.)
     for (int i = 0; i < 3; i++) {
       cleaned = cleaned
-        .replaceAll(RegExp(r'^\s*(today|yesterday|tomorrow|now|just|this morning|this afternoon|this evening)\s*', caseSensitive: false), '')
-        .replaceAll(RegExp(r'^\s*(I |i |we |We )', caseSensitive: false), '');
+          .replaceAll(
+              RegExp(
+                  r'^\s*(today|yesterday|tomorrow|now|just|this morning|this afternoon|this evening)\s*',
+                  caseSensitive: false),
+              '')
+          .replaceAll(RegExp(r'^\s*(I |i |we |We )', caseSensitive: false), '');
     }
-    
+
     // Remove action verbs (casual forms)
     cleaned = cleaned
-      .replaceAll(RegExp(r'\s*(ate|eat|eating|had|have|having|drank|drink|drinking|got|get|getting)\s+', caseSensitive: false), ' ')
-      .replaceAll(RegExp(r'\s*(just had|just ate|just got)\s+', caseSensitive: false), ' ');
-    
+        .replaceAll(
+            RegExp(
+                r'\s*(ate|eat|eating|had|have|having|drank|drink|drinking|got|get|getting)\s+',
+                caseSensitive: false),
+            ' ')
+        .replaceAll(
+            RegExp(r'\s*(just had|just ate|just got)\s+', caseSensitive: false),
+            ' ');
+
     // Remove suffixes (politeness, time context)
     cleaned = cleaned
-      .replaceAll(RegExp(r'\s*(please|thanks|thank you|thx|pls)\s*$', caseSensitive: false), '')
-      .replaceAll(RegExp(r'\s*(today|for lunch|for dinner|for breakfast|for snack)\s*$', caseSensitive: false), '');
-    
+        .replaceAll(
+            RegExp(r'\s*(please|thanks|thank you|thx|pls)\s*$',
+                caseSensitive: false),
+            '')
+        .replaceAll(
+            RegExp(
+                r'\s*(today|for lunch|for dinner|for breakfast|for snack)\s*$',
+                caseSensitive: false),
+            '');
+
     // Remove meal type words (but keep them in food names like "breakfast burrito")
     cleaned = cleaned
-      .replaceAll(RegExp(r'^\s*(for\s+)?(breakfast|lunch|dinner|snack|meal)[:\s]+', caseSensitive: false), ' ')
-      .replaceAll(RegExp(r'\s+(as|for)\s+(breakfast|lunch|dinner|snack|meal)\s*$', caseSensitive: false), ' ');
-    
+        .replaceAll(
+            RegExp(r'^\s*(for\s+)?(breakfast|lunch|dinner|snack|meal)[:\s]+',
+                caseSensitive: false),
+            ' ')
+        .replaceAll(
+            RegExp(r'\s+(as|for)\s+(breakfast|lunch|dinner|snack|meal)\s*$',
+                caseSensitive: false),
+            ' ');
+
     // Clean up whitespace
     cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ').trim();
-    
+
     return cleaned;
   }
 
   /// Split multiple food items from single text
   List<String> _splitMultipleFoods(String foodText) {
     if (foodText.trim().length < 4) return [foodText];
-    
+
     // 1. Comma-separated (handle both English and Asian commas)
     if (RegExp(r'[,，、]').hasMatch(foodText)) {
-      final items = foodText.split(RegExp(r'[,，、]\s*'))
+      final items = foodText
+          .split(RegExp(r'[,，、]\s*'))
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty && s.length >= 2)
           .toList();
       if (items.length > 1) return items;
     }
-    
+
     // 2. "and" / "with" / "plus" conjunctions (casual speech)
     // This is PRIMARY for English — prioritize splitting by conjunction
     final conjPattern = RegExp(
-      r'\s+(?:and|with|plus|also|then)\s+(?:another\s+)?(?:one\s+)?',
-      caseSensitive: false
-    );
+        r'\s+(?:and|with|plus|also|then)\s+(?:another\s+)?(?:one\s+)?',
+        caseSensitive: false);
     if (conjPattern.hasMatch(foodText)) {
-      final items = foodText.split(conjPattern)
+      final items = foodText
+          .split(conjPattern)
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty && s.length >= 2)
           .toList();
@@ -337,12 +381,12 @@ class IntentHandler {
         return items;
       }
     }
-    
+
     // 3. Food database matching (for known dishes)
     // Skip this for English text with conjunctions (already handled above)
     final dbItems = _splitByFoodDatabase(foodText);
     if (dbItems.length > 1) return dbItems;
-    
+
     // 4. Single item
     return [foodText];
   }
@@ -354,10 +398,11 @@ class IntentHandler {
 
   /// Extract serving info from food name
   /// Handles various casual patterns like "2 eggs", "fried rice 1 plate", "pork 50g", "another coffee"
-  ({String cleanedName, double size, String unit}) _extractServingFromItem(String foodItem) {
+  ({String cleanedName, double size, String unit}) _extractServingFromItem(
+      String foodItem) {
     // Convert word numbers to digits first
     String normalized = _normalizeWordNumbers(foodItem);
-    
+
     // Pattern 1: Standard "number + unit" at the end (with or without space)
     // Examples: "fried rice 1 plate", "eggs 2 piece", "pork 50g", "chicken 100 g"
     final standardPattern = RegExp(
@@ -365,7 +410,7 @@ class IntentHandler {
       caseSensitive: false,
     );
     var match = standardPattern.firstMatch(normalized);
-    
+
     if (match != null) {
       final size = double.tryParse(match.group(1)!) ?? 1.0;
       final rawUnit = match.group(2)!.toLowerCase();
@@ -373,12 +418,12 @@ class IntentHandler {
       final unit = _normalizeUnit(rawUnit);
       final cleanedName = normalized.substring(0, match.start).trim();
       return (
-        cleanedName: cleanedName.isEmpty ? foodItem.trim() : cleanedName, 
-        size: size, 
+        cleanedName: cleanedName.isEmpty ? foodItem.trim() : cleanedName,
+        size: size,
         unit: unit,
       );
     }
-    
+
     // Pattern 2: "number + unit" at the beginning (with or without space)
     // Examples: "2 eggs", "50g pork", "50g of pork", "250ml water"
     final prefixPattern = RegExp(
@@ -386,38 +431,54 @@ class IntentHandler {
       caseSensitive: false,
     );
     match = prefixPattern.firstMatch(normalized);
-    
+
     if (match != null) {
       final size = double.tryParse(match.group(1)!) ?? 1.0;
       final rawUnit = match.group(2)!.toLowerCase();
       final unit = _normalizeUnit(rawUnit);
       final cleanedName = normalized.substring(match.end).trim();
       return (
-        cleanedName: cleanedName.isEmpty ? foodItem.trim() : cleanedName, 
-        size: size, 
+        cleanedName: cleanedName.isEmpty ? foodItem.trim() : cleanedName,
+        size: size,
         unit: unit,
       );
     }
-    
+
     // Pattern 3: "another X" without explicit number (implies 1 more)
     if (normalized.toLowerCase().startsWith('another ')) {
       final cleanedName = normalized.substring(8).trim(); // Remove "another "
       return (cleanedName: cleanedName, size: 1.0, unit: 'serving');
     }
-    
+
     // No pattern matched
     return (cleanedName: foodItem.trim(), size: 1.0, unit: 'serving');
   }
-  
+
   /// Convert word numbers (one, two, three...) to digits
   String _normalizeWordNumbers(String text) {
     const wordToNumber = {
-      'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
-      'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10',
-      'eleven': '11', 'twelve': '12', 'thirteen': '13', 'fourteen': '14', 'fifteen': '15',
-      'sixteen': '16', 'seventeen': '17', 'eighteen': '18', 'nineteen': '19', 'twenty': '20',
+      'one': '1',
+      'two': '2',
+      'three': '3',
+      'four': '4',
+      'five': '5',
+      'six': '6',
+      'seven': '7',
+      'eight': '8',
+      'nine': '9',
+      'ten': '10',
+      'eleven': '11',
+      'twelve': '12',
+      'thirteen': '13',
+      'fourteen': '14',
+      'fifteen': '15',
+      'sixteen': '16',
+      'seventeen': '17',
+      'eighteen': '18',
+      'nineteen': '19',
+      'twenty': '20',
     };
-    
+
     String result = text;
     wordToNumber.forEach((word, number) {
       // Match whole word only
@@ -426,10 +487,10 @@ class IntentHandler {
         (match) => number,
       );
     });
-    
+
     return result;
   }
-  
+
   /// Normalize plural unit forms to singular
   String _normalizeUnit(String unit) {
     const unitMap = {
@@ -471,31 +532,32 @@ class IntentHandler {
   ) async {
     final entries = <FoodEntry>[];
     final replyParts = <String>[];
-    
+
     for (final rawItem in foodItems) {
       final servingInfo = _extractServingFromItem(rawItem);
       final foodName = servingInfo.cleanedName;
       var servingSize = servingInfo.size;
       var servingUnit = servingInfo.unit;
-      
+
       if ((servingUnit == 'g' || servingUnit == 'ml') && servingSize <= 1) {
         servingSize = 1.0;
         servingUnit = 'serving';
       }
-      
-      AppLogger.info('Multi-food item: "$foodName" ($servingSize $servingUnit)');
-      
+
+      AppLogger.info(
+          'Multi-food item: "$foodName" ($servingSize $servingUnit)');
+
       final lookupResult = await FoodLookupService.lookup(
         foodName: foodName,
         servingSize: servingSize,
         servingUnit: servingUnit,
       );
-      
+
       final calories = lookupResult.calories;
       final protein = lookupResult.protein;
       final carbs = lookupResult.carbs;
       final fat = lookupResult.fat;
-      
+
       DataSource source;
       switch (lookupResult.type) {
         case FoodLookupType.fromMeal:
@@ -506,11 +568,11 @@ class IntentHandler {
           source = DataSource.manual;
           break;
       }
-      
+
       final displayName = lookupResult.type == FoodLookupType.notFound
           ? foodName
           : lookupResult.displayName;
-      
+
       final entry = FoodEntry()
         ..foodName = displayName
         ..calories = calories
@@ -531,40 +593,44 @@ class IntentHandler {
         ..isVerified = lookupResult.type != FoodLookupType.notFound
         ..createdAt = DateTime.now()
         ..updatedAt = DateTime.now();
-      
+
       entries.add(entry);
-      
+
       final calText = calories > 0 ? '${calories.toInt()} kcal' : '0 kcal';
-      final sourceIcon = lookupResult.type == FoodLookupType.fromMeal 
-          ? '📂' 
-          : lookupResult.type == FoodLookupType.fromIngredient ? '🥬' : '⚠️';
-      replyParts.add('$sourceIcon **$displayName** ($servingSize $servingUnit) — $calText');
+      final sourceIcon = lookupResult.type == FoodLookupType.fromMeal
+          ? '📂'
+          : lookupResult.type == FoodLookupType.fromIngredient
+              ? '🥬'
+              : '⚠️';
+      replyParts.add(
+          '$sourceIcon **$displayName** ($servingSize $servingUnit) — $calText');
     }
-    
+
     // Save all entries
     await DatabaseService.isar.writeTxn(() async {
       for (final entry in entries) {
         await DatabaseService.foodEntries.put(entry);
       }
     });
-    
+
     AppLogger.info('Saved ${entries.length} food entries successfully');
-    
+
     final dateText = _getDateText(entryDate);
     final itemsList = replyParts.map((p) => '  • $p').join('\n');
     final totalCal = entries.fold<double>(0, (sum, e) => sum + e.calories);
     final hasUnknown = entries.any((e) => e.source == DataSource.manual);
-    
-    String replyMessage = '✅ Logged ${entries.length} items! (${_getMealTypeText(mealType)})'
+
+    String replyMessage =
+        '✅ Logged ${entries.length} items! (${_getMealTypeText(mealType)})'
         '$dateText\n\n'
         '$itemsList\n\n'
         '🔥 Total: ${totalCal.toInt()} kcal';
-    
+
     if (hasUnknown) {
       replyMessage += '\n\n⚠️ _Some items have no nutrition data yet_\n'
           '💡 _Tap Gemini at Health screen to analyze_';
     }
-    
+
     return IntentResponse(
       replyMessage: replyMessage,
       actionResult: ActionResult.success(
@@ -674,9 +740,13 @@ class IntentHandler {
         source: 'manual',
       );
 
-      AppLogger.info('MyMeal created successfully: ${meal.name} (id=${meal.id})');
+      AppLogger.info(
+          'MyMeal created successfully: ${meal.name} (id=${meal.id})');
 
-      final ingredientLines = inputs.map((inp) => '  • ${inp.name} ${inp.amount.toStringAsFixed(0)} ${inp.unit}').join('\n');
+      final ingredientLines = inputs
+          .map((inp) =>
+              '  • ${inp.name} ${inp.amount.toStringAsFixed(0)} ${inp.unit}')
+          .join('\n');
 
       return IntentResponse(
         replyMessage: '✅ New meal created!\n\n'
@@ -711,13 +781,13 @@ class IntentHandler {
   ) async {
     final queryType = parsedData['query_type'] as String? ?? 'unknown';
     final period = parsedData['period'] as String? ?? 'today';
-    
+
     AppLogger.info('Query: type=$queryType, period=$period');
-    
+
     final now = DateTime.now();
     DateTime startDate;
     String periodText;
-    
+
     switch (period) {
       case 'week':
         startDate = now.subtract(Duration(days: now.weekday - 1));
@@ -731,17 +801,18 @@ class IntentHandler {
         startDate = DateTime(now.year, now.month, now.day);
         periodText = 'today';
     }
-    
+
     if (queryType == 'calories' || queryType == 'unknown') {
       // Query food entries
       final entries = await DatabaseService.foodEntries
           .filter()
           .timestampGreaterThan(startDate, include: true)
           .findAll();
-      
-      final totalCalories = entries.fold<double>(0, (sum, e) => sum + e.calories);
+
+      final totalCalories =
+          entries.fold<double>(0, (sum, e) => sum + e.calories);
       final count = entries.length;
-      
+
       return IntentResponse(
         replyMessage: '📊 **Calories Summary ($periodText)**\n\n'
             '🔥 Total: ${totalCalories.toInt()} kcal\n'
@@ -750,7 +821,7 @@ class IntentHandler {
         actionResult: null,
       );
     }
-    
+
     return IntentResponse(
       replyMessage: '🔍 What would you like to see?\n\n'
           'Try asking:\n'
@@ -782,7 +853,8 @@ class IntentHandler {
   String _getDateText(DateTime entryDate) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final entryDateOnly = DateTime(entryDate.year, entryDate.month, entryDate.day);
+    final entryDateOnly =
+        DateTime(entryDate.year, entryDate.month, entryDate.day);
     if (entryDateOnly != today) {
       return '\n📅 ${_formatDate(entryDate)}';
     }

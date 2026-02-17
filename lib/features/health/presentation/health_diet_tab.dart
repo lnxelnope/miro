@@ -12,6 +12,7 @@ import '../widgets/meal_section.dart';
 import '../widgets/edit_food_bottom_sheet.dart';
 import '../models/food_entry.dart';
 import '../../scanner/providers/scanner_provider.dart';
+import 'health_my_meal_tab.dart';
 
 class HealthDietTab extends ConsumerStatefulWidget {
   const HealthDietTab({super.key});
@@ -35,7 +36,9 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
         // 2. Trigger auto-scan for new images
         try {
           AppLogger.info('Starting to scan new images from Gallery...');
-          final count = await ref.read(galleryScanNotifierProvider.notifier).scanNewImages();
+          final count = await ref
+              .read(galleryScanNotifierProvider.notifier)
+              .scanNewImages();
           AppLogger.info('Scan complete - found: $count entries');
           if (count > 0) {
             ref.invalidate(foodEntriesByDateProvider(_selectedDate));
@@ -68,7 +71,9 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                 children: [
                   MealSection(
                     mealType: MealType.breakfast,
-                    foods: foods.where((f) => f.mealType == MealType.breakfast).toList(),
+                    foods: foods
+                        .where((f) => f.mealType == MealType.breakfast)
+                        .toList(),
                     onAddFood: () => _showAddFoodDialog(MealType.breakfast),
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
@@ -76,7 +81,9 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                   ),
                   MealSection(
                     mealType: MealType.lunch,
-                    foods: foods.where((f) => f.mealType == MealType.lunch).toList(),
+                    foods: foods
+                        .where((f) => f.mealType == MealType.lunch)
+                        .toList(),
                     onAddFood: () => _showAddFoodDialog(MealType.lunch),
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
@@ -84,7 +91,9 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                   ),
                   MealSection(
                     mealType: MealType.dinner,
-                    foods: foods.where((f) => f.mealType == MealType.dinner).toList(),
+                    foods: foods
+                        .where((f) => f.mealType == MealType.dinner)
+                        .toList(),
                     onAddFood: () => _showAddFoodDialog(MealType.dinner),
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
@@ -92,16 +101,47 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                   ),
                   MealSection(
                     mealType: MealType.snack,
-                    foods: foods.where((f) => f.mealType == MealType.snack).toList(),
+                    foods: foods
+                        .where((f) => f.mealType == MealType.snack)
+                        .toList(),
                     onAddFood: () => _showAddFoodDialog(MealType.snack),
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
                     selectedDate: _selectedDate,
                   ),
+
+                  // My Meals & Ingredients Button
+                  const SizedBox(height: 16),
+                  Card(
+                    margin:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.health.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.restaurant_menu,
+                            color: AppColors.health),
+                      ),
+                      title: const Text('My Meals & Ingredients'),
+                      subtitle: const Text('Manage your custom meals'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HealthMyMealTab(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
-            
+
             // Bottom padding
             const SizedBox(height: 100),
           ],
@@ -145,13 +185,15 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     '📅 ${isToday ? "Today" : dateFormat.format(_selectedDate)}',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isToday ? AppColors.primary : AppColors.textPrimary,
+                      color:
+                          isToday ? AppColors.primary : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_drop_down,
-                    color: isToday ? AppColors.primary : AppColors.textSecondary,
+                    color:
+                        isToday ? AppColors.primary : AppColors.textSecondary,
                   ),
                 ],
               ),
@@ -163,7 +205,8 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                 ? null
                 : () {
                     setState(() {
-                      _selectedDate = _selectedDate.add(const Duration(days: 1));
+                      _selectedDate =
+                          _selectedDate.add(const Duration(days: 1));
                     });
                   },
           ),
@@ -243,7 +286,8 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+            child:
+                const Text('Delete', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -253,10 +297,10 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
       try {
         final notifier = ref.read(foodEntriesNotifierProvider.notifier);
         await notifier.deleteFoodEntry(entry.id);
-        
+
         // Refresh providers เพื่อ refresh UI
         refreshFoodProviders(ref, _selectedDate);
-        
+
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -332,14 +376,14 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   final _carbsController = TextEditingController(text: '0');
   final _fatController = TextEditingController(text: '0');
   final _nameFocusNode = FocusNode();
-  
+
   String _servingUnit = 'serving';
   late MealType _selectedMealType;
   bool _filledFromDb = false; // ถูก auto-fill จาก DB หรือยัง
   int? _selectedMyMealId;
 
   // ---- Base values for recalculating when amount changes ----
-  double _baseCalories = 0;   // kcal per 1 unit
+  double _baseCalories = 0; // kcal per 1 unit
   double _baseProtein = 0;
   double _baseCarbs = 0;
   double _baseFat = 0;
@@ -384,9 +428,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         // But base per unit must change according to new unit
         final factor = result.newQty / oldQty; // e.g. 200g→0.44lbs = 0.0022
         _baseCalories = _baseCalories / factor;
-        _baseProtein  = _baseProtein  / factor;
-        _baseCarbs    = _baseCarbs    / factor;
-        _baseFat      = _baseFat      / factor;
+        _baseProtein = _baseProtein / factor;
+        _baseCarbs = _baseCarbs / factor;
+        _baseFat = _baseFat / factor;
 
         setState(() {
           _servingUnit = newUnit;
@@ -416,7 +460,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     if (newServing <= 0) return;
 
     setState(() {
-      _caloriesController.text = (_baseCalories * newServing).round().toString();
+      _caloriesController.text =
+          (_baseCalories * newServing).round().toString();
       _proteinController.text = (_baseProtein * newServing).round().toString();
       _carbsController.text = (_baseCarbs * newServing).round().toString();
       _fatController.text = (_baseFat * newServing).round().toString();
@@ -478,13 +523,14 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     // ปิด listener ชั่วคราวเพื่อไม่ให้ recalc ระหว่าง fill
     _servingSizeController.removeListener(_onServingSizeChanged);
 
-    final servingSize = suggestion.servingSize > 0 ? suggestion.servingSize : 1.0;
+    final servingSize =
+        suggestion.servingSize > 0 ? suggestion.servingSize : 1.0;
 
     // Calculate base per 1 unit (kcal per 1 piece, 1 plate, etc.)
     _baseCalories = suggestion.calories / servingSize;
-    _baseProtein  = suggestion.protein  / servingSize;
-    _baseCarbs    = suggestion.carbs    / servingSize;
-    _baseFat      = suggestion.fat      / servingSize;
+    _baseProtein = suggestion.protein / servingSize;
+    _baseCarbs = suggestion.carbs / servingSize;
+    _baseFat = suggestion.fat / servingSize;
 
     setState(() {
       _nameController.text = suggestion.name;
@@ -537,7 +583,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Title
             const Text(
               '🍽️ Add Food',
@@ -547,7 +593,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Food Name — Autocomplete from My Meals + Ingredients + Thai DB
             LayoutBuilder(
               builder: (context, constraints) {
@@ -597,7 +643,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                 subtitle: Text(
                                   '${option.calories.round()} kcal · '
                                   '${option.source == 'meal' ? 'My Meal' : option.source == 'ingredient' ? 'Ingredient' : 'Database'}',
-                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                  style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary),
                                 ),
                                 onTap: () => onSelected(option),
                               );
@@ -607,7 +655,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       ),
                     );
                   },
-                  fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                  fieldViewBuilder:
+                      (context, textController, focusNode, onFieldSubmitted) {
                     // Sync controllers: When Autocomplete creates its controller
                     // We need to sync with our _nameController
                     textController.addListener(() {
@@ -627,7 +676,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       focusNode: focusNode,
                       decoration: InputDecoration(
                         labelText: 'Food Name *',
-                        hintText: 'Type to search e.g. fried rice, papaya salad',
+                        hintText:
+                            'Type to search e.g. fried rice, papaya salad',
                         prefixIcon: const Icon(Icons.search, size: 20),
                         suffixIcon: textController.text.isNotEmpty
                             ? IconButton(
@@ -650,7 +700,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                 },
                               )
                             : null,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     );
                   },
@@ -673,7 +724,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ],
             const SizedBox(height: 16),
-            
+
             // Serving size
             Row(
               children: [
@@ -728,7 +779,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     _filledFromDb
                         ? 'Nutrition (auto-calculated by amount)'
                         : 'Nutrition (enter 0 if unknown)',
-                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -741,7 +793,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       hintText: '0',
                       filled: _filledFromDb,
                       fillColor: _filledFromDb ? Colors.grey.shade100 : null,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -755,8 +808,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           decoration: InputDecoration(
                             labelText: 'Protein (g)',
                             filled: _filledFromDb,
-                            fillColor: _filledFromDb ? Colors.grey.shade100 : null,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            fillColor:
+                                _filledFromDb ? Colors.grey.shade100 : null,
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ),
@@ -769,8 +824,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           decoration: InputDecoration(
                             labelText: 'Carbs (g)',
                             filled: _filledFromDb,
-                            fillColor: _filledFromDb ? Colors.grey.shade100 : null,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            fillColor:
+                                _filledFromDb ? Colors.grey.shade100 : null,
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ),
@@ -783,8 +840,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           decoration: InputDecoration(
                             labelText: 'Fat (g)',
                             filled: _filledFromDb,
-                            fillColor: _filledFromDb ? Colors.grey.shade100 : null,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            fillColor:
+                                _filledFromDb ? Colors.grey.shade100 : null,
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ),
@@ -794,7 +853,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Meal type selector
             const Text(
               'Meal Type',
@@ -806,7 +865,14 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               children: MealType.values.map((type) {
                 final isSelected = _selectedMealType == type;
                 return ChoiceChip(
-                  label: Text('${type.icon} ${type.displayName}'),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(type.icon, size: 16, color: type.iconColor),
+                      const SizedBox(width: 6),
+                      Text(type.displayName),
+                    ],
+                  ),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) {
@@ -818,7 +884,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               }).toList(),
             ),
             const SizedBox(height: 24),
-            
+
             // Save button
             SizedBox(
               width: double.infinity,
@@ -864,7 +930,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     // ใช้วันที่เลือก + เวลาปัจจุบัน (หรือเวลาตาม meal type)
     final date = widget.selectedDate ?? DateTime.now();
     final now = DateTime.now();
-    final timestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+    final timestamp =
+        DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     final entry = FoodEntry()
       ..foodName = _nameController.text.trim()
@@ -887,7 +954,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     widget.onSave(entry);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Food added'), backgroundColor: AppColors.success),
+      const SnackBar(
+          content: Text('✅ Food added'), backgroundColor: AppColors.success),
     );
   }
 }

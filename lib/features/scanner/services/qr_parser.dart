@@ -283,7 +283,7 @@ class QRParser {
       'bar b q': {'name': 'Bar-B-Q Plaza', 'category': 'Food'},
       'ส้มตำ': {'name': 'ส้มตำ', 'category': 'Food'},
       'cafe': {'name': 'Cafe', 'category': 'Food'},
-      
+
       // Convenience Stores
       '7-eleven': {'name': '7-Eleven', 'category': 'Convenience'},
       'eleven': {'name': '7-Eleven', 'category': 'Convenience'},
@@ -291,7 +291,7 @@ class QRParser {
       'familymart': {'name': 'FamilyMart', 'category': 'Convenience'},
       'lawson': {'name': 'Lawson', 'category': 'Convenience'},
       'cj more': {'name': 'CJ More', 'category': 'Convenience'},
-      
+
       // Grocery & Supermarket
       'lotus': {'name': 'Lotus\'s', 'category': 'Grocery'},
       'big c': {'name': 'Big C', 'category': 'Grocery'},
@@ -299,7 +299,7 @@ class QRParser {
       'tops': {'name': 'Tops', 'category': 'Grocery'},
       'gourmet': {'name': 'Gourmet Market', 'category': 'Grocery'},
       'villa': {'name': 'Villa Market', 'category': 'Grocery'},
-      
+
       // Transport
       'grab': {'name': 'Grab', 'category': 'Transport'},
       'bolt': {'name': 'Bolt', 'category': 'Transport'},
@@ -307,7 +307,7 @@ class QRParser {
       'bts': {'name': 'BTS', 'category': 'Transport'},
       'mrt': {'name': 'MRT', 'category': 'Transport'},
       'airport': {'name': 'Airport', 'category': 'Transport'},
-      
+
       // Utilities & Bills
       'true': {'name': 'True', 'category': 'Bills'},
       'ais': {'name': 'AIS', 'category': 'Bills'},
@@ -315,7 +315,7 @@ class QRParser {
       'pea': {'name': 'การไฟฟ้า', 'category': 'Bills'},
       'mwa': {'name': 'การประปา', 'category': 'Bills'},
       'mea': {'name': 'การไฟฟ้านครหลวง', 'category': 'Bills'},
-      
+
       // Transfer & Banks
       'kbank': {'name': 'KBank', 'category': 'Transfer'},
       'scb': {'name': 'SCB', 'category': 'Transfer'},
@@ -324,7 +324,7 @@ class QRParser {
       'ttb': {'name': 'TTB', 'category': 'Transfer'},
       'line pay': {'name': 'LINE Pay', 'category': 'Transfer'},
       'truemoney': {'name': 'TrueMoney', 'category': 'Transfer'},
-      
+
       // Shopping
       'lazada': {'name': 'Lazada', 'category': 'Shopping'},
       'shopee': {'name': 'Shopee', 'category': 'Shopping'},

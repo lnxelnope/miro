@@ -4,7 +4,7 @@ part 'ingredient.g.dart';
 
 /// ฐานข้อมูลวัตถุดิบส่วนตัว
 /// เรียนรู้จากการใช้งานจริง (Gemini วิเคราะห์ + manual)
-/// 
+///
 /// ตัวอย่าง:
 ///   name: "ไข่", baseAmount: 1, baseUnit: "ฟอง"
 ///   caloriesPerBase: 90, proteinPerBase: 6, carbsPerBase: 1, fatPerBase: 7
@@ -15,13 +15,13 @@ class Ingredient {
 
   /// ชื่อวัตถุดิบ (ไทย)
   late String name;
-  
+
   /// ชื่อวัตถุดิบ (อังกฤษ) - nullable
   String? nameEn;
 
   /// ปริมาณฐาน เช่น 100 (ถ้าหน่วยเป็น g) หรือ 1 (ถ้าหน่วยเป็น ฟอง)
   late double baseAmount;
-  
+
   /// หน่วยฐาน เช่น "g", "ฟอง", "ถ้วย", "ช้อนโต๊ะ"
   late String baseUnit;
 
@@ -51,11 +51,11 @@ class Ingredient {
 
   /// คำนวณ nutrition สำหรับปริมาณที่ระบุ
   /// [amount] ปริมาณที่ต้องการ (ในหน่วย baseUnit)
-  /// 
+  ///
   /// ตัวอย่าง: ไข่ (base=1 ฟอง, cal=90)
   ///   calcCalories(2) → 180 kcal (2 ฟอง)
   ///   calcCalories(0.5) → 45 kcal (ครึ่งฟอง)
-  /// 
+  ///
   /// ตัวอย่าง: ข้าว (base=100g, cal=130)
   ///   calcCalories(200) → 260 kcal (200g)
   double calcCalories(double amount) => (caloriesPerBase / baseAmount) * amount;

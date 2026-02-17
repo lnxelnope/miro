@@ -17,10 +17,11 @@ DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 // ===== FOOD ENTRIES =====
 
 // Get food entries for a specific date
-final foodEntriesByDateProvider = FutureProvider.family<List<FoodEntry>, DateTime>((ref, date) async {
+final foodEntriesByDateProvider =
+    FutureProvider.family<List<FoodEntry>, DateTime>((ref, date) async {
   final startOfDay = DateTime(date.year, date.month, date.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
-  
+
   return await DatabaseService.foodEntries
       .filter()
       .timestampBetween(startOfDay, endOfDay)
@@ -40,14 +41,14 @@ final todayCaloriesProvider = FutureProvider<double>((ref) async {
 final todayMacrosProvider = FutureProvider<Map<String, double>>((ref) async {
   final today = dateOnly(DateTime.now());
   final entries = await ref.watch(foodEntriesByDateProvider(today).future);
-  
+
   double protein = 0, carbs = 0, fat = 0;
   for (final entry in entries) {
     protein += entry.protein;
     carbs += entry.carbs;
     fat += entry.fat;
   }
-  
+
   return {
     'protein': protein,
     'carbs': carbs,
@@ -61,7 +62,7 @@ class TimelineItem {
   final String type; // 'food'
   final DateTime timestamp;
   final dynamic data;
-  
+
   TimelineItem({
     required this.type,
     required this.timestamp,
@@ -69,18 +70,20 @@ class TimelineItem {
   });
 }
 
-final healthTimelineProvider = FutureProvider.family<List<TimelineItem>, DateTime>((ref, date) async {
+final healthTimelineProvider =
+    FutureProvider.family<List<TimelineItem>, DateTime>((ref, date) async {
   final foods = await ref.watch(foodEntriesByDateProvider(date).future);
-  
+
   final items = <TimelineItem>[];
-  
+
   for (final food in foods) {
-    items.add(TimelineItem(type: 'food', timestamp: food.timestamp, data: food));
+    items
+        .add(TimelineItem(type: 'food', timestamp: food.timestamp, data: food));
   }
-  
+
   // Sort by timestamp descending
   items.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-  
+
   return items;
 });
 
@@ -114,12 +117,13 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
       // ไม่ลบรูปออกจากเครื่อง เพื่อให้ scan controller รู้ว่ารูปนี้เคยถูกสแกนแล้ว
       entry.isDeleted = true;
       entry.updatedAt = DateTime.now();
-      
+
       await DatabaseService.isar.writeTxn(() async {
         await DatabaseService.foodEntries.put(entry);
       });
 
-      AppLogger.info('FoodEntry soft deleted: id=$id, name="${entry.foodName}", imagePath="${entry.imagePath}"');
+      AppLogger.info(
+          'FoodEntry soft deleted: id=$id, name="${entry.foodName}", imagePath="${entry.imagePath}"');
     } catch (e, stackTrace) {
       AppLogger.error('Error deleting FoodEntry id=$id', e, stackTrace);
       rethrow;
@@ -134,7 +138,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     String? unit,
   }) async {
     AppLogger.info('[FoodEntriesNotifier] Analyzing image with Gemini...');
-    
+
     try {
       final result = await GeminiService.analyzeFoodImage(
         imageFile,
@@ -142,15 +146,15 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         quantity: quantity,
         unit: unit,
       );
-      
+
       if (result == null) {
         throw Exception('Unable to analyze image');
       }
-      
+
       AppLogger.info('Got result:');
       AppLogger.info('   - Name: ${result.foodName}');
       AppLogger.info('   - Calories: ${result.nutrition.calories} kcal');
-      
+
       return result;
     } catch (e, stackTrace) {
       AppLogger.error('Error', e, stackTrace);
@@ -159,7 +163,8 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
   }
 
   /// Update FoodEntry after user confirms Gemini result
-  Future<void> updateFromGeminiConfirmed(int entryId, {
+  Future<void> updateFromGeminiConfirmed(
+    int entryId, {
     required String foodName,
     String? foodNameEn,
     required double calories,
@@ -226,16 +231,34 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     try {
       final notifier = MyMealNotifier();
 
-      final inputs = ingredientsData.map((data) => MealIngredientInput(
-        name: data['name'] as String,
-        nameEn: data['name_en'] as String?,
-        amount: (data['amount'] as num).toDouble(),
-        unit: data['unit'] as String,
-        calories: (data['calories'] as num).toDouble(),
-        protein: (data['protein'] as num).toDouble(),
-        carbs: (data['carbs'] as num).toDouble(),
-        fat: (data['fat'] as num).toDouble(),
-      )).toList();
+      // Helper function: parse ingredient แบบ recursive
+      MealIngredientInput parseIngredient(Map<String, dynamic> data) {
+        // Parse sub_ingredients ถ้ามี
+        List<MealIngredientInput>? subs;
+        final subList = data['sub_ingredients'] as List<dynamic>?;
+        if (subList != null && subList.isNotEmpty) {
+          subs = subList
+              .map((s) => parseIngredient(s as Map<String, dynamic>))
+              .toList();
+        }
+
+        return MealIngredientInput(
+          name: data['name'] as String,
+          nameEn: data['name_en'] as String?,
+          detail: data['detail'] as String?, // NEW
+          amount: (data['amount'] as num).toDouble(),
+          unit: data['unit'] as String,
+          calories: (data['calories'] as num).toDouble(),
+          protein: (data['protein'] as num).toDouble(),
+          carbs: (data['carbs'] as num).toDouble(),
+          fat: (data['fat'] as num).toDouble(),
+          subIngredients: subs, // NEW
+        );
+      }
+
+      // Parse all ROOT ingredients (recursive parse จะ handle sub อัตโนมัติ)
+      final inputs =
+          ingredientsData.map((data) => parseIngredient(data)).toList();
 
       await notifier.createMeal(
         name: mealName,
@@ -244,7 +267,8 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         imagePath: imagePath,
         ingredients: inputs,
       );
-      AppLogger.info('Auto-saved meal: $mealName + ${inputs.length} ingredients');
+      AppLogger.info(
+          'Auto-saved meal: $mealName + ${inputs.length} ROOT ingredients');
     } catch (e) {
       AppLogger.warn('Failed to auto-save', e);
       // Don't throw - this is a bonus feature, shouldn't break main flow
@@ -283,7 +307,8 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
 }
 
 final foodEntriesNotifierProvider =
-    StateNotifierProvider<FoodEntriesNotifier, AsyncValue<List<FoodEntry>>>((ref) {
+    StateNotifierProvider<FoodEntriesNotifier, AsyncValue<List<FoodEntry>>>(
+        (ref) {
   return FoodEntriesNotifier();
 });
 

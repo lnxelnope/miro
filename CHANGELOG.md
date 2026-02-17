@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.1.3+28] - 2026-02-18
+
+### 🐛 Bug Fixes
+- **AI Analysis Loading State**: Fixed loading dialog blocking back navigation
+  - Replaced `ErrorHandler.showLoading` dialog with inline loading indicator
+  - Added `PopScope` warning dialog when user tries to exit during analysis
+  - Shows "ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)"
+  - Prevents app from getting stuck in loading state
+- **Sub-ingredients Not Updating**: Fixed sub-ingredients not clearing when main ingredient changes
+  - Now clears old sub-ingredients before AI lookup
+  - Sub-ingredients properly update from AI results when main ingredient changes
+- **Search Button Auto-Select**: Fixed search button auto-selecting closest DB match
+  - Removed `_findInDb` from `_lookupIngredient` method
+  - Search button (magnifying glass) now always goes to AI analysis
+  - Users can still select from Autocomplete dropdown for free DB lookup
+  - If user types without selecting from dropdown → treated as new item for AI search
+- **Autocomplete Not Showing Suggestions**: Fixed Autocomplete dropdown not displaying ingredient suggestions
+  - Changed from `ref.read(allIngredientsProvider)` to `ref.watch(allIngredientsProvider)` in build method
+  - Added `_cachedIngredients` field to properly subscribe to provider updates
+  - Autocomplete now shows matching ingredients while typing (e.g., "ground" shows "boiled ground beef meatballs")
+- **Non-Food Image Analysis Error**: Fixed `FormatException` when analyzing non-food images
+  - Added validation to detect when AI returns text instead of JSON
+  - Shows user-friendly Thai error message: "ไม่พบอาหารในภาพนี้ กรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง"
+  - Prevents raw `FormatException: Unexpected character` errors
+
+### 🔧 Technical
+- Removed unused `_findInDb` methods from `edit_food_bottom_sheet.dart` and `gemini_analysis_sheet.dart`
+- Fixed Autocomplete provider subscription in `create_meal_sheet.dart`
+- Improved error handling in `GeminiService._callBackend` for non-JSON responses
+- Added proper `mounted` checks in `food_preview_screen.dart` finally block
+
+---
+
 ## [1.1.3+27] - 2026-02-16
 
 ### 🐛 Bug Fixes

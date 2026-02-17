@@ -7,9 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DeviceIdService {
   static const _storage = FlutterSecureStorage();
   static const _keyDeviceId = 'persistent_device_id';
-  
+
   /// ดึง Device ID ที่ persistent (ไม่เปลี่ยนเมื่อ reinstall)
-  /// 
+  ///
   /// Android: ANDROID_ID (survives reinstall)
   /// iOS: IDFV + Keychain backup (survives reinstall)
   /// Fallback: Hardware fingerprint (เกิดได้หายากมาก < 0.01%)
@@ -19,11 +19,11 @@ class DeviceIdService {
     if (cachedId != null && cachedId.isNotEmpty) {
       return cachedId;
     }
-    
+
     // ดึง Device ID จาก platform
     final deviceInfo = DeviceInfoPlugin();
     String deviceId = '';
-    
+
     try {
       if (Platform.isAndroid) {
         final androidInfo = await deviceInfo.androidInfo;
@@ -37,15 +37,16 @@ class DeviceIdService {
     } catch (e) {
       print('⚠️ Error getting primary device ID: $e');
     }
-    
+
     // ────── Fallback: Hardware Fingerprint ──────
     if (deviceId.isEmpty || deviceId == 'unknown') {
       try {
         if (Platform.isAndroid) {
           final androidInfo = await deviceInfo.androidInfo;
-          deviceId = '${androidInfo.brand}_${androidInfo.device}_${androidInfo.model}'
-              .replaceAll(' ', '_')
-              .toLowerCase();
+          deviceId =
+              '${androidInfo.brand}_${androidInfo.device}_${androidInfo.model}'
+                  .replaceAll(' ', '_')
+                  .toLowerCase();
           print('📱 Using Android hardware fingerprint: $deviceId');
         } else if (Platform.isIOS) {
           final iosInfo = await deviceInfo.iosInfo;
@@ -68,13 +69,13 @@ class DeviceIdService {
         print('⚠️ Using random device ID: $deviceId');
       }
     }
-    
+
     // บันทึกลง Keychain/SecureStorage (iOS: จะอยู่ต่อหลัง reinstall)
     await _storage.write(key: _keyDeviceId, value: deviceId);
-    
+
     return deviceId;
   }
-  
+
   /// สำหรับ debug: ดูว่า Device ID คืออะไร
   static Future<void> printDeviceId() async {
     final id = await getDeviceId();

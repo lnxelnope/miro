@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
@@ -29,15 +30,14 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   final _searchController = TextEditingController();
 
   @override
-  bool get wantKeepAlive => false; // Don't keep alive to force refresh
+  bool get wantKeepAlive => false;
 
   @override
   void initState() {
     super.initState();
     _subTabController = TabController(length: 2, vsync: this);
     _searchController.addListener(() => setState(() {}));
-    
-    // Force refresh when widget is created
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.invalidate(allMyMealsProvider);
@@ -55,57 +55,16 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    super.build(context);
     return Column(
       children: [
-        // Sub-tabs: My Meals | Ingredients
-        Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceVariant,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TabBar(
-            controller: _subTabController,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicator: BoxDecoration(
-              color: AppColors.health,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            indicatorSize: TabBarIndicatorSize.tab,
-            dividerHeight: 0,
-            tabs: const [
-              Tab(text: '🍽️ My Meals'),
-              Tab(text: '🥬 Ingredients'),
-            ],
-          ),
-        ),
+        const SizedBox(height: 8),
+
+        // Modern toggle tab bar
+        _buildToggleTabBar(),
 
         // Search bar
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'Search...',
-              prefixIcon: const Icon(Icons.search, size: 20),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, size: 20),
-                      onPressed: () => _searchController.clear(),
-                    )
-                  : null,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).cardColor,
-            ),
-          ),
-        ),
+        _buildSearchBar(),
 
         // Content
         Expanded(
@@ -120,6 +79,94 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
       ],
     );
   }
+
+  Widget _buildToggleTabBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TabBar(
+        controller: _subTabController,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.grey.shade600,
+        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+        unselectedLabelStyle:
+            const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        indicator: BoxDecoration(
+          color: AppColors.health,
+          borderRadius: BorderRadius.circular(11),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.health.withOpacity(0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerHeight: 0,
+        tabs: const [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(AppIcons.meal, size: 18, color: AppIcons.mealColor),
+                SizedBox(width: 6),
+                Text('Meals'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('🥬', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 6),
+                Text('Ingredients'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: TextField(
+          controller: _searchController,
+          style: const TextStyle(fontSize: 15),
+          decoration: InputDecoration(
+            hintText: 'Search meals or ingredients...',
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            prefixIcon: Icon(Icons.search_rounded,
+                size: 20, color: Colors.grey.shade400),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => _searchController.clear(),
+                    child: Icon(Icons.close_rounded,
+                        size: 18, color: Colors.grey.shade400),
+                  )
+                : null,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: InputBorder.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ===== MEALS LIST =====
 
   Widget _buildMealsList() {
     final searchQuery = _searchController.text.trim();
@@ -138,7 +185,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         return Stack(
           children: [
             ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               itemCount: meals.length,
               itemBuilder: (context, index) {
                 final meal = meals[index];
@@ -151,24 +198,58 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 );
               },
             ),
-            // FAB create new meal (left side to avoid Chat button)
+            // Create meal button — bottom-center
             Positioned(
-              left: 16,
-              bottom: 16,
-              child: FloatingActionButton.extended(
-                heroTag: 'createMeal',
-                onPressed: _createNewMeal,
-                backgroundColor: AppColors.health,
-                foregroundColor: Colors.white,
-                icon: const Icon(Icons.add),
-                label: const Text('Create Meal'),
-              ),
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: _buildCreateMealButton(),
             ),
           ],
         );
       },
     );
   }
+
+  Widget _buildCreateMealButton() {
+    return GestureDetector(
+      onTap: _createNewMeal,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.health, AppColors.health.withOpacity(0.85)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.health.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_rounded, color: Colors.white, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Create New Meal',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ===== INGREDIENTS LIST =====
 
   Widget _buildIngredientsList() {
     final searchQuery = _searchController.text.trim();
@@ -185,7 +266,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           itemCount: ingredients.length,
           itemBuilder: (context, index) {
             final ingredient = ingredients[index];
@@ -201,59 +282,122 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     );
   }
 
+  // ===== EMPTY STATES =====
+
   Widget _buildEmptyMeals() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text('🍽️', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
-          const Text('No meals yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          const Text(
-            'Analyze food with Gemini to auto-save meals\nor tap below to create one manually',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: _createNewMeal,
-            icon: const Icon(Icons.add),
-            label: const Text('Create Meal'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.health,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.health.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Icon(AppIcons.meal, size: 48, color: AppIcons.mealColor),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            const Text(
+              'No meals yet',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Analyze food with AI to auto-save meals\nor create one manually',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.grey.shade500, fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 28),
+            GestureDetector(
+              onTap: _createNewMeal,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.health,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.health.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Create Meal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyIngredients() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('🥬', style: TextStyle(fontSize: 64)),
-          SizedBox(height: 16),
-          Text('No ingredients yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-          SizedBox(height: 8),
-          Text(
-            'When you analyze food with Gemini\ningredients will be saved automatically',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          ),
-        ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Text('🥬', style: TextStyle(fontSize: 38)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'No ingredients yet',
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'When you analyze food with AI\ningredients will be saved automatically',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.grey.shade500, fontSize: 14, height: 1.5),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // ===== ACTIONS =====
 
-  /// Create new meal (Manual)
   void _createNewMeal() {
     showModalBottomSheet(
       context: context,
@@ -263,14 +407,19 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         onSave: (meal) {
           ref.invalidate(allMyMealsProvider);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('✅ Created "${meal.name}"'), backgroundColor: AppColors.success),
+            SnackBar(
+              content: Text('Created "${meal.name}"'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
           );
         },
       ),
     );
   }
 
-  /// Log food from MyMeal
   void _logFromMeal(MyMeal meal) {
     showModalBottomSheet(
       context: context,
@@ -281,155 +430,323 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         onConfirm: (entry) async {
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);
-          
-          // Increment usage count
-          await ref.read(myMealNotifierProvider.notifier).incrementMealUsage(meal.id);
+
+          await ref
+              .read(myMealNotifierProvider.notifier)
+              .incrementMealUsage(meal.id);
 
           refreshFoodProviders(ref, DateTime.now());
           ref.invalidate(allMyMealsProvider);
 
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('✅ Logged "${meal.name}"'), backgroundColor: AppColors.success),
+            SnackBar(
+              content: Text('Logged "${meal.name}"'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
           );
         },
       ),
     );
   }
 
-  /// Log food from single Ingredient
   void _logFromIngredient(Ingredient ingredient) {
     _showLogIngredientDialog(ingredient);
   }
 
   void _showLogIngredientDialog(Ingredient ingredient) {
-    final amountController = TextEditingController(text: ingredient.baseAmount.toString());
+    final amountController =
+        TextEditingController(text: ingredient.baseAmount.toString());
     MealType selectedMealType = _guessMealType();
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) {
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
           final amount = double.tryParse(amountController.text) ?? 0;
           final calories = ingredient.calcCalories(amount);
           final protein = ingredient.calcProtein(amount);
 
-          return AlertDialog(
-            title: Text('🥬 ${ingredient.name}'),
-            content: Column(
+          return Container(
+            margin:
+                EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Amount
-                TextField(
-                  controller: amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Amount (${ingredient.baseUnit})',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onChanged: (_) => setDialogState(() {}),
-                ),
-                const SizedBox(height: 12),
-                // Preview
+                // Handle
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 36,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.health.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: const Center(
+                          child: Text('🥬', style: TextStyle(fontSize: 22))),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        ingredient.name,
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.3),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Amount input
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: TextField(
+                    controller: amountController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
+                    decoration: InputDecoration(
+                      labelText: 'Amount (${ingredient.baseUnit})',
+                      labelStyle: TextStyle(color: Colors.grey.shade500),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                    ),
+                    onChanged: (_) => setSheetState(() {}),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Preview nutrition
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF4444).withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Text('🔥 ${calories.toInt()} kcal', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text('P:${protein.toStringAsFixed(1)}g', style: const TextStyle(fontSize: 12)),
+                      _miniNutrition('${calories.toInt()}', 'kcal',
+                          const Color(0xFFEF4444)),
+                      _miniNutrition('${protein.toStringAsFixed(1)}g',
+                          'Protein', const Color(0xFF3B82F6)),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Meal type
-                Wrap(
-                  spacing: 6,
-                  children: MealType.values.map((type) {
-                    return ChoiceChip(
-                      label: Text(type.icon, style: const TextStyle(fontSize: 16)),
-                      selected: selectedMealType == type,
-                      onSelected: (s) {
-                        if (s) setDialogState(() => selectedMealType = type);
-                      },
-                      selectedColor: AppColors.health.withOpacity(0.2),
-                    );
-                  }).toList(),
+                const SizedBox(height: 14),
+
+                // Meal type chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: MealType.values.map((type) {
+                      final selected = selectedMealType == type;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () =>
+                              setSheetState(() => selectedMealType = type),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? AppColors.health.withOpacity(0.15)
+                                  : Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(20),
+                              border: selected
+                                  ? Border.all(
+                                      color: AppColors.health, width: 1.5)
+                                  : null,
+                            ),
+                            child: Icon(
+                              type.icon,
+                              color: type.iconColor,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(ctx),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final amt =
+                              double.tryParse(amountController.text) ?? 0;
+                          if (amt <= 0) return;
+
+                          final entry = FoodEntry()
+                            ..foodName = ingredient.name
+                            ..mealType = selectedMealType
+                            ..timestamp = DateTime.now()
+                            ..servingSize = amt
+                            ..servingUnit = ingredient.baseUnit
+                            ..calories = ingredient.calcCalories(amt)
+                            ..protein = ingredient.calcProtein(amt)
+                            ..carbs = ingredient.calcCarbs(amt)
+                            ..fat = ingredient.calcFat(amt)
+                            ..baseCalories = ingredient.caloriesPerBase /
+                                ingredient.baseAmount
+                            ..baseProtein = ingredient.proteinPerBase /
+                                ingredient.baseAmount
+                            ..baseCarbs =
+                                ingredient.carbsPerBase / ingredient.baseAmount
+                            ..baseFat =
+                                ingredient.fatPerBase / ingredient.baseAmount
+                            ..ingredientId = ingredient.id
+                            ..source = DataSource.manual;
+
+                          final notifier =
+                              ref.read(foodEntriesNotifierProvider.notifier);
+                          await notifier.addFoodEntry(entry);
+                          refreshFoodProviders(ref, DateTime.now());
+
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Logged "${ingredient.name}" ${amt.toStringAsFixed(0)}${ingredient.baseUnit}'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.health,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.health.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Save',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  final amt = double.tryParse(amountController.text) ?? 0;
-                  if (amt <= 0) return;
-
-                  final entry = FoodEntry()
-                    ..foodName = ingredient.name
-                    ..mealType = selectedMealType
-                    ..timestamp = DateTime.now()
-                    ..servingSize = amt
-                    ..servingUnit = ingredient.baseUnit
-                    ..calories = ingredient.calcCalories(amt)
-                    ..protein = ingredient.calcProtein(amt)
-                    ..carbs = ingredient.calcCarbs(amt)
-                    ..fat = ingredient.calcFat(amt)
-                    ..baseCalories = ingredient.caloriesPerBase / ingredient.baseAmount
-                    ..baseProtein = ingredient.proteinPerBase / ingredient.baseAmount
-                    ..baseCarbs = ingredient.carbsPerBase / ingredient.baseAmount
-                    ..baseFat = ingredient.fatPerBase / ingredient.baseAmount
-                    ..ingredientId = ingredient.id
-                    ..source = DataSource.manual;
-
-                  final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-                  await notifier.addFoodEntry(entry);
-                  refreshFoodProviders(ref, DateTime.now());
-
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('✅ Logged "${ingredient.name}" ${amt.toStringAsFixed(0)}${ingredient.baseUnit}'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.health,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Save'),
-              ),
-            ],
           );
         },
       ),
     );
   }
 
+  Widget _miniNutrition(String value, String label, Color color) {
+    return Column(
+      children: [
+        Text(value,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w800, color: color)),
+        Text(label,
+            style: TextStyle(fontSize: 11, color: color.withOpacity(0.6))),
+      ],
+    );
+  }
+
   Future<void> _editMeal(MyMeal meal) async {
-    // Load meal ingredients
-    final ingredientsAsync = ref.read(mealIngredientsProvider(meal.id));
-    List<MyMealIngredient> mealIngredients = [];
+    // โหลด ALL ingredients ของ meal (ทั้ง root + sub) แล้วแยกเป็น tree
+    final allIngredients = await DatabaseService.myMealIngredients
+        .filter()
+        .myMealIdEqualTo(meal.id)
+        .sortBySortOrder()
+        .findAll();
 
-    ingredientsAsync.whenData((data) => mealIngredients = data);
-
-    // If provider not loaded, query directly from DB
-    if (mealIngredients.isEmpty) {
-      mealIngredients = await DatabaseService.myMealIngredients
-          .filter()
-          .myMealIdEqualTo(meal.id)
-          .sortBySortOrder()
-          .findAll();
+    // แยก root vs sub แล้ว set isComposite ให้ root ที่มี children
+    final childParentIds = <int>{};
+    for (final item in allIngredients) {
+      if (item.parentId != null) {
+        childParentIds.add(item.parentId!);
+      }
     }
+
+    final rootIngredients =
+        allIngredients.where((e) => e.parentId == null).map((root) {
+      // Mark root ว่ามี sub-ingredients หรือไม่
+      if (childParentIds.contains(root.id) && !root.isComposite) {
+        root.isComposite = true;
+      }
+      return root;
+    }).toList();
 
     if (!context.mounted) return;
 
@@ -439,15 +756,19 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
       backgroundColor: Colors.transparent,
       builder: (context) => CreateMealSheet(
         existingMeal: meal,
-        existingIngredients: mealIngredients,
+        existingIngredients: rootIngredients, // ส่งแค่ ROOT
         onSave: (updatedMeal) {
           ref.invalidate(allMyMealsProvider);
           ref.invalidate(mealIngredientsProvider(meal.id));
+          ref.invalidate(mealIngredientTreeProvider(meal.id)); // NEW
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Updated "${updatedMeal.name}"'),
+              content: Text('Updated "${updatedMeal.name}"'),
               backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         },
@@ -458,14 +779,59 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   Future<void> _deleteMeal(MyMeal meal) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Meal'),
-        content: Text('Delete "${meal.name}"?\n\n⚠️ Ingredients will not be deleted'),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.delete_outline_rounded,
+                  color: Colors.red.shade400, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Delete Meal?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('"${meal.name}"',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+            const SizedBox(height: 4),
+            Text('Ingredients will not be deleted.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+          ],
+        ),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child:
+                Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -478,7 +844,13 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Meal deleted'), backgroundColor: AppColors.success),
+        SnackBar(
+          content: const Text('Meal deleted'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -495,8 +867,11 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ Updated "${updatedIngredient.name}"'),
+              content: Text('Updated "${updatedIngredient.name}"'),
               backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
             ),
           );
         },
@@ -507,14 +882,52 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   Future<void> _deleteIngredient(Ingredient ingredient) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Ingredient'),
-        content: Text('Delete "${ingredient.name}"?'),
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.delete_outline_rounded,
+                  color: Colors.red.shade400, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Delete Ingredient?',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            ),
+          ],
+        ),
+        content: Text('"${ingredient.name}"',
+            style: TextStyle(
+                fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+        actionsPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child:
+                Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade400,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -522,12 +935,20 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     );
 
     if (confirm == true) {
-      await ref.read(myMealNotifierProvider.notifier).deleteIngredient(ingredient.id);
+      await ref
+          .read(myMealNotifierProvider.notifier)
+          .deleteIngredient(ingredient.id);
       ref.invalidate(allIngredientsProvider);
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Ingredient deleted'), backgroundColor: AppColors.success),
+        SnackBar(
+          content: const Text('Ingredient deleted'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       );
     }
   }
@@ -539,100 +960,180 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag handle
+            // Handle
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 36,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary,
+                  color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '🍽️ ${meal.name}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 20),
+
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.health.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Center(
+                      child: Icon(AppIcons.meal, size: 28, color: AppIcons.mealColor)),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        meal.name,
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.3),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        meal.baseServingDescription,
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Text(
-              meal.baseServingDescription,
-              style: const TextStyle(color: AppColors.textSecondary),
+            const SizedBox(height: 18),
+
+            // Nutrition pills
+            Row(
+              children: [
+                _detailNutritionPill('${meal.totalCalories.toInt()}', 'kcal',
+                    const Color(0xFFEF4444)),
+                const SizedBox(width: 8),
+                _detailNutritionPill('${meal.totalProtein.toInt()}g', 'Protein',
+                    const Color(0xFF3B82F6)),
+                const SizedBox(width: 8),
+                _detailNutritionPill('${meal.totalCarbs.toInt()}g', 'Carbs',
+                    const Color(0xFFF59E0B)),
+                const SizedBox(width: 8),
+                _detailNutritionPill('${meal.totalFat.toInt()}g', 'Fat',
+                    const Color(0xFF10B981)),
+              ],
             ),
-            const SizedBox(height: 16),
-            // Nutrition summary
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.health.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _nutritionBadge('🔥', '${meal.totalCalories.toInt()}', 'kcal'),
-                  _nutritionBadge('🥩', '${meal.totalProtein.toInt()}g', 'Protein'),
-                  _nutritionBadge('🍞', '${meal.totalCarbs.toInt()}g', 'Carbs'),
-                  _nutritionBadge('🫒', '${meal.totalFat.toInt()}g', 'Fat'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Ingredients:', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 20),
+
+            // Ingredients header
+            Text('Ingredients',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade800)),
+            const SizedBox(height: 10),
+
             // Ingredients list
             ingredientsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Text('Error: $e'),
               data: (ingredients) {
                 if (ingredients.isEmpty) {
-                  return const Text('No ingredients data', style: TextStyle(color: AppColors.textSecondary));
+                  return Text('No ingredients data',
+                      style: TextStyle(color: Colors.grey.shade500));
                 }
                 return Column(
-                  children: ingredients.map((ing) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        const Text('  •  '),
-                        Expanded(
-                          child: Text('${ing.ingredientName} (${ing.amount.toStringAsFixed(0)} ${ing.unit})'),
-                        ),
-                        Text(
-                          '${ing.calories.toInt()} kcal',
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  )).toList(),
+                  children: ingredients
+                      .map((ing) => Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.health,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    '${ing.ingredientName} (${ing.amount.toStringAsFixed(0)} ${ing.unit})',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Text(
+                                  '${ing.calories.toInt()} kcal',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade500,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ))
+                      .toList(),
                 );
               },
             ),
             const SizedBox(height: 20),
-            // Use button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _logFromMeal(meal);
-                },
-                icon: const Icon(Icons.restaurant),
-                label: const Text('Use this meal'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.health,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+            // Use meal button
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(ctx);
+                _logFromMeal(meal);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.health,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.health.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.restaurant_rounded,
+                        color: Colors.white, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Use This Meal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -642,13 +1143,30 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     );
   }
 
-  Widget _nutritionBadge(String emoji, String value, String label) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-      ],
+  Widget _detailNutritionPill(String value, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.07),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                  letterSpacing: -0.3),
+            ),
+            const SizedBox(height: 2),
+            Text(label,
+                style: TextStyle(fontSize: 10, color: color.withOpacity(0.7))),
+          ],
+        ),
+      ),
     );
   }
 

@@ -1,8 +1,8 @@
 /**
  * verifyPurchase Cloud Function
- * 
+ *
  * Purpose: Server-side verification of in-app purchases
- * 
+ *
  * Flow:
  * 1. รับ purchaseToken จาก Client
  * 2. เช็ค duplicate purchase (token เคยใช้แล้วหรือยัง)
@@ -13,11 +13,11 @@
  * 7. บันทึก purchase record (ป้องกันใช้ซ้ำ)
  */
 
-import { onRequest } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
-import * as admin from 'firebase-admin';
-import { google } from 'googleapis';
-import * as crypto from 'crypto';
+import {onRequest} from "firebase-functions/v2/https";
+import {defineSecret} from "firebase-functions/params";
+import * as admin from "firebase-admin";
+import {google} from "googleapis";
+import * as crypto from "crypto";
 
 // Initialize Firebase Admin
 if (!admin.apps.length) {
@@ -27,23 +27,23 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 // Secret from Firebase
-const GOOGLE_SERVICE_ACCOUNT = defineSecret('GOOGLE_SERVICE_ACCOUNT_JSON');
+const GOOGLE_SERVICE_ACCOUNT = defineSecret("GOOGLE_SERVICE_ACCOUNT_JSON");
 
 // ─── Product ID → Energy Amount Mapping ───
 // ⚠️ ต้องตรงกับที่กำหนดใน Client!
 const ENERGY_PRODUCTS: Record<string, number> = {
-  'energy_100': 100,
-  'energy_550': 550,
-  'energy_1200': 1200,
-  'energy_2000': 2000,
-  'energy_100_welcome': 100,
-  'energy_550_welcome': 550,
-  'energy_1200_welcome': 1200,
-  'energy_2000_welcome': 2000,
+  "energy_100": 100,
+  "energy_550": 550,
+  "energy_1200": 1200,
+  "energy_2000": 2000,
+  "energy_100_welcome": 100,
+  "energy_550_welcome": 550,
+  "energy_1200_welcome": 1200,
+  "energy_2000_welcome": 2000,
 };
 
 // ✅ Package name ของ MIRO app
-const PACKAGE_NAME = 'com.tanabun.miro';
+const PACKAGE_NAME = "com.tanabun.miro";
 
 interface VerifyPurchaseRequest {
   purchaseToken: string;
@@ -55,25 +55,25 @@ export const verifyPurchase = onRequest(
   {
     secrets: [GOOGLE_SERVICE_ACCOUNT],
     timeoutSeconds: 30,
-    memory: '512MiB',
-    cors: '*',
+    memory: "512MiB",
+    cors: "*",
   },
   async (req, res) => {
     // ─── Validate Request ───
-    if (req.method !== 'POST') {
-      res.status(405).json({ error: 'Method not allowed' });
+    if (req.method !== "POST") {
+      res.status(405).json({error: "Method not allowed"});
       return;
     }
 
     try {
       const body = req.body as VerifyPurchaseRequest;
-      const { purchaseToken, productId, deviceId } = body;
+      const {purchaseToken, productId, deviceId} = body;
 
       // Validate required fields
       if (!purchaseToken || !productId || !deviceId) {
         res.status(400).json({
-          error: 'Missing required fields',
-          required: ['purchaseToken', 'productId', 'deviceId'],
+          error: "Missing required fields",
+          required: ["purchaseToken", "productId", "deviceId"],
         });
         return;
       }
@@ -85,7 +85,7 @@ export const verifyPurchase = onRequest(
       if (!energyAmount) {
         console.log(`❌ [verifyPurchase] Invalid product: ${productId}`);
         res.status(400).json({
-          error: 'Invalid product ID',
+          error: "Invalid product ID",
           productId,
         });
         return;
@@ -94,22 +94,19 @@ export const verifyPurchase = onRequest(
       // ─── 2. Check duplicate purchase ───
       const purchaseHash = hashPurchaseToken(purchaseToken);
       const purchaseRecordRef = db
-        .collection('purchase_records')
+        .collection("purchase_records")
         .doc(purchaseHash);
       const existingPurchase = await purchaseRecordRef.get();
 
       if (existingPurchase.exists) {
         console.log(`⚠️ [verifyPurchase] Duplicate purchase: ${purchaseHash}`);
-        
+
         // ดึง balance ปัจจุบันส่งกลับ (ไม่เพิ่ม energy ซ้ำ)
-        const balanceDoc = await db
-          .collection('energy_balances')
-          .doc(deviceId)
-          .get();
-        const currentBalance = balanceDoc.data()?.balance ?? 0;
+        const userDoc = await db.collection("users").doc(deviceId).get();
+        const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
 
         res.status(409).json({
-          error: 'Purchase already verified',
+          error: "Purchase already verified",
           balance: currentBalance,
           verified: true,
         });
@@ -117,16 +114,16 @@ export const verifyPurchase = onRequest(
       }
 
       // ─── 3. Verify with Google Play Developer API ───
-      console.log(`🔍 [verifyPurchase] Verifying with Google Play API...`);
+      console.log("🔍 [verifyPurchase] Verifying with Google Play API...");
 
       const serviceAccount = JSON.parse(GOOGLE_SERVICE_ACCOUNT.value());
       const auth = new google.auth.GoogleAuth({
         credentials: serviceAccount,
-        scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+        scopes: ["https://www.googleapis.com/auth/androidpublisher"],
       });
 
       const androidPublisher = google.androidpublisher({
-        version: 'v3',
+        version: "v3",
         auth,
       });
 
@@ -139,7 +136,7 @@ export const verifyPurchase = onRequest(
       });
 
       const purchase = purchaseResponse.data;
-      console.log(`📦 [verifyPurchase] Google Play response:`, {
+      console.log("📦 [verifyPurchase] Google Play response:", {
         orderId: purchase.orderId,
         purchaseState: purchase.purchaseState,
         acknowledgementState: purchase.acknowledgementState,
@@ -150,7 +147,7 @@ export const verifyPurchase = onRequest(
       if (purchase.purchaseState !== 0) {
         console.log(`❌ [verifyPurchase] Purchase not completed: state=${purchase.purchaseState}`);
         res.status(403).json({
-          error: 'Purchase not completed',
+          error: "Purchase not completed",
           purchaseState: purchase.purchaseState,
         });
         return;
@@ -159,8 +156,8 @@ export const verifyPurchase = onRequest(
       // ─── 5. Acknowledge purchase (required by Google Play) ───
       // acknowledgementState: 0 = not acknowledged, 1 = acknowledged
       if (purchase.acknowledgementState === 0) {
-        console.log(`✅ [verifyPurchase] Acknowledging purchase...`);
-        
+        console.log("✅ [verifyPurchase] Acknowledging purchase...");
+
         await androidPublisher.purchases.products.acknowledge({
           packageName: PACKAGE_NAME,
           productId,
@@ -168,68 +165,108 @@ export const verifyPurchase = onRequest(
         });
       }
 
-      // ─── 6. Add energy to Firestore (atomic transaction) ───
-      console.log(`💎 [verifyPurchase] Adding ${energyAmount} energy...`);
+      // ─── 6. Calculate Bonus Energy (Phase 2) ───
+      const userDoc = await db.collection("users").doc(deviceId).get();
+      const bonusRate = userDoc.exists ? (userDoc.data()?.bonusRate || 0) : 0; // 0, 0.2, or 0.3
 
-      const balanceRef = db.collection('energy_balances').doc(deviceId);
-      const newBalance = await db.runTransaction(async (transaction) => {
-        const doc = await transaction.get(balanceRef);
-        const currentBalance = doc.exists ? (doc.data()?.balance ?? 0) : 0;
-        const updated = currentBalance + energyAmount;
+      const baseEnergy = energyAmount;
+      const bonusEnergy = Math.floor(baseEnergy * bonusRate);
+      const totalEnergy = baseEnergy + bonusEnergy;
 
-        if (doc.exists) {
-          transaction.update(balanceRef, {
-            balance: updated,
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-          });
-        } else {
-          transaction.set(balanceRef, {
-            balance: updated,
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          });
+      console.log(
+        `💎 [verifyPurchase] Purchase: ${baseEnergy} + ${bonusEnergy} bonus (${bonusRate * 100}%) = ${totalEnergy}`
+      );
+
+      // ─── 7. Add energy to Firestore (atomic transaction) ───
+      const userRef = db.collection("users").doc(deviceId);
+      const result = await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(userRef);
+
+        if (!doc.exists) {
+          throw new Error("User not found");
         }
 
-        return updated;
+        const userData = doc.data()!;
+        const currentBalance = userData.balance || 0;
+        const updated = currentBalance + totalEnergy;
+
+        transaction.update(userRef, {
+          balance: updated,
+          totalPurchased: (userData.totalPurchased || 0) + totalEnergy,
+          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        return {
+          newBalance: updated,
+          userData,
+        };
       });
 
-      // ─── 7. Record purchase (prevent duplicates) ───
+      const newBalance = result.newBalance;
+      const userData = result.userData;
+
+      // ─── 8. Record purchase (prevent duplicates) ───
       await purchaseRecordRef.set({
         deviceId,
         productId,
-        energyAmount,
+        energyAmount: totalEnergy, // รวม bonus แล้ว
+        baseEnergy,
+        bonusEnergy,
+        bonusRate,
         // เก็บ token แค่ส่วนหน้า (security: don't store full token)
-        purchaseTokenPreview: purchaseToken.substring(0, 20) + '...',
+        purchaseTokenPreview: purchaseToken.substring(0, 20) + "...",
         verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
         orderId: purchase.orderId,
         purchaseTimeMillis: purchase.purchaseTimeMillis,
-        status: 'verified',
+        status: "verified",
       });
 
-      console.log(`✅ [verifyPurchase] Success: ${productId} (+${energyAmount}) → ${newBalance}`);
+      // ─── 9. Log transaction ───
+      await db.collection("transactions").add({
+        deviceId,
+        miroId: userData.miroId || "unknown",
+        type: "purchase",
+        amount: totalEnergy,
+        balanceAfter: newBalance,
+        description: `Purchased ${baseEnergy} Energy` +
+          (bonusEnergy > 0 ? ` + ${bonusEnergy} Bonus (${bonusRate * 100}%)` : ""),
+        metadata: {
+          productId,
+          baseEnergy,
+          bonusRate,
+          bonusEnergy,
+          totalEnergy,
+          purchaseToken: purchaseToken.substring(0, 20) + "...",
+        },
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      console.log(`✅ [verifyPurchase] Success: ${productId} (+${totalEnergy}) → ${newBalance}`);
 
       // ─── Response ───
       res.status(200).json({
         success: true,
         balance: newBalance,
-        energyAdded: energyAmount,
+        energyAdded: totalEnergy,
+        baseEnergy,
+        bonusEnergy,
+        bonusRate,
         productId,
       });
-
     } catch (error: any) {
-      console.error('❌ [verifyPurchase] Error:', error);
+      console.error("❌ [verifyPurchase] Error:", error);
 
       // ถ้า error จาก Google Play API
       if (error.code === 400 || error.code === 401 || error.code === 404) {
         res.status(403).json({
-          error: 'Invalid purchase token',
+          error: "Invalid purchase token",
           details: error.message,
         });
         return;
       }
 
       res.status(500).json({
-        error: 'Internal server error',
+        error: "Internal server error",
         message: error.message,
       });
     }
@@ -241,5 +278,5 @@ export const verifyPurchase = onRequest(
  * ไม่เก็บ token เต็มๆ เพื่อความปลอดภัย
  */
 function hashPurchaseToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
+  return crypto.createHash("sha256").update(token).digest("hex");
 }

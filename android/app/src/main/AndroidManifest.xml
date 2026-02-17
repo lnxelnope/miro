@@ -66,5 +66,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Google Play Billing Client Version -->
+        <meta-data
+            android:name="com.google.android.play.billingclient.version"
+            android:value="6.0.1"
+            tools:replace="android:value" />
     </application>
 </manifest>

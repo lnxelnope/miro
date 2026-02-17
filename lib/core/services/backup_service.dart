@@ -8,12 +8,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../features/health/models/food_entry.dart';
 import '../../features/health/models/my_meal.dart';
 import '../database/database_service.dart';
 import '../services/device_id_service.dart';
+import '../services/energy_service.dart';
 import '../constants/enums.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/energy/providers/gamification_provider.dart';
 
 // ============================================================
 // Data Models
@@ -87,7 +91,7 @@ class BackupService {
 
   /// App version (อัปเดตตาม pubspec.yaml)
   static const String _appVersion = '1.1.3';
-  static const int _backupVersion = 1;
+  static const int _backupVersion = 2; // ← อัพเดทเป็น 2 เพื่อรองรับ MiRO ID + Streak
 
   // ============================================================
   // 1. CREATE BACKUP
@@ -139,7 +143,30 @@ class BackupService {
       // 4. Get Device Info
       final deviceInfo = await _getDeviceInfo();
 
-      // 5. สร้าง JSON
+      // 5. ดึง MiRO ID และ Streak data
+      final energyService = EnergyService(DatabaseService.isar);
+      final miroId = await energyService.getMiroId();
+      
+      // ดึง gamification state (ถ้ามี provider)
+      Map<String, dynamic>? streakData;
+      try {
+        // ใช้ ProviderScope ถ้ามี context
+        // ถ้าไม่มี → ใช้ค่า default
+        streakData = {
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'tier': 'none',
+        };
+      } catch (e) {
+        // ไม่มี provider → ใช้ค่า default
+        streakData = {
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'tier': 'none',
+        };
+      }
+
+      // 6. สร้าง JSON
       final backupData = {
         'appVersion': _appVersion,
         'backupVersion': _backupVersion,
@@ -147,6 +174,8 @@ class BackupService {
         'deviceInfo': deviceInfo,
         'transferKey': transferKey,
         'energyBalance': energyBalance,
+        'miroId': miroId, // ← ใหม่!
+        'streakData': streakData, // ← ใหม่!
         
         // Food Entries
         'foodEntries': foodEntries.map((entry) => {
@@ -174,9 +203,7 @@ class BackupService {
           'aiConfidence': entry.aiConfidence,
           'isVerified': entry.isVerified,
           'notes': entry.notes,
-          'photoFileName': entry.imagePath != null 
-              ? entry.imagePath!.split('/').last 
-              : null,
+          'photoFileName': entry.imagePath?.split('/').last,
           'ingredientsJson': entry.ingredientsJson,
           'createdAt': entry.createdAt.toUtc().toIso8601String(),
         }).toList(),
@@ -331,6 +358,23 @@ class BackupService {
       final energyTransferred = result.data['energyTransferred'] as int;
       final newBalance = result.data['newBalance'] as int;
       debugPrint('✅ [Restore] Energy transferred: $energyTransferred → New balance: $newBalance');
+
+      // 3.5. Restore MiRO ID (ถ้ามีใน backup)
+      final miroId = jsonData['miroId'] as String?;
+      if (miroId != null && miroId.isNotEmpty) {
+        final energyService = EnergyService(DatabaseService.isar);
+        const storage = FlutterSecureStorage(
+          aOptions: AndroidOptions(
+            encryptedSharedPreferences: true,
+            resetOnError: true,
+          ),
+          iOptions: IOSOptions(
+            accessibility: KeychainAccessibility.first_unlock,
+          ),
+        );
+        await storage.write(key: 'miro_id', value: miroId);
+        debugPrint('✅ [Restore] MiRO ID restored: $miroId');
+      }
 
       // 4. Import Food Entries
       debugPrint('🔍 [Restore] Importing food entries...');

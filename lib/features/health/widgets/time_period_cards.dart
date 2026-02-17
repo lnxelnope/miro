@@ -24,7 +24,6 @@ class TimePeriodCards extends StatelessWidget {
             ),
           ),
         ),
-        
         ...summaries.map((summary) => _buildPeriodCard(summary)),
       ],
     );
@@ -101,8 +100,12 @@ class TimePeriodCards extends StatelessWidget {
   ) {
     final color = isSurplus ? Colors.red : Colors.green;
     final icon = isSurplus ? Icons.arrow_upward : Icons.arrow_downward;
-    final totalText = totalDiff >= 0 ? '+${totalDiff.toStringAsFixed(0)}' : totalDiff.toStringAsFixed(0);
-    final avgText = avgPerDay >= 0 ? '+${avgPerDay.toStringAsFixed(1)}' : avgPerDay.toStringAsFixed(1);
+    final totalText = totalDiff >= 0
+        ? '+${totalDiff.toStringAsFixed(0)}'
+        : totalDiff.toStringAsFixed(0);
+    final avgText = avgPerDay >= 0
+        ? '+${avgPerDay.toStringAsFixed(1)}'
+        : avgPerDay.toStringAsFixed(1);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

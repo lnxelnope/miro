@@ -20,7 +20,8 @@ class BarcodeScannerScreen extends ConsumerStatefulWidget {
   const BarcodeScannerScreen({super.key});
 
   @override
-  ConsumerState<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+  ConsumerState<BarcodeScannerScreen> createState() =>
+      _BarcodeScannerScreenState();
 }
 
 class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
@@ -108,7 +109,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                 children: [
                   if (_detectedBarcode != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.success.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -117,18 +119,20 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                          const Icon(Icons.check_circle,
+                              color: AppColors.success, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             'Barcode: $_detectedBarcode',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 12),
                   ],
-
                   if (_isProcessing)
                     const Column(
                       children: [
@@ -155,10 +159,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                     OutlinedButton.icon(
                       onPressed: () => _switchToNutritionLabel(),
                       icon: const Icon(Icons.receipt_long, color: Colors.white),
-                      label: const Text('Scan nutrition label instead', style: TextStyle(color: Colors.white)),
+                      label: const Text('Scan nutrition label instead',
+                          style: TextStyle(color: Colors.white)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white54),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                     ),
                   ],
@@ -245,7 +251,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _CornerPainter(alignment: alignment, color: color, thickness: thickness),
+        painter: _CornerPainter(
+            alignment: alignment, color: color, thickness: thickness),
       ),
     );
   }
@@ -283,7 +290,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           _isProcessing = false;
           _hasScanned = false;
         });
-        
+
         _showManualCaptureDialog(barcode.rawValue!);
         return;
       }
@@ -310,17 +317,17 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     } catch (e) {
       debugPrint('❌ [BarcodeScanner] Error: $e');
       if (!context.mounted) return;
-      
+
       // ปิด loading dialog ถ้ายังเปิดอยู่
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
-      
+
       setState(() {
         _isProcessing = false;
         _hasScanned = false;
       });
-      
+
       // ตรวจสอบว่าเป็น Energy error หรือไม่
       if (e.toString().contains('Insufficient energy')) {
         await NoEnergyDialog.show(context);
@@ -413,7 +420,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
   }
 
   /// แสดงผลวิเคราะห์
-  void _showAnalysisResult(FoodAnalysisResult result, String barcodeValue, String imagePath) {
+  void _showAnalysisResult(
+      FoodAnalysisResult result, String barcodeValue, String imagePath) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -457,11 +465,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               await notifier.saveIngredientsAndMeal(
                 mealName: confirmedData.foodName,
                 mealNameEn: confirmedData.foodNameEn,
-                servingDescription: '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                servingDescription:
+                    '${confirmedData.servingSize} ${confirmedData.servingUnit}',
                 imagePath: imagePath,
                 ingredientsData: confirmedData.ingredientsDetail!,
               );
-              
+
               // Invalidate MyMeal providers to refresh UI
               ref.invalidate(allMyMealsProvider);
               ref.invalidate(allIngredientsProvider);

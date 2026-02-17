@@ -16,11 +16,12 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: AppColors.background,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.background,  // เปลี่ยนจาก surface → background
+      backgroundColor: AppColors.background, // เปลี่ยนจาก surface → background
       foregroundColor: AppColors.textPrimary,
       elevation: 0,
-      centerTitle: false,  // เปลี่ยนจาก true → false (ชิดซ้าย)
-      titleTextStyle: TextStyle(  // เพิ่ม 4 บรรทัดนี้
+      centerTitle: false, // เปลี่ยนจาก true → false (ชิดซ้าย)
+      titleTextStyle: TextStyle(
+        // เพิ่ม 4 บรรทัดนี้
         fontSize: 28,
         fontWeight: FontWeight.w800,
         color: AppColors.textPrimary,
@@ -34,10 +35,10 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: AppColors.surface,
-      elevation: 1,  // เปลี่ยนจาก 0 → 1
-      shadowColor: Colors.black.withOpacity(0.08),  // เพิ่มบรรทัดนี้
+      elevation: 1, // เปลี่ยนจาก 0 → 1
+      shadowColor: Colors.black.withOpacity(0.08), // เพิ่มบรรทัดนี้
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),  // เปลี่ยนจาก 12 → 16
+        borderRadius: BorderRadius.circular(16), // เปลี่ยนจาก 12 → 16
         // ลบ side: const BorderSide(...) ออกทั้งบรรทัด
       ),
     ),
@@ -51,8 +52,8 @@ class AppTheme {
     ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
-        fontSize: 28,  // เปลี่ยนจาก 24 → 28
-        fontWeight: FontWeight.w800,  // เปลี่ยนจาก bold → w800
+        fontSize: 28, // เปลี่ยนจาก 24 → 28
+        fontWeight: FontWeight.w800, // เปลี่ยนจาก bold → w800
         color: AppColors.textPrimary,
       ),
       headlineMedium: TextStyle(
@@ -100,11 +101,13 @@ class AppTheme {
     ),
     scaffoldBackgroundColor: AppColors.backgroundDark,
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.backgroundDark,  // เปลี่ยนจาก surfaceDark → backgroundDark
+      backgroundColor:
+          AppColors.backgroundDark, // เปลี่ยนจาก surfaceDark → backgroundDark
       foregroundColor: AppColors.textPrimaryDark,
       elevation: 0,
-      centerTitle: false,  // เปลี่ยนจาก true → false
-      titleTextStyle: TextStyle(  // เพิ่ม 4 บรรทัดนี้
+      centerTitle: false, // เปลี่ยนจาก true → false
+      titleTextStyle: TextStyle(
+        // เพิ่ม 4 บรรทัดนี้
         fontSize: 28,
         fontWeight: FontWeight.w800,
         color: AppColors.textPrimaryDark,
@@ -118,10 +121,11 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: AppColors.surfaceDark,
-      elevation: 1,  // เปลี่ยนจาก 0 → 1
-      shadowColor: Colors.black.withOpacity(0.2),  // เพิ่มบรรทัดนี้ (0.2 เพราะ dark mode)
+      elevation: 1, // เปลี่ยนจาก 0 → 1
+      shadowColor:
+          Colors.black.withOpacity(0.2), // เพิ่มบรรทัดนี้ (0.2 เพราะ dark mode)
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),  // เปลี่ยนจาก 12 → 16
+        borderRadius: BorderRadius.circular(16), // เปลี่ยนจาก 12 → 16
         // ลบ side: const BorderSide(...) ออกทั้งบรรทัด
       ),
     ),

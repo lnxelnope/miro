@@ -12,7 +12,7 @@ final userProfileProvider = FutureProvider<UserProfile>((ref) async {
       .idGreaterThan(0)
       .sortByCreatedAt()
       .findAll();
-  
+
   if (profiles.isEmpty) {
     // สร้าง default profile
     final profile = UserProfile()
@@ -22,14 +22,14 @@ final userProfileProvider = FutureProvider<UserProfile>((ref) async {
       ..carbGoal = AppConstants.defaultCarbGoal
       ..fatGoal = AppConstants.defaultFatGoal
       ..waterGoal = AppConstants.defaultWaterGoal;
-    
+
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.userProfiles.put(profile);
     });
-    
+
     return profile;
   }
-  
+
   return profiles.first;
 });
 
@@ -52,7 +52,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
           .idGreaterThan(0)
           .sortByCreatedAt()
           .findAll();
-      
+
       if (profiles.isEmpty) {
         final profile = UserProfile()
           ..name = 'User'
@@ -61,11 +61,11 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
           ..carbGoal = AppConstants.defaultCarbGoal
           ..fatGoal = AppConstants.defaultFatGoal
           ..waterGoal = AppConstants.defaultWaterGoal;
-        
+
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.userProfiles.put(profile);
         });
-        
+
         state = AsyncValue.data(profile);
       } else {
         state = AsyncValue.data(profiles.first);

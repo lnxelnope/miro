@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/ai/gemini_service.dart';
 import 'package:miro_hybrid/core/theme/app_colors.dart';
-import 'package:miro_hybrid/core/utils/error_handler.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
@@ -12,6 +11,7 @@ import 'package:miro_hybrid/features/health/providers/health_provider.dart';
 import 'package:miro_hybrid/features/health/widgets/gemini_analysis_sheet.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/services/usage_limiter.dart';
+import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
 import 'dart:convert';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
@@ -39,6 +39,8 @@ class _ImageAnalysisPreviewScreenState
   late TextEditingController _quantityController;
   late String _selectedUnit;
   bool _isAnalyzing = false;
+  bool _isCancelled = false;
+  FoodSearchMode _searchMode = FoodSearchMode.normal;
 
   @override
   void initState() {
@@ -54,9 +56,53 @@ class _ImageAnalysisPreviewScreenState
 
   @override
   void dispose() {
+    _isCancelled = true;
     _foodNameController.dispose();
     _quantityController.dispose();
     super.dispose();
+  }
+
+  /// เตือนผู้ใช้ก่อนออกขณะ AI กำลังวิเคราะห์
+  Future<bool> _onWillPop() async {
+    if (!_isAnalyzing) return true;
+
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            SizedBox(width: 12),
+            Expanded(child: Text('กำลังวิเคราะห์อยู่')),
+          ],
+        ),
+        content: const Text(
+          'AI กำลังวิเคราะห์อาหารอยู่\n\n'
+          'ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป '
+          'และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('รอต่อ'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('ออกเลย'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLeave == true) {
+      _isCancelled = true;
+      return true;
+    }
+    return false;
   }
 
   Future<void> _analyzeWithAI() async {
@@ -65,7 +111,7 @@ class _ImageAnalysisPreviewScreenState
     // Validate inputs
     final foodName = _foodNameController.text.trim();
     final quantityText = _quantityController.text.trim();
-    
+
     double? quantity;
     if (quantityText.isNotEmpty) {
       quantity = double.tryParse(quantityText);
@@ -79,26 +125,25 @@ class _ImageAnalysisPreviewScreenState
 
     setState(() {
       _isAnalyzing = true;
+      _isCancelled = false;
     });
 
     if (!mounted) return;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    
-    ErrorHandler.showLoading(context, message: 'Analyzing with AI...');
 
     try {
-      // Call AI analysis with optional parameters
+      // Call AI analysis with optional parameters + search mode
       final result = await GeminiService.analyzeFoodImage(
         widget.imageFile,
         foodName: foodName.isEmpty ? null : foodName,
         quantity: quantity,
         unit: _selectedUnit,
+        searchMode: _searchMode,
       );
 
-      if (!mounted) return;
-
-      ErrorHandler.hideLoading(context);
+      // ถ้า user กดออกระหว่างรอ → หยุดทำงาน
+      if (_isCancelled || !mounted) return;
 
       if (result == null) {
         throw Exception('No result from AI analysis');
@@ -106,14 +151,14 @@ class _ImageAnalysisPreviewScreenState
 
       // Record AI usage after success
       await UsageLimiter.recordAiUsage();
-      
+
       // Update energy badge
-      if (!mounted) return;
+      if (_isCancelled || !mounted) return;
       ref.invalidate(energyBalanceProvider);
       ref.invalidate(currentEnergyProvider);
 
       // Show analysis result
-      if (!mounted) return;
+      if (_isCancelled || !mounted) return;
       await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -150,7 +195,8 @@ class _ImageAnalysisPreviewScreenState
             // Save ingredients JSON if available
             if (confirmedData.ingredientsDetail != null &&
                 confirmedData.ingredientsDetail!.isNotEmpty) {
-              entry.ingredientsJson = jsonEncode(confirmedData.ingredientsDetail);
+              entry.ingredientsJson =
+                  jsonEncode(confirmedData.ingredientsDetail);
             }
 
             // Add to database
@@ -173,7 +219,8 @@ class _ImageAnalysisPreviewScreenState
                 await notifier.saveIngredientsAndMeal(
                   mealName: confirmedData.foodName,
                   mealNameEn: confirmedData.foodNameEn,
-                  servingDescription: '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                  servingDescription:
+                      '${confirmedData.servingSize} ${confirmedData.servingUnit}',
                   imagePath: entry.imagePath,
                   ingredientsData: confirmedData.ingredientsDetail!,
                 );
@@ -190,9 +237,7 @@ class _ImageAnalysisPreviewScreenState
         ),
       );
     } catch (e) {
-      if (!mounted) return;
-      
-      ErrorHandler.hideLoading(context);
+      if (_isCancelled || !mounted) return;
 
       messenger.showSnackBar(
         SnackBar(content: Text('Analysis failed: ${e.toString()}')),
@@ -216,7 +261,16 @@ class _ImageAnalysisPreviewScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: !_isAnalyzing,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldLeave = await _onWillPop();
+        if (shouldLeave && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Analyze Food Image'),
@@ -240,7 +294,46 @@ class _ImageAnalysisPreviewScreenState
 
             const SizedBox(height: 24),
 
-            // Input Section
+            // Inline loading indicator (แทน dialog)
+            if (_isAnalyzing)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CircularProgressIndicator(strokeWidth: 3),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'AI กำลังวิเคราะห์อาหาร...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'กรุณารอสักครู่',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            if (!_isAnalyzing) const SizedBox(height: 0),
+
+            // Input Section (ซ่อนเมื่อกำลังวิเคราะห์)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -268,7 +361,15 @@ class _ImageAnalysisPreviewScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // Search Mode Toggle
+                  SearchModeSelector(
+                    selectedMode: _searchMode,
+                    onChanged: (mode) => setState(() => _searchMode = mode),
+                  ),
+
+                  const SizedBox(height: 16),
 
                   // Quantity and Unit Row
                   Text(
@@ -370,16 +471,27 @@ class _ImageAnalysisPreviewScreenState
                     height: 56,
                     child: ElevatedButton.icon(
                       onPressed: _isAnalyzing ? null : _analyzeWithAI,
-                      icon: const Icon(Icons.auto_awesome, size: 24),
+                      icon: _isAnalyzing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.auto_awesome, size: 24),
                       label: Text(
-                        _isAnalyzing ? 'Analyzing...' : 'Analyze with AI',
+                        _isAnalyzing ? 'กำลังวิเคราะห์...' : 'Analyze with AI',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: _isAnalyzing
+                            ? Colors.grey[400]
+                            : AppColors.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -396,6 +508,7 @@ class _ImageAnalysisPreviewScreenState
           ],
         ),
       ),
+    ),
     );
   }
 }

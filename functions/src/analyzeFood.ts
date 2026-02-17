@@ -1,19 +1,22 @@
 /**
  * analyzeFood - Firebase Cloud Function
- * 
+ *
  * Backend API สำหรับ MIRO Energy System
  * รับคำขอจากแอป → ตรวจสอบ Energy Token → เรียก Gemini API → ส่งผลลัพธ์กลับ
  */
 
-import { onRequest } from 'firebase-functions/v2/https';
-import { defineSecret } from 'firebase-functions/params';
-import * as crypto from 'crypto';
-import fetch from 'node-fetch';
-import * as admin from 'firebase-admin';
+import {onRequest} from "firebase-functions/v2/https";
+import {defineSecret} from "firebase-functions/params";
+import * as crypto from "crypto";
+import fetch from "node-fetch";
+import * as admin from "firebase-admin";
+import {processCheckIn} from "./energy/dailyCheckIn";
+import {incrementChallengeProgress} from "./energy/challenge";
+import {checkReferralProgress} from "./referral/checkReferralProgress";
 
 // Define secrets
-const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
-const ENERGY_ENCRYPTION_SECRET = defineSecret('ENERGY_ENCRYPTION_SECRET');
+const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
+const ENERGY_ENCRYPTION_SECRET = defineSecret("ENERGY_ENCRYPTION_SECRET");
 
 // Initialize Firebase Admin (ถ้ายังไม่ได้ init)
 if (!admin.apps.length) {
@@ -26,14 +29,14 @@ const db = admin.firestore();
 // 1. CONSTANTS & CONFIG
 // ───────────────────────────────────────────────────────────
 
-const GEMINI_API_URL = 
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 // CORS Headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type, x-energy-token, x-device-id',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type, x-energy-token, x-device-id",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 // ───────────────────────────────────────────────────────────
@@ -41,40 +44,40 @@ const corsHeaders = {
 // ───────────────────────────────────────────────────────────
 
 interface EnergyToken {
-  userId: string;      // Device ID or User ID
-  balance?: number;    // ⚠️ PHASE 3: Optional (backward compatible)
-  timestamp: number;   // Token creation time
-  signature: string;   // HMAC signature
+  userId: string; // Device ID or User ID
+  balance?: number; // ⚠️ PHASE 3: Optional (backward compatible)
+  timestamp: number; // Token creation time
+  signature: string; // HMAC signature
 }
 
 /**
  * Verify Energy Token
- * 
+ *
  * ✅ PHASE 3: รองรับ 2 formats:
  * - Old format: { userId, balance, timestamp, signature }
  * - New format: { userId, timestamp, signature } ← ไม่มี balance
- * 
+ *
  * ⚠️ balance ใน token (ถ้ามี) จะถูก IGNORE
  * Backend อ่าน balance จาก Firestore เท่านั้น
  */
 function verifyEnergyToken(token: string, secret: string): EnergyToken | null {
   try {
     const decoded = JSON.parse(
-      Buffer.from(token, 'base64').toString('utf-8')
+      Buffer.from(token, "base64").toString("utf-8")
     ) as EnergyToken;
-    
-    const { userId, timestamp, signature } = decoded;
-    
+
+    const {userId, timestamp, signature} = decoded;
+
     // Validate required fields
     if (!userId || !timestamp || !signature) {
-      console.log('❌ [verifyToken] Missing required fields');
+      console.log("❌ [verifyToken] Missing required fields");
       return null;
     }
-    
+
     // ✅ PHASE 3: ไม่ต้องการ balance ใน token แล้ว
     // Token เก่าอาจจะมี balance, Token ใหม่ไม่มี
     const balance = decoded.balance; // อาจจะมีหรือไม่มีก็ได้
-    
+
     // Verify signature
     let payload: string;
     if (balance !== undefined) {
@@ -84,33 +87,33 @@ function verifyEnergyToken(token: string, secret: string): EnergyToken | null {
       // New token format (ไม่มี balance)
       payload = `${userId}:${timestamp}`;
     }
-    
+
     const expectedSignature = generateSignature(payload, secret);
-    
+
     if (signature !== expectedSignature) {
-      console.log('❌ [verifyToken] Invalid signature');
+      console.log("❌ [verifyToken] Invalid signature");
       return null;
     }
-    
+
     // Check expiry (5 minutes)
     const now = Date.now();
     if (now - timestamp > 5 * 60 * 1000) {
-      console.log('❌ [verifyToken] Token expired');
+      console.log("❌ [verifyToken] Token expired");
       return null;
     }
-    
+
     console.log(`✅ [verifyToken] Valid token for user: ${userId}`);
-    
+
     // ⚠️ Return balance as undefined — ไม่ใช้อีกต่อไป
     // Backend จะอ่านจาก Firestore แทน
-    return { 
-      userId, 
+    return {
+      userId,
       balance: undefined, // IGNORED
       timestamp,
       signature,
     };
   } catch (error) {
-    console.log('❌ [verifyToken] Parse error:', error);
+    console.log("❌ [verifyToken] Parse error:", error);
     return null;
   }
 }
@@ -120,9 +123,9 @@ function verifyEnergyToken(token: string, secret: string): EnergyToken | null {
  */
 function generateSignature(payload: string, secret: string): string {
   return crypto
-    .createHmac('sha256', secret)
+    .createHmac("sha256", secret)
     .update(payload)
-    .digest('hex');
+    .digest("hex");
 }
 
 // ===================================================================
@@ -130,82 +133,144 @@ function generateSignature(payload: string, secret: string): string {
 // ===================================================================
 
 /**
+ * ดึงวันที่ปัจจุบันตาม timezone ของ user
+ *
+ * @param timezoneOffset - offset จาก UTC ในหน่วยนาที (e.g. 420 = UTC+7)
+ * @return วันที่ในรูปแบบ "YYYY-MM-DD"
+ */
+function getTodayString(timezoneOffset?: number): string {
+  const now = new Date();
+
+  // ถ้าไม่ส่ง offset มา → ใช้ UTC+7 (Thailand)
+  const offset = timezoneOffset ?? 420; // 420 minutes = 7 hours
+
+  // คำนวณเวลาท้องถิ่น
+  const localTime = new Date(now.getTime() + offset * 60 * 1000);
+
+  // Return format: "YYYY-MM-DD"
+  return localTime.toISOString().split("T")[0];
+}
+
+/**
+ * เช็คและจัดการ Free AI
+ *
+ * @returns { isFree: boolean }
+ *   isFree = true → ครั้งนี้ฟรี (ไม่หัก energy)
+ */
+async function checkFreeAi(
+  deviceId: string,
+  timezoneOffset?: number
+): Promise<{ isFree: boolean }> {
+  const today = getTodayString(timezoneOffset);
+  const userRef = db.collection("users").doc(deviceId);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists) {
+    // User ไม่มี → ไม่ฟรี (ต้อง register ก่อน)
+    return {isFree: false};
+  }
+
+  const userData = userDoc.data()!;
+  const lastReset = userData.freeAiLastReset || "";
+  const alreadyUsed = userData.freeAiUsedToday || false;
+
+  // ─── Case 1: วันใหม่ → reset ───
+  if (lastReset !== today) {
+    console.log(`🆓 [Free AI] New day! Resetting for ${deviceId}`);
+
+    await userRef.update({
+      freeAiUsedToday: true,
+      freeAiLastReset: today,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return {isFree: true};
+  }
+
+  // ─── Case 2: วันเดิม + ยังไม่ใช้ → ฟรี! ───
+  if (!alreadyUsed) {
+    console.log(`🆓 [Free AI] First use today for ${deviceId}`);
+
+    await userRef.update({
+      freeAiUsedToday: true,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return {isFree: true};
+  }
+
+  // ─── Case 3: วันเดิม + ใช้แล้ว → ไม่ฟรี ───
+  console.log(`💰 [Free AI] Already used free AI today for ${deviceId}`);
+  return {isFree: false};
+}
+
+/**
  * อ่าน balance จาก Firestore (Server = Source of Truth)
- * ถ้ายังไม่มี document → สร้างใหม่พร้อม welcome gift
+ * อ่านจาก users collection แทน energy_balances
  */
 async function getServerBalance(deviceId: string): Promise<number> {
   try {
-    const docRef = db.collection('energy_balances').doc(deviceId);
+    const docRef = db.collection("users").doc(deviceId);
     const doc = await docRef.get();
-    
+
     if (!doc.exists) {
-      // New user — สร้าง document พร้อม welcome gift
-      const welcomeBalance = 100;
-      
-      await docRef.set({
-        balance: welcomeBalance,
-        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        welcomeGiftClaimed: true,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      
-      console.log(`🎁 [Firestore] New user ${deviceId}: Welcome gift ${welcomeBalance}`);
-      return welcomeBalance;
+      // User ไม่มี → ควรเรียก registerUser ก่อน
+      throw new Error("User not found. Please call registerUser first.");
     }
-    
+
     const balance = doc.data()?.balance ?? 0;
     console.log(`📊 [Firestore] User ${deviceId}: Balance = ${balance}`);
     return balance;
-    
   } catch (error) {
     console.error(`❌ [Firestore] Error reading balance for ${deviceId}:`, error);
-    throw new Error('Failed to read server balance');
+    throw error;
   }
 }
 
 /**
  * หัก balance ใน Firestore (Atomic Transaction)
  * ป้องกัน race condition เมื่อมีหลาย request พร้อมกัน
- * 
+ * อ่านจาก users collection แทน energy_balances
+ *
  * @param deviceId - Device ID ของ user
  * @param amount - จำนวนที่จะหัก
- * @returns balance ใหม่หลังหัก
+ * @return balance ใหม่หลังหัก
  */
 async function deductServerBalance(
   deviceId: string,
   amount: number
 ): Promise<number> {
   try {
-    const docRef = db.collection('energy_balances').doc(deviceId);
-    
+    const docRef = db.collection("users").doc(deviceId);
+
     // ใช้ Transaction เพื่อป้องกัน race condition
     const newBalance = await db.runTransaction(async (transaction) => {
       const doc = await transaction.get(docRef);
-      
+
       if (!doc.exists) {
-        throw new Error('User not found in Firestore');
+        throw new Error("User not found in Firestore");
       }
-      
+
       const currentBalance = doc.data()?.balance ?? 0;
-      
+
       // ห้าม balance ติดลบ
       if (currentBalance < amount) {
         throw new Error(`Insufficient balance: have ${currentBalance}, need ${amount}`);
       }
-      
+
       const updated = currentBalance - amount;
-      
+
       transaction.update(docRef, {
         balance: updated,
+        totalSpent: (doc.data()?.totalSpent || 0) + amount,
         lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
       });
-      
+
       console.log(`💰 [Firestore] ${deviceId}: ${currentBalance} - ${amount} = ${updated}`);
       return updated;
     });
-    
+
     return newBalance;
-    
   } catch (error) {
     console.error(`❌ [Firestore] Error deducting balance for ${deviceId}:`, error);
     throw error;
@@ -214,12 +279,13 @@ async function deductServerBalance(
 
 /**
  * เพิ่ม balance ใน Firestore (สำหรับ purchase, gift, etc.)
- * 
+ * อ่านจาก users collection แทน energy_balances
+ *
  * @param deviceId - Device ID ของ user
  * @param amount - จำนวนที่จะเพิ่ม
  * @param reason - เหตุผล (purchase, gift, welcome, etc.)
- * @returns balance ใหม่หลังเพิ่ม
- * 
+ * @return balance ใหม่หลังเพิ่ม
+ *
  * ⚠️ ฟังก์ชันนี้ไม่ได้ใช้ใน analyzeFood แต่จะใช้ใน verifyPurchase (Phase 2)
  * Exported เพื่อให้ function อื่นใช้ได้
  */
@@ -229,33 +295,29 @@ export async function addServerBalance(
   reason: string
 ): Promise<number> {
   try {
-    const docRef = db.collection('energy_balances').doc(deviceId);
-    
+    const docRef = db.collection("users").doc(deviceId);
+
     const newBalance = await db.runTransaction(async (transaction) => {
       const doc = await transaction.get(docRef);
-      
-      const currentBalance = doc.exists ? (doc.data()?.balance ?? 0) : 0;
-      const updated = currentBalance + amount;
-      
-      if (doc.exists) {
-        transaction.update(docRef, {
-          balance: updated,
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-        });
-      } else {
-        transaction.set(docRef, {
-          balance: updated,
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+
+      if (!doc.exists) {
+        throw new Error("User not found in Firestore");
       }
-      
+
+      const currentBalance = doc.data()?.balance ?? 0;
+      const updated = currentBalance + amount;
+
+      transaction.update(docRef, {
+        balance: updated,
+        totalEarned: (doc.data()?.totalEarned || 0) + amount,
+        lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
       console.log(`💎 [Firestore] ${deviceId}: ${currentBalance} + ${amount} = ${updated} (${reason})`);
       return updated;
     });
-    
+
     return newBalance;
-    
   } catch (error) {
     console.error(`❌ [Firestore] Error adding balance for ${deviceId}:`, error);
     throw error;
@@ -267,10 +329,10 @@ export async function addServerBalance(
 // ───────────────────────────────────────────────────────────
 
 interface GeminiRequest {
-  type: 'image' | 'text' | 'barcode' | 'chat' | 'menu_suggestion';
-  prompt?: string;  // Optional: สำหรับ type=image/text/barcode
-  text?: string;    // Optional: สำหรับ type=chat/menu_suggestion
-  imageBase64?: string;  // Optional: สำหรับ type=image
+  type: "image" | "text" | "barcode" | "chat" | "menu_suggestion";
+  prompt?: string; // Optional: สำหรับ type=image/text/barcode
+  text?: string; // Optional: สำหรับ type=chat/menu_suggestion
+  imageBase64?: string; // Optional: สำหรับ type=image
 }
 
 /**
@@ -278,34 +340,34 @@ interface GeminiRequest {
  */
 function getCuisineExamples(cuisine: string): string {
   const examples: Record<string, string> = {
-    'thai': '- Pad Krapow (Basil Stir-fry), Tom Yum Goong, Som Tam (Papaya Salad), Khao Pad (Fried Rice)',
-    'japanese': '- Teriyaki Salmon, Sushi Rolls, Miso Soup with Tofu, Chicken Katsu Curry',
-    'korean': '- Bibimbap, Bulgogi, Kimchi Jjigae (Kimchi Stew), Korean BBQ',
-    'chinese': '- Kung Pao Chicken, Mapo Tofu, Fried Rice, Steamed Dumplings',
-    'indian': '- Chicken Tikka Masala, Dal Tadka, Palak Paneer, Vegetable Biryani',
-    'american': '- Grilled Chicken Breast, Caesar Salad, Turkey Sandwich, BBQ Ribs',
-    'mexican': '- Chicken Burrito Bowl, Fish Tacos, Fajitas, Black Bean Soup',
-    'italian': '- Grilled Chicken with Vegetables, Minestrone Soup, Caprese Salad, Spaghetti Marinara',
-    'mediterranean': '- Greek Salad, Grilled Fish, Hummus with Vegetables, Chicken Souvlaki',
-    'middle_eastern': '- Shawarma, Falafel, Tabbouleh, Grilled Kebabs',
-    'vietnamese': '- Pho (Noodle Soup), Banh Mi, Spring Rolls, Com Tam (Broken Rice)',
-    'indonesian': '- Nasi Goreng (Fried Rice), Gado-Gado, Satay, Rendang',
-    'filipino': '- Adobo, Sinigang, Pancit, Grilled Bangus',
-    'european': '- Grilled Chicken, Roasted Vegetables, Soup, Fish with Potatoes',
-    'international': '- Mix of healthy dishes from various cuisines worldwide'
+    "thai": "- Pad Krapow (Basil Stir-fry), Tom Yum Goong, Som Tam (Papaya Salad), Khao Pad (Fried Rice)",
+    "japanese": "- Teriyaki Salmon, Sushi Rolls, Miso Soup with Tofu, Chicken Katsu Curry",
+    "korean": "- Bibimbap, Bulgogi, Kimchi Jjigae (Kimchi Stew), Korean BBQ",
+    "chinese": "- Kung Pao Chicken, Mapo Tofu, Fried Rice, Steamed Dumplings",
+    "indian": "- Chicken Tikka Masala, Dal Tadka, Palak Paneer, Vegetable Biryani",
+    "american": "- Grilled Chicken Breast, Caesar Salad, Turkey Sandwich, BBQ Ribs",
+    "mexican": "- Chicken Burrito Bowl, Fish Tacos, Fajitas, Black Bean Soup",
+    "italian": "- Grilled Chicken with Vegetables, Minestrone Soup, Caprese Salad, Spaghetti Marinara",
+    "mediterranean": "- Greek Salad, Grilled Fish, Hummus with Vegetables, Chicken Souvlaki",
+    "middle_eastern": "- Shawarma, Falafel, Tabbouleh, Grilled Kebabs",
+    "vietnamese": "- Pho (Noodle Soup), Banh Mi, Spring Rolls, Com Tam (Broken Rice)",
+    "indonesian": "- Nasi Goreng (Fried Rice), Gado-Gado, Satay, Rendang",
+    "filipino": "- Adobo, Sinigang, Pancit, Grilled Bangus",
+    "european": "- Grilled Chicken, Roasted Vegetables, Soup, Fish with Potatoes",
+    "international": "- Mix of healthy dishes from various cuisines worldwide",
   };
-  
-  return examples[cuisine] || examples['international'];
+
+  return examples[cuisine] || examples["international"];
 }
 
 /**
  * สร้าง prompt สำหรับ menu_suggestion type
  */
 function buildMenuSuggestionPrompt(text: string, userContext?: any): string {
-  let contextInfo = '';
-  
+  let contextInfo = "";
+
   if (userContext) {
-    contextInfo = '\n\nUser Profile:';
+    contextInfo = "\n\nUser Profile:";
     if (userContext.gender) contextInfo += `\n- Gender: ${userContext.gender}`;
     if (userContext.age) contextInfo += `\n- Age: ${userContext.age} years`;
     if (userContext.weight) contextInfo += `\n- Weight: ${userContext.weight} kg`;
@@ -319,7 +381,7 @@ function buildMenuSuggestionPrompt(text: string, userContext?: any): string {
     if (userContext.cuisinePreference) contextInfo += `\n- Cuisine Preference: ${userContext.cuisinePreference}`;
   }
 
-  const cuisinePref = userContext?.cuisinePreference || 'international';
+  const cuisinePref = userContext?.cuisinePreference || "international";
 
   return `You are Miro, a friendly nutrition assistant for users worldwide.
 
@@ -334,7 +396,7 @@ CRITICAL INSTRUCTION: The user has specifically chosen "${cuisinePref}" as their
 
 Suggest 3 meal ideas that:
 1. Fit their remaining calorie budget and macro goals
-2. ${userContext?.weightGoal ? `Match their weight goal (${userContext.weightGoal}) and activity level` : 'Are nutritionally balanced'}
+2. ${userContext?.weightGoal ? `Match their weight goal (${userContext.weightGoal}) and activity level` : "Are nutritionally balanced"}
 3. **MUST be authentic ${cuisinePref} dishes** — DO NOT suggest dishes from other cuisines
 4. Are balanced (good protein, reasonable carbs/fat according to their goals)
 
@@ -374,10 +436,10 @@ User context: "${text}"`;
  * สร้าง prompt สำหรับ chat type
  */
 function buildChatPrompt(text: string, userContext?: any): string {
-  let contextInfo = '';
-  
+  let contextInfo = "";
+
   if (userContext) {
-    contextInfo = '\n\nUser Profile:';
+    contextInfo = "\n\nUser Profile:";
     if (userContext.gender) contextInfo += `\n- Gender: ${userContext.gender}`;
     if (userContext.age) contextInfo += `\n- Age: ${userContext.age} years`;
     if (userContext.weight) contextInfo += `\n- Weight: ${userContext.weight} kg`;
@@ -388,7 +450,7 @@ function buildChatPrompt(text: string, userContext?: any): string {
     if (userContext.cuisinePreference) contextInfo += `\n- Cuisine Preference: ${userContext.cuisinePreference}`;
   }
 
-  const cuisinePref = userContext?.cuisinePreference || 'international';
+  const cuisinePref = userContext?.cuisinePreference || "international";
 
   return `You are Miro, a friendly nutrition assistant AND food scientist for users worldwide.${contextInfo}
 
@@ -408,6 +470,60 @@ For EVERY food item, you MUST deconstruct it into specific ingredients following
 
 4. CROSS-REFERENCE: For ${cuisinePref} cuisine, reference typical recipes and portion sizes for accuracy. For convenience store items (7-Eleven, FamilyMart, CP), reference known product databases.
 
+INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
+
+1. "ingredients_detail" contains ONLY recognizable food components at the ROOT level.
+   These ROOT items are what get COUNTED for total calories.
+   
+2. Each ROOT ingredient MAY have "sub_ingredients" — these are the atomic breakdown
+   showing what the component is made of. Sub-ingredients are INFORMATIONAL ONLY.
+   
+3. CALORIE RULES:
+   - sum(ROOT.calories) MUST equal nutrition.calories (the total)
+   - sum(sub_ingredients.calories) ≈ parent ROOT ingredient calories
+   - NEVER put both a composite AND its raw materials at ROOT level
+   
+4. When to use sub_ingredients:
+   - Deep-fried items → show meat + batter + absorbed oil as subs
+   - Sauces → show base ingredients (sugar, vinegar, chili) as subs
+   - Processed composite foods → show components as subs
+   - Simple items (plain rice, raw vegetables) → no sub_ingredients needed
+
+5. CHAT CONTEXT HANDLING:
+   - If user references previous meal ("อีก 2 ชิ้น", "เพิ่ม"), maintain hierarchical structure consistent with previous analyses
+   - If user asks "มีอะไรบ้าง", explain sub_ingredients breakdown
+
+WRONG example (double counting):
+{
+  "ingredients_detail": [
+    {"name": "Fried Chicken", "calories": 150},
+    {"name": "Chicken", "calories": 100},  ← DUPLICATE!
+    {"name": "Flour", "calories": 30}      ← DUPLICATE!
+  ]
+}
+
+CORRECT example (hierarchical):
+{
+  "ingredients_detail": [
+    {
+      "name": "Deep-fried Chicken Pieces",
+      "name_en": "Deep-fried Chicken Pieces",
+      "detail": "Coated in seasoned batter and deep-fried",
+      "amount": 100,
+      "unit": "g",
+      "calories": 150,
+      "protein": 15,
+      "carbs": 8,
+      "fat": 8,
+      "sub_ingredients": [
+        {"name": "Chicken Meat", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
+        {"name": "Flour Batter", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
+        {"name": "Absorbed Oil", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
+      ]
+    }
+  ]
+}
+
 For each food item, provide:
 - food_name: ALWAYS in English (for standardization)
 - food_name_local: Original name as typed by the user (keep original script — any language)
@@ -420,7 +536,7 @@ For each food item, provide:
 
 When estimating nutrition, consider typical portion sizes for ${cuisinePref} cuisine.
 Also consider:
-- User's health goals (${userContext?.weightGoal || 'not specified'})
+- User's health goals (${userContext?.weightGoal || "not specified"})
 - Their typical calorie/macro targets
 - Portion sizes appropriate for their profile and cuisine preference
 - Hidden calories from cooking oils, sauces, and marinades
@@ -450,13 +566,76 @@ Expected JSON format:
       "sugar": 4,
       "sodium": 1200,
       "ingredients_detail": [
-        {"name": "Stir-fried Minced Pork", "name_en": "Stir-fried Minced Pork (regular fat)", "detail": "High-heat wok stir-fried, absorbs cooking oil", "amount": 100, "unit": "g", "calories": 210, "protein": 22, "carbs": 0, "fat": 13},
-        {"name": "Steamed Jasmine Rice", "name_en": "Steamed Jasmine Rice", "detail": "Thai long-grain white rice", "amount": 200, "unit": "g", "calories": 260, "protein": 5, "carbs": 56, "fat": 0.5},
-        {"name": "Vegetable Oil (stir-frying)", "name_en": "Vegetable Oil for Wok Stir-frying", "detail": "High-heat cooking — significant oil absorption by minced pork", "amount": 15, "unit": "ml", "calories": 130, "protein": 0, "carbs": 0, "fat": 15},
-        {"name": "Thai Holy Basil Leaves", "name_en": "Thai Holy Basil Leaves", "detail": "Flash-fried in oil for aroma", "amount": 10, "unit": "g", "calories": 2, "protein": 0.3, "carbs": 0.3, "fat": 0},
-        {"name": "Fish Sauce", "name_en": "Fish Sauce", "detail": "Primary seasoning — very high sodium", "amount": 10, "unit": "ml", "calories": 6, "protein": 1, "carbs": 0.5, "fat": 0},
-        {"name": "Oyster Sauce", "name_en": "Oyster Sauce", "detail": "Contains sugar, soy extract, corn starch", "amount": 8, "unit": "ml", "calories": 9, "protein": 0.2, "carbs": 2, "fat": 0},
-        {"name": "Thai Chilies & Garlic", "name_en": "Crushed Thai Bird's Eye Chilies with Garlic", "detail": "Pounded and stir-fried in oil", "amount": 10, "unit": "g", "calories": 8, "protein": 0.3, "carbs": 1.5, "fat": 0.2}
+        {
+          "name": "Stir-fried Minced Pork",
+          "name_en": "Stir-fried Minced Pork (regular fat)",
+          "detail": "High-heat wok stir-fried, absorbs cooking oil",
+          "amount": 100,
+          "unit": "g",
+          "calories": 210,
+          "protein": 22,
+          "carbs": 0,
+          "fat": 13
+        },
+        {
+          "name": "Steamed Jasmine Rice",
+          "name_en": "Steamed Jasmine Rice",
+          "detail": "Thai long-grain white rice",
+          "amount": 200,
+          "unit": "g",
+          "calories": 260,
+          "protein": 5,
+          "carbs": 56,
+          "fat": 0.5
+        },
+        {
+          "name": "Vegetable Oil (stir-frying)",
+          "name_en": "Vegetable Oil for Wok Stir-frying",
+          "detail": "High-heat cooking — significant oil absorption by minced pork",
+          "amount": 15,
+          "unit": "ml",
+          "calories": 130,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 15
+        },
+        {
+          "name": "Thai Holy Basil Leaves",
+          "name_en": "Thai Holy Basil Leaves",
+          "detail": "Flash-fried in oil for aroma",
+          "amount": 10,
+          "unit": "g",
+          "calories": 2,
+          "protein": 0.3,
+          "carbs": 0.3,
+          "fat": 0
+        },
+        {
+          "name": "Seasoning Sauce Mix",
+          "name_en": "Seasoning Sauce Mix (Fish Sauce + Oyster Sauce)",
+          "detail": "Combined sauces — high sodium, contains added sugar",
+          "amount": 18,
+          "unit": "ml",
+          "calories": 15,
+          "protein": 1.2,
+          "carbs": 2.5,
+          "fat": 0,
+          "sub_ingredients": [
+            {"name": "Fish Sauce", "name_en": "Fish Sauce", "detail": "Primary seasoning — very high sodium", "amount": 10, "unit": "ml", "calories": 6, "protein": 1, "carbs": 0.5, "fat": 0},
+            {"name": "Oyster Sauce", "name_en": "Oyster Sauce", "detail": "Contains sugar, soy extract, corn starch", "amount": 8, "unit": "ml", "calories": 9, "protein": 0.2, "carbs": 2, "fat": 0}
+          ]
+        },
+        {
+          "name": "Thai Chilies & Garlic",
+          "name_en": "Crushed Thai Bird's Eye Chilies with Garlic",
+          "detail": "Pounded and stir-fried in oil",
+          "amount": 10,
+          "unit": "g",
+          "calories": 8,
+          "protein": 0.3,
+          "carbs": 1.5,
+          "fat": 0.2
+        }
       ]
     }
   ],
@@ -471,19 +650,19 @@ User message: "${text}"`;
  */
 function validateServingUnits(result: any): void {
   const validUnits = [
-    'g', 'kg', 'mg', 'oz', 'lbs', 
-    'ml', 'l', 'fl oz', 'cup', 'tbsp', 'tsp', 
-    'serving', 'piece', 'slice', 'plate', 'bowl', 'cup_c', 'glass', 
-    'egg', 'ball', 'fruit', 'skewer', 'whole', 'sheet', 'pair', 
-    'bunch', 'leaf', 'stick', 'scoop', 'handful', 
-    'pack', 'bag', 'wrap', 'box', 'can', 'bottle', 'bar'
+    "g", "kg", "mg", "oz", "lbs",
+    "ml", "l", "fl oz", "cup", "tbsp", "tsp",
+    "serving", "piece", "slice", "plate", "bowl", "cup_c", "glass",
+    "egg", "ball", "fruit", "skewer", "whole", "sheet", "pair",
+    "bunch", "leaf", "stick", "scoop", "handful",
+    "pack", "bag", "wrap", "box", "can", "bottle", "bar",
   ];
 
   if (result.items && Array.isArray(result.items)) {
     result.items.forEach((item: any) => {
       if (!validUnits.includes(item.serving_unit)) {
         console.warn(`Invalid unit "${item.serving_unit}" replaced with "serving"`);
-        item.serving_unit = 'serving';
+        item.serving_unit = "serving";
       }
     });
   }
@@ -495,37 +674,37 @@ function validateServingUnits(result: any): void {
 async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext?: any): Promise<any> {
   // สร้าง prompt ตาม type
   let promptText: string;
-  if (request.type === 'menu_suggestion' && request.text) {
+  if (request.type === "menu_suggestion" && request.text) {
     promptText = buildMenuSuggestionPrompt(request.text, userContext);
-  } else if (request.type === 'chat' && request.text) {
+  } else if (request.type === "chat" && request.text) {
     promptText = buildChatPrompt(request.text, userContext);
   } else if (request.prompt) {
     promptText = request.prompt;
   } else {
-    throw new Error('Missing prompt or text for request');
+    throw new Error("Missing prompt or text for request");
   }
 
-  const parts: any[] = [{ text: promptText }];
-  
-  if (request.imageBase64 && request.type === 'image') {
+  const parts: any[] = [{text: promptText}];
+
+  if (request.imageBase64 && request.type === "image") {
     parts.push({
       inline_data: {
-        mime_type: 'image/jpeg',
+        mime_type: "image/jpeg",
         data: request.imageBase64,
       },
     });
   }
-  
+
   // Use higher token limit for chat/menu_suggestion (ingredients_detail needs more tokens)
-  const maxTokens = (request.type === 'chat' || request.type === 'menu_suggestion') ? 4096 : 2048;
-  
+  const maxTokens = (request.type === "chat" || request.type === "menu_suggestion") ? 4096 : 2048;
+
   // Tune generation parameters per request type:
   // - Food analysis (image/text/barcode): low temperature for accuracy & consistency
   // - Chat/menu_suggestion: slightly higher temperature for natural conversation
-  const isAnalysis = ['image', 'text', 'barcode'].includes(request.type);
-  
+  const isAnalysis = ["image", "text", "barcode"].includes(request.type);
+
   const requestBody = {
-    contents: [{ parts }],
+    contents: [{parts}],
     generationConfig: {
       temperature: isAnalysis ? 0.15 : 0.4,
       topK: isAnalysis ? 10 : 32,
@@ -533,63 +712,62 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
       maxOutputTokens: maxTokens,
     },
   };
-  
+
   // Retry logic for 429 (Rate Limit) errors
   const maxRetries = 3;
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(requestBody),
       });
-      
+
       // Success - return result
       if (response.ok) {
         console.log(`✅ Gemini API success (attempt ${attempt + 1})`);
         return response.json();
       }
-      
+
       const errorText = await response.text();
-      
+
       // Handle 429 (Rate Limit) with retry
       if (response.status === 429) {
         console.warn(`⚠️ Rate limit hit (attempt ${attempt + 1}/${maxRetries + 1})`);
-        
+
         // If not the last attempt, wait and retry
         if (attempt < maxRetries) {
           // Exponential backoff: 2s, 4s, 8s
           const waitTime = Math.pow(2, attempt + 1) * 1000;
           console.log(`⏳ Waiting ${waitTime}ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue; // Try again
         }
       }
-      
+
       // Other errors or last retry - throw
       lastError = new Error(`Gemini API error (${response.status}): ${errorText}`);
       console.error(`❌ Gemini API error: ${response.status}`, errorText);
       break;
-      
     } catch (error: any) {
       console.error(`❌ Network error (attempt ${attempt + 1}):`, error.message);
       lastError = error;
-      
+
       // Retry on network errors too
       if (attempt < maxRetries) {
         const waitTime = Math.pow(2, attempt + 1) * 1000;
         console.log(`⏳ Retrying after ${waitTime}ms...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
       break;
     }
   }
-  
+
   // All retries failed
-  throw lastError || new Error('Gemini API call failed after retries');
+  throw lastError || new Error("Gemini API call failed after retries");
 }
 
 // ───────────────────────────────────────────────────────────
@@ -600,176 +778,513 @@ export const analyzeFood = onRequest(
   {
     secrets: [GEMINI_API_KEY, ENERGY_ENCRYPTION_SECRET],
     timeoutSeconds: 60,
-    memory: '512MiB',
-    cors: '*',
+    memory: "512MiB",
+    cors: "*",
   },
   async (req, res) => {
     // Handle CORS preflight
     res.set(corsHeaders);
-    
-    if (req.method === 'OPTIONS') {
-      res.status(204).send('');
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
       return;
     }
-    
+
     try {
       // ────── 4.1. Validate Energy Token ──────
-      const energyToken = req.headers['x-energy-token'] as string;
+      const energyToken = req.headers["x-energy-token"] as string;
       if (!energyToken) {
-        res.status(401).json({ error: 'Missing energy token' });
+        res.status(401).json({error: "Missing energy token"});
         return;
       }
-      
+
       const secret = ENERGY_ENCRYPTION_SECRET.value();
       const token = verifyEnergyToken(energyToken, secret);
-      
+
       if (!token) {
-        res.status(401).json({ error: 'Invalid or expired token' });
+        res.status(401).json({error: "Invalid or expired token"});
         return;
       }
-      
+
       // ✅ PHASE 1: อ่าน balance จาก FIRESTORE (Server = Source of Truth)
       const deviceId = token.userId;
       let serverBalance: number;
-      
+
       try {
         serverBalance = await getServerBalance(deviceId);
       } catch (error) {
-        console.error('[analyzeFood] Failed to get server balance:', error);
-        res.status(500).json({ error: 'Failed to check balance' });
+        console.error("[analyzeFood] Failed to get server balance:", error);
+        res.status(500).json({error: "Failed to check balance"});
         return;
       }
-      
+
       console.log(`✅ Token valid. User: ${deviceId}, Server Balance: ${serverBalance}`);
-      
+
       // ────── 4.2. Parse Request ──────
-      const { type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext } = req.body;
-      
+      const {type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext, timezoneOffset} = req.body;
+
+      // ────── 4.2.0. เช็ค Subscription (Phase 5) ──────
+      const userDoc = await db.collection("users").doc(deviceId).get();
+      if (!userDoc.exists) {
+        res.status(404).json({error: "User not found"});
+        return;
+      }
+
+      const userData = userDoc.data()!;
+      const subscription = userData.subscription;
+      const isSubscriber = subscription?.status === "active";
+
+      if (isSubscriber) {
+        // Subscriber → ใช้ AI ฟรีไม่จำกัด!
+        console.log(`💎 [analyzeFood] Subscriber ${deviceId} — free unlimited!`);
+
+        try {
+          // เรียก Gemini API ได้เลย
+          const geminiRequest: GeminiRequest = {
+            type: type as GeminiRequest["type"],
+            text: text,
+            prompt: prompt,
+            imageBase64: imageBase64,
+          };
+
+          const apiKey = GEMINI_API_KEY.value();
+          const geminiResponse = await callGeminiAPI(geminiRequest, apiKey, userContext);
+
+          console.log("✅ Gemini API success (Subscriber)");
+
+          // Process response (same as free AI)
+          if (type === "chat" || type === "menu_suggestion") {
+            const responseText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            let jsonText = responseText.trim();
+            if (jsonText.startsWith("```json")) {
+              jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+            } else if (jsonText.startsWith("```")) {
+              jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+            }
+
+            const parsedResult = JSON.parse(jsonText);
+            validateServingUnits(parsedResult);
+
+            // Check-in for streak (subscribers still get streaks)
+            const checkInResult = await processCheckIn(deviceId, timezoneOffset);
+
+            // Increment challenge progress
+            try {
+              await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
+              await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
+            } catch (error) {
+              console.error("[analyzeFood] Failed to increment challenge:", error);
+            }
+
+            const currentBalance = (checkInResult.newBalance ?? userData.balance) || 0;
+            const miroId = userData.miroId || "unknown";
+
+            // Log transaction (type: 'subscription_usage')
+            await db.collection("transactions").add({
+              deviceId,
+              miroId,
+              type: "subscription_usage",
+              amount: 0, // ไม่หัก
+              balanceAfter: currentBalance,
+              description: `AI analysis (Subscriber): ${type}`,
+              metadata: {
+                requestType: type,
+                isSubscriber: true,
+              },
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Read updated challenges & milestones
+            const updatedUser = await db.collection("users").doc(deviceId).get();
+            const updatedData = updatedUser.data()!;
+            const challenges = updatedData.challenges?.weekly || {};
+            const milestones = updatedData.milestones || {};
+
+            res.status(200).json({
+              success: true,
+              ...parsedResult,
+              balance: currentBalance,
+              energyUsed: 0,
+              energyCost: 0,
+              wasFreeAi: false,
+              isSubscriber: true,
+              streak: {
+                current: checkInResult.currentStreak,
+                longest: checkInResult.longestStreak,
+                tier: checkInResult.tier,
+                tierUpgraded: checkInResult.tierUpgraded,
+                newTier: checkInResult.newTier,
+                energyBonus: checkInResult.energyBonus,
+              },
+              challenges: {
+                weekly: challenges,
+              },
+              milestones: milestones,
+              totalSpent: updatedData.totalSpent || 0,
+            });
+            return;
+          } else {
+            // Other types (image, text, barcode)
+            const checkInResult = await processCheckIn(deviceId, timezoneOffset);
+
+            try {
+              await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
+              await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
+            } catch (error) {
+              console.error("[analyzeFood] Failed to increment challenge:", error);
+            }
+
+            const currentBalance = (checkInResult.newBalance ?? userData.balance) || 0;
+            const miroId = userData.miroId || "unknown";
+
+            await db.collection("transactions").add({
+              deviceId,
+              miroId,
+              type: "subscription_usage",
+              amount: 0,
+              balanceAfter: currentBalance,
+              description: `AI analysis (Subscriber): ${type}`,
+              metadata: {
+                requestType: type,
+                isSubscriber: true,
+              },
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Read updated challenges & milestones
+            const updatedUser = await db.collection("users").doc(deviceId).get();
+            const updatedData = updatedUser.data()!;
+            const challenges = updatedData.challenges?.weekly || {};
+            const milestones = updatedData.milestones || {};
+
+            res.status(200).json({
+              success: true,
+              data: geminiResponse,
+              balance: currentBalance,
+              energyUsed: 0,
+              energyCost: 0,
+              wasFreeAi: false,
+              isSubscriber: true,
+              streak: {
+                current: checkInResult.currentStreak,
+                longest: checkInResult.longestStreak,
+                tier: checkInResult.tier,
+                tierUpgraded: checkInResult.tierUpgraded,
+                newTier: checkInResult.newTier,
+                energyBonus: checkInResult.energyBonus,
+              },
+              challenges: {
+                weekly: challenges,
+              },
+              milestones: milestones,
+              totalSpent: updatedData.totalSpent || 0,
+            });
+            return;
+          }
+        } catch (error: any) {
+          console.error("❌ [Subscriber] Gemini error:", error);
+          res.status(500).json({error: error.message});
+          return;
+        }
+      }
+
+      // ────── 4.2.1. เช็ค Free AI (ก่อนเช็ค balance) ──────
+      const {isFree} = await checkFreeAi(deviceId, timezoneOffset);
+
+      if (isFree) {
+        console.log(`🆓 [analyzeFood] Free AI for ${deviceId}`);
+
+        // ────── Process check-in (streak + tier) ──────
+        const checkInResult = await processCheckIn(deviceId, timezoneOffset);
+
+        console.log(
+          `📊 [Check-in] Streak: ${checkInResult.currentStreak}, ` +
+          `Tier: ${checkInResult.tier}` +
+          (checkInResult.tierUpgraded ? " (UPGRADED!)" : "")
+        );
+
+        // ────── ไม่ต้องเช็ค balance! เรียก Gemini API ได้เลย ──────
+        try {
+          const geminiRequest: GeminiRequest = {
+            type: type as GeminiRequest["type"],
+            text: text,
+            prompt: prompt,
+            imageBase64: imageBase64,
+          };
+
+          // Validate required fields
+          if (!type || !requestDeviceId) {
+            res.status(400).json({error: "Missing required fields: type and deviceId"});
+            return;
+          }
+
+          // Validate type-specific fields
+          if ((type === "chat" || type === "menu_suggestion") && !text) {
+            res.status(400).json({error: `Missing text for ${type} type`});
+            return;
+          }
+
+          if (type === "image" && !imageBase64) {
+            res.status(400).json({error: "Missing imageBase64 for image type"});
+            return;
+          }
+
+          if ((type === "image" || type === "text" || type === "barcode") && !prompt) {
+            res.status(400).json({error: "Missing prompt for this type"});
+            return;
+          }
+
+          const apiKey = GEMINI_API_KEY.value();
+          const geminiResponse = await callGeminiAPI(geminiRequest, apiKey, userContext);
+
+          console.log("✅ Gemini API success (Free AI)");
+
+          // ดึง balance และ MiRO ID ปัจจุบัน (อาจเปลี่ยนจาก tier bonus)
+          const userDoc = await db.collection("users").doc(deviceId).get();
+          const userData = userDoc.data()!;
+          const currentBalance = (checkInResult.newBalance ?? userData.balance) || 0;
+          const miroId = userData.miroId || "unknown";
+
+          // บันทึก transaction (type: 'free_ai', amount: 0)
+          await db.collection("transactions").add({
+            deviceId,
+            miroId,
+            type: "free_ai",
+            amount: 0, // ไม่หัก
+            balanceAfter: currentBalance, // balance อาจเพิ่มจาก tier bonus
+            description: "Daily free AI analysis",
+            metadata: {
+              requestType: type, // 'image', 'text', 'barcode', etc.
+            },
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          // ✅ PHASE 2: Increment challenge progress (logMeals + useAi)
+          try {
+            await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
+            await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
+          } catch (error) {
+            console.error("[analyzeFood] Failed to increment challenge:", error);
+            // ไม่ block response
+          }
+
+          // Read updated challenges & milestones
+          const updatedUser = await db.collection("users").doc(deviceId).get();
+          const updatedData = updatedUser.data()!;
+          const challenges = updatedData.challenges?.weekly || {};
+          const milestones = updatedData.milestones || {};
+
+          // Return response พร้อม streak info
+          res.status(200).json({
+            success: true,
+            data: geminiResponse,
+            balance: currentBalance,
+            energyUsed: 0,
+            energyCost: 0,
+            wasFreeAi: true, // ← บอก client ว่าฟรี!
+
+            // ← Streak info (ใหม่!)
+            streak: {
+              current: checkInResult.currentStreak,
+              longest: checkInResult.longestStreak,
+              tier: checkInResult.tier,
+              tierUpgraded: checkInResult.tierUpgraded,
+              newTier: checkInResult.newTier,
+              energyBonus: checkInResult.energyBonus,
+            },
+            challenges: {
+              weekly: challenges,
+            },
+            milestones: milestones,
+            totalSpent: updatedData.totalSpent || 0,
+          });
+          return; // จบ function ตรงนี้!
+        } catch (error: any) {
+          console.error("❌ [Free AI] Gemini error:", error);
+          res.status(500).json({error: error.message});
+          return;
+        }
+      }
+
+      // ────── ถ้าไม่ฟรี → ทำตามเดิม (เช็ค balance + หัก energy) ──────
+
       // Determine BASE energy cost (chat/menu = 2, others = 1)
       // For chat: additional +1 per food item will be added AFTER Gemini responds
-      const baseCost = (type === 'chat' || type === 'menu_suggestion') ? 2 : 1;
-      
+      const baseCost = (type === "chat" || type === "menu_suggestion") ? 2 : 1;
+
       // Check if user has enough energy for base cost
       if (serverBalance < baseCost) {
         console.log(`❌ [analyzeFood] Insufficient balance: have ${serverBalance}, need ${baseCost}`);
-        res.status(402).json({ 
-          error: 'Insufficient energy', 
+        res.status(402).json({
+          error: "Insufficient energy",
           balance: serverBalance,
-          required: baseCost
+          required: baseCost,
         });
         return;
       }
-      
+
       console.log(`✅ [analyzeFood] Balance check passed: ${serverBalance} >= ${baseCost}`);
       console.log(`⚡ Base energy cost for ${type}: ${baseCost}`);
-      
+
       // Log user context if provided
       if (userContext) {
         console.log(`📋 User context: ${JSON.stringify(userContext)}`);
       }
-      
+
       // Validate required fields
       if (!type || !requestDeviceId) {
-        res.status(400).json({ error: 'Missing required fields: type and deviceId' });
+        res.status(400).json({error: "Missing required fields: type and deviceId"});
         return;
       }
-      
+
       // Validate type-specific fields
-      if ((type === 'chat' || type === 'menu_suggestion') && !text) {
-        res.status(400).json({ error: `Missing text for ${type} type` });
+      if ((type === "chat" || type === "menu_suggestion") && !text) {
+        res.status(400).json({error: `Missing text for ${type} type`});
         return;
       }
-      
-      if (type === 'image' && !imageBase64) {
-        res.status(400).json({ error: 'Missing imageBase64 for image type' });
+
+      if (type === "image" && !imageBase64) {
+        res.status(400).json({error: "Missing imageBase64 for image type"});
         return;
       }
-      
-      if ((type === 'image' || type === 'text' || type === 'barcode') && !prompt) {
-        res.status(400).json({ error: 'Missing prompt for this type' });
+
+      if ((type === "image" || type === "text" || type === "barcode") && !prompt) {
+        res.status(400).json({error: "Missing prompt for this type"});
         return;
       }
-      
+
       const geminiRequest: GeminiRequest = {
-        type: type as GeminiRequest['type'],
+        type: type as GeminiRequest["type"],
         text: text,
         prompt: prompt,
         imageBase64: imageBase64,
       };
-      
+
       console.log(`📝 Request type: ${geminiRequest.type}`);
-      
+
       // ────── 4.3. Call Gemini API ──────
       const apiKey = GEMINI_API_KEY.value();
-      
+
       // Log prompt length for debugging
       if (geminiRequest.prompt) {
         console.log(`📏 Prompt length: ${geminiRequest.prompt.length} characters`);
       }
-      
+
       const geminiResponse = await callGeminiAPI(geminiRequest, apiKey, userContext);
-      
-      console.log('✅ Gemini API success');
-      
+
+      console.log("✅ Gemini API success");
+
       // ────── 4.4. Parse response & calculate DYNAMIC energy cost ──────
       // For chat type: parse first to count items, then calculate total cost
-      if (type === 'chat' || type === 'menu_suggestion') {
+      if (type === "chat" || type === "menu_suggestion") {
         try {
           // Parse Gemini response text
-          const responseText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          
+          const responseText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
           // Extract JSON from response (อาจมี markdown code blocks)
           let jsonText = responseText.trim();
-          if (jsonText.startsWith('```json')) {
-            jsonText = jsonText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-          } else if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          if (jsonText.startsWith("```json")) {
+            jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+          } else if (jsonText.startsWith("```")) {
+            jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
           }
-          
+
           const parsedResult = JSON.parse(jsonText);
-          
+
           // Validate serving units
           validateServingUnits(parsedResult);
-          
+
           // ── Dynamic pricing: base 2 + 1 per food item ──
-          const itemCount = (parsedResult.items && Array.isArray(parsedResult.items)) 
-            ? parsedResult.items.length 
-            : 0;
+          const itemCount = (parsedResult.items && Array.isArray(parsedResult.items)) ?
+            parsedResult.items.length :
+            0;
           const perItemCost = itemCount; // 1 energy per food item
           const totalCost = baseCost + perItemCost;
-          
+
           // ✅ PHASE 1: เช็คว่า balance พอหรือไม่ (ก่อนหัก)
           if (serverBalance < totalCost) {
             console.log(`❌ [analyzeFood] Insufficient balance for dynamic cost: have ${serverBalance}, need ${totalCost}`);
             res.status(402).json({
-              error: 'Insufficient energy',
+              error: "Insufficient energy",
               balance: serverBalance,
               required: totalCost,
             });
             return;
           }
-          
+
           // ✅ PHASE 1: หัก balance ใน Firestore
           let newBalance: number;
           try {
             newBalance = await deductServerBalance(deviceId, totalCost);
             console.log(`✅ [analyzeFood] Balance updated: ${newBalance} (deducted ${totalCost})`);
+
+            // บันทึก transaction
+            const userDoc = await db.collection("users").doc(deviceId).get();
+            const miroId = userDoc.data()?.miroId || "unknown";
+
+            await db.collection("transactions").add({
+              deviceId,
+              miroId,
+              type: "usage",
+              amount: -totalCost,
+              balanceAfter: newBalance,
+              description: `AI analysis: ${type} (${itemCount} items)`,
+              metadata: {
+                requestType: type,
+                itemCount,
+                baseCost,
+                perItemCost,
+                totalCost,
+              },
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // ✅ PHASE 2: Increment challenge progress (logMeals + useAi)
+            try {
+              await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
+              await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
+            } catch (error) {
+              console.error("[analyzeFood] Failed to increment challenge:", error);
+              // ไม่ block response
+            }
+
+            // ✅ PHASE 4: Check referral progress
+            try {
+              await checkReferralProgress(deviceId);
+            } catch (error) {
+              console.error("[analyzeFood] Failed to check referral:", error);
+              // ไม่ block response
+            }
           } catch (error) {
-            console.error('[analyzeFood] Failed to deduct balance:', error);
+            console.error("[analyzeFood] Failed to deduct balance:", error);
             // เกิด error ตอนหัก balance แต่เราเรียก Gemini API ไปแล้ว
-            console.error('⚠️ WARNING: Gemini API called but balance deduction failed!');
-            console.error('⚠️ Manual intervention may be required for user:', deviceId);
+            console.error("⚠️ WARNING: Gemini API called but balance deduction failed!");
+            console.error("⚠️ Manual intervention may be required for user:", deviceId);
             // เราจะ return result ไปก่อน แต่ไม่อัพเดท balance
             newBalance = serverBalance;
           }
-          
+
           console.log(`⚡ Dynamic pricing: base=${baseCost} + items=${itemCount}×1 = total ${totalCost} energy`);
           console.log(`⚡ Deducted: ${totalCost} (balance: ${serverBalance} → ${newBalance})`);
-          
+
+          // Read challenges & milestones (in case increment was before error)
+          let challenges = {};
+          let milestones = {};
+          let totalSpent = 0;
+          try {
+            const updatedUser = await db.collection("users").doc(deviceId).get();
+            const updatedData = updatedUser.data()!;
+            challenges = updatedData.challenges?.weekly || {};
+            milestones = updatedData.milestones || {};
+            totalSpent = updatedData.totalSpent || 0;
+          } catch (error) {
+            console.error("[analyzeFood] Failed to read challenges/milestones:", error);
+          }
+
           // ✅ PHASE 1: ส่ง balance กลับแทน token
           // Return parsed result with energy breakdown
           res.status(200)
-            .set('X-Energy-Balance', newBalance.toString())
+            .set("X-Energy-Balance", newBalance.toString())
             .json({
               success: true,
               ...parsedResult,
@@ -783,50 +1298,109 @@ export const analyzeFood = onRequest(
                 perItemCost,
                 totalCost,
               },
+              wasFreeAi: false, // ไม่ฟรี
+              challenges: {
+                weekly: challenges,
+              },
+              milestones: milestones,
+              totalSpent: totalSpent,
               // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
             });
           return;
         } catch (parseError: any) {
-          console.error('❌ Error parsing chat response:', parseError);
+          console.error("❌ Error parsing chat response:", parseError);
           // Fall through — still deduct base cost even if parsing fails
         }
       }
-      
+
       // ────── 4.5. Deduct Energy for non-chat types (or chat parse failure) ──────
       // ✅ PHASE 1: หัก balance ใน Firestore
       let newBalance: number;
-      
+
       try {
         newBalance = await deductServerBalance(deviceId, baseCost);
         console.log(`✅ [analyzeFood] Balance updated: ${newBalance} (deducted ${baseCost})`);
+
+        // บันทึก transaction
+        const userDoc = await db.collection("users").doc(deviceId).get();
+        const miroId = userDoc.data()?.miroId || "unknown";
+
+        await db.collection("transactions").add({
+          deviceId,
+          miroId,
+          type: "usage",
+          amount: -baseCost,
+          balanceAfter: newBalance,
+          description: `AI analysis: ${type}`,
+          metadata: {
+            requestType: type,
+          },
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // ✅ PHASE 2: Increment challenge progress (logMeals + useAi)
+        try {
+          await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
+          await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
+        } catch (error) {
+          console.error("[analyzeFood] Failed to increment challenge:", error);
+          // ไม่ block response
+        }
+
+        // ✅ PHASE 4: Check referral progress
+        try {
+          await checkReferralProgress(deviceId);
+        } catch (error) {
+          console.error("[analyzeFood] Failed to check referral:", error);
+          // ไม่ block response
+        }
       } catch (error) {
-        console.error('[analyzeFood] Failed to deduct balance:', error);
+        console.error("[analyzeFood] Failed to deduct balance:", error);
         // เกิด error ตอนหัก balance แต่เราเรียก Gemini API ไปแล้ว
-        console.error('⚠️ WARNING: Gemini API called but balance deduction failed!');
-        console.error('⚠️ Manual intervention may be required for user:', deviceId);
+        console.error("⚠️ WARNING: Gemini API called but balance deduction failed!");
+        console.error("⚠️ Manual intervention may be required for user:", deviceId);
         // เราจะ return result ไปก่อน แต่ไม่อัพเดท balance
         newBalance = serverBalance;
       }
-      
+
       console.log(`⚡ Energy deducted (base): ${baseCost}. New balance: ${newBalance}`);
-      
+
+      // Read challenges & milestones after increment
+      let challenges = {};
+      let milestones = {};
+      let totalSpent = 0;
+      try {
+        const updatedUser = await db.collection("users").doc(deviceId).get();
+        const updatedData = updatedUser.data()!;
+        challenges = updatedData.challenges?.weekly || {};
+        milestones = updatedData.milestones || {};
+        totalSpent = updatedData.totalSpent || 0;
+      } catch (error) {
+        console.error("[analyzeFood] Failed to read challenges/milestones:", error);
+      }
+
       // ────── 4.6. Return Response (สำหรับ type อื่นๆ) ──────
       // ✅ PHASE 1: ส่ง balance กลับแทน token
       res.status(200)
-        .set('X-Energy-Balance', newBalance.toString())
+        .set("X-Energy-Balance", newBalance.toString())
         .json({
           success: true,
           data: geminiResponse,
           balance: newBalance,
           energyUsed: baseCost,
           energyCost: baseCost,
+          wasFreeAi: false, // ไม่ฟรี
+          challenges: {
+            weekly: challenges,
+          },
+          milestones: milestones,
+          totalSpent: totalSpent,
           // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
         });
-      
     } catch (error: any) {
-      console.error('❌ Error:', error);
-      res.status(500).json({ 
-        error: error.message || 'Internal server error' 
+      console.error("❌ Error:", error);
+      res.status(500).json({
+        error: error.message || "Internal server error",
       });
     }
   });

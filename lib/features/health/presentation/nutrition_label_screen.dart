@@ -19,7 +19,8 @@ class NutritionLabelScreen extends ConsumerStatefulWidget {
   const NutritionLabelScreen({super.key});
 
   @override
-  ConsumerState<NutritionLabelScreen> createState() => _NutritionLabelScreenState();
+  ConsumerState<NutritionLabelScreen> createState() =>
+      _NutritionLabelScreenState();
 }
 
 class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
@@ -32,9 +33,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       appBar: AppBar(
         title: const Text('Scan Nutrition Label'),
       ),
-      body: _capturedImage == null
-          ? _buildEmptyState()
-          : _buildPreview(),
+      body: _capturedImage == null ? _buildEmptyState() : _buildPreview(),
     );
   }
 
@@ -67,8 +66,10 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -77,8 +78,10 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                 icon: const Icon(Icons.photo_library),
                 label: const Text('From Gallery'),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
@@ -97,7 +100,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
             margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
+              border:
+                  Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -132,7 +136,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                           backgroundColor: Colors.purple,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -146,7 +151,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             label: const Text('Retake'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
@@ -158,7 +164,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             label: const Text('Cancel'),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                         ),
@@ -243,7 +250,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ ไม่สามารถอ่านฉลากได้ ลองถ่ายใหม่ให้ชัดกว่านี้')),
+          const SnackBar(
+              content: Text('❌ ไม่สามารถอ่านฉลากได้ ลองถ่ายใหม่ให้ชัดกว่านี้')),
         );
         return;
       }
@@ -291,11 +299,12 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                 await notifier.saveIngredientsAndMeal(
                   mealName: confirmedData.foodName,
                   mealNameEn: confirmedData.foodNameEn,
-                  servingDescription: '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                  servingDescription:
+                      '${confirmedData.servingSize} ${confirmedData.servingUnit}',
                   imagePath: _capturedImage!.path,
                   ingredientsData: confirmedData.ingredientsDetail!,
                 );
-                
+
                 // Invalidate MyMeal providers to refresh UI
                 ref.invalidate(allMyMealsProvider);
                 ref.invalidate(allIngredientsProvider);
@@ -319,14 +328,14 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      
+
       // ปิด loading dialog ถ้ายังเปิดอยู่
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
-      
+
       setState(() => _isAnalyzing = false);
-      
+
       // ตรวจสอบว่าเป็น Energy error หรือไม่
       if (e.toString().contains('Insufficient energy')) {
         await NoEnergyDialog.show(context);

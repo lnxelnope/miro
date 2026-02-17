@@ -28,7 +28,7 @@ final activePageContextProvider = StateProvider<String>((ref) => 'health');
 // Messages for current session
 final chatMessagesProvider = FutureProvider<List<ChatMessage>>((ref) async {
   final sessionId = ref.watch(currentSessionIdProvider);
-  
+
   return await DatabaseService.chatMessages
       .filter()
       .sessionIdEqualTo(sessionId)
@@ -50,7 +50,8 @@ final chatSessionsProvider = FutureProvider<List<ChatSession>>((ref) async {
 });
 
 // Provider สำหรับดึง messages ของ session ที่เลือก
-final sessionMessagesProvider = FutureProvider.family<List<ChatMessage>, String>((ref, sessionId) async {
+final sessionMessagesProvider =
+    FutureProvider.family<List<ChatMessage>, String>((ref, sessionId) async {
   return await DatabaseService.chatMessages
       .filter()
       .sessionIdEqualTo(sessionId)
@@ -62,13 +63,14 @@ final sessionMessagesProvider = FutureProvider.family<List<ChatMessage>, String>
 class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   final Ref ref;
   final IntentHandler _intentHandler = IntentHandler();
-  
+
   ChatNotifier(this.ref) : super([]);
 
   Future<void> sendMessage(String content, {String? pageContext}) async {
     final sessionId = ref.read(currentSessionIdProvider);
-    final String activeContext = pageContext ?? ref.read(activePageContextProvider);
-    
+    final String activeContext =
+        pageContext ?? ref.read(activePageContextProvider);
+
     // 1. Create user message
     final userMessage = ChatMessage()
       ..sessionId = sessionId
@@ -89,34 +91,40 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
     // 4. Hide loading
     ref.read(chatLoadingProvider.notifier).state = false;
-    
+
     // 5. Update or create session
     await _updateSession(sessionId, content);
   }
 
-  Future<void> _generateAIResponse(String userMessage, {String pageContext = 'health'}) async {
+  Future<void> _generateAIResponse(String userMessage,
+      {String pageContext = 'health'}) async {
     final sessionId = ref.read(currentSessionIdProvider);
-    
+
     try {
       // Get current AI mode
       final aiMode = ref.read(chatAiModeProvider);
-      
+
       String replyMessage;
       String? detectedIntent;
-      
+
       if (aiMode == ChatAiMode.local) {
         // LOCAL AI — Free, use existing IntentHandler flow
-        final response = await _intentHandler.processMessage(userMessage, pageContext: pageContext);
+        final response = await _intentHandler.processMessage(userMessage,
+            pageContext: pageContext);
         replyMessage = response.replyMessage;
         detectedIntent = response.actionResult?.entryType ?? 'unknown';
-        
+
         // Refresh providers if food entry was created
-        if (response.actionResult != null && response.actionResult!.entryType == 'food') {
-          debugPrint('🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
+        if (response.actionResult != null &&
+            response.actionResult!.entryType == 'food') {
+          debugPrint(
+              '🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
           final today = dateOnly(DateTime.now());
           DateTime entryDate = today;
-          if (response.actionResult!.data != null && response.actionResult!.data!['date'] != null) {
-            final parsedDate = DateTime.tryParse(response.actionResult!.data!['date'] as String);
+          if (response.actionResult!.data != null &&
+              response.actionResult!.data!['date'] != null) {
+            final parsedDate = DateTime.tryParse(
+                response.actionResult!.data!['date'] as String);
             if (parsedDate != null) entryDate = dateOnly(parsedDate);
           }
           ref.invalidate(foodEntriesByDateProvider(entryDate));
@@ -132,7 +140,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         replyMessage = miroResponse;
         detectedIntent = 'food';
       }
-      
+
       // สร้าง assistant message
       final assistantMessage = ChatMessage()
         ..sessionId = sessionId
@@ -145,7 +153,6 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       });
 
       state = [...state, assistantMessage];
-      
     } catch (e) {
       // Error fallback
       final errorMessage = ChatMessage()
@@ -164,18 +171,19 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
   /// Handle Miro AI (new flow with Gemini Backend)
   /// Returns reply message string
-  /// 
+  ///
   /// Energy pricing: base 2⚡ + 1⚡ per food item detected
   /// Example: "ate rice, soup, salad, juice" → 2 + 4 = 6⚡
   Future<String> _handleMiroAi(String text) async {
     // Check Energy balance (minimum 2 Energy required for base cost)
     final energyService = ref.read(energyServiceProvider);
     final balance = await energyService.getBalance();
-    
+
     if (balance < 2) {
-      throw Exception('Not enough Energy (minimum 2⚡ required). Please purchase more from the store.');
+      throw Exception(
+          'Not enough Energy (minimum 2⚡ required). Please purchase more from the store.');
     }
-    
+
     // Get user profile for personalization
     final profileAsync = ref.read(profileNotifierProvider);
     final profile = await profileAsync.when(
@@ -183,45 +191,47 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       loading: () => Future.value(null),
       error: (_, __) => Future.value(null),
     );
-    
+
     // Call Gemini Backend (backend calculates dynamic cost and deducts)
     final response = await GeminiChatService.analyzeChatMessage(
       message: text,
       energyService: energyService,
       userProfile: profile,
     );
-    
+
     // Note: Energy is deducted by backend (dynamic pricing), balance updated in GeminiChatService
-    
+
     // Parse response and save food entries
     await _parseMiroAiResponse(response);
-    
+
     // Refresh providers
-    debugPrint('🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
+    debugPrint(
+        '🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
     final today = dateOnly(DateTime.now());
     ref.invalidate(foodEntriesByDateProvider(today));
     ref.invalidate(todayCaloriesProvider);
     ref.invalidate(todayMacrosProvider);
     ref.invalidate(healthTimelineProvider(today));
-    
+
     // Build reply with actual energy cost breakdown
     final reply = response['reply'] as String? ?? 'Message received';
     final energyCost = response['energyCost'] as int? ?? 2;
     final breakdown = response['energyBreakdown'] as Map<String, dynamic>?;
-    
+
     String energyInfo;
     if (breakdown != null) {
       final baseCost = breakdown['baseCost'] as int? ?? 2;
       final itemCount = breakdown['itemCount'] as int? ?? 0;
       if (itemCount > 0) {
-        energyInfo = '⚡ -$energyCost Energy (base $baseCost + $itemCount items)';
+        energyInfo =
+            '⚡ -$energyCost Energy (base $baseCost + $itemCount items)';
       } else {
         energyInfo = '⚡ -$energyCost Energy';
       }
     } else {
       energyInfo = '⚡ -$energyCost Energy';
     }
-    
+
     return '$reply\n\n$energyInfo';
   }
 
@@ -229,12 +239,12 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   /// Also saves ingredients and My Meal if backend returns them
   Future<void> _parseMiroAiResponse(Map<String, dynamic> response) async {
     if (response['type'] != 'food_log') return;
-    
+
     final items = response['items'] as List<dynamic>?;
     if (items == null || items.isEmpty) return;
-    
+
     final foodNotifier = ref.read(foodEntriesNotifierProvider.notifier);
-    
+
     for (final item in items) {
       // Map meal_type string to MealType enum
       final mealTypeStr = item['meal_type'] as String? ?? 'snack';
@@ -264,9 +274,10 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       final fiber = (item['fiber'] as num?)?.toDouble();
       final sugar = (item['sugar'] as num?)?.toDouble();
       final sodium = (item['sodium'] as num?)?.toDouble();
-      
+
       final foodEntry = FoodEntry()
-        ..foodName = item['food_name_local'] as String? ?? item['food_name'] as String
+        ..foodName =
+            item['food_name_local'] as String? ?? item['food_name'] as String
         ..foodNameEn = item['food_name'] as String
         ..servingSize = (item['serving_size'] as num?)?.toDouble() ?? 1.0
         ..servingUnit = item['serving_unit'] as String? ?? 'serving'
@@ -277,7 +288,8 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         ..mealType = mealType
         ..timestamp = DateTime.now()
         ..source = DataSource.aiAnalyzed
-        ..isVerified = true  // ✅ FIX: Chat AI ก็วิเคราะห์แล้ว → mark verified เพื่อเตือนก่อน re-analyze
+        ..isVerified =
+            true // ✅ FIX: Chat AI ก็วิเคราะห์แล้ว → mark verified เพื่อเตือนก่อน re-analyze
         ..baseCalories = (item['calories'] as num?)?.toDouble() ?? 0
         ..baseProtein = (item['protein'] as num?)?.toDouble() ?? 0
         ..baseCarbs = (item['carbs'] as num?)?.toDouble() ?? 0
@@ -286,27 +298,29 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         ..sugar = sugar
         ..sodium = sodium
         ..ingredientsJson = ingredientsJsonStr;
-      
+
       await foodNotifier.addFoodEntry(foodEntry);
 
       // Auto-save ingredients and My Meal if data available
       if (ingredientsList != null && ingredientsList.isNotEmpty) {
         try {
-          final ingredientsData = ingredientsList
-              .map((e) => e as Map<String, dynamic>)
-              .toList();
-          
+          final ingredientsData =
+              ingredientsList.map((e) => e as Map<String, dynamic>).toList();
+
           await foodNotifier.saveIngredientsAndMeal(
-            mealName: item['food_name_local'] as String? ?? item['food_name'] as String,
+            mealName: item['food_name_local'] as String? ??
+                item['food_name'] as String,
             mealNameEn: item['food_name'] as String?,
-            servingDescription: '${(item['serving_size'] as num?)?.toDouble() ?? 1.0} ${item['serving_unit'] as String? ?? 'serving'}',
+            servingDescription:
+                '${(item['serving_size'] as num?)?.toDouble() ?? 1.0} ${item['serving_unit'] as String? ?? 'serving'}',
             ingredientsData: ingredientsData,
           );
-          
+
           ref.invalidate(allMyMealsProvider);
           ref.invalidate(allIngredientsProvider);
-          
-          AppLogger.info('Chat: Auto-saved ${ingredientsList.length} ingredients + 1 meal');
+
+          AppLogger.info(
+              'Chat: Auto-saved ${ingredientsList.length} ingredients + 1 meal');
         } catch (e) {
           AppLogger.warn('Chat: Could not auto-save meal: $e');
         }
@@ -334,7 +348,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         final title = firstMessage.length > 30
             ? '${firstMessage.substring(0, 30)}...'
             : firstMessage;
-        
+
         final session = ChatSession()
           ..sessionId = sessionId
           ..title = title
@@ -344,10 +358,10 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.chatSessions.put(session);
         });
-        
+
         AppLogger.info('Created new session: $title');
       }
-      
+
       // Invalidate sessions provider to refresh list
       ref.invalidate(chatSessionsProvider);
     } catch (e) {
@@ -359,14 +373,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<void> loadSession(String sessionId) async {
     // Switch to the session
     ref.read(currentSessionIdProvider.notifier).state = sessionId;
-    
+
     // Load messages
     final messages = await DatabaseService.chatMessages
         .filter()
         .sessionIdEqualTo(sessionId)
         .sortByCreatedAt()
         .findAll();
-    
+
     state = messages;
     AppLogger.info('Loaded session with ${messages.length} messages');
   }
@@ -387,22 +401,22 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             .filter()
             .sessionIdEqualTo(sessionId)
             .deleteAll();
-        
+
         // Delete session
         await DatabaseService.chatSessions
             .filter()
             .sessionIdEqualTo(sessionId)
             .deleteAll();
       });
-      
+
       // If current session was deleted, start new one
       if (ref.read(currentSessionIdProvider) == sessionId) {
         startNewSession();
       }
-      
+
       // Refresh sessions list
       ref.invalidate(chatSessionsProvider);
-      
+
       AppLogger.info('Deleted session: $sessionId');
     } catch (e) {
       AppLogger.error('Error deleting session', e);
@@ -419,11 +433,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<void> addMessage(ChatMessage message) async {
     final sessionId = ref.read(currentSessionIdProvider);
     message.sessionId = sessionId;
-    
+
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.chatMessages.put(message);
     });
-    
+
     state = [...state, message];
   }
 
@@ -433,7 +447,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.chatMessages.delete(message.id);
     });
-    
+
     // Remove from state
     state = state.where((msg) => msg.id != message.id).toList();
   }

@@ -29,12 +29,13 @@ class UserProfile {
   bool isHealthConnectConnected = false;
 
   // ===== Onboarding Fields =====
-  String? gender;            // 'male' หรือ 'female'
+  String? gender; // 'male' หรือ 'female'
   int? age;
-  double? weight;            // kg
-  double? height;            // cm
-  double? targetWeight;      // kg (optional)
-  String? activityLevel;     // 'sedentary', 'light', 'moderate', 'active', 'very_active'
+  double? weight; // kg
+  double? height; // cm
+  double? targetWeight; // kg (optional)
+  String?
+      activityLevel; // 'sedentary', 'light', 'moderate', 'active', 'very_active'
   bool onboardingComplete = false;
   // ===== จบส่วนเพิ่ม =====
 

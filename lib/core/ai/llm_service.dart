@@ -20,25 +20,27 @@ class LLMService {
   /// Normalize food name — supports both EN + TH (and other languages)
   static String normalizeFoodName(String name, {String locale = 'en'}) {
     var result = name.trim().toLowerCase();
-    
+
     if (locale == 'en' || !_isThaiText(result)) {
       return _normalizeEnglishFood(result);
     } else {
       return _normalizeThaiFood(result);
     }
   }
-  
+
   /// Check if text is Thai
   static bool _isThaiText(String text) {
     return text.runes.any((r) => r >= 0x0E00 && r <= 0x0E7F);
   }
-  
+
   /// Normalize English food
   static String _normalizeEnglishFood(String name) {
     var result = name.toLowerCase().trim();
     result = result.replaceAll(RegExp(r'^(a |an |the |some )'), '');
-    result = result.replaceAll(RegExp(r'\s*(bowl of|plate of|glass of|cup of|piece of)\s*'), ' ');
-    result = result.replaceAll(RegExp(r'^(fried |grilled |steamed |boiled |baked |roasted )'), '');
+    result = result.replaceAll(
+        RegExp(r'\s*(bowl of|plate of|glass of|cup of|piece of)\s*'), ' ');
+    result = result.replaceAll(
+        RegExp(r'^(fried |grilled |steamed |boiled |baked |roasted )'), '');
     return result.trim();
   }
 
@@ -64,26 +66,35 @@ class LLMService {
   }
 
   /// Process text and classify intent (Food only for v1.0)
-  Future<String> classifyAndParse(String text, {String pageContext = 'health'}) async {
+  Future<String> classifyAndParse(String text,
+      {String pageContext = 'health'}) async {
     AppLogger.info('Processing with Local AI: $text (page: $pageContext)');
     return await _localFallback(text, pageContext: pageContext);
   }
 
   /// Local regex fallback for text classification (Food-focused for v1.0)
-  Future<String> _localFallback(String text, {String pageContext = 'health'}) async {
+  Future<String> _localFallback(String text,
+      {String pageContext = 'health'}) async {
     final lowerText = text.toLowerCase();
 
     // ========== 1. Query Detection ==========
-    if (_containsAny(lowerText, ['how many calories', 'calorie summary', 'total calories', 'summary', 'total'])) {
+    if (_containsAny(lowerText, [
+      'how many calories',
+      'calorie summary',
+      'total calories',
+      'summary',
+      'total'
+    ])) {
       String queryType = 'calories';
       String period = 'today';
-      
+
       if (lowerText.contains('month') || lowerText.contains('this month')) {
         period = 'month';
-      } else if (lowerText.contains('week') || lowerText.contains('this week')) {
+      } else if (lowerText.contains('week') ||
+          lowerText.contains('this week')) {
         period = 'week';
       }
-      
+
       return jsonEncode({
         'type': 'query',
         'query_type': queryType,
@@ -108,7 +119,8 @@ class LLMService {
     }
 
     // ========== 3. Create Meal Detection ==========
-    if (_containsAny(lowerText, ['create meal', 'new meal', 'new recipe', 'save recipe', 'add meal'])) {
+    if (_containsAny(lowerText,
+        ['create meal', 'new meal', 'new recipe', 'save recipe', 'add meal'])) {
       final mealInfo = _extractCreateMealInfo(text);
       return jsonEncode({
         'type': 'create_meal',
@@ -120,10 +132,32 @@ class LLMService {
 
     // ========== 4. Health/Food Detection ==========
     final isFoodRelated = _containsAny(lowerText, [
-      'eat', 'ate', 'food', 'rice', 'curry', 'fried', 'boiled', 'salad',
-      'noodle', 'noodles', 'pasta', 'soup', 'steak', 'chicken', 'pork',
-      'calories', 'protein', 'carbs', 'kcal', 'breakfast', 'lunch', 'dinner', 'snack',
-      'had', 'drank', 'drink',
+      'eat',
+      'ate',
+      'food',
+      'rice',
+      'curry',
+      'fried',
+      'boiled',
+      'salad',
+      'noodle',
+      'noodles',
+      'pasta',
+      'soup',
+      'steak',
+      'chicken',
+      'pork',
+      'calories',
+      'protein',
+      'carbs',
+      'kcal',
+      'breakfast',
+      'lunch',
+      'dinner',
+      'snack',
+      'had',
+      'drank',
+      'drink',
     ]);
 
     if (isFoodRelated || pageContext == 'health') {
@@ -132,8 +166,9 @@ class LLMService {
       if (lowerText.contains('yesterday')) {
         entryDate = now.subtract(const Duration(days: 1));
       }
-      final dateStr = '${entryDate.year}-${entryDate.month.toString().padLeft(2, '0')}-${entryDate.day.toString().padLeft(2, '0')}';
-      
+      final dateStr =
+          '${entryDate.year}-${entryDate.month.toString().padLeft(2, '0')}-${entryDate.day.toString().padLeft(2, '0')}';
+
       String mealType = _detectMealTypeFromText(lowerText, now.hour);
       String foodName = _extractFoodName(text);
       final servingInfo = _extractServingSize(text);
@@ -143,9 +178,9 @@ class LLMService {
       final excludeIngredients = _extractExcludeIngredients(text);
 
       // Detect if user wants to create new meal
-      final isCreateMeal = lowerText.contains('create meal') || 
-                           lowerText.contains('new meal') ||
-                           lowerText.contains('new recipe');
+      final isCreateMeal = lowerText.contains('create meal') ||
+          lowerText.contains('new meal') ||
+          lowerText.contains('new recipe');
 
       return jsonEncode({
         'type': 'health',
@@ -169,7 +204,8 @@ class LLMService {
     AppLogger.info('No keyword match → treating as food');
 
     final now = DateTime.now();
-    final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     final mealType = _detectMealTypeFromText(lowerText, now.hour);
     String foodName = _extractFoodName(text);
     final servingInfo = _extractServingSize(text);
@@ -202,7 +238,8 @@ class LLMService {
 
   /// Extract calories from text
   double? _extractCalories(String text) {
-    final pattern = RegExp(r'(\d+(?:\.\d+)?)\s*(?:kcal|cal|calories)', caseSensitive: false);
+    final pattern = RegExp(r'(\d+(?:\.\d+)?)\s*(?:kcal|cal|calories)',
+        caseSensitive: false);
     final match = pattern.firstMatch(text);
     if (match != null) {
       return double.tryParse(match.group(1)!);
@@ -224,7 +261,7 @@ class LLMService {
     if (lowerText.contains('snack')) {
       return 'Snack';
     }
-    
+
     if (currentHour >= 5 && currentHour < 10) return 'Breakfast';
     if (currentHour >= 10 && currentHour < 14) return 'Lunch';
     if (currentHour >= 14 && currentHour < 17) return 'Snack';
@@ -240,33 +277,62 @@ class LLMService {
     // Step 1: Remove prefix
     for (int i = 0; i < 3; i++) {
       cleaned = cleaned
-        .replaceAll(RegExp(r'^\s*(today|yesterday|day before yesterday|tomorrow|now|just)\s*', caseSensitive: false), '')
-        .replaceAll(RegExp(r'^\s*(I |i )', caseSensitive: false), '')
-        .replaceAll(RegExp(r'^\s*(got|went|came|will|already|just|just now)\s*', caseSensitive: false), '')
-        .replaceAll(RegExp(r'^\s*(ate|eat|eating|had|have|ordered|bought)\s*', caseSensitive: false), '');
+          .replaceAll(
+              RegExp(
+                  r'^\s*(today|yesterday|day before yesterday|tomorrow|now|just)\s*',
+                  caseSensitive: false),
+              '')
+          .replaceAll(RegExp(r'^\s*(I |i )', caseSensitive: false), '')
+          .replaceAll(
+              RegExp(r'^\s*(got|went|came|will|already|just|just now)\s*',
+                  caseSensitive: false),
+              '')
+          .replaceAll(
+              RegExp(r'^\s*(ate|eat|eating|had|have|ordered|bought)\s*',
+                  caseSensitive: false),
+              '');
     }
 
     // Step 2: Remove meal phrases
     cleaned = cleaned
-      .replaceAll(RegExp(r'\s*(for|as|at)?\s*(breakfast|lunch|dinner|snack|meal)\s*$', caseSensitive: false), '')
-      .replaceAll(RegExp(r'\s*(this|in the)?\s*(morning|afternoon|evening|night)\s*$', caseSensitive: false), '')
-      .replaceAll(RegExp(r'\s*(breakfast|lunch|dinner|snack|meal)\s*$', caseSensitive: false), '');
+        .replaceAll(
+            RegExp(r'\s*(for|as|at)?\s*(breakfast|lunch|dinner|snack|meal)\s*$',
+                caseSensitive: false),
+            '')
+        .replaceAll(
+            RegExp(r'\s*(this|in the)?\s*(morning|afternoon|evening|night)\s*$',
+                caseSensitive: false),
+            '')
+        .replaceAll(
+            RegExp(r'\s*(breakfast|lunch|dinner|snack|meal)\s*$',
+                caseSensitive: false),
+            '');
 
     // Step 3: Remove suffixes
     for (int i = 0; i < 2; i++) {
       cleaned = cleaned
-        .replaceAll(RegExp(r'\s*(went|came|already|here|with|please|thanks|thank you|ok|okay)\s*$', caseSensitive: false), '')
-        .replaceAll(RegExp(r'\s*at\s*$', caseSensitive: false), '');
+          .replaceAll(
+              RegExp(
+                  r'\s*(went|came|already|here|with|please|thanks|thank you|ok|okay)\s*$',
+                  caseSensitive: false),
+              '')
+          .replaceAll(RegExp(r'\s*at\s*$', caseSensitive: false), '');
     }
 
     // Step 4: Remove quantity + calories
     cleaned = cleaned
-      .replaceAll(RegExp(r'\s*\d+\s*(kcal|cal|calories)\s*', caseSensitive: false), '')
-      .replaceAll(RegExp(r'\s*\d+(?:\.\d+)?\s*(?:plate|cup|piece|g|gram|kg|ml|l|milliliter|liter|item|egg|box|pack|ball|serving|tbsp|tsp|oz|lbs)\s*', caseSensitive: false), '');
+        .replaceAll(
+            RegExp(r'\s*\d+\s*(kcal|cal|calories)\s*', caseSensitive: false),
+            '')
+        .replaceAll(
+            RegExp(
+                r'\s*\d+(?:\.\d+)?\s*(?:plate|cup|piece|g|gram|kg|ml|l|milliliter|liter|item|egg|box|pack|ball|serving|tbsp|tsp|oz|lbs)\s*',
+                caseSensitive: false),
+            '');
 
     // Step 5: Remove duplicate spaces + trim
     cleaned = cleaned.replaceAll(RegExp(r'\s+'), ' ').trim();
-    
+
     if (cleaned.isEmpty) {
       cleaned = text.length > 50 ? '${text.substring(0, 50)}...' : text;
     }
@@ -275,43 +341,55 @@ class LLMService {
 
     // ⭐ ลบการ match จาก food_names.json ออก - ให้ใช้แค่ชื่อที่ user พิมพ์มา
     // My Meal และ Ingredient จะถูกค้นหาในขั้นตอนอื่นแทน
-    
+
     return cleaned;
   }
 
   /// Extract serving size from text
   Map<String, dynamic>? _extractServingSize(String text) {
     final lowerText = text.toLowerCase();
-    
+
     final patterns = [
-      RegExp(r'(\d+(?:\.\d+)?)\s*(plate|cup|cups|piece|pieces|g|kg|ml|l|gram|grams|item|items|unit|units|serving|servings)', caseSensitive: false),
+      RegExp(
+          r'(\d+(?:\.\d+)?)\s*(plate|cup|cups|piece|pieces|g|kg|ml|l|gram|grams|item|items|unit|units|serving|servings)',
+          caseSensitive: false),
     ];
-    
+
     for (final pattern in patterns) {
       final match = pattern.firstMatch(lowerText);
       if (match != null) {
         final size = double.tryParse(match.group(1)!);
         final unit = match.group(2)!;
-        
+
         if (size != null && size > 0 && size < 1000) {
           String resolvedUnit = unit;
           const unitAliases = {
-            'plates': 'plate', 'cups': 'cup', 'pieces': 'piece',
-            'items': 'piece', 'item': 'piece', 'units': 'serving', 'unit': 'serving',
-            'gram': 'g', 'grams': 'g',
-            'milliliter': 'ml', 'milliliters': 'ml',
-            'liter': 'l', 'liters': 'l',
-            'ounce': 'oz', 'ounces': 'oz',
-            'pound': 'lbs', 'pounds': 'lbs',
+            'plates': 'plate',
+            'cups': 'cup',
+            'pieces': 'piece',
+            'items': 'piece',
+            'item': 'piece',
+            'units': 'serving',
+            'unit': 'serving',
+            'gram': 'g',
+            'grams': 'g',
+            'milliliter': 'ml',
+            'milliliters': 'ml',
+            'liter': 'l',
+            'liters': 'l',
+            'ounce': 'oz',
+            'ounces': 'oz',
+            'pound': 'lbs',
+            'pounds': 'lbs',
           };
           resolvedUnit = unitAliases[unit.toLowerCase()] ?? unit;
           resolvedUnit = UnitConverter.ensureValid(resolvedUnit);
-          
+
           return {'size': size, 'unit': resolvedUnit};
         }
       }
     }
-    
+
     return null;
   }
 
@@ -322,7 +400,9 @@ class LLMService {
 
     // Extract meal name
     final namePatterns = [
-      RegExp(r'(?:create meal|new meal|add meal|new recipe|save recipe)\s+(.+?)(?:\s+ingredients|\s+with)', caseSensitive: false),
+      RegExp(
+          r'(?:create meal|new meal|add meal|new recipe|save recipe)\s+(.+?)(?:\s+ingredients|\s+with)',
+          caseSensitive: false),
       RegExp(r'(?:create meal|new meal|add meal)\s+(.+)', caseSensitive: false),
     ];
 
@@ -337,7 +417,8 @@ class LLMService {
     // Extract ingredients
     String ingredientsText = '';
     final ingStartPatterns = [
-      RegExp(r'(?:ingredients|with|contains)[:.]?\s*(.+)', caseSensitive: false),
+      RegExp(r'(?:ingredients|with|contains)[:.]?\s*(.+)',
+          caseSensitive: false),
     ];
 
     for (final pattern in ingStartPatterns) {
@@ -370,7 +451,8 @@ class LLMService {
       }
     }
 
-    AppLogger.info('Create Meal: name="$mealName", ingredients=${ingredients.length}');
+    AppLogger.info(
+        'Create Meal: name="$mealName", ingredients=${ingredients.length}');
 
     return {
       'name': mealName,
@@ -381,7 +463,7 @@ class LLMService {
   /// Extract exclude ingredients from text
   static List<String> _extractExcludeIngredients(String text) {
     final excludes = <String>[];
-    
+
     final patterns = [
       RegExp(r'no\s+(\w+)', caseSensitive: false),
       RegExp(r'without\s+(\w+)', caseSensitive: false),
@@ -393,7 +475,9 @@ class LLMService {
       final matches = pattern.allMatches(text);
       for (final match in matches) {
         final ingredient = match.group(1)?.trim();
-        if (ingredient != null && ingredient.isNotEmpty && ingredient.length > 1) {
+        if (ingredient != null &&
+            ingredient.isNotEmpty &&
+            ingredient.length > 1) {
           excludes.add(ingredient);
         }
       }

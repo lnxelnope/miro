@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/features/health/providers/nutrition_summary_provider.dart';
 import 'package:miro_hybrid/features/health/widgets/date_navigation_bar.dart';
 import 'package:miro_hybrid/features/health/widgets/goals_vs_actual_table.dart';

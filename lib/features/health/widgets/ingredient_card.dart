@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/ingredient.dart';
 
@@ -7,6 +8,8 @@ class IngredientCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onUse;
+  final int depth; // NEW — ระดับความลึก (0 = root, 1 = sub, 2 = sub-sub)
+  final String? detail; // NEW — คำอธิบายเพิ่มเติม (nullable)
 
   const IngredientCard({
     super.key,
@@ -14,63 +17,277 @@ class IngredientCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onUse,
+    this.depth = 0, // NEW — default = root level
+    this.detail, // NEW — optional detail
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: AppColors.health.withOpacity(0.1),
-          child: const Text('🥬', style: TextStyle(fontSize: 20)),
-        ),
-        title: Text(
-          ingredient.name,
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${ingredient.baseAmount.toStringAsFixed(0)} ${ingredient.baseUnit} = '
-              '${ingredient.caloriesPerBase.toInt()} kcal  '
-              'P:${ingredient.proteinPerBase.toInt()}g  '
-              'C:${ingredient.carbsPerBase.toInt()}g  '
-              'F:${ingredient.fatPerBase.toInt()}g',
-              style: const TextStyle(fontSize: 11),
+    final isAi = ingredient.source == 'gemini';
+    // คำนวณ indent สำหรับ sub-ingredients
+    final double indent = depth * 16.0;
+
+    return Padding(
+      padding: EdgeInsets.only(left: indent),
+      child: Row(
+        children: [
+          // เส้นแนวตั้งสำหรับ sub-ingredients
+          if (depth > 0)
+            Container(
+              width: 2,
+              height: 50, // adjust ตามขนาด card
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(1),
+              ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              'Used ${ingredient.usageCount} times · ${ingredient.source == 'gemini' ? '✨ AI' : '✏️ Manual'}',
-              style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                color: depth == 0
+                    ? Colors.white // ROOT: สีขาว
+                    : Colors.grey[50] ?? Colors.grey.shade50, // SUB: สีเทาอ่อน
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: onUse,
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
+                      children: [
+                        // Icon
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Center(
+                            child: Text('🥬', style: TextStyle(fontSize: 20)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      ingredient.name,
+                                      style: TextStyle(
+                                        fontSize: depth == 0
+                                            ? 15
+                                            : 14, // ROOT: 15, SUB: 14
+                                        fontWeight: depth == 0
+                                            ? FontWeight.w600 // ROOT: bold
+                                            : FontWeight.w400, // SUB: normal
+                                        letterSpacing: -0.2,
+                                        color: depth == 0
+                                            ? Colors.black87 // ROOT: เข้ม
+                                            : Colors.black54, // SUB: จาง
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  // Source badge
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isAi
+                                          ? const Color(0xFF8B5CF6)
+                                              .withOpacity(0.1)
+                                          : Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isAi ? AppIcons.aiAnalyzed : AppIcons.edit,
+                                          size: 12,
+                                          color: isAi
+                                              ? AppIcons.aiAnalyzedColor
+                                              : AppIcons.editColor,
+                                        ),
+                                        if (isAi) ...[
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            'AI',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppIcons.aiAnalyzedColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              // Nutrition compact row
+                              Row(
+                                children: [
+                                  Text(
+                                    '${ingredient.baseAmount.toStringAsFixed(0)} ${ingredient.baseUnit}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                  _dot(),
+                                  Text(
+                                    '${ingredient.caloriesPerBase.toInt()} kcal',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFEF4444),
+                                    ),
+                                  ),
+                                  _dot(),
+                                  Text(
+                                    'P:${ingredient.proteinPerBase.toInt()}  C:${ingredient.carbsPerBase.toInt()}  F:${ingredient.fatPerBase.toInt()}',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade500),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${ingredient.usageCount} uses',
+                                style: TextStyle(
+                                    fontSize: 10, color: Colors.grey.shade400),
+                              ),
+
+                              // NEW — แสดง detail text ถ้ามี
+                              if (detail != null && detail!.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    detail!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Actions
+                        Column(
+                          children: [
+                            // Log button
+                            GestureDetector(
+                              onTap: onUse,
+                              child: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: AppColors.health.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.add_rounded,
+                                    size: 20, color: AppColors.health),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            // More menu
+                            PopupMenuButton<String>(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(Icons.more_horiz_rounded,
+                                  size: 18, color: Colors.grey.shade400),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 'edit':
+                                    onEdit();
+                                    break;
+                                  case 'delete':
+                                    onDelete();
+                                    break;
+                                }
+                              },
+                              itemBuilder: (_) => [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.edit_outlined,
+                                          size: 18,
+                                          color: Colors.grey.shade600),
+                                      const SizedBox(width: 10),
+                                      const Text('Edit'),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.delete_outline_rounded,
+                                          size: 18, color: Colors.red.shade400),
+                                      const SizedBox(width: 10),
+                                      Text('Delete',
+                                          style: TextStyle(
+                                              color: Colors.red.shade400)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: onUse,
-              icon: const Icon(Icons.add_circle_outline, size: 22),
-              color: AppColors.health,
-              tooltip: 'Save this item',
-            ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit': onEdit(); break;
-                  case 'delete': onDelete(); break;
-                }
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('✏️ Edit')),
-                const PopupMenuItem(value: 'delete', child: Text('🗑️ Delete')),
-              ],
-            ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dot() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5),
+      child: Container(
+        width: 3,
+        height: 3,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade400,
+          shape: BoxShape.circle,
         ),
       ),
     );
