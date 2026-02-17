@@ -21,129 +21,129 @@ class DailySummaryCard extends ConsumerWidget {
     final foodsAsync = ref.watch(foodEntriesByDateProvider(date));
     final profileAsync = ref.watch(profileNotifierProvider);
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.health.withOpacity(0.8),
-            AppColors.health,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.health.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const TodaySummaryDashboardScreen(),
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            isToday
-                ? '📊 Today\'s Summary'
-                : '📊 Summary ${DateFormat('d MMM', 'en').format(date)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),  // เปลี่ยนจาก 16 → 20
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,  // เปลี่ยนจาก gradient → สีขาว/เทา
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),  // เปลี่ยน shadow
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Calories + Macros - คำนวณจาก foodEntries ของวันที่เลือก
+          ],
+        ),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,  // เพิ่มบรรทัดนี้
+        children: [
+          // ===== ส่วนที่ 1: Title + Circular Progress =====
           profileAsync.when(
-            loading: () => const CircularProgressIndicator(color: Colors.white),
+            loading: () => const CircularProgressIndicator(),
             error: (_, __) => const SizedBox(),
             data: (profile) => foodsAsync.when(
-              loading: () => const CircularProgressIndicator(color: Colors.white),
-              error: (_, __) => const Text('Error', style: TextStyle(color: Colors.white)),
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const Text('Error'),
               data: (entries) {
                 final calories = entries.fold<double>(0, (sum, e) => sum + e.calories);
                 final protein = entries.fold<double>(0, (sum, e) => sum + e.protein);
                 final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
                 final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
-
+                
                 final goal = profile.calorieGoal;
                 final percent = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
                 
                 return Column(
                   children: [
-                    // Calories
+                    // Row 1: Title ซ้าย + Circular Progress ขวา
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('🔥', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${calories.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
+                        // ===== ฝั่งซ้าย: Title + Subtitle =====
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isToday ? "Today's Intake" : "Daily Intake",
+                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 24,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isToday 
+                                    ? DateFormat('EEEE, d MMM', 'en').format(date)
+                                    : DateFormat('d MMMM yyyy', 'en').format(date),
+                                style: TextStyle(
+                                  color: Theme.of(context).textTheme.bodySmall?.color,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          ' / ${goal.toInt()} kcal',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 16,
+                        const SizedBox(width: 16),
+                        // ===== ฝั่งขวา: Circular Progress =====
+                        SizedBox(
+                          width: 90,
+                          height: 90,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 90,
+                                height: 90,
+                                child: CircularProgressIndicator(
+                                  value: percent,
+                                  strokeWidth: 8,
+                                  backgroundColor: Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                                ),
+                              ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${calories.toInt()}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  Text(
+                                    '/ ${goal.toInt()}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'kcal',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: percent,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        valueColor: const AlwaysStoppedAnimation(Colors.white),
-                        minHeight: 8,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${(percent * 100).toInt()}%',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '•',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          calories >= goal
-                              ? 'Goal reached! 🎉'
-                              : '${(goal - calories).toInt()} kcal left',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Macros
+                    const SizedBox(height: 20),
+                    // Row 2: Macros
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -167,40 +167,13 @@ class DailySummaryCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-
-                    // Details button
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const TodaySummaryDashboardScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.analytics_outlined, size: 16),
-                      label: const Text(
-                        'View Details',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                    ),
                   ],
                 );
               },
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -216,42 +189,54 @@ class DailySummaryCard extends ConsumerWidget {
     required double goal,
     required Color color,
   }) {
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              '${value.toInt()}g',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
               ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${value.toInt()}g',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: color,
             ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 11,
+          Text(
+            '/ ${goal.toInt()}g',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey.shade600,
+            ),
           ),
-        ),
-        Text(
-          '/${goal.toInt()}g',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
-            fontSize: 10,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
