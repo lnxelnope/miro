@@ -97,24 +97,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                 );
               }
 
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final item = items[index];
-
-                    if (item.type == 'food') {
-                      return FoodTimelineCard(
-                        entry: item.data as FoodEntry,
-                        onTap: () => _showFoodDetail(item.data),
-                        onEdit: () => _editFoodEntry(item.data),
-                        onAnalyze: () => _analyzeFoodWithGemini(item.data),
-                        onDelete: () => _deleteFoodEntry(item.data),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                  childCount: items.length,
-                ),
+              return SliverToBoxAdapter(
+                child: _buildMealsHorizontalCard(items),
               );
             },
           ),
@@ -244,24 +228,24 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
+          Text(
             '📭',
             style: TextStyle(fontSize: 64),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16),
+          Text(
             'No data yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          const Padding(
+          SizedBox(height: 8),
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               children: [
@@ -289,6 +273,216 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ],
       ),
     );
+  }
+
+  /// Build horizontal scrollable meals card
+  Widget _buildMealsHorizontalCard(List<TimelineItem> items) {
+    // Filter เฉพาะ food items
+    final foodItems = items.where((i) => i.type == 'food').toList();
+    if (foodItems.isEmpty) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Row(
+            children: [
+              Text(
+                'Meals',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.health.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${foodItems.length}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.health,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Horizontal scroll
+          SizedBox(
+            height: 130,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: foodItems.length,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (context, index) {
+                final entry = foodItems[index].data as FoodEntry;
+                return _buildHorizontalFoodItem(entry);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build single food item for horizontal scroll
+  Widget _buildHorizontalFoodItem(FoodEntry entry) {
+    return GestureDetector(
+      onTap: () => _showFoodDetail(entry),
+      onLongPress: () {
+        // Show bottom sheet with edit/delete options
+        showModalBottomSheet(
+          context: context,
+          builder: (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.edit, color: AppColors.primary),
+                  title: const Text('Edit'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _editFoodEntry(entry);
+                  },
+                ),
+                if (entry.imagePath != null || !entry.isVerified)
+                  ListTile(
+                    leading: const Icon(Icons.auto_awesome, color: Colors.amber),
+                    title: const Text('Analyze with AI'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _analyzeFoodWithGemini(entry);
+                    },
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: const Text('Delete'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteFoodEntry(entry);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 90,
+        margin: const EdgeInsets.only(right: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // รูปวงกลม
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 35,
+                  backgroundColor: AppColors.health.withOpacity(0.1),
+                  backgroundImage: _getImageProvider(entry),
+                  child: _getImageProvider(entry) == null
+                      ? const Icon(
+                          Icons.restaurant,
+                          color: AppColors.health,
+                          size: 28,
+                        )
+                      : null,
+                ),
+                // Verified badge
+                if (entry.isVerified)
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // ชื่ออาหาร
+            Text(
+              entry.foodName,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            // แคลอรี่
+            Text(
+              '${entry.calories.toInt()} kcal',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            // เวลา
+            Text(
+              _formatTime(entry.timestamp),
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Get image provider (with error handling)
+  ImageProvider? _getImageProvider(FoodEntry entry) {
+    if (entry.imagePath == null) return null;
+    
+    try {
+      final file = File(entry.imagePath!);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    } catch (e) {
+      AppLogger.error('Error loading image', e);
+    }
+    
+    return null;
+  }
+
+  /// Format time (HH:mm)
+  String _formatTime(DateTime time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   bool _isToday(DateTime date) {
