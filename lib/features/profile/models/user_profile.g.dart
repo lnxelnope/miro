@@ -32,98 +32,123 @@ const UserProfileSchema = CollectionSchema(
       name: r'avatarPath',
       type: IsarType.string,
     ),
-    r'calorieGoal': PropertySchema(
+    r'breakfastBudget': PropertySchema(
       id: 3,
+      name: r'breakfastBudget',
+      type: IsarType.double,
+    ),
+    r'calorieGoal': PropertySchema(
+      id: 4,
       name: r'calorieGoal',
       type: IsarType.double,
     ),
     r'carbGoal': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'carbGoal',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'cuisinePreference': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'cuisinePreference',
       type: IsarType.string,
     ),
+    r'dinnerBudget': PropertySchema(
+      id: 8,
+      name: r'dinnerBudget',
+      type: IsarType.double,
+    ),
     r'fatGoal': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'fatGoal',
       type: IsarType.double,
     ),
     r'gender': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'gender',
       type: IsarType.string,
     ),
     r'hasGeminiApiKey': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'hasGeminiApiKey',
       type: IsarType.bool,
     ),
     r'height': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'height',
       type: IsarType.double,
     ),
     r'isDarkMode': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'isDarkMode',
       type: IsarType.bool,
     ),
     r'isGoogleCalendarConnected': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'isGoogleCalendarConnected',
       type: IsarType.bool,
     ),
     r'isHealthConnectConnected': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'isHealthConnectConnected',
       type: IsarType.bool,
     ),
     r'locale': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'locale',
       type: IsarType.string,
     ),
+    r'lunchBudget': PropertySchema(
+      id: 17,
+      name: r'lunchBudget',
+      type: IsarType.double,
+    ),
     r'name': PropertySchema(
-      id: 15,
+      id: 18,
       name: r'name',
       type: IsarType.string,
     ),
     r'onboardingComplete': PropertySchema(
-      id: 16,
+      id: 19,
       name: r'onboardingComplete',
       type: IsarType.bool,
     ),
     r'proteinGoal': PropertySchema(
-      id: 17,
+      id: 20,
       name: r'proteinGoal',
       type: IsarType.double,
     ),
+    r'snackBudget': PropertySchema(
+      id: 21,
+      name: r'snackBudget',
+      type: IsarType.double,
+    ),
+    r'suggestionThreshold': PropertySchema(
+      id: 22,
+      name: r'suggestionThreshold',
+      type: IsarType.double,
+    ),
     r'targetWeight': PropertySchema(
-      id: 18,
+      id: 23,
       name: r'targetWeight',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 19,
+      id: 24,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'waterGoal': PropertySchema(
-      id: 20,
+      id: 25,
       name: r'waterGoal',
       type: IsarType.double,
     ),
     r'weight': PropertySchema(
-      id: 21,
+      id: 26,
       name: r'weight',
       type: IsarType.double,
     )
@@ -191,25 +216,30 @@ void _userProfileSerialize(
   writer.writeString(offsets[0], object.activityLevel);
   writer.writeLong(offsets[1], object.age);
   writer.writeString(offsets[2], object.avatarPath);
-  writer.writeDouble(offsets[3], object.calorieGoal);
-  writer.writeDouble(offsets[4], object.carbGoal);
-  writer.writeDateTime(offsets[5], object.createdAt);
-  writer.writeString(offsets[6], object.cuisinePreference);
-  writer.writeDouble(offsets[7], object.fatGoal);
-  writer.writeString(offsets[8], object.gender);
-  writer.writeBool(offsets[9], object.hasGeminiApiKey);
-  writer.writeDouble(offsets[10], object.height);
-  writer.writeBool(offsets[11], object.isDarkMode);
-  writer.writeBool(offsets[12], object.isGoogleCalendarConnected);
-  writer.writeBool(offsets[13], object.isHealthConnectConnected);
-  writer.writeString(offsets[14], object.locale);
-  writer.writeString(offsets[15], object.name);
-  writer.writeBool(offsets[16], object.onboardingComplete);
-  writer.writeDouble(offsets[17], object.proteinGoal);
-  writer.writeDouble(offsets[18], object.targetWeight);
-  writer.writeDateTime(offsets[19], object.updatedAt);
-  writer.writeDouble(offsets[20], object.waterGoal);
-  writer.writeDouble(offsets[21], object.weight);
+  writer.writeDouble(offsets[3], object.breakfastBudget);
+  writer.writeDouble(offsets[4], object.calorieGoal);
+  writer.writeDouble(offsets[5], object.carbGoal);
+  writer.writeDateTime(offsets[6], object.createdAt);
+  writer.writeString(offsets[7], object.cuisinePreference);
+  writer.writeDouble(offsets[8], object.dinnerBudget);
+  writer.writeDouble(offsets[9], object.fatGoal);
+  writer.writeString(offsets[10], object.gender);
+  writer.writeBool(offsets[11], object.hasGeminiApiKey);
+  writer.writeDouble(offsets[12], object.height);
+  writer.writeBool(offsets[13], object.isDarkMode);
+  writer.writeBool(offsets[14], object.isGoogleCalendarConnected);
+  writer.writeBool(offsets[15], object.isHealthConnectConnected);
+  writer.writeString(offsets[16], object.locale);
+  writer.writeDouble(offsets[17], object.lunchBudget);
+  writer.writeString(offsets[18], object.name);
+  writer.writeBool(offsets[19], object.onboardingComplete);
+  writer.writeDouble(offsets[20], object.proteinGoal);
+  writer.writeDouble(offsets[21], object.snackBudget);
+  writer.writeDouble(offsets[22], object.suggestionThreshold);
+  writer.writeDouble(offsets[23], object.targetWeight);
+  writer.writeDateTime(offsets[24], object.updatedAt);
+  writer.writeDouble(offsets[25], object.waterGoal);
+  writer.writeDouble(offsets[26], object.weight);
 }
 
 UserProfile _userProfileDeserialize(
@@ -222,26 +252,31 @@ UserProfile _userProfileDeserialize(
   object.activityLevel = reader.readStringOrNull(offsets[0]);
   object.age = reader.readLongOrNull(offsets[1]);
   object.avatarPath = reader.readStringOrNull(offsets[2]);
-  object.calorieGoal = reader.readDouble(offsets[3]);
-  object.carbGoal = reader.readDouble(offsets[4]);
-  object.createdAt = reader.readDateTime(offsets[5]);
-  object.cuisinePreference = reader.readString(offsets[6]);
-  object.fatGoal = reader.readDouble(offsets[7]);
-  object.gender = reader.readStringOrNull(offsets[8]);
-  object.hasGeminiApiKey = reader.readBool(offsets[9]);
-  object.height = reader.readDoubleOrNull(offsets[10]);
+  object.breakfastBudget = reader.readDouble(offsets[3]);
+  object.calorieGoal = reader.readDouble(offsets[4]);
+  object.carbGoal = reader.readDouble(offsets[5]);
+  object.createdAt = reader.readDateTime(offsets[6]);
+  object.cuisinePreference = reader.readString(offsets[7]);
+  object.dinnerBudget = reader.readDouble(offsets[8]);
+  object.fatGoal = reader.readDouble(offsets[9]);
+  object.gender = reader.readStringOrNull(offsets[10]);
+  object.hasGeminiApiKey = reader.readBool(offsets[11]);
+  object.height = reader.readDoubleOrNull(offsets[12]);
   object.id = id;
-  object.isDarkMode = reader.readBool(offsets[11]);
-  object.isGoogleCalendarConnected = reader.readBool(offsets[12]);
-  object.isHealthConnectConnected = reader.readBool(offsets[13]);
-  object.locale = reader.readStringOrNull(offsets[14]);
-  object.name = reader.readStringOrNull(offsets[15]);
-  object.onboardingComplete = reader.readBool(offsets[16]);
-  object.proteinGoal = reader.readDouble(offsets[17]);
-  object.targetWeight = reader.readDoubleOrNull(offsets[18]);
-  object.updatedAt = reader.readDateTime(offsets[19]);
-  object.waterGoal = reader.readDouble(offsets[20]);
-  object.weight = reader.readDoubleOrNull(offsets[21]);
+  object.isDarkMode = reader.readBool(offsets[13]);
+  object.isGoogleCalendarConnected = reader.readBool(offsets[14]);
+  object.isHealthConnectConnected = reader.readBool(offsets[15]);
+  object.locale = reader.readStringOrNull(offsets[16]);
+  object.lunchBudget = reader.readDouble(offsets[17]);
+  object.name = reader.readStringOrNull(offsets[18]);
+  object.onboardingComplete = reader.readBool(offsets[19]);
+  object.proteinGoal = reader.readDouble(offsets[20]);
+  object.snackBudget = reader.readDouble(offsets[21]);
+  object.suggestionThreshold = reader.readDouble(offsets[22]);
+  object.targetWeight = reader.readDoubleOrNull(offsets[23]);
+  object.updatedAt = reader.readDateTime(offsets[24]);
+  object.waterGoal = reader.readDouble(offsets[25]);
+  object.weight = reader.readDoubleOrNull(offsets[26]);
   return object;
 }
 
@@ -263,38 +298,48 @@ P _userProfileDeserializeProp<P>(
     case 4:
       return (reader.readDouble(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
-    case 6:
-      return (reader.readString(offset)) as P;
-    case 7:
       return (reader.readDouble(offset)) as P;
+    case 6:
+      return (reader.readDateTime(offset)) as P;
+    case 7:
+      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 9:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 10:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
       return (reader.readBool(offset)) as P;
     case 12:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 13:
       return (reader.readBool(offset)) as P;
     case 14:
-      return (reader.readStringOrNull(offset)) as P;
-    case 15:
-      return (reader.readStringOrNull(offset)) as P;
-    case 16:
       return (reader.readBool(offset)) as P;
+    case 15:
+      return (reader.readBool(offset)) as P;
+    case 16:
+      return (reader.readStringOrNull(offset)) as P;
     case 17:
       return (reader.readDouble(offset)) as P;
     case 18:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 19:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 20:
       return (reader.readDouble(offset)) as P;
     case 21:
+      return (reader.readDouble(offset)) as P;
+    case 22:
+      return (reader.readDouble(offset)) as P;
+    case 23:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 24:
+      return (reader.readDateTime(offset)) as P;
+    case 25:
+      return (reader.readDouble(offset)) as P;
+    case 26:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -772,6 +817,72 @@ extension UserProfileQueryFilter
   }
 
   QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      breakfastBudgetEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'breakfastBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      breakfastBudgetGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'breakfastBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      breakfastBudgetLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'breakfastBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      breakfastBudgetBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'breakfastBudget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
       calorieGoalEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -1089,6 +1200,72 @@ extension UserProfileQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'cuisinePreference',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      dinnerBudgetEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dinnerBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      dinnerBudgetGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dinnerBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      dinnerBudgetLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dinnerBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      dinnerBudgetBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dinnerBudget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -1631,6 +1808,72 @@ extension UserProfileQueryFilter
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      lunchBudgetEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lunchBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      lunchBudgetGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lunchBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      lunchBudgetLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lunchBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      lunchBudgetBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lunchBudget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> nameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1846,6 +2089,138 @@ extension UserProfileQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'proteinGoal',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      snackBudgetEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'snackBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      snackBudgetGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'snackBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      snackBudgetLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'snackBudget',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      snackBudgetBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'snackBudget',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      suggestionThresholdEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'suggestionThreshold',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      suggestionThresholdGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'suggestionThreshold',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      suggestionThresholdLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'suggestionThreshold',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      suggestionThresholdBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'suggestionThreshold',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -2187,6 +2562,19 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByBreakfastBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'breakfastBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByBreakfastBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'breakfastBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByCalorieGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'calorieGoal', Sort.asc);
@@ -2234,6 +2622,19 @@ extension UserProfileQuerySortBy
       sortByCuisinePreferenceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cuisinePreference', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByDinnerBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dinnerBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByDinnerBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dinnerBudget', Sort.desc);
     });
   }
 
@@ -2338,6 +2739,18 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByLunchBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lunchBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByLunchBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lunchBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -2373,6 +2786,32 @@ extension UserProfileQuerySortBy
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByProteinGoalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'proteinGoal', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortBySnackBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snackBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortBySnackBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snackBudget', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortBySuggestionThreshold() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'suggestionThreshold', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortBySuggestionThresholdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'suggestionThreshold', Sort.desc);
     });
   }
 
@@ -2465,6 +2904,19 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByBreakfastBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'breakfastBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByBreakfastBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'breakfastBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByCalorieGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'calorieGoal', Sort.asc);
@@ -2512,6 +2964,19 @@ extension UserProfileQuerySortThenBy
       thenByCuisinePreferenceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cuisinePreference', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByDinnerBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dinnerBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByDinnerBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dinnerBudget', Sort.desc);
     });
   }
 
@@ -2628,6 +3093,18 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByLunchBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lunchBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByLunchBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lunchBudget', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -2663,6 +3140,32 @@ extension UserProfileQuerySortThenBy
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByProteinGoalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'proteinGoal', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenBySnackBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snackBudget', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenBySnackBudgetDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snackBudget', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenBySuggestionThreshold() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'suggestionThreshold', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenBySuggestionThresholdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'suggestionThreshold', Sort.desc);
     });
   }
 
@@ -2739,6 +3242,13 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct>
+      distinctByBreakfastBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'breakfastBudget');
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByCalorieGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'calorieGoal');
@@ -2762,6 +3272,12 @@ extension UserProfileQueryWhereDistinct
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cuisinePreference',
           caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByDinnerBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dinnerBudget');
     });
   }
 
@@ -2818,6 +3334,12 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByLunchBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lunchBudget');
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2835,6 +3357,19 @@ extension UserProfileQueryWhereDistinct
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByProteinGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'proteinGoal');
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctBySnackBudget() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'snackBudget');
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QDistinct>
+      distinctBySuggestionThreshold() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'suggestionThreshold');
     });
   }
 
@@ -2889,6 +3424,13 @@ extension UserProfileQueryProperty
     });
   }
 
+  QueryBuilder<UserProfile, double, QQueryOperations>
+      breakfastBudgetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'breakfastBudget');
+    });
+  }
+
   QueryBuilder<UserProfile, double, QQueryOperations> calorieGoalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'calorieGoal');
@@ -2911,6 +3453,12 @@ extension UserProfileQueryProperty
       cuisinePreferenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cuisinePreference');
+    });
+  }
+
+  QueryBuilder<UserProfile, double, QQueryOperations> dinnerBudgetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dinnerBudget');
     });
   }
 
@@ -2964,6 +3512,12 @@ extension UserProfileQueryProperty
     });
   }
 
+  QueryBuilder<UserProfile, double, QQueryOperations> lunchBudgetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lunchBudget');
+    });
+  }
+
   QueryBuilder<UserProfile, String?, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
@@ -2980,6 +3534,19 @@ extension UserProfileQueryProperty
   QueryBuilder<UserProfile, double, QQueryOperations> proteinGoalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'proteinGoal');
+    });
+  }
+
+  QueryBuilder<UserProfile, double, QQueryOperations> snackBudgetProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'snackBudget');
+    });
+  }
+
+  QueryBuilder<UserProfile, double, QQueryOperations>
+      suggestionThresholdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'suggestionThreshold');
     });
   }
 

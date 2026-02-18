@@ -89,6 +89,11 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
     double? carbGoal,
     double? fatGoal,
     double? waterGoal,
+    double? breakfastBudget,
+    double? lunchBudget,
+    double? dinnerBudget,
+    double? snackBudget,
+    double? suggestionThreshold,
   }) async {
     final currentProfile = state.value;
     if (currentProfile == null) return;
@@ -98,6 +103,11 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
     if (carbGoal != null) currentProfile.carbGoal = carbGoal;
     if (fatGoal != null) currentProfile.fatGoal = fatGoal;
     if (waterGoal != null) currentProfile.waterGoal = waterGoal;
+    if (breakfastBudget != null) currentProfile.breakfastBudget = breakfastBudget;
+    if (lunchBudget != null) currentProfile.lunchBudget = lunchBudget;
+    if (dinnerBudget != null) currentProfile.dinnerBudget = dinnerBudget;
+    if (snackBudget != null) currentProfile.snackBudget = snackBudget;
+    if (suggestionThreshold != null) currentProfile.suggestionThreshold = suggestionThreshold;
 
     await updateProfile(currentProfile);
   }

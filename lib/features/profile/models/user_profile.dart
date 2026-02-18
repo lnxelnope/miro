@@ -14,7 +14,16 @@ class UserProfile {
   double proteinGoal = 120;
   double carbGoal = 250;
   double fatGoal = 65;
-  double waterGoal = 2500; // ml
+  double waterGoal = 2500; // ml (legacy, kept for backward compat)
+
+  // Meal Calorie Budgets (kcal per meal)
+  double breakfastBudget = 560; // ~28%
+  double lunchBudget = 700; // ~35%
+  double dinnerBudget = 600; // ~30%
+  double snackBudget = 140; // ~7%
+
+  // Suggestion threshold: allow foods ± this many kcal from meal budget
+  double suggestionThreshold = 100;
 
   // Settings
   bool isDarkMode = false;

@@ -19,15 +19,29 @@ class HealthGoalsScreen extends ConsumerStatefulWidget {
 
 class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   late TextEditingController _calorieController;
-  late TextEditingController _waterController;
   late TextEditingController _proteinController;
   late TextEditingController _carbController;
   late TextEditingController _fatController;
+
+  // Meal budget controllers
+  late TextEditingController _breakfastController;
+  late TextEditingController _lunchController;
+  late TextEditingController _dinnerController;
+  late TextEditingController _snackController;
+
+  // Suggestion threshold controller
+  late TextEditingController _thresholdController;
 
   // Lock states (can lock up to 2 macros)
   bool _proteinLocked = false;
   bool _carbLocked = false;
   bool _fatLocked = false;
+
+  // Meal lock states (can lock up to 3 meals)
+  bool _breakfastLocked = false;
+  bool _lunchLocked = false;
+  bool _dinnerLocked = false;
+  bool _snackLocked = false;
 
   bool _isLoading = false;
   bool _initialized = false;
@@ -36,26 +50,46 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   void initState() {
     super.initState();
     _calorieController = TextEditingController();
-    _waterController = TextEditingController();
     _proteinController = TextEditingController();
     _carbController = TextEditingController();
     _fatController = TextEditingController();
+    _breakfastController = TextEditingController();
+    _lunchController = TextEditingController();
+    _dinnerController = TextEditingController();
+    _snackController = TextEditingController();
+    _thresholdController = TextEditingController();
 
     // Listen for changes
     _calorieController.addListener(_onCalorieChanged);
     _proteinController.addListener(() => _onMacroChanged('protein'));
     _carbController.addListener(() => _onMacroChanged('carbs'));
     _fatController.addListener(() => _onMacroChanged('fat'));
+
+    // Meal budget listeners
+    _breakfastController.addListener(() => _onMealBudgetChanged('breakfast'));
+    _lunchController.addListener(() => _onMealBudgetChanged('lunch'));
+    _dinnerController.addListener(() => _onMealBudgetChanged('dinner'));
+    _snackController.addListener(() => _onMealBudgetChanged('snack'));
   }
 
   @override
   void dispose() {
     _calorieController.dispose();
-    _waterController.dispose();
     _proteinController.dispose();
     _carbController.dispose();
     _fatController.dispose();
+    _breakfastController.dispose();
+    _lunchController.dispose();
+    _dinnerController.dispose();
+    _snackController.dispose();
+    _thresholdController.dispose();
     super.dispose();
+  }
+
+  /// Safely convert double to int, returning fallback for NaN/Infinity/zero
+  int _safeInt(double value, [int fallback = 0]) {
+    if (value.isNaN || value.isInfinite) return fallback;
+    return value.toInt();
   }
 
   void _initFromProfile(dynamic profile) {
@@ -63,22 +97,35 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _initialized = true;
 
     final cal = profile.calorieGoal as double;
-    _calorieController.text = cal.toInt().toString();
-    _waterController.text = (profile.waterGoal as double).toInt().toString();
+    _calorieController.text = _safeInt(cal, 2000).toString();
 
     // Load gram values from profile
     final pGram = profile.proteinGoal as double;
     final cGram = profile.carbGoal as double;
     final fGram = profile.fatGoal as double;
 
-    _proteinController.text = pGram.toInt().toString();
-    _carbController.text = cGram.toInt().toString();
-    _fatController.text = fGram.toInt().toString();
+    _proteinController.text = _safeInt(pGram, 120).toString();
+    _carbController.text = _safeInt(cGram, 250).toString();
+    _fatController.text = _safeInt(fGram, 65).toString();
 
-    // ────── ถ้ามี 2 macros ล็อคอยู่แล้ว คำนวณ unlocked macro ทันที ──────
+    // Load meal budgets (new fields — guard against NaN from Isar migration)
+    final calInt = _safeInt(cal, 2000);
+    _breakfastController.text = _safeMealBudget(profile.breakfastBudget, (calInt * 0.28).round()).toString();
+    _lunchController.text = _safeMealBudget(profile.lunchBudget, (calInt * 0.35).round()).toString();
+    _dinnerController.text = _safeMealBudget(profile.dinnerBudget, (calInt * 0.30).round()).toString();
+    _snackController.text = _safeMealBudget(profile.snackBudget, (calInt * 0.07).round()).toString();
+
+    _thresholdController.text = _safeMealBudget(profile.suggestionThreshold, 100).toString();
+
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
     }
+  }
+
+  /// Safely read a meal budget, using fallback for NaN/Infinity/0
+  int _safeMealBudget(double value, int fallback) {
+    if (value.isNaN || value.isInfinite || value <= 0) return fallback;
+    return value.toInt();
   }
 
   // ===== Computed values =====
@@ -153,10 +200,13 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _autoCalculateUnlocked();
   }
 
-  /// When calories change, recalculate unlocked macro to fit
+  /// When calories change, recalculate unlocked macro and meal budget
   void _onCalorieChanged() {
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
+    }
+    if (_mealLockedCount == 3) {
+      _autoCalculateUnlockedMeal();
     }
   }
 
@@ -223,6 +273,126 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     setState(() {});
   }
 
+  // ===== Meal Budget Lock System =====
+  int get _mealLockedCount =>
+      (_breakfastLocked ? 1 : 0) +
+      (_lunchLocked ? 1 : 0) +
+      (_dinnerLocked ? 1 : 0) +
+      (_snackLocked ? 1 : 0);
+
+  bool _isMealLocked(String meal) {
+    switch (meal) {
+      case 'breakfast':
+        return _breakfastLocked;
+      case 'lunch':
+        return _lunchLocked;
+      case 'dinner':
+        return _dinnerLocked;
+      case 'snack':
+        return _snackLocked;
+      default:
+        return false;
+    }
+  }
+
+  TextEditingController _mealController(String meal) {
+    switch (meal) {
+      case 'breakfast':
+        return _breakfastController;
+      case 'lunch':
+        return _lunchController;
+      case 'dinner':
+        return _dinnerController;
+      case 'snack':
+        return _snackController;
+      default:
+        return _breakfastController;
+    }
+  }
+
+  void _toggleMealLock(String meal) {
+    if (_isMealLocked(meal)) {
+      setState(() {
+        switch (meal) {
+          case 'breakfast':
+            _breakfastLocked = false;
+          case 'lunch':
+            _lunchLocked = false;
+          case 'dinner':
+            _dinnerLocked = false;
+          case 'snack':
+            _snackLocked = false;
+        }
+      });
+      return;
+    }
+
+    if (_mealLockedCount >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Can only lock 3 meals; the 4th auto-calculates'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      switch (meal) {
+        case 'breakfast':
+          _breakfastLocked = true;
+        case 'lunch':
+          _lunchLocked = true;
+        case 'dinner':
+          _dinnerLocked = true;
+        case 'snack':
+          _snackLocked = true;
+      }
+    });
+
+    _autoCalculateUnlockedMeal();
+  }
+
+  void _onMealBudgetChanged(String meal) {
+    if (_isMealLocked(meal) && _mealLockedCount == 3) {
+      _autoCalculateUnlockedMeal();
+      return;
+    }
+    if (_mealLockedCount == 3) return;
+    setState(() {});
+  }
+
+  void _autoCalculateUnlockedMeal() {
+    if (_mealLockedCount != 3) return;
+
+    final totalCalories = _calories;
+    if (totalCalories <= 0) return;
+
+    String? unlockedMeal;
+    if (!_breakfastLocked) {
+      unlockedMeal = 'breakfast';
+    } else if (!_lunchLocked) {
+      unlockedMeal = 'lunch';
+    } else if (!_dinnerLocked) {
+      unlockedMeal = 'dinner';
+    } else if (!_snackLocked) {
+      unlockedMeal = 'snack';
+    }
+
+    if (unlockedMeal == null) return;
+
+    final lockedSum =
+        (_breakfastLocked ? (double.tryParse(_breakfastController.text) ?? 0) : 0) +
+        (_lunchLocked ? (double.tryParse(_lunchController.text) ?? 0) : 0) +
+        (_dinnerLocked ? (double.tryParse(_dinnerController.text) ?? 0) : 0) +
+        (_snackLocked ? (double.tryParse(_snackController.text) ?? 0) : 0);
+
+    final remaining = (totalCalories - lockedSum).clamp(0, totalCalories);
+
+    _mealController(unlockedMeal).text = remaining.round().toString();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileNotifierProvider);
@@ -255,8 +425,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Set your daily calorie goal, then enter macro values in grams.\n'
-                          '🔒 Lock up to 2 macros; the 3rd will auto-calculate to match calories.',
+                          'Set your daily calorie goal, macros, and per-meal budgets.\n'
+                          'Lock to auto-calculate: 2 macros or 3 meals.',
                           style:
                               TextStyle(color: AppColors.primary, fontSize: 13),
                         ),
@@ -298,62 +468,14 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   kcalPerGram: _kCalPerGramFat,
                 ),
 
-                const SizedBox(height: 24),
-
-                // ===== Water Goal =====
-                _buildWaterSection(),
                 const SizedBox(height: 28),
 
-                // ===== Quick Presets =====
-                AppIcons.iconWithLabel(
-                  AppIcons.target,
-                  'Quick Presets',
-                  iconColor: AppIcons.targetColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildPresetChip(
-                      label: 'Lose Weight',
-                      cal: 1500,
-                      pGram: 131,
-                      cGram: 150,
-                      fGram: 42,
-                    ),
-                    _buildPresetChip(
-                      label: 'Maintain',
-                      cal: 2000,
-                      pGram: 150,
-                      cGram: 225,
-                      fGram: 56,
-                    ),
-                    _buildPresetChip(
-                      label: 'Build Muscle',
-                      cal: 2500,
-                      pGram: 219,
-                      cGram: 281,
-                      fGram: 56,
-                    ),
-                    _buildPresetChip(
-                      label: 'Keto',
-                      cal: 1800,
-                      pGram: 113,
-                      cGram: 23,
-                      fGram: 140,
-                    ),
-                    _buildPresetChip(
-                      label: 'Balanced',
-                      cal: 2000,
-                      pGram: 150,
-                      cGram: 200,
-                      fGram: 67,
-                    ),
-                  ],
-                ),
+                // ===== Meal Calorie Budget =====
+                _buildMealBudgetSection(),
+                const SizedBox(height: 24),
+
+                // ===== Suggestion Threshold =====
+                _buildSuggestionThresholdSection(),
                 const SizedBox(height: 32),
 
                 // ===== Save Button =====
@@ -555,61 +677,354 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   }
 
   // ========================================================
-  // Water Section
+  // Meal Calorie Budget Section
   // ========================================================
-  Widget _buildWaterSection() {
+  Widget _buildMealBudgetSection() {
+    final totalBudget =
+        (double.tryParse(_breakfastController.text) ?? 0) +
+        (double.tryParse(_lunchController.text) ?? 0) +
+        (double.tryParse(_dinnerController.text) ?? 0) +
+        (double.tryParse(_snackController.text) ?? 0);
+    final calGoal = _calories;
+    final diff = calGoal - totalBudget;
+    final isBalanced = diff.abs() < 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppIcons.iconWithLabel(
-          Icons.water_drop_rounded,
-          'Daily Water Goal',
-          iconColor: Colors.blue.shade600,
+          AppIcons.calories,
+          'Meal Calorie Budget',
+          iconColor: AppIcons.caloriesColor,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _waterController,
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            suffixText: 'ml',
-            suffixStyle: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isBalanced
+                ? AppColors.success.withOpacity(0.08)
+                : AppColors.warning.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
           ),
+          child: Row(
+            children: [
+              Icon(
+                isBalanced ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                size: 18,
+                color: isBalanced ? AppColors.success : AppColors.warning,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isBalanced
+                      ? 'Total ${totalBudget.toInt()} kcal = Goal ${calGoal.toInt()} kcal'
+                      : 'Total ${totalBudget.toInt()} / ${calGoal.toInt()} kcal  (${diff > 0 ? '+' : ''}${diff.toInt()} remaining)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isBalanced ? AppColors.success : AppColors.warning,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Lock 3 meals to auto-calculate the 4th',
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        ),
+        const SizedBox(height: 12),
+        _buildMealBudgetRow(
+          label: 'Breakfast',
+          mealKey: 'breakfast',
+          controller: _breakfastController,
+          color: const Color(0xFFFB923C), // orange-400
+          icon: Icons.wb_sunny_rounded,
+        ),
+        const SizedBox(height: 8),
+        _buildMealBudgetRow(
+          label: 'Lunch',
+          mealKey: 'lunch',
+          controller: _lunchController,
+          color: const Color(0xFFFBBF24), // amber-400
+          icon: Icons.wb_cloudy_rounded,
+        ),
+        const SizedBox(height: 8),
+        _buildMealBudgetRow(
+          label: 'Dinner',
+          mealKey: 'dinner',
+          controller: _dinnerController,
+          color: const Color(0xFF818CF8), // indigo-400
+          icon: Icons.nightlight_round,
+        ),
+        const SizedBox(height: 8),
+        _buildMealBudgetRow(
+          label: 'Snack',
+          mealKey: 'snack',
+          controller: _snackController,
+          color: const Color(0xFF34D399), // emerald-400
+          icon: Icons.cookie_rounded,
         ),
       ],
     );
   }
 
-  // ========================================================
-  // Preset Chip
-  // ========================================================
-  Widget _buildPresetChip({
+  Widget _buildMealBudgetRow({
     required String label,
-    required int cal,
-    required int pGram,
-    required int cGram,
-    required int fGram,
+    required String mealKey,
+    required TextEditingController controller,
+    required Color color,
+    required IconData icon,
   }) {
-    return ActionChip(
-      label: Text(label),
-      onPressed: () {
-        setState(() {
-          _calorieController.text = cal.toString();
-          _proteinController.text = pGram.toString();
-          _carbController.text = cGram.toString();
-          _fatController.text = fGram.toString();
-        });
-      },
+    final isLocked = _isMealLocked(mealKey);
+    final isAutoCalc = !isLocked && _mealLockedCount == 3;
+    final kcal = double.tryParse(controller.text) ?? 0;
+    final pct = _calories > 0 ? (kcal / _calories * 100) : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isLocked ? color.withOpacity(0.5) : color.withOpacity(0.2),
+          width: isLocked ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color.withOpacity(0.8), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: color,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (isAutoCalc) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'auto',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                Text(
+                  '${pct.toStringAsFixed(0)}% of daily goal',
+                  style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          ),
+          InkWell(
+            onTap: () => _toggleMealLock(mealKey),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                isLocked ? Icons.lock : Icons.lock_open,
+                size: 20,
+                color: isLocked ? color : Colors.grey[400],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 80,
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              enabled: !isAutoCalc,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isAutoCalc ? Colors.grey[500] : color,
+              ),
+              decoration: InputDecoration(
+                suffixText: 'kcal',
+                suffixStyle: TextStyle(
+                  fontSize: 9,
+                  color: isAutoCalc ? Colors.grey[400] : Colors.grey[500],
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: color, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========================================================
+  // Suggestion Threshold Section
+  // ========================================================
+  Widget _buildSuggestionThresholdSection() {
+    final threshold = double.tryParse(_thresholdController.text) ?? 100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppIcons.iconWithLabel(
+          AppIcons.calories,
+          'Smart Suggestion Range',
+          iconColor: AppColors.primary,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        const SizedBox(height: 8),
+        // Explanation card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withOpacity(0.06),
+                AppColors.health.withOpacity(0.04),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.15),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded,
+                      size: 18, color: AppColors.primary.withOpacity(0.7)),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'How does Smart Suggestion work?',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'We suggest foods from your My Meals, ingredients, and '
+                'yesterday\'s meals that fit your per-meal budget.\n\n'
+                'This threshold controls how flexible the suggestions are. '
+                'For example, if your lunch budget is 700 kcal and threshold '
+                'is ${threshold.toInt()} kcal, we\'ll suggest foods between '
+                '${(700 - threshold).toInt()}–${(700 + threshold).toInt()} kcal.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Threshold input
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.tune_rounded,
+                  color: AppColors.primary.withOpacity(0.7), size: 22),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Suggestion Threshold',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'Allow foods ± ${threshold.toInt()} kcal from meal budget',
+                      style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  controller: _thresholdController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (_) => setState(() {}),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                  decoration: InputDecoration(
+                    suffixText: 'kcal',
+                    suffixStyle: TextStyle(
+                      fontSize: 9,
+                      color: Colors.grey[500],
+                    ),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          const BorderSide(color: AppColors.primary, width: 2),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -627,7 +1042,11 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
         proteinGoal: _proteinGrams.roundToDouble(),
         carbGoal: _carbGrams.roundToDouble(),
         fatGoal: _fatGrams.roundToDouble(),
-        waterGoal: double.tryParse(_waterController.text),
+        breakfastBudget: double.tryParse(_breakfastController.text),
+        lunchBudget: double.tryParse(_lunchController.text),
+        dinnerBudget: double.tryParse(_dinnerController.text),
+        snackBudget: double.tryParse(_snackController.text),
+        suggestionThreshold: double.tryParse(_thresholdController.text),
       );
 
       if (mounted) {

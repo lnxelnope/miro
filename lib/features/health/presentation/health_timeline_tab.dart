@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
+import '../providers/fulfill_calorie_provider.dart';
 import '../widgets/daily_summary_card.dart';
 import '../widgets/edit_food_bottom_sheet.dart';
-import '../widgets/quick_add_section.dart';
+import '../widgets/log_from_meal_sheet.dart';
 import '../widgets/meal_section.dart';
+import '../../../core/database/database_service.dart';
 import '../models/food_entry.dart';
 import '../../../core/constants/enums.dart';
 import 'health_diet_tab.dart';
@@ -28,6 +30,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
+    final fulfillAsync = ref.watch(fulfillCalorieProvider(_selectedDate));
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -65,84 +68,80 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             child: _buildDateSelector(),
           ),
 
-          // Quick Add Section (Favorite + Repeat Yesterday)
+          // Meal Sections — always visible
           SliverToBoxAdapter(
-            child: QuickAddSection(selectedDate: _selectedDate),
-          ),
-
-          // Timeline Items + Meal Sections
-          timelineAsync.when(
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, st) => SliverFillRemaining(
-              child: Center(child: Text('Error: $e')),
-            ),
-            data: (items) {
-              if (items.isEmpty) {
-                return SliverFillRemaining(
-                  child: _buildEmptyState(),
-                );
-              }
-
+            child: Builder(builder: (context) {
+              final items = timelineAsync.valueOrNull ?? [];
+              final fulfill = fulfillAsync.valueOrNull;
               final foodEntries = items
                   .where((i) => i.type == 'food')
                   .map((i) => i.data as FoodEntry)
                   .toList();
 
-              return SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (foodEntries.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-
-                      // Meal sections by type
-                      MealSection(
-                        mealType: MealType.breakfast,
-                        foods: foodEntries
-                            .where((f) => f.mealType == MealType.breakfast)
-                            .toList(),
-                        onAddFood: () => _showAddFoodDialog(MealType.breakfast),
-                        onEditFood: _editFoodEntry,
-                        onDeleteFood: _deleteFoodEntry,
-                        selectedDate: _selectedDate,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 8),
+                  MealSection(
+                    mealType: MealType.breakfast,
+                    foods: foodEntries
+                        .where((f) => f.mealType == MealType.breakfast)
+                        .toList(),
+                    onAddFood: () => _showAddFoodDialog(MealType.breakfast),
+                    onEditFood: _editFoodEntry,
+                    onDeleteFood: _deleteFoodEntry,
+                    selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.breakfast],
+                    onSuggestionTap: (s) => _showAddFoodDialogWithSuggestion(MealType.breakfast, s),
+                  ),
+                  MealSection(
+                    mealType: MealType.lunch,
+                    foods: foodEntries
+                        .where((f) => f.mealType == MealType.lunch)
+                        .toList(),
+                    onAddFood: () => _showAddFoodDialog(MealType.lunch),
+                    onEditFood: _editFoodEntry,
+                    onDeleteFood: _deleteFoodEntry,
+                    selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.lunch],
+                    onSuggestionTap: (s) => _showAddFoodDialogWithSuggestion(MealType.lunch, s),
+                  ),
+                  MealSection(
+                    mealType: MealType.dinner,
+                    foods: foodEntries
+                        .where((f) => f.mealType == MealType.dinner)
+                        .toList(),
+                    onAddFood: () => _showAddFoodDialog(MealType.dinner),
+                    onEditFood: _editFoodEntry,
+                    onDeleteFood: _deleteFoodEntry,
+                    selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.dinner],
+                    onSuggestionTap: (s) => _showAddFoodDialogWithSuggestion(MealType.dinner, s),
+                  ),
+                  MealSection(
+                    mealType: MealType.snack,
+                    foods: foodEntries
+                        .where((f) => f.mealType == MealType.snack)
+                        .toList(),
+                    onAddFood: () => _showAddFoodDialog(MealType.snack),
+                    onEditFood: _editFoodEntry,
+                    onDeleteFood: _deleteFoodEntry,
+                    selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.snack],
+                    onSuggestionTap: (s) => _showAddFoodDialogWithSuggestion(MealType.snack, s),
+                  ),
+                  if (timelineAsync.hasError)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Error loading: ${timelineAsync.error}',
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.error),
                       ),
-                      MealSection(
-                        mealType: MealType.lunch,
-                        foods: foodEntries
-                            .where((f) => f.mealType == MealType.lunch)
-                            .toList(),
-                        onAddFood: () => _showAddFoodDialog(MealType.lunch),
-                        onEditFood: _editFoodEntry,
-                        onDeleteFood: _deleteFoodEntry,
-                        selectedDate: _selectedDate,
-                      ),
-                      MealSection(
-                        mealType: MealType.dinner,
-                        foods: foodEntries
-                            .where((f) => f.mealType == MealType.dinner)
-                            .toList(),
-                        onAddFood: () => _showAddFoodDialog(MealType.dinner),
-                        onEditFood: _editFoodEntry,
-                        onDeleteFood: _deleteFoodEntry,
-                        selectedDate: _selectedDate,
-                      ),
-                      MealSection(
-                        mealType: MealType.snack,
-                        foods: foodEntries
-                            .where((f) => f.mealType == MealType.snack)
-                            .toList(),
-                        onAddFood: () => _showAddFoodDialog(MealType.snack),
-                        onEditFood: _editFoodEntry,
-                        onDeleteFood: _deleteFoodEntry,
-                        selectedDate: _selectedDate,
-                      ),
-                    ],
-                  ],
-                ),
+                    ),
+                ],
               );
-            },
+            }),
           ),
 
           // Bottom padding
@@ -298,54 +297,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '📭',
-            style: TextStyle(fontSize: 64),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'No data yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 8),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              children: [
-                Text(
-                  'Pull to refresh and I\'ll search for food photos you\'ve taken',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'or just tell me what you ate today :)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   bool _isToday(DateTime date) {
     final now = DateTime.now();
     return date.year == now.year &&
@@ -380,6 +331,63 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           await notifier.addFoodEntry(entry);
           if (!mounted) return;
           refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
+        },
+      ),
+    );
+  }
+
+  Future<void> _showAddFoodDialogWithSuggestion(MealType mealType, FoodSuggestion suggestion) async {
+    // If from MyMeal → open LogFromMealSheet with full ingredients
+    if (suggestion.myMealId != null) {
+      final meal = await DatabaseService.myMeals.get(suggestion.myMealId!);
+      if (meal != null && mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => LogFromMealSheet(
+            meal: meal,
+            onConfirm: (entry) async {
+              entry.mealType = mealType;
+              entry.timestamp = DateTime(
+                _selectedDate.year, _selectedDate.month, _selectedDate.day,
+                DateTime.now().hour, DateTime.now().minute,
+              );
+              final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+              await notifier.addFoodEntry(entry);
+              if (!mounted) return;
+              refreshFoodProviders(ref, _selectedDate);
+              ref.invalidate(fulfillCalorieProvider(_selectedDate));
+            },
+          ),
+        );
+        return;
+      }
+    }
+
+    // Fallback: open AddFoodBottomSheet with prefilled data
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddFoodBottomSheet(
+        mealType: mealType,
+        selectedDate: _selectedDate,
+        prefillName: suggestion.name,
+        prefillCalories: suggestion.calories,
+        prefillProtein: suggestion.protein,
+        prefillCarbs: suggestion.carbs,
+        prefillFat: suggestion.fat,
+        prefillServingSize: suggestion.servingSize,
+        prefillServingUnit: suggestion.servingUnit,
+        prefillMyMealId: suggestion.myMealId,
+        onSave: (entry) async {
+          final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+          await notifier.addFoodEntry(entry);
+          if (!mounted) return;
+          refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
     );
@@ -396,9 +404,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.updateFoodEntry(updatedEntry);
 
-          // ────── เช็ค mounted ก่อน invalidate ──────
           if (!mounted) return;
           refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
     );
@@ -432,9 +440,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         final notifier = ref.read(foodEntriesNotifierProvider.notifier);
         await notifier.deleteFoodEntry(entry.id);
 
-        // ────── เช็ค mounted ก่อน invalidate ──────
         if (!mounted) return;
         refreshFoodProviders(ref, _selectedDate);
+        ref.invalidate(fulfillCalorieProvider(_selectedDate));
 
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

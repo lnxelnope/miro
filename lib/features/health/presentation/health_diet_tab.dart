@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -5,11 +6,17 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/ai/gemini_service.dart';
+import '../../../core/services/usage_limiter.dart';
+import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
+import '../providers/fulfill_calorie_provider.dart';
 import '../widgets/daily_summary_card.dart';
 import '../widgets/meal_section.dart';
 import '../widgets/edit_food_bottom_sheet.dart';
+import '../widgets/gemini_analysis_sheet.dart';
 import '../models/food_entry.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import 'health_my_meal_tab.dart';
@@ -27,6 +34,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
   @override
   Widget build(BuildContext context) {
     final foodsAsync = ref.watch(foodEntriesByDateProvider(_selectedDate));
+    final fulfillAsync = ref.watch(fulfillCalorieProvider(_selectedDate));
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -58,16 +66,10 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
             _buildDateSelector(),
 
             // Meals
-            foodsAsync.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(),
-              ),
-              error: (e, st) => Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text('Error: $e'),
-              ),
-              data: (foods) => Column(
+            Builder(builder: (context) {
+              final foods = foodsAsync.valueOrNull ?? [];
+              final fulfill = fulfillAsync.valueOrNull;
+              return Column(
                 children: [
                   MealSection(
                     mealType: MealType.breakfast,
@@ -78,6 +80,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
                     selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.breakfast],
                   ),
                   MealSection(
                     mealType: MealType.lunch,
@@ -88,6 +91,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
                     selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.lunch],
                   ),
                   MealSection(
                     mealType: MealType.dinner,
@@ -98,6 +102,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     onEditFood: _showEditFoodDialog,
                     onDeleteFood: _deleteFoodEntry,
                     selectedDate: _selectedDate,
+                    ghostSuggestion: fulfill?.suggestions[MealType.dinner],
                   ),
                   MealSection(
                     mealType: MealType.snack,
@@ -139,8 +144,19 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     ),
                   ),
                 ],
+              );
+            }),
+
+            // Error banner
+            if (foodsAsync.hasError)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Error loading: ${foodsAsync.error}',
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.error),
+                ),
               ),
-            ),
 
             // Bottom padding
             const SizedBox(height: 100),
@@ -250,6 +266,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
           ref.invalidate(foodEntriesByDateProvider(_selectedDate));
           ref.invalidate(todayCaloriesProvider);
           ref.invalidate(todayMacrosProvider);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
     );
@@ -268,6 +285,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
           ref.invalidate(foodEntriesByDateProvider(_selectedDate));
           ref.invalidate(todayCaloriesProvider);
           ref.invalidate(todayMacrosProvider);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
     );
@@ -294,12 +312,13 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
     );
 
     if (confirm == true && context.mounted) {
-      try {
-        final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-        await notifier.deleteFoodEntry(entry.id);
+        try {
+          final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+          await notifier.deleteFoodEntry(entry.id);
 
-        // Refresh providers เพื่อ refresh UI
-        refreshFoodProviders(ref, _selectedDate);
+          // Refresh providers เพื่อ refresh UI
+          refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
 
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -328,13 +347,31 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
 class AddFoodBottomSheet extends ConsumerStatefulWidget {
   final MealType mealType;
   final Function(FoodEntry) onSave;
-  final DateTime? selectedDate; // Selected date (if not specified = today)
+  final DateTime? selectedDate;
+
+  /// Pre-fill data from ghost suggestion tap
+  final String? prefillName;
+  final double? prefillCalories;
+  final double? prefillProtein;
+  final double? prefillCarbs;
+  final double? prefillFat;
+  final double? prefillServingSize;
+  final String? prefillServingUnit;
+  final int? prefillMyMealId;
 
   const AddFoodBottomSheet({
     super.key,
     required this.mealType,
     required this.onSave,
     this.selectedDate,
+    this.prefillName,
+    this.prefillCalories,
+    this.prefillProtein,
+    this.prefillCarbs,
+    this.prefillFat,
+    this.prefillServingSize,
+    this.prefillServingUnit,
+    this.prefillMyMealId,
   });
 
   @override
@@ -379,8 +416,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
   String _servingUnit = 'serving';
   late MealType _selectedMealType;
-  bool _filledFromDb = false; // ถูก auto-fill จาก DB หรือยัง
+  bool _filledFromDb = false;
   int? _selectedMyMealId;
+  bool _isAnalyzing = false;
 
   // ---- Base values for recalculating when amount changes ----
   double _baseCalories = 0; // kcal per 1 unit
@@ -393,6 +431,31 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     super.initState();
     _selectedMealType = widget.mealType;
     _servingSizeController.addListener(_onServingSizeChanged);
+    _applyPrefill();
+  }
+
+  void _applyPrefill() {
+    if (widget.prefillName == null) return;
+
+    final servingSize = widget.prefillServingSize ?? 1.0;
+
+    _nameController.text = widget.prefillName!;
+    _servingSizeController.text = servingSize == servingSize.roundToDouble()
+        ? servingSize.round().toString()
+        : servingSize.toStringAsFixed(1);
+    _servingUnit = widget.prefillServingUnit ?? 'serving';
+    _caloriesController.text = (widget.prefillCalories ?? 0).round().toString();
+    _proteinController.text = (widget.prefillProtein ?? 0).round().toString();
+    _carbsController.text = (widget.prefillCarbs ?? 0).round().toString();
+    _fatController.text = (widget.prefillFat ?? 0).round().toString();
+
+    _baseCalories = servingSize > 0 ? (widget.prefillCalories ?? 0) / servingSize : 0;
+    _baseProtein = servingSize > 0 ? (widget.prefillProtein ?? 0) / servingSize : 0;
+    _baseCarbs = servingSize > 0 ? (widget.prefillCarbs ?? 0) / servingSize : 0;
+    _baseFat = servingSize > 0 ? (widget.prefillFat ?? 0) / servingSize : 0;
+
+    _filledFromDb = true;
+    _selectedMyMealId = widget.prefillMyMealId;
   }
 
   @override
@@ -657,18 +720,16 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   },
                   fieldViewBuilder:
                       (context, textController, focusNode, onFieldSubmitted) {
-                    // Sync controllers: When Autocomplete creates its controller
-                    // We need to sync with our _nameController
+                    // Sync controllers and trigger rebuild for AI button visibility
                     textController.addListener(() {
                       if (_nameController.text != textController.text) {
                         _nameController.text = textController.text;
-                        // If typing manually (not selected from list) → reset filled flag
-                        if (_filledFromDb) {
-                          setState(() {
+                        setState(() {
+                          if (_filledFromDb) {
                             _filledFromDb = false;
                             _selectedMyMealId = null;
-                          });
-                        }
+                          }
+                        });
                       }
                     });
                     return TextField(
@@ -717,10 +778,46 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 style: const TextStyle(fontSize: 11, color: AppColors.success),
               ),
             ] else if (_nameController.text.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isAnalyzing ? null : _analyzeWithAI,
+                  icon: _isAnalyzing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.auto_awesome, size: 18),
+                  label: Text(
+                    _isAnalyzing
+                        ? 'Analyzing...'
+                        : 'Search with AI',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        _isAnalyzing ? Colors.grey[400] : Colors.purple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 1,
+                  ),
+                ),
+              ),
               const SizedBox(height: 4),
               const Text(
-                '💡 Not found in database — save first then use Gemini to analyze later',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                'Not found in database — tap to analyze with AI (uses 1 Energy)',
+                style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
               ),
             ],
             const SizedBox(height: 16),
@@ -911,6 +1008,185 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         ),
       ),
     );
+  }
+
+  Future<void> _analyzeWithAI() async {
+    final foodName = _nameController.text.trim();
+    if (foodName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter food name first')),
+      );
+      return;
+    }
+
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (mounted) await NoEnergyDialog.show(context);
+      return;
+    }
+
+    setState(() => _isAnalyzing = true);
+
+    try {
+      final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
+
+      final result = await GeminiService.analyzeFoodByName(
+        foodName,
+        servingSize: servingSize,
+        servingUnit: _servingUnit,
+      );
+
+      if (!mounted) return;
+
+      if (result == null) {
+        setState(() => _isAnalyzing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to analyze this food'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
+
+      await UsageLimiter.recordAiUsage();
+      if (!mounted) return;
+      ref.invalidate(energyBalanceProvider);
+      ref.invalidate(currentEnergyProvider);
+
+      setState(() => _isAnalyzing = false);
+
+      final navigator = Navigator.of(context);
+
+      // Auto-save ingredients/meal to DB immediately (before showing sheet)
+      if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
+        try {
+          final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+          await notifier.saveIngredientsAndMeal(
+            mealName: result.foodName,
+            mealNameEn: result.foodNameEn,
+            servingDescription: '${result.servingSize} ${result.servingUnit}',
+            ingredientsData: result.ingredientsDetail!.map((e) => {
+              'name': e.name,
+              'name_en': e.nameEn,
+              'detail': e.detail,
+              'amount': e.amount,
+              'unit': e.unit,
+              'calories': e.calories,
+              'protein': e.protein,
+              'carbs': e.carbs,
+              'fat': e.fat,
+              if (e.subIngredients != null && e.subIngredients!.isNotEmpty)
+                'sub_ingredients': e.subIngredients!.map((sub) => {
+                  'name': sub.name,
+                  'name_en': sub.nameEn,
+                  'detail': sub.detail,
+                  'amount': sub.amount,
+                  'unit': sub.unit,
+                  'calories': sub.calories,
+                  'protein': sub.protein,
+                  'carbs': sub.carbs,
+                  'fat': sub.fat,
+                }).toList(),
+            }).toList(),
+          );
+          AppLogger.info('Auto-saved meal + ingredients to DB');
+        } catch (e) {
+          AppLogger.error('Error auto-saving ingredients/meal', e);
+        }
+      }
+
+      // Use date from widget or today
+      final date = widget.selectedDate ?? DateTime.now();
+      final now = DateTime.now();
+      final timestamp =
+          DateTime(date.year, date.month, date.day, now.hour, now.minute);
+
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => GeminiAnalysisSheet(
+          analysisResult: result,
+          onConfirm: (confirmedData) async {
+            final entry = FoodEntry()
+              ..foodName = confirmedData.foodName
+              ..foodNameEn = confirmedData.foodNameEn
+              ..mealType = _selectedMealType
+              ..timestamp = timestamp
+              ..servingSize = confirmedData.servingSize
+              ..servingUnit = confirmedData.servingUnit
+              ..servingGrams = confirmedData.servingGrams
+              ..calories = confirmedData.calories
+              ..protein = confirmedData.protein
+              ..carbs = confirmedData.carbs
+              ..fat = confirmedData.fat
+              ..baseCalories = confirmedData.baseCalories
+              ..baseProtein = confirmedData.baseProtein
+              ..baseCarbs = confirmedData.baseCarbs
+              ..baseFat = confirmedData.baseFat
+              ..fiber = confirmedData.fiber
+              ..sugar = confirmedData.sugar
+              ..sodium = confirmedData.sodium
+              ..source = DataSource.aiAnalyzed
+              ..aiConfidence = confirmedData.confidence
+              ..isVerified = true
+              ..notes = confirmedData.notes;
+
+            if (confirmedData.ingredientsDetail != null &&
+                confirmedData.ingredientsDetail!.isNotEmpty) {
+              entry.ingredientsJson =
+                  jsonEncode(confirmedData.ingredientsDetail);
+            }
+
+            final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+            await notifier.addFoodEntry(entry);
+
+            if (mounted) {
+              final today = dateOnly(DateTime.now());
+              ref.invalidate(healthTimelineProvider(today));
+              ref.invalidate(foodEntriesByDateProvider(today));
+              ref.invalidate(foodEntriesNotifierProvider);
+            }
+
+            // Save ingredients and meal to DB
+            if (confirmedData.ingredientsDetail != null &&
+                confirmedData.ingredientsDetail!.isNotEmpty) {
+              try {
+                await notifier.saveIngredientsAndMeal(
+                  mealName: confirmedData.foodName,
+                  mealNameEn: confirmedData.foodNameEn,
+                  servingDescription:
+                      '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                  ingredientsData: confirmedData.ingredientsDetail!,
+                );
+              } catch (e) {
+                AppLogger.error('Error saving ingredients/meal', e);
+              }
+            }
+
+            // Close both sheets
+            if (mounted) {
+              navigator.pop();
+            }
+          },
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isAnalyzing = false);
+
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Analysis failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _save() {

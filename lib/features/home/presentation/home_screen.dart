@@ -182,17 +182,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Map display index: Camera (2) is fullscreen, so IndexedStack skips it
     final stackIndex = _currentIndex > 2 ? _currentIndex - 1 : _currentIndex;
 
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: IndexedStack(
-        index: stackIndex,
-        children: const [
-          HealthTimelineTab(), // 0: Dashboard
-          HealthMyMealTab(), // 1: My Meals
-          ChatScreen(), // 2 (mapped from 3): Chat
-        ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Exit App?'),
+            content: const Text('Are you sure you want to exit?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Exit'),
+              ),
+            ],
+          ),
+        );
+        if (shouldExit == true && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        appBar: _buildAppBar(),
+        body: IndexedStack(
+          index: stackIndex,
+          children: const [
+            HealthTimelineTab(), // 0: Dashboard
+            HealthMyMealTab(), // 1: My Meals
+            ChatScreen(), // 2 (mapped from 3): Chat
+          ],
+        ),
+        bottomNavigationBar: _buildBottomNav(),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 

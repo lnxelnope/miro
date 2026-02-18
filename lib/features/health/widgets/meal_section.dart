@@ -7,8 +7,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
+import '../providers/fulfill_calorie_provider.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
+import 'ghost_meal_suggestion.dart';
 
 class MealSection extends ConsumerStatefulWidget {
   final MealType mealType;
@@ -17,6 +19,8 @@ class MealSection extends ConsumerStatefulWidget {
   final Function(FoodEntry) onEditFood;
   final Function(FoodEntry) onDeleteFood;
   final DateTime selectedDate;
+  final MealSlotSuggestion? ghostSuggestion;
+  final void Function(FoodSuggestion suggestion)? onSuggestionTap;
 
   const MealSection({
     super.key,
@@ -26,6 +30,8 @@ class MealSection extends ConsumerStatefulWidget {
     required this.onEditFood,
     required this.onDeleteFood,
     required this.selectedDate,
+    this.ghostSuggestion,
+    this.onSuggestionTap,
   });
 
   @override
@@ -268,7 +274,13 @@ class _MealSectionState extends ConsumerState<MealSection> {
           const SizedBox(height: 12),
 
           // Foods list
-          if (visibleFoods.isEmpty)
+          if (visibleFoods.isEmpty && widget.ghostSuggestion != null)
+            GhostMealSuggestion(
+              suggestion: widget.ghostSuggestion!,
+              onTap: widget.onAddFood,
+              onSuggestionTap: widget.onSuggestionTap,
+            )
+          else if (visibleFoods.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
@@ -291,6 +303,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
   // Headers
   // ============================================================
   Widget _buildNormalHeader(BuildContext context, double totalCalories) {
+    // Get budget for this meal from ghost suggestion (if available)
+    final budget = widget.ghostSuggestion?.allocatedCalories;
+    
     return Row(
       children: [
         Icon(
@@ -314,7 +329,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            '${totalCalories.toInt()} kcal',
+            budget != null && budget > 0
+                ? '${totalCalories.toInt()} / ${budget.toInt()} kcal'
+                : '${totalCalories.toInt()} kcal',
             style: const TextStyle(
               color: AppColors.health,
               fontWeight: FontWeight.w600,
