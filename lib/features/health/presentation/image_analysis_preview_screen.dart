@@ -73,18 +73,18 @@ class _ImageAnalysisPreviewScreenState
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 12),
-            Expanded(child: Text('กำลังวิเคราะห์อยู่')),
+            Expanded(child: Text('Analyzing...')),
           ],
         ),
         content: const Text(
-          'AI กำลังวิเคราะห์อาหารอยู่\n\n'
-          'ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป '
-          'และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)',
+          'AI is analyzing food\n\n'
+          'If you leave now, the analysis result will be lost '
+          'and you will need to re-analyze (costs Energy again)',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('รอต่อ'),
+            child: const Text('Wait'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -92,7 +92,7 @@ class _ImageAnalysisPreviewScreenState
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ออกเลย'),
+            child: const Text('Exit'),
           ),
         ],
       ),
@@ -259,6 +259,45 @@ class _ImageAnalysisPreviewScreenState
     return MealType.dinner;
   }
 
+  Future<void> _saveToDiary() async {
+    final foodName = _foodNameController.text.trim();
+    final quantity = double.tryParse(_quantityController.text.trim()) ?? 1.0;
+
+    final entry = FoodEntry()
+      ..foodName = foodName.isEmpty ? 'food' : foodName
+      ..mealType = _guessMealType()
+      ..timestamp = DateTime.now()
+      ..imagePath = widget.imageFile.path
+      ..servingSize = quantity
+      ..servingUnit = _selectedUnit
+      ..calories = 0
+      ..protein = 0
+      ..carbs = 0
+      ..fat = 0
+      ..source = DataSource.galleryScanned
+      ..isVerified = false;
+
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    await notifier.addFoodEntry(entry);
+
+    if (!mounted) return;
+
+    final today = dateOnly(DateTime.now());
+    ref.invalidate(healthTimelineProvider(today));
+    ref.invalidate(foodEntriesByDateProvider(today));
+    ref.invalidate(foodEntriesNotifierProvider);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Saved — analyze later with Analyze All'),
+        backgroundColor: AppColors.success,
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -313,7 +352,7 @@ class _ImageAnalysisPreviewScreenState
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'AI กำลังวิเคราะห์อาหาร...',
+                      'AI is analyzing food...',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -321,7 +360,7 @@ class _ImageAnalysisPreviewScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'กรุณารอสักครู่',
+                      'Please wait...',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -482,7 +521,7 @@ class _ImageAnalysisPreviewScreenState
                             )
                           : const Icon(Icons.auto_awesome, size: 24),
                       label: Text(
-                        _isAnalyzing ? 'กำลังวิเคราะห์...' : 'Analyze with AI',
+                        _isAnalyzing ? 'Analyzing...' : 'Analyze with AI',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -500,6 +539,33 @@ class _ImageAnalysisPreviewScreenState
                       ),
                     ),
                   ),
+
+                  const SizedBox(height: 12),
+
+                  // Save to Diary button (save photo as pending entry)
+                  if (!_isAnalyzing)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: _saveToDiary,
+                        icon: const Icon(Icons.bookmark_add_outlined, size: 20),
+                        label: const Text(
+                          'Save to Diary',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.textSecondary,
+                          side: BorderSide(color: Colors.grey[300]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 32),
                 ],
