@@ -76,46 +76,44 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             child: DailySummaryCard(selectedDate: _selectedDate),
           ),
 
-          // Date Selector
-          SliverToBoxAdapter(
-            child: _buildDateSelector(),
-          ),
-
-          // Analyze All Banner
+          // Meals Info Bar (compact, below summary, above date selector)
           SliverToBoxAdapter(
             child: Builder(builder: (context) {
               final items = timelineAsync.valueOrNull ?? [];
               final foodEntries = items
                   .where((i) => i.type == 'food')
                   .map((i) => i.data as FoodEntry)
+                  .where((f) => !f.isDeleted)
                   .toList();
-              
-              final unanalyzed = foodEntries.where((f) => 
-                !f.hasNutritionData && !f.isDeleted
-              ).toList();
-              
-              if (unanalyzed.isEmpty && !_isAnalyzing) {
-                return const SizedBox.shrink();
-              }
-              
-              final withImage = unanalyzed.where((f) => 
+
+              final withImage = foodEntries.where((f) =>
                 f.imagePath != null && f.imagePath!.isNotEmpty
               ).length;
-              final textOnly = unanalyzed.length - withImage;
-              
-              return _buildAnalyzeAllBanner(
-                context,
-                unanalyzed,
-                withImage,
-                textOnly,
-                _isAnalyzing,
-                _analyzeCurrent,
-                _analyzeTotal,
-                _currentItemName,
-                () => _startBatchAnalysis(unanalyzed),
-                () => setState(() => _cancelRequested = true),
+              final textOnly = foodEntries.where((f) =>
+                (f.imagePath == null || f.imagePath!.isEmpty) &&
+                f.source != DataSource.database
+              ).length;
+              final fromDb = foodEntries.where((f) =>
+                f.source == DataSource.database
+              ).length;
+              final unanalyzed = foodEntries.where((f) =>
+                !f.hasNutritionData
+              ).toList();
+
+              if (foodEntries.isEmpty && !_isAnalyzing) {
+                return const SizedBox.shrink();
+              }
+
+              return _buildCompactInfoBar(
+                context, foodEntries, unanalyzed,
+                withImage, textOnly, fromDb,
               );
             }),
+          ),
+
+          // Date Selector
+          SliverToBoxAdapter(
+            child: _buildDateSelector(),
           ),
 
           // Meal Sections — always visible
@@ -675,183 +673,180 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       ),
     );
   }
-}
 
-// ============================================
-// ANALYZE ALL BANNER - SHARED WIDGET
-// ============================================
+  // ===== Compact Meals Info Bar =====
 
-Widget _buildAnalyzeAllBanner(
-  BuildContext context,
-  List<FoodEntry> unanalyzedEntries,
-  int withImageCount,
-  int textOnlyCount,
-  bool isAnalyzing,
-  int current,
-  int total,
-  String currentItemName,
-  VoidCallback onAnalyze,
-  VoidCallback onCancel,
-) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final totalEnergy = unanalyzedEntries.length;
+  Widget _buildCompactInfoBar(
+    BuildContext context,
+    List<FoodEntry> allEntries,
+    List<FoodEntry> unanalyzed,
+    int imageCount,
+    int textCount,
+    int dbCount,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final energyCost = unanalyzed.length;
+    final chipBg = isDark
+        ? Colors.white.withOpacity(0.08)
+        : Colors.black.withOpacity(0.05);
+    final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
 
-  return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: isDark ? Colors.orange[900]?.withOpacity(0.2) : Colors.orange[50],
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: isDark ? Colors.orange[700]! : Colors.orange[300]!,
-        width: 1.5,
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    if (_isAnalyzing) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.3),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              isAnalyzing ? 'กำลังวิเคราะห์...' : 'Analyze All',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.orange[200] : Colors.orange[900],
+            Row(
+              children: [
+                SizedBox(
+                  width: 16, height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '$_currentItemName  ($_analyzeCurrent/$_analyzeTotal)',
+                    style: TextStyle(fontSize: 13, color: textColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _cancelRequested = true),
+                  child: Icon(Icons.close_rounded, size: 18, color: AppColors.error),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: _analyzeTotal > 0 ? _analyzeCurrent / _analyzeTotal : 0,
+                minHeight: 4,
+                backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation(AppColors.primary),
               ),
             ),
-            if (isAnalyzing)
-              Text(
-                '$current/$total',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.orange[300] : Colors.orange[700],
-                ),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDark ? AppColors.dividerDark : AppColors.divider,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Image count
+          if (imageCount > 0) ...[
+            _infoChip(
+              AppIcons.camera, imageCount.toString(),
+              AppIcons.cameraColor, chipBg, textColor,
+            ),
+            const SizedBox(width: 8),
+          ],
+          // Text-only count
+          if (textCount > 0) ...[
+            _infoChip(
+              Icons.restaurant_menu_rounded, textCount.toString(),
+              AppIcons.mealColor, chipBg, textColor,
+            ),
+            const SizedBox(width: 8),
+          ],
+          // Database count
+          if (dbCount > 0) ...[
+            _infoChip(
+              Icons.menu_book_rounded, dbCount.toString(),
+              AppColors.success, chipBg, textColor,
+            ),
+            const SizedBox(width: 8),
+          ],
+
+          const Spacer(),
+
+          // Analyze button (only if there are unanalyzed entries)
+          if (energyCost > 0)
+            GestureDetector(
+              onTap: () => _startBatchAnalysis(unanalyzed),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.orange[600],
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bolt, size: 14, color: Colors.white),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$totalEnergy',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                    Icon(AppIcons.ai, size: 14, color: Colors.white),
+                    const SizedBox(width: 5),
+                    const Text(
+                      'Analyze',
+                      style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600,
                         color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Icon(AppIcons.energy, size: 13, color: AppIcons.energyColor),
+                    const SizedBox(width: 2),
+                    Text(
+                      '$energyCost',
+                      style: TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600,
+                        color: AppIcons.energyColor,
                       ),
                     ),
                   ],
                 ),
               ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        
-        // Count row
-        Row(
-          children: [
-            if (withImageCount > 0) ...[
-              Icon(
-                Icons.photo_camera,
-                size: 18,
-                color: isDark ? Colors.orange[300] : Colors.orange[700],
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '$withImageCount รูป',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.orange[200] : Colors.orange[800],
-                ),
-              ),
-              const SizedBox(width: 16),
-            ],
-            if (textOnlyCount > 0) ...[
-              Icon(
-                Icons.text_fields,
-                size: 18,
-                color: isDark ? Colors.orange[300] : Colors.orange[700],
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '$textOnlyCount ชื่อ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.orange[200] : Colors.orange[800],
-                ),
-              ),
-            ],
-          ],
-        ),
-        
-        if (isAnalyzing) ...[
-          const SizedBox(height: 12),
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: total > 0 ? current / total : 0,
-              minHeight: 8,
-              backgroundColor: isDark ? Colors.grey[800] : Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange[600]!),
             ),
-          ),
-          const SizedBox(height: 8),
-          // Current item name
-          if (currentItemName.isNotEmpty)
-            Text(
-              'กำลังวิเคราะห์: $currentItemName',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? Colors.grey[400] : Colors.grey[700],
-                fontStyle: FontStyle.italic,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          const SizedBox(height: 12),
-          // Cancel button
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: onCancel,
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red[400]!),
-                foregroundColor: Colors.red[400],
-              ),
-              child: const Text('ยกเลิก'),
-            ),
-          ),
-        ] else ...[
-          const SizedBox(height: 12),
-          // Analyze All button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onAnalyze,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: const Text(
-                'Analyze All',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoChip(
+    IconData icon, String count,
+    Color iconColor, Color bgColor, Color textColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: iconColor),
+          const SizedBox(width: 4),
+          Text(
+            count,
+            style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w500, color: textColor,
             ),
           ),
         ],
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
