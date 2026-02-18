@@ -5,46 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - MiRO</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
-            color: #333;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         h1 {
-            color: #4CAF50;
-            border-bottom: 3px solid #4CAF50;
-            padding-bottom: 10px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
         }
         h2 {
-            color: #4CAF50;
+            color: #34495e;
             margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
         }
         h3 {
-            color: #66BB6A;
+            color: #34495e;
             margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
         }
-        .highlight {
-            background-color: #E8F5E9;
-            border-left: 4px solid #4CAF50;
-            padding: 15px;
-            margin: 20px 0;
+        p {
+            margin-bottom: 15px;
         }
-        .footer {
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            color: #666;
-            font-size: 0.9em;
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
         }
-        ul {
-            margin-left: 20px;
+        li {
+            margin-bottom: 8px;
+        }
+        strong {
+            color: #2c3e50;
         }
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
             margin: 20px 0;
         }
         th, td {
@@ -53,112 +68,223 @@
             text-align: left;
         }
         th {
-            background-color: #4CAF50;
+            background-color: #3498db;
             color: white;
+        }
+        .highlight {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            h2 {
+                font-size: 1.2em;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Privacy Policy</h1>
-    <p><strong>MiRO — My Intake Record Oracle</strong></p>
-    <p><strong>Effective Date:</strong> February 13, 2026<br>
-    <strong>Last Updated:</strong> February 13, 2026</p>
-    
-    <div class="highlight">
-        <strong>🔒 Your food data stays on your device. Energy balance synced securely via Firebase.</strong>
-    </div>
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p><strong>MiRO — My Intake Record Oracle</strong></p>
+        <p><strong>Effective Date:</strong> February 18, 2026<br>
+        <strong>Last Updated:</strong> February 18, 2026</p>
+        
+        <div class="highlight">
+            <strong>🔒 Your food data stays on your device. Energy balance synced securely via Firebase.</strong>
+        </div>
 
-    <h2>1. Information We Collect</h2>
-    <p>MiRO stores the following data <strong>locally on your device</strong> (Offline-first):</p>
-    <ul>
-        <li>Food entries (name, calories, nutrients)</li>
-        <li>Food photos (stored locally on your device)</li>
-        <li>Health goals (kcal, macros)</li>
-        <li>Basic personal information (name, gender, age, weight, height)</li>
-        <li>Created meal recipes (My Meals)</li>
-        <li>Saved ingredients (Ingredients)</li>
-        <li>Energy balance (for AI features)</li>
-        <li>Energy purchase history (via Google Play)</li>
-    </ul>
+        <h2>1. Information We Collect</h2>
+        <p>MiRO stores the following data <strong>locally on your device</strong> (Offline-first):</p>
+        <ul>
+            <li>Food entries (name, calories, nutrients)</li>
+            <li>Food photos (stored locally on your device)</li>
+            <li>Health goals (kcal, macros)</li>
+            <li>Basic personal information (name, gender, age, weight, height)</li>
+            <li>Created meal recipes (My Meals)</li>
+            <li>Saved ingredients (Ingredients)</li>
+            <li>Energy balance (for AI features)</li>
+            <li>Energy purchase history (via Google Play)</li>
+        </ul>
 
-    <h2>2. Data Transmission to Third Parties</h2>
-    
-    <h3>2.1 In-App Purchase</h3>
-    <ul>
-        <li><strong>Purchase data</strong> → Processed via Google Play Billing</li>
-        <li>Payment information is handled by Google, not by us</li>
-        <li>We only store Product ID and Purchase Token to verify purchases</li>
-    </ul>
+        <h2>2. Data Transmission to Third Parties</h2>
+        
+        <h3>2.1 In-App Purchase</h3>
+        <ul>
+            <li><strong>Purchase data</strong> → Processed via Google Play Billing</li>
+            <li>Payment information is handled by Google, not by us</li>
+            <li>We only store Product ID and Purchase Token to verify purchases</li>
+        </ul>
 
-    <h3>2.2 Firebase Services</h3>
-    <ul>
-        <li><strong>Device ID</strong> → Used to manage Energy balance and prevent fraudulent usage</li>
-        <li><strong>Cloud Functions</strong> → Process AI requests and manage Energy deduction</li>
-        <li><strong>Firestore</strong> → Stores Energy balance for cross-device synchronization</li>
-    </ul>
+        <h3>2.2 Firebase Services</h3>
+        <ul>
+            <li><strong>Device ID</strong> → Used to manage Energy balance and prevent fraudulent usage</li>
+            <li><strong>Cloud Functions</strong> → Process AI requests and manage Energy deduction</li>
+            <li><strong>Firestore</strong> → Stores Energy balance for cross-device synchronization</li>
+        </ul>
 
-    <h2>3. Data Storage</h2>
-    <ul>
-        <li>All food data and personal information stored <strong>locally on your device</strong> (Local database)</li>
-        <li>Energy balance synchronized with Firebase Firestore for cross-device persistence</li>
-        <li>No cloud backup of food data (if you uninstall the app, local food data will be lost)</li>
-        <li>You can delete all local data anytime (Profile → Clear Data)</li>
-    </ul>
+        <h3>2.3 Firebase Analytics (Optional - Requires User Consent)</h3>
+        <ul>
+            <li><strong>App events</strong> → Screen views, feature usage, and user interactions</li>
+            <li><strong>Device information</strong> → Device model, OS version, screen resolution</li>
+            <li><strong>Aggregated statistics</strong> → Usage patterns to improve app functionality</li>
+        </ul>
 
-    <h2>4. Required Permissions</h2>
-    <table>
-        <tr>
-            <th>Permission</th>
-            <th>Purpose</th>
-        </tr>
-        <tr>
-            <td>Camera</td>
-            <td>Take food photos for AI analysis</td>
-        </tr>
-        <tr>
-            <td>Photos/Gallery</td>
-            <td>Select food photos from gallery</td>
-        </tr>
-        <tr>
-            <td>Internet</td>
-            <td>Send photos to AI API and sync Energy balance</td>
-        </tr>
-    </table>
+        <p><strong>What we DO NOT collect:</strong></p>
+        <ul>
+            <li>Food entries, food photos, or nutrition data</li>
+            <li>Personal health information (weight, height, goals)</li>
+            <li>Personal identifiers (name, email, phone number)</li>
+            <li>Location data</li>
+        </ul>
 
-    <h2>5. User Rights</h2>
-    <ul>
-        <li>Delete all local data anytime</li>
-        <li>Uninstall the app to remove all local data</li>
-        <li>Energy balance persists across app reinstalls (linked to your device)</li>
-        <li>Request Energy data deletion by contacting support</li>
-    </ul>
+        <p><strong>Purpose:</strong> Improve app performance, understand feature usage, and optimize user experience.</p>
+        <p><strong>Your Choice:</strong> You can opt-in or opt-out of analytics at any time in Profile → Settings.</p>
 
-    <h2>6. Security</h2>
-    <ul>
-        <li>Energy transactions secured via Firebase with device authentication</li>
-        <li>Local data stored in encrypted Local Database (Isar)</li>
-        <li>No analytics, tracking, or advertising SDKs</li>
-        <li>Payment processing handled securely by Google Play Billing</li>
-    </ul>
+        <h2>3. Data Storage</h2>
+        <ul>
+            <li>All food data and personal information stored <strong>locally on your device</strong> (Local database)</li>
+            <li>Energy balance synchronized with Firebase Firestore for cross-device persistence</li>
+            <li>No cloud backup of food data (if you uninstall the app, local food data will be lost)</li>
+            <li>You can delete all local data anytime (Profile → Clear Data)</li>
+        </ul>
 
-    <h2>7. Children's Privacy</h2>
-    <p>MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.</p>
+        <h2>4. Required Permissions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Permission</th>
+                    <th>Purpose</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Camera</td>
+                    <td>Take food photos for AI analysis</td>
+                </tr>
+                <tr>
+                    <td>Photos/Gallery</td>
+                    <td>Select food photos from gallery</td>
+                </tr>
+                <tr>
+                    <td>Internet</td>
+                    <td>Send photos to AI API and sync Energy balance</td>
+                </tr>
+            </tbody>
+        </table>
 
-    <h2>8. Data Retention</h2>
-    <ul>
-        <li><strong>Local food data:</strong> Retained until you delete it or uninstall the app</li>
-        <li><strong>Energy balance:</strong> Retained indefinitely (linked to your device)</li>
-        <li><strong>Purchase records:</strong> Retained as required by Google Play and tax regulations</li>
-    </ul>
+        <h2>5. User Rights</h2>
+        <ul>
+            <li>Delete all local data anytime</li>
+            <li>Uninstall the app to remove all local data</li>
+            <li>Energy balance persists across app reinstalls (linked to your device)</li>
+            <li>Request Energy data deletion by contacting support</li>
+        </ul>
 
-    <h2>9. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+        <h2>6. Security</h2>
+        <ul>
+            <li>Energy transactions secured via Firebase with device authentication</li>
+            <li>Local data stored in encrypted Local Database (Isar)</li>
+            <li>Firebase Analytics used for app improvement (requires user consent)</li>
+            <li>No advertising or third-party tracking SDKs</li>
+            <li>Payment processing handled securely by Google Play Billing</li>
+            <li>All data transmission encrypted via HTTPS</li>
+        </ul>
 
-    <h2>10. Contact Us</h2>
-    <p>If you have questions about this Privacy Policy, please contact us through <strong>Google Play Store</strong>.</p>
+        <h2>7. Children's Privacy</h2>
+        <p>MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.</p>
 
-    <div class="footer">
-        <p>&copy; 2026 MiRO. All rights reserved.</p>
+        <h2>8. Data Retention</h2>
+        <ul>
+            <li><strong>Local food data:</strong> Retained until you delete it or uninstall the app</li>
+            <li><strong>Energy balance:</strong> Retained indefinitely (linked to your device)</li>
+            <li><strong>Purchase records:</strong> Retained as required by Google Play and tax regulations</li>
+        </ul>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>10. Data Collection Consent</h2>
+        
+        <h3>10.1 Analytics Opt-In/Opt-Out</h3>
+        <p>You have full control over analytics data collection:</p>
+        <ul>
+            <li>Upon first app use, you'll be asked to consent to Firebase Analytics</li>
+            <li>You can decline and still use all app features normally</li>
+            <li>You can change your preference anytime in <strong>Profile → Settings → Analytics Data Collection</strong></li>
+            <li>Declining analytics does not affect any core functionality</li>
+        </ul>
+
+        <h3>10.2 What Happens When You Opt-In</h3>
+        <ul>
+            <li>App usage patterns are collected (anonymously)</li>
+            <li>No food data, photos, or health information is collected</li>
+            <li>Data is aggregated and cannot identify individual users</li>
+            <li>Used solely to improve app performance and user experience</li>
+        </ul>
+
+        <h3>10.3 What Happens When You Opt-Out</h3>
+        <ul>
+            <li>No analytics data is collected</li>
+            <li>All app features remain fully functional</li>
+            <li>Energy system, AI analysis, and purchases work normally</li>
+        </ul>
+
+        <h2>11. PDPA Compliance (Thailand Personal Data Protection Act)</h2>
+        
+        <h3>11.1 Your Rights</h3>
+        <p>Under the Personal Data Protection Act (PDPA), you have the right to:</p>
+        <ul>
+            <li><strong>Access:</strong> Request a copy of your data</li>
+            <li><strong>Rectification:</strong> Correct inaccurate data</li>
+            <li><strong>Erasure:</strong> Request deletion of your data</li>
+            <li><strong>Portability:</strong> Receive your data in a structured format</li>
+            <li><strong>Objection:</strong> Object to data processing</li>
+            <li><strong>Withdraw Consent:</strong> Revoke analytics consent at any time</li>
+        </ul>
+
+        <h3>11.2 Data Categories</h3>
+        <ul>
+            <li><strong>General Data:</strong> Device ID, Energy balance, purchase history, app usage (if opted-in)</li>
+            <li><strong>Sensitive Data:</strong> Health-related information (weight, height, nutrition goals) stored <strong>locally only</strong> on your device</li>
+        </ul>
+
+        <h3>11.3 How to Exercise Your Rights</h3>
+        <ul>
+            <li><strong>Delete local data:</strong> Profile → Clear Data</li>
+            <li><strong>Revoke analytics consent:</strong> Profile → Settings → Analytics Data Collection (toggle off)</li>
+            <li><strong>Request data deletion:</strong> Contact us through Google Play Store</li>
+        </ul>
+
+        <h3>11.4 Data Retention</h3>
+        <ul>
+            <li>Local data: Until you delete it or uninstall the app</li>
+            <li>Energy balance: Retained until you request deletion</li>
+            <li>Analytics data: Retained according to Firebase's retention policy (opt-out anytime)</li>
+        </ul>
+
+        <h2>12. Contact Us</h2>
+        <p>If you have questions about this Privacy Policy, please contact us through <strong>Google Play Store</strong>.</p>
+
+        <div class="footer">
+            <p>© 2026 MiRO. All rights reserved.</p>
+        </div>
     </div>
 </body>
 </html>
