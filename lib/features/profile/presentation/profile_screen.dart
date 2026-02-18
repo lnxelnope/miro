@@ -5,6 +5,8 @@ import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/services/consent_service.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../core/constants/cuisine_options.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
@@ -26,7 +28,10 @@ import '../../home/widgets/feature_tour.dart';
 import '../../../core/services/backup_service.dart';
 import '../../../features/energy/providers/gamification_provider.dart';
 import '../../subscription/presentation/subscription_screen.dart';
+import '../../subscription/providers/subscription_provider.dart';
+import '../../subscription/models/subscription_status.dart';
 import '../../referral/presentation/referral_screen.dart';
+import '../../energy/presentation/tier_benefits_screen.dart';
 import 'package:flutter/services.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -160,28 +165,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // Phase 5: Subscription
                   Consumer(
                     builder: (context, ref, _) {
-                      final gamification = ref.watch(gamificationProvider);
-                      return _buildModernSettingCard(
+                      final subState = ref.watch(subscriptionProvider);
+                      final sub = subState.subscription;
+                      final isActive = sub.isActive;
+
+                      return _buildSubscriptionSection(
                         context: context,
-                        title: 'Energy Pass',
-                        subtitle: gamification.isSubscriber
-                            ? 'Active subscription'
-                            : 'Unlimited AI + Double rewards',
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.diamond,
-                              color: Colors.purple.shade600, size: 20),
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SubscriptionScreen(),
-                          ),
-                        ),
+                        sub: sub,
+                        isActive: isActive,
+                        isLoading: subState.isLoading,
                       );
                     },
                   ),
@@ -220,6 +212,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     onTap: () => _handleRestore(context),
                   ),
+                  
+                  // ✅ Analytics Consent Toggle
+                  _AnalyticsConsentToggle(),
+                  
                   _buildModernSettingCard(
                     context: context,
                     title: 'Clear All Data',
@@ -346,45 +342,162 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildModernAvatarSection(BuildContext context, String name) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.health],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+    return Consumer(
+      builder: (context, ref, _) {
+        final gamification = ref.watch(gamificationProvider);
+        final subState = ref.watch(subscriptionProvider);
+        final isSubscribed = subState.subscription.isActive;
+        
+        return Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, AppColors.health],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: const CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.white,
-            child: Icon(
-              Icons.person,
-              size: 50,
-              color: AppColors.primary,
+              child: const CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  Icons.person,
+                  size: 50,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          name,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.5,
-          ),
-        ),
-      ],
+            const SizedBox(height: 16),
+            Text(
+              name,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Subscriber Badge (if subscriber)
+            if (isSubscribed) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7C3AED).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.diamond_rounded, size: 16, color: Colors.white),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'Energy Pass',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'ACTIVE',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            // Tier Badge (Clickable)
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TierBenefitsScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: gamification.tierColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: gamification.tierColor.withOpacity(0.3),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      gamification.tierIcon,
+                      size: 20,
+                      color: gamification.tierColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${gamification.tierName} Tier',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: gamification.tierColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '• ${gamification.currentStreak} day streak',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: gamification.tierColor.withOpacity(0.6),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -511,6 +624,238 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSubscriptionSection({
+    required BuildContext context,
+    required dynamic sub,
+    required bool isActive,
+    required bool isLoading,
+  }) {
+    if (isActive) {
+      final expiryText = sub.expiryDate != null
+          ? '${sub.expiryDate!.day}/${sub.expiryDate!.month}/${sub.expiryDate!.year}'
+          : '';
+      final startText = sub.startDate != null
+          ? '${sub.startDate!.day}/${sub.startDate!.month}/${sub.startDate!.year}'
+          : '';
+
+      String statusLabel;
+      Color statusColor;
+      if (sub.status == SubscriptionStatus.gracePeriod) {
+        statusLabel = 'GRACE PERIOD';
+        statusColor = Colors.orange;
+      } else {
+        statusLabel = 'ACTIVE';
+        statusColor = const Color(0xFF7C3AED);
+      }
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF7C3AED).withOpacity(0.05),
+              const Color(0xFF6D28D9).withOpacity(0.08),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF7C3AED).withOpacity(0.2),
+          ),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+            ),
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7C3AED).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.diamond,
+                          color: Color(0xFF7C3AED),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Energy Pass',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: statusColor.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          statusLabel,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildSubscriptionInfoRow(
+                          'Plan',
+                          'Monthly',
+                          Icons.calendar_month,
+                        ),
+                        if (startText.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _buildSubscriptionInfoRow(
+                            'Started',
+                            startText,
+                            Icons.play_circle_outline,
+                          ),
+                        ],
+                        if (expiryText.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _buildSubscriptionInfoRow(
+                            sub.autoRenewing ? 'Renews' : 'Expires',
+                            expiryText,
+                            sub.autoRenewing
+                                ? Icons.autorenew
+                                : Icons.event_busy,
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        _buildSubscriptionInfoRow(
+                          'Auto-Renew',
+                          sub.autoRenewing ? 'On' : 'Off',
+                          Icons.repeat,
+                          valueColor: sub.autoRenewing
+                              ? Colors.green
+                              : Colors.orange,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Tap to manage subscription',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey.shade400,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _buildModernSettingCard(
+      context: context,
+      title: 'Energy Pass',
+      subtitle: isLoading
+          ? 'Loading...'
+          : 'Unlimited AI + Double rewards',
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.purple.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          Icons.diamond,
+          color: Colors.purple.shade600,
+          size: 20,
+        ),
+      ),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionInfoRow(
+    String label,
+    String value,
+    IconData icon, {
+    Color? valueColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: const Color(0xFF7C3AED).withOpacity(0.6)),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: valueColor ?? Colors.grey.shade800,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1584,3 +1929,120 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     );
   }
 }
+
+/// Analytics Consent Toggle Widget
+/// Allows users to opt-in/opt-out of analytics data collection
+class _AnalyticsConsentToggle extends ConsumerStatefulWidget {
+  const _AnalyticsConsentToggle();
+
+  @override
+  ConsumerState<_AnalyticsConsentToggle> createState() =>
+      _AnalyticsConsentToggleState();
+}
+
+class _AnalyticsConsentToggleState
+    extends ConsumerState<_AnalyticsConsentToggle> {
+  bool _isLoading = true;
+  bool _isEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConsentStatus();
+  }
+
+  Future<void> _loadConsentStatus() async {
+    final hasConsent = await ConsentService.hasConsent();
+    if (mounted) {
+      setState(() {
+        _isEnabled = hasConsent;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleConsent(bool value) async {
+    setState(() => _isLoading = true);
+
+    if (value) {
+      await ConsentService.grantConsent();
+      await AnalyticsService.setAnalyticsEnabled(true);
+    } else {
+      await ConsentService.revokeConsent();
+      await AnalyticsService.setAnalyticsEnabled(false);
+    }
+
+    if (mounted) {
+      setState(() {
+        _isEnabled = value;
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? 'Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป'
+                : 'Analytics disabled - ไม่เก็บข้อมูลการใช้งาน',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            Icons.analytics_outlined,
+            color: isDark ? Colors.blue.shade300 : Colors.blue.shade600,
+            size: 20,
+          ),
+        ),
+        title: const Text(
+          'Analytics Data Collection',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          _isEnabled
+              ? 'Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน'
+              : 'Disabled - ไม่เก็บข้อมูลการใช้งาน',
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
+        ),
+        trailing: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Switch(
+                value: _isEnabled,
+                onChanged: _toggleConsent,
+              ),
+      ),
+    );
+  }
+}
+

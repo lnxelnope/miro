@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/services/consent_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/widgets/analytics_consent_dialog.dart';
 import '../../health/presentation/health_timeline_tab.dart';
 import '../../health/presentation/health_my_meal_tab.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
@@ -40,12 +43,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // 2. Show feature tour (only first time)
       await _checkAndShowFeatureTour();
 
-      // 3. Set context for Welcome Offer notifications
+      // 3. Show analytics consent dialog (only if never asked)
+      await _checkAndShowConsentDialog();
+
+      // 4. Set context for Welcome Offer notifications
       if (mounted) {
         GeminiService.setContext(context);
       }
 
-      // 4. Set cuisine preference for AI analysis bias
+      // 5. Set cuisine preference for AI analysis bias
       try {
         final profile = await ref.read(userProfileProvider.future);
         GeminiService.setCuisinePreference(profile.cuisinePreference);
@@ -208,8 +214,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         );
-        if (shouldExit == true && context.mounted) {
-          Navigator.of(context).pop();
+        if (shouldExit == true) {
+          SystemNavigator.pop();
         }
       },
       child: Scaffold(
@@ -359,6 +365,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           debugPrint('Feature tour skipped');
         },
       );
+    }
+  }
+
+  /// Check and show analytics consent dialog (only first time)
+  Future<void> _checkAndShowConsentDialog() async {
+    try {
+      final needsConsent = await ConsentService.needsConsent();
+      
+      if (needsConsent && mounted) {
+        // Wait a bit after feature tour
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (!mounted) return;
+        
+        await AnalyticsConsentDialog.show(context);
+        AppLogger.info('✅ Analytics consent dialog shown');
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ Failed to show consent dialog: $e');
     }
   }
 }

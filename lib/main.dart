@@ -13,6 +13,8 @@ import 'core/database/database_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/energy_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/analytics_service.dart';
+import 'core/services/consent_service.dart';
 import 'core/ai/llm_service.dart';
 import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
@@ -84,7 +86,7 @@ void main() async {
   // ตรวจสอบและมอบ Welcome Gift
   final receivedGift = await energyService.initializeWelcomeGift();
   if (receivedGift) {
-    AppLogger.info('🎁 Welcome Gift: 100 Energy!');
+    AppLogger.info('🎁 Welcome Gift: 10 Energy!');
   }
 
   // ────── Migrate Existing Users ──────
@@ -117,7 +119,18 @@ void main() async {
     AppLogger.info('✅ Notification Service initialized');
   } catch (e) {
     AppLogger.warn('⚠️ Failed to initialize Notification Service: $e');
-    // ไม่ block app launch
+  }
+
+  // ✅ Initialize Firebase Analytics (respects user consent)
+  try {
+    final hasConsent = await ConsentService.hasConsent();
+    await AnalyticsService.initialize(
+      appVersion: '1.1.5',
+      enabled: hasConsent,
+    );
+    AppLogger.info('✅ Analytics Service initialized (consent: $hasConsent)');
+  } catch (e) {
+    AppLogger.warn('⚠️ Failed to initialize Analytics: $e');
   }
 
   // --- Suppress overflow error stripes in debug mode ---
@@ -159,6 +172,7 @@ class MiroApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      navigatorObservers: [AnalyticsService.observer],
 
       // === Localization ===
       localizationsDelegates: const [
