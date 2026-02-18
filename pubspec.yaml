@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "Miro: The Offline Hybrid Life Assistant"
 publish_to: 'none'
-version: 1.1.5+30
+version: 1.1.6+31
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -68,8 +68,8 @@ dependencies:
   cupertino_icons: ^1.0.6
   url_launcher: ^6.3.2
   
-  # In-App Purchase
-  in_app_purchase: ^3.2.0
+  # In-App Purchase (Supports Billing Library 7.0+)
+  in_app_purchase: ^3.2.3
   
   # Firebase Analytics
   firebase_analytics: ^11.3.3
@@ -77,7 +77,6 @@ dependencies:
   firebase_messaging: ^15.1.3
   cloud_firestore: ^5.5.0
   cloud_functions: ^5.6.2
-  in_app_purchase_android: ^0.4.0+8
   
   # File Picker (for Backup/Restore)
   file_picker: ^8.0.0
@@ -105,15 +104,21 @@ flutter:
 
 flutter_launcher_icons:
   android: true
+  ios: true
   image_path: "assets/icon/logo.png"
   min_sdk_android: 21
   adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/icon/logo.png"
+  # iOS specific
+  remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#6366F1"
   image: "assets/icon/logo.png"
   android: true
+  ios: true
   android_12:
     color: "#6366F1"
     image: "assets/icon/logo.png"
+  # iOS specific
+  ios_content_mode: center
