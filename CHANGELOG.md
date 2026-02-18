@@ -1,6 +1,84 @@
 # Changelog
 
-## [1.1.3+28] - 2026-02-18
+## [1.1.6+31] - 2026-02-18
+
+### 🔒 Privacy & Compliance
+- **Firebase Analytics Consent System**: Added GDPR/PDPA compliant user consent
+  - Analytics disabled by default, requires user opt-in
+  - Consent dialog shown after onboarding
+  - Toggle in Profile → Settings to opt-in/opt-out anytime
+  - Privacy Policy updated with Analytics disclosure
+- **Privacy Policy Updated**: Added Firebase Analytics, PDPA compliance sections
+  - Section 2.3: Firebase Analytics data collection (optional)
+  - Section 10: Data Collection Consent & opt-out instructions
+  - Section 11: PDPA Compliance (Thailand Personal Data Protection Act)
+  - Effective date: February 18, 2026
+
+### 🛒 Store Compliance
+- **Billing Library Update**: Updated to Google Play Billing Library 7.0+
+  - in_app_purchase: 3.2.2 → 3.2.3
+  - in_app_purchase_storekit: 0.3.22+1 → 0.4.7
+  - Resolves Google Play policy violation (Aug 31, 2025 deadline)
+- **Ready for Data Safety Declaration**: App compliant with Google Play data disclosure requirements
+
+### 🍽️ Food Suggestions
+- **Daily Calorie Cap**: Meal suggestions now respect daily calorie limits
+  - If daily calories exceeded, no suggestions shown
+  - If remaining calories < meal budget, suggests up to remaining amount only
+  - Shows "Daily goal reached" message when over limit
+  - Displays "Daily remaining ~X kcal" in orange when capped
+
+### 📝 Files Added
+- `lib/core/services/consent_service.dart`: Consent management
+- `lib/core/widgets/analytics_consent_dialog.dart`: User consent UI
+- `_project_manager/legal/privacy-policy.html`: HTML version for web hosting
+
+---
+
+## [1.1.5+30] - 2026-02-18
+
+### ✨ New Features
+- **Smart Food Suggestions (Ghost Suggestions)**: AI-powered meal recommendations in empty meal slots
+  - Suggests foods from My Meals, Ingredients, and yesterday's entries that fit your per-meal budget
+  - Shows top recommendation + up to 4 alternatives as tappable cards
+  - One-tap to auto-fill with complete ingredient details (for My Meals)
+  - Displays as faded "ghost" UI until you add food to that meal
+  - Falls back to yesterday's meals when My Meal database is empty
+  - Shows budget info (e.g., "515 / 560 kcal") in meal section headers
+- **Suggestion Threshold Setting**: Control how flexible food suggestions are
+  - Set threshold (± kcal) for suggestion range in Health Goals
+  - Example: 700 kcal budget + 100 threshold → suggests 600-800 kcal foods
+  - Default: ±100 kcal
+  - Includes explanatory card to help users understand the feature
+- **Per-Meal Calorie Budgets**: Customize calorie allocation for each meal
+  - Set individual budgets for Breakfast, Lunch, Dinner, Snack
+  - Lock 3 meals to auto-calculate the 4th (similar to macro locking)
+  - Live validation shows total vs. goal
+  - Smart suggestions use these budgets for personalized recommendations
+
+### 🔥 Improvements
+- **Exit Confirmation Dialog**: Added warning when pressing back to exit app
+  - Prevents accidental app closure
+  - Shows "Are you sure you want to exit?" dialog
+- **My Meal Auto-Fill**: Tapping ghost suggestions from My Meals opens full ingredient view
+  - Shows complete ingredient breakdown with serving size control
+  - Saves all ingredients (main + sub-ingredients) to `ingredientsJson`
+  - Same rich experience as logging from My Meal manually
+- **Removed Quick Add Section**: Replaced with superior ghost suggestions system
+  - No more "Favorite + Repeat Yesterday" section
+  - Ghost suggestions are more intelligent and context-aware
+
+### 🔧 Technical
+- Added `suggestionThreshold`, `breakfastBudget`, `lunchBudget`, `dinnerBudget`, `snackBudget` to UserProfile
+- New `FulfillCalorieProvider` calculates meal suggestions based on budget + threshold
+- New `GhostMealSuggestion` widget with alternative cards UI
+- Updated `MealSection` to display budget in header and pass suggestion callbacks
+- Modified `LogFromMealSheet` integration for seamless ghost suggestion tap
+- Isar schema migration for new profile fields (v30)
+
+---
+
+## [1.1.4+29] - 2026-02-18
 
 ### 🐛 Bug Fixes
 - **AI Analysis Loading State**: Fixed loading dialog blocking back navigation
