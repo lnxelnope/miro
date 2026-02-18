@@ -10,74 +10,58 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    // Get total users count
+    // Count total users
     const usersSnapshot = await db.collection('users').count().get();
     const totalUsers = usersSnapshot.data().count;
 
-    // Get active users (logged in last 7 days)
+    // Count active users (checked in last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0]; // YYYY-MM-DD format
     
     const activeUsersSnapshot = await db
       .collection('users')
-      .where('lastActiveAt', '>=', sevenDaysAgo)
+      .where('lastCheckInDate', '>=', sevenDaysAgoStr)
       .count()
       .get();
-    const activeUsers7d = activeUsersSnapshot.data().count;
+    const activeUsers = activeUsersSnapshot.data().count;
 
-    // Get active users (logged in last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Sum total revenue (from purchase transactions)
+    const purchasesSnapshot = await db
+      .collection('transactions')
+      .where('type', '==', 'purchase')
+      .get();
     
-    const activeUsers30dSnapshot = await db
+    let totalRevenue = 0;
+    purchasesSnapshot.docs.forEach((doc: any) => {
+      const data = doc.data();
+      // Calculate revenue from metadata.totalEnergy or amount
+      // Assuming each energy unit = 1 THB (adjust if needed)
+      const energyAmount = data.metadata?.totalEnergy || data.amount || 0;
+      totalRevenue += energyAmount;
+    });
+
+    // Count active subscribers
+    const subscribersSnapshot = await db
       .collection('users')
-      .where('lastActiveAt', '>=', thirtyDaysAgo)
+      .where('subscription.status', '==', 'active')
       .count()
       .get();
-    const activeUsers30d = activeUsers30dSnapshot.data().count;
-
-    // Get total energy consumed (sum of all transactions)
-    const transactionsSnapshot = await db
-      .collection('transactions')
-      .where('amount', '<', 0) // Only spending transactions
-      .get();
-    
-    const totalEnergyConsumed = transactionsSnapshot.docs.reduce(
-      (sum: number, doc: any) => sum + Math.abs(doc.data().amount),
-      0
-    );
-
-    // Get total AI analyses count
-    const aiAnalysesSnapshot = await db
-      .collection('transactions')
-      .where('type', '==', 'ai_analysis')
-      .count()
-      .get();
-    const totalAiAnalyses = aiAnalysesSnapshot.data().count;
-
-    // Calculate averages
-    const avgEnergyPerUser = totalUsers > 0 ? totalEnergyConsumed / totalUsers : 0;
-    const avgAiPerUser = totalUsers > 0 ? totalAiAnalyses / totalUsers : 0;
+    const activeSubscribers = subscribersSnapshot.data().count;
 
     return NextResponse.json({
-      users: {
-        total: totalUsers,
-        active7d: activeUsers7d,
-        active30d: activeUsers30d,
-      },
-      energy: {
-        totalConsumed: totalEnergyConsumed,
-        avgPerUser: Math.round(avgEnergyPerUser),
-      },
-      ai: {
-        totalAnalyses: totalAiAnalyses,
-        avgPerUser: Math.round(avgAiPerUser * 10) / 10, // Round to 1 decimal
+      success: true,
+      stats: {
+        totalUsers,
+        activeUsers,
+        totalRevenue,
+        activeSubscribers,
       },
     });
-  } catch (error) {
-    console.error('Dashboard stats error:', error);
+  } catch (error: any) {
+    console.error('Error fetching stats:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch dashboard stats' },
+      { error: error.message },
       { status: 500 }
     );
   }

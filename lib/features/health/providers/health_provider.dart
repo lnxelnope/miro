@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
@@ -96,6 +97,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.foodEntries.put(entry);
     });
+    AnalyticsService.logMealLogged(source: entry.source.name);
   }
 
   Future<void> updateFoodEntry(FoodEntry entry) async {

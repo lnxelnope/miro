@@ -338,7 +338,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
           children: [
             Icon(AppIcons.energy, size: 16, color: AppIcons.energyColor),
             const SizedBox(width: 4),
-            Text('บันทึก "${item.name}" ${item.calories.toInt()} kcal'),
+            Text('Saved "${item.name}" ${item.calories.toInt()} kcal'),
           ],
         ),
         backgroundColor: AppColors.success,

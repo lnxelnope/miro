@@ -5,6 +5,10 @@ import 'my_meal_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 
 /// A single food suggestion to fulfill remaining calories
+///
+/// Daily remaining kcal is always the hard cap:
+/// effectiveBudget = min(mealBudget, dailyRemaining)
+/// If dailyRemaining <= 0, no suggestions are shown.
 class FoodSuggestion {
   final String name;
   final String? nameEn;
@@ -42,7 +46,9 @@ class MealSlotSuggestion {
   final double allocatedFat;
   final FoodSuggestion? topSuggestion;
   final List<FoodSuggestion> alternatives;
-  final bool hasData; // false = user has no meals/ingredients yet
+  final bool hasData;
+  final bool dailyExceeded; // true = daily kcal already exceeded, no suggestions
+  final bool cappedByDaily; // true = effective budget was reduced by daily remaining
 
   const MealSlotSuggestion({
     required this.mealType,
@@ -53,6 +59,8 @@ class MealSlotSuggestion {
     this.topSuggestion,
     this.alternatives = const [],
     this.hasData = true,
+    this.dailyExceeded = false,
+    this.cappedByDaily = false,
   });
 }
 
@@ -199,8 +207,26 @@ final fulfillCalorieProvider =
   final usedIds = <String>{};
 
   for (final slot in emptySlots) {
-    // Use user-defined budget directly for this meal slot
-    final allocCal = mealBudget[slot]!;
+    final mealBudgetCal = mealBudget[slot]!;
+
+    // Daily remaining kcal is the hard cap — if daily is exceeded, don't suggest
+    if (remaining <= 0) {
+      suggestions[slot] = MealSlotSuggestion(
+        mealType: slot,
+        allocatedCalories: 0,
+        allocatedProtein: 0,
+        allocatedCarbs: 0,
+        allocatedFat: 0,
+        hasData: hasData,
+        dailyExceeded: true,
+      );
+      continue;
+    }
+
+    // Effective budget = min(per-meal budget, daily remaining)
+    final allocCal = mealBudgetCal > remaining ? remaining : mealBudgetCal;
+    final cappedByDaily = allocCal < mealBudgetCal;
+
     final ratio = goalCalories > 0 ? allocCal / goalCalories : 0.33;
     final allocP = goalProtein * ratio;
     final allocC = goalCarbs * ratio;
@@ -214,11 +240,12 @@ final fulfillCalorieProvider =
         allocatedCarbs: allocC,
         allocatedFat: allocF,
         hasData: false,
+        cappedByDaily: cappedByDaily,
       );
       continue;
     }
 
-    // Find foods within threshold range (budget ± threshold)
+    // Find foods within threshold range, capped by effective budget
     final lower = (allocCal - threshold).clamp(0, double.infinity);
     final upper = allocCal + threshold;
     final candidates = pool
@@ -229,7 +256,7 @@ final fulfillCalorieProvider =
         })
         .toList();
 
-    // Sort by proximity to target calories (closest first)
+    // Sort by proximity to effective budget (closest first)
     candidates.sort((a, b) {
       final diffA = (a.calories - allocCal).abs();
       final diffB = (b.calories - allocCal).abs();
@@ -244,7 +271,6 @@ final fulfillCalorieProvider =
       final topKey = top.isMeal ? 'meal_${top.myMealId}' : 'ing_${top.ingredientId}';
       usedIds.add(topKey);
 
-      // Get up to 4 alternatives
       for (int i = 1; i < candidates.length && alts.length < 4; i++) {
         final alt = candidates[i];
         final altKey = alt.isMeal ? 'meal_${alt.myMealId}' : 'ing_${alt.ingredientId}';
@@ -264,6 +290,7 @@ final fulfillCalorieProvider =
       topSuggestion: top,
       alternatives: alts,
       hasData: hasData,
+      cappedByDaily: cappedByDaily,
     );
   }
 

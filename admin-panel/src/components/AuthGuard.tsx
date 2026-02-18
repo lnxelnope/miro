@@ -1,51 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-interface AuthGuardProps {
-  children: React.ReactNode;
-}
-
-export function AuthGuard({ children }: AuthGuardProps) {
+export function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  async function checkAuth() {
-    try {
-      const response = await fetch('/api/auth/me');
-      
-      if (response.ok) {
-        setAuthenticated(true);
-      } else {
-        router.push('/login');
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    if (status === 'unauthenticated') {
       router.push('/login');
-    } finally {
-      setLoading(false);
     }
-  }
+  }, [status, router]);
 
-  if (loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (!authenticated) {
-    return null; // Will redirect to login
+  if (!session) {
+    return null;
   }
 
   return <>{children}</>;

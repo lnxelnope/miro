@@ -271,6 +271,25 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     }
   }
 
+  /// Update parent ingredient totals from its sub-ingredients
+  void _recalculateParentFromSubs(int parentIndex) {
+    final parent = _ingredients[parentIndex];
+    if (parent.subIngredients == null || parent.subIngredients!.isEmpty) return;
+
+    double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+    for (final sub in parent.subIngredients!) {
+      totalCal += sub.calories;
+      totalP += sub.protein;
+      totalC += sub.carbs;
+      totalF += sub.fat;
+    }
+
+    parent.calories = totalCal;
+    parent.protein = totalP;
+    parent.carbs = totalC;
+    parent.fat = totalF;
+  }
+
   /// When serving size changes, scale all ingredients proportionally
   void _onServingSizeChanged() {
     if (!_hasIngredients || _originalServingSize <= 0) {
@@ -844,10 +863,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
             ),
 
             // ===== Editable Ingredients =====
-            if (_hasIngredients) ...[
-              const SizedBox(height: 20),
-              _buildEditableIngredientsSection(),
-            ],
+            const SizedBox(height: 20),
+            _buildEditableIngredientsSection(),
 
             const SizedBox(height: 24),
             const DisclaimerWidget(compact: false, showFullButton: true),
@@ -1019,12 +1036,14 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                         setState(() {
                           row.nameController.text = selection.name;
                           row.nameEn = selection.nameEn;
+                          row.unit = selection.baseUnit;
+                          row.amountController.text = amt.toStringAsFixed(
+                              amt == amt.roundToDouble() ? 0 : 1);
                           row.calories = selection.caloriesPerBase * ratio;
                           row.protein = selection.proteinPerBase * ratio;
                           row.carbs = selection.carbsPerBase * ratio;
                           row.fat = selection.fatPerBase * ratio;
                           row.isFromDb = true;
-                          // ล้าง sub-ingredients เก่าเมื่อเลือก ingredient ใหม่จาก DB
                           row.subIngredients = [];
                           row.saveBaseValues();
                         });
@@ -1345,23 +1364,104 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
-              // Name field
+              // Name field with Autocomplete
               Expanded(
-                child: TextField(
-                  controller: sub.nameController,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    hintText: 'Sub-ingredient name',
-                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    isDense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                  ),
+                child: Autocomplete<Ingredient>(
+                  key: ValueKey('sub_ac_${sub.key}'),
+                  initialValue: TextEditingValue(text: sub.nameController.text),
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const Iterable<Ingredient>.empty();
+                    }
+                    final query = textEditingValue.text.toLowerCase();
+                    return _cachedIngredients.where((ing) {
+                      return ing.name.toLowerCase().contains(query) ||
+                          (ing.nameEn?.toLowerCase().contains(query) ?? false);
+                    }).take(6);
+                  },
+                  displayStringForOption: (Ingredient ing) => ing.name,
+                  onSelected: (Ingredient selection) {
+                    final amt = double.tryParse(sub.amountController.text) ??
+                        selection.baseAmount;
+                    final ratio = amt / selection.baseAmount;
+                    setState(() {
+                      sub.nameController.text = selection.name;
+                      sub.nameEn = selection.nameEn;
+                      sub.unit = selection.baseUnit;
+                      sub.amountController.text = amt.toStringAsFixed(
+                          amt == amt.roundToDouble() ? 0 : 1);
+                      sub.calories = selection.caloriesPerBase * ratio;
+                      sub.protein = selection.proteinPerBase * ratio;
+                      sub.carbs = selection.carbsPerBase * ratio;
+                      sub.fat = selection.fatPerBase * ratio;
+                      sub.isFromDb = true;
+                      sub.saveBaseValues();
+                      _recalculateParentFromSubs(parentIndex);
+                      _recalculate();
+                    });
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4,
+                        borderRadius: BorderRadius.circular(8),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                              maxHeight: 180, maxWidth: 240),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, idx) {
+                              final ing = options.elementAt(idx);
+                              return ListTile(
+                                dense: true,
+                                title: Text(ing.name,
+                                    style: const TextStyle(fontSize: 12)),
+                                subtitle: Text(
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.textSecondary),
+                                ),
+                                onTap: () => onSelected(ing),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  fieldViewBuilder: (context, textEditingController,
+                      focusNode, onFieldSubmitted) {
+                    textEditingController.addListener(() {
+                      if (sub.nameController.text !=
+                          textEditingController.text) {
+                        sub.nameController.text =
+                            textEditingController.text;
+                      }
+                    });
+                    return TextField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        hintText: 'Sub-ingredient name',
+                        hintStyle:
+                            TextStyle(fontSize: 12, color: Colors.grey[400]),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 6),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 6),
@@ -1435,6 +1535,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   onChanged: (_) {
                     setState(() {
                       sub.recalculate();
+                      _recalculateParentFromSubs(parentIndex);
                       _recalculate();
                     });
                   },
@@ -1661,6 +1762,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
           sub.isFromDb = true;
           sub.isLoading = false;
+          _recalculateParentFromSubs(parentIndex);
         });
 
         _recalculate();
@@ -1668,8 +1770,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Found "$subName" in database! ✅'),
+              content: Text('Found "$subName" in database!'),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -1725,6 +1828,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
           sub.isFromDb = false;
           sub.isLoading = false;
+          _recalculateParentFromSubs(parentIndex);
         });
 
         _recalculate();
@@ -1732,9 +1836,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('AI analyzed "$subName" successfully! ✅ (-1 Energy)'),
+              content: Text('AI analyzed "$subName" (-1 Energy)'),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -1773,6 +1877,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         parent.isExpanded = false;
       }
 
+      _recalculateParentFromSubs(parentIndex);
       _recalculate();
     });
   }

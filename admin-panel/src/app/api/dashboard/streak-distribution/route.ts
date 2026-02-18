@@ -9,40 +9,33 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    // Get all users with gamification state
-    const usersSnapshot = await db
-      .collection('users')
-      .select('gamificationState')
-      .get();
+    // Count users by tier
+    const tiers = ['none', 'bronze', 'silver', 'gold', 'diamond'];
+    const distribution: Record<string, number> = {};
 
-    // Count by tier
-    const tierCounts = {
-      bronze: 0,
-      silver: 0,
-      gold: 0,
-      diamond: 0,
-      none: 0,
-    };
+    for (const tier of tiers) {
+      const snapshot = await db
+        .collection('users')
+        .where('tier', '==', tier)
+        .count()
+        .get();
+      distribution[tier] = snapshot.data().count;
+    }
 
-    usersSnapshot.docs.forEach((doc: any) => {
-      const gamification = doc.data().gamificationState;
-      const tier = gamification?.streakTier || 'none';
-      tierCounts[tier as keyof typeof tierCounts]++;
+    return NextResponse.json({
+      success: true,
+      distribution: [
+        { tier: 'Starter', count: distribution.none || 0 },
+        { tier: 'Bronze', count: distribution.bronze || 0 },
+        { tier: 'Silver', count: distribution.silver || 0 },
+        { tier: 'Gold', count: distribution.gold || 0 },
+        { tier: 'Diamond', count: distribution.diamond || 0 },
+      ],
     });
-
-    const chartData = [
-      { name: 'Bronze', value: tierCounts.bronze, color: '#cd7f32' },
-      { name: 'Silver', value: tierCounts.silver, color: '#c0c0c0' },
-      { name: 'Gold', value: tierCounts.gold, color: '#ffd700' },
-      { name: 'Diamond', value: tierCounts.diamond, color: '#b9f2ff' },
-      { name: 'No Streak', value: tierCounts.none, color: '#9ca3af' },
-    ];
-
-    return NextResponse.json({ data: chartData });
-  } catch (error) {
-    console.error('Streak distribution error:', error);
+  } catch (error: any) {
+    console.error('Error fetching streak distribution:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch streak distribution' },
+      { error: error.message },
       { status: 500 }
     );
   }

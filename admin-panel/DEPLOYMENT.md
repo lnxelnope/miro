@@ -1,212 +1,223 @@
-# Admin Panel Deployment Guide
+# MiRO Admin Panel - Deployment Guide
 
-## Prerequisites
+## 🚀 Vercel Deployment
 
-1. **Google Cloud SDK** installed and configured
-2. **Docker** installed
-3. **GCP Project**: `miro-d6856`
-4. **Required APIs enabled**:
-   - Cloud Build API
-   - Cloud Run API
-   - Container Registry API
+### Prerequisites
+- Vercel account (https://vercel.com)
+- Firebase Service Account Key
+- Admin credentials
 
-## Setup Secrets in Secret Manager
+---
 
-Before deploying, you need to create secrets in Google Secret Manager:
+## 📋 Step-by-Step Deployment
 
+### 1. Install Vercel CLI (ถ้ายังไม่มี)
 ```bash
-# Set your project
-gcloud config set project miro-d6856
-
-# Create secrets (replace values with actual secrets)
-echo -n "firebase-adminsdk-fbsvc@miro-d6856.iam.gserviceaccount.com" | \
-  gcloud secrets create firebase-admin-key --data-file=-
-
-echo -n "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----" | \
-  gcloud secrets create firebase-admin-key --data-file=-
-
-echo -n "your-admin-username" | \
-  gcloud secrets create admin-credentials --data-file=-
-
-echo -n "your-admin-password" | \
-  gcloud secrets create admin-credentials --data-file=-
-
-echo -n "your-jwt-secret-key" | \
-  gcloud secrets create jwt-secret --data-file=-
+npm install -g vercel
 ```
 
-**Note**: For `firebase-admin-key`, you need to create a secret with multiple versions:
-- Version 1: `FIREBASE_CLIENT_EMAIL`
-- Version 2: `FIREBASE_PRIVATE_KEY`
-
-Or create separate secrets:
+### 2. Login to Vercel
 ```bash
-# Client Email
-echo -n "firebase-adminsdk-fbsvc@miro-d6856.iam.gserviceaccount.com" | \
-  gcloud secrets create firebase-client-email --data-file=-
-
-# Private Key
-echo -n "-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY\n-----END PRIVATE KEY-----" | \
-  gcloud secrets create firebase-private-key --data-file=-
+vercel login
 ```
 
-## Deployment Methods
-
-### Method 1: Using Deployment Scripts (Recommended)
-
-**Windows (PowerShell):**
-```powershell
-cd admin-panel
-.\setup-secrets.ps1  # First time only
-.\deploy.ps1
-```
-
-**Linux/Mac (Bash):**
+### 3. Navigate to admin-panel directory
 ```bash
 cd admin-panel
-chmod +x setup-secrets.sh deploy.sh
-./setup-secrets.sh  # First time only
-./deploy.sh
 ```
 
-### Method 2: Using Cloud Build
-
+### 4. Deploy to Vercel
 ```bash
-cd admin-panel
-gcloud builds submit --config cloudbuild.yaml
+vercel
 ```
 
-### Method 3: Manual Deployment
+Follow the prompts:
+- Set up and deploy? **Y**
+- Which scope? (Select your account)
+- Link to existing project? **N**
+- What's your project's name? `miro-admin-panel`
+- In which directory is your code located? `./`
+- Want to modify settings? **N**
 
-**Windows (PowerShell):**
-```powershell
-# 1. Build Docker image
-docker build -t gcr.io/miro-d6856/admin-panel:latest .
+### 5. Set Environment Variables
 
-# 2. Push to Container Registry
-docker push gcr.io/miro-d6856/admin-panel:latest
+Go to Vercel Dashboard → Project Settings → Environment Variables
 
-# 3. Deploy to Cloud Run
-gcloud run deploy admin-panel `
-  --image gcr.io/miro-d6856/admin-panel:latest `
-  --platform managed `
-  --region asia-southeast1 `
-  --allow-unauthenticated `
-  --memory 512Mi `
-  --cpu 1 `
-  --max-instances 10 `
-  --set-env-vars "FIREBASE_PROJECT_ID=miro-d6856,NODE_ENV=production" `
-  --set-secrets "FIREBASE_CLIENT_EMAIL=firebase-client-email:latest,FIREBASE_PRIVATE_KEY=firebase-private-key:latest,ADMIN_USERNAME=admin-username:latest,ADMIN_PASSWORD=admin-password:latest,JWT_SECRET=jwt-secret:latest"
+Add these variables for **Production**:
+
+#### Firebase Admin SDK
+```
+FIREBASE_PROJECT_ID=miro-d6856
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@miro-d6856.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+... (copy จาก .env.local) ...
+-----END PRIVATE KEY-----"
 ```
 
-**Linux/Mac (Bash):**
+#### Admin Authentication
+```
+ADMIN_USERNAME=lnxelnope
+ADMIN_PASSWORD=6six6yesonly
+```
+
+#### JWT Secret (ควรเปลี่ยนเป็น random string ใหม่)
+```
+JWT_SECRET=your-super-secret-random-string-here-change-me
+```
+
+#### Next.js
+```
+NODE_ENV=production
+```
+
+### 6. Redeploy with Environment Variables
 ```bash
-# 1. Build Docker image
-docker build -t gcr.io/miro-d6856/admin-panel:latest .
-
-# 2. Push to Container Registry
-docker push gcr.io/miro-d6856/admin-panel:latest
-
-# 3. Deploy to Cloud Run
-gcloud run deploy admin-panel \
-  --image gcr.io/miro-d6856/admin-panel:latest \
-  --platform managed \
-  --region asia-southeast1 \
-  --allow-unauthenticated \
-  --memory 512Mi \
-  --cpu 1 \
-  --max-instances 10 \
-  --set-env-vars "FIREBASE_PROJECT_ID=miro-d6856,NODE_ENV=production" \
-  --set-secrets "FIREBASE_CLIENT_EMAIL=firebase-client-email:latest,FIREBASE_PRIVATE_KEY=firebase-private-key:latest,ADMIN_USERNAME=admin-username:latest,ADMIN_PASSWORD=admin-password:latest,JWT_SECRET=jwt-secret:latest"
+vercel --prod
 ```
 
-## Environment Variables
+---
 
-The following environment variables are set during deployment:
+## 🔒 Security Checklist
 
-- `FIREBASE_PROJECT_ID`: Set to `miro-d6856`
-- `NODE_ENV`: Set to `production`
+### Before Production:
+- [ ] เปลี่ยน `JWT_SECRET` เป็น random string ที่ปลอดภัย
+- [ ] เปลี่ยน `ADMIN_PASSWORD` เป็นรหัสผ่านที่แข็งแรง
+- [ ] ตรวจสอบว่า `.env.local` และ `serviceAccountKey.json` ไม่ถูก commit ไป Git
+- [ ] ตรวจสอบ Firestore Security Rules
+- [ ] ตั้งค่า CORS ใน Firebase Functions (ถ้าจำเป็น)
+- [ ] เพิ่ม domain ของ Vercel ใน Firebase Authorized Domains
 
-## Secrets
+---
 
-The following secrets are mounted from Secret Manager:
+## 📊 Firestore Indexes (Required)
 
-- `FIREBASE_CLIENT_EMAIL`: Firebase Admin SDK client email
-- `FIREBASE_PRIVATE_KEY`: Firebase Admin SDK private key
-- `ADMIN_USERNAME`: Admin panel username
-- `ADMIN_PASSWORD`: Admin panel password
-- `JWT_SECRET`: JWT secret for authentication
+สร้าง composite indexes ใน Firebase Console:
 
-## Updating Secrets
+### Index 1: Transactions by deviceId + createdAt
+```
+Collection: transactions
+Fields:
+  - deviceId (Ascending)
+  - createdAt (Descending)
+```
 
-To update a secret:
+### Index 2: Transactions by userId + createdAt
+```
+Collection: transactions
+Fields:
+  - userId (Ascending)
+  - createdAt (Descending)
+```
 
+**สร้างได้ที่:** Firebase Console → Firestore Database → Indexes
+
+หรือคลิก link ที่แสดงใน error logs
+
+---
+
+## 🔧 Manual Deploy Alternative
+
+### Option 2: Deploy via Vercel Dashboard
+
+1. Go to https://vercel.com/new
+2. Import Git Repository หรือ Upload folder
+3. Select `admin-panel` directory
+4. Set Environment Variables (same as above)
+5. Click Deploy
+
+---
+
+## ✅ Verify Deployment
+
+After deployment, test these features:
+
+1. **Login** - ใช้ admin credentials
+2. **Dashboard** - ดู metrics แสดงถูกต้อง
+3. **User Search** - ค้นหา user และดู details
+4. **User Management** - Top-up, Reset Streak, Ban/Unban
+5. **Subscription Management** - Cancel, Extend, Activate
+6. **Config Management** - แก้ไข promotions, rewards, challenges
+7. **Subscriptions Page** - ดู metrics และ subscribers list
+
+---
+
+## 🐛 Troubleshooting
+
+### Error: Firebase Admin initialization failed
+- ตรวจสอบว่า `FIREBASE_PRIVATE_KEY` ถูก format ถูกต้อง (มี `\n` สำหรับ line breaks)
+- ตรวจสอบว่า environment variables ถูกตั้งใน Vercel
+
+### Error: The query requires an index
+- สร้าง Firestore indexes ตาม link ที่แสดงใน error
+- รอ 2-5 นาทีให้ index build เสร็จ
+
+### Error: JWT Secret is required
+- ตรวจสอบว่าตั้ง `JWT_SECRET` environment variable แล้ว
+- Redeploy หลังตั้งค่า
+
+### Error: Cannot read properties of null
+- ตรวจสอบว่า Firebase Admin SDK initialize สำเร็จ
+- ดู logs ใน Vercel Dashboard → Deployments → Functions
+
+---
+
+## 📝 Post-Deployment
+
+### Update Admin Credentials
 ```bash
-# Update secret value
-echo -n "new-value" | gcloud secrets versions add SECRET_NAME --data-file=-
-
-# The latest version will be used automatically
+# In Vercel Dashboard:
+# Project Settings → Environment Variables
+# Update ADMIN_USERNAME and ADMIN_PASSWORD
+# Click "Redeploy" after changes
 ```
 
-## Troubleshooting
-
-### Build fails
-
-1. Check Docker is running: `docker ps`
-2. Check you're logged in to GCP: `gcloud auth login`
-3. Configure Docker for GCR: `gcloud auth configure-docker`
-
-### Deployment fails
-
-1. Check Cloud Run API is enabled: `gcloud services enable run.googleapis.com`
-2. Check you have permissions: `gcloud projects get-iam-policy miro-d6856`
-3. Check logs: `gcloud run services logs read admin-panel --region asia-southeast1`
-
-### Service won't start
-
-1. Check environment variables are set correctly
-2. Check secrets are accessible
-3. Check service account has necessary permissions
-
-## Post-Deployment
-
-After deployment:
-
-1. **Get the service URL**:
-   ```bash
-   gcloud run services describe admin-panel --region asia-southeast1 --format 'value(status.url)'
-   ```
-
-2. **Test the deployment**:
-   - Visit the URL in your browser
-   - Try logging in with admin credentials
-   - Test all features
-
-3. **Set up custom domain** (optional):
-   ```bash
-   gcloud run domain-mappings create \
-     --service admin-panel \
-     --domain admin.miro-app.com \
-     --region asia-southeast1
-   ```
-
-## Monitoring
-
-View logs:
+### Monitor Logs
 ```bash
-gcloud run services logs read admin-panel --region asia-southeast1 --limit 50
+vercel logs <deployment-url>
 ```
 
-View metrics:
-- Go to Cloud Console → Cloud Run → admin-panel
-- Check "Metrics" tab
+### Check Performance
+- Vercel Dashboard → Analytics
+- Monitor response times และ error rates
 
-## Rollback
+---
 
-To rollback to a previous version:
+## 🔗 Useful Links
 
-```bash
-gcloud run services update-traffic admin-panel \
-  --region asia-southeast1 \
-  --to-revisions REVISION_NAME=100
-```
+- Vercel Dashboard: https://vercel.com/dashboard
+- Firebase Console: https://console.firebase.google.com
+- Next.js Deployment Docs: https://nextjs.org/docs/app/building-your-application/deploying
+
+---
+
+## 💡 Tips
+
+1. **Development vs Production:**
+   - Development: ใช้ `serviceAccountKey.json` file
+   - Production: ใช้ environment variables
+
+2. **Automatic Deployments:**
+   - Connect Git repository ใน Vercel
+   - Auto-deploy on push to main branch
+
+3. **Custom Domain:**
+   - Vercel Dashboard → Project → Settings → Domains
+   - เพิ่ม custom domain (e.g., admin.miro.app)
+
+4. **Preview Deployments:**
+   - แต่ละ branch ได้ preview URL ของตัวเอง
+   - ทดสอบ changes ก่อน merge to main
+
+---
+
+## 📞 Support
+
+หากมีปัญหา:
+1. Check Vercel logs
+2. Check Firebase Console logs
+3. ดู error messages ใน browser DevTools Console
+
+---
+
+**Last Updated:** 2026-02-18
+**Version:** 1.0.0

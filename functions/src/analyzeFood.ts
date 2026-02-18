@@ -13,6 +13,7 @@ import * as admin from "firebase-admin";
 import {processCheckIn} from "./energy/dailyCheckIn";
 import {incrementChallengeProgress} from "./energy/challenge";
 import {checkReferralProgress} from "./referral/checkReferralProgress";
+import {checkWelcomeOfferPromotion} from "./energy/promotions";
 
 // Define secrets
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
@@ -865,18 +866,10 @@ export const analyzeFood = onRequest(
             const parsedResult = JSON.parse(jsonText);
             validateServingUnits(parsedResult);
 
-            // Check-in for streak (subscribers still get streaks)
-            const checkInResult = await processCheckIn(deviceId, timezoneOffset);
+            // Subscribers: NO streak/check-in (already paying monthly)
+            console.log(`💎 [analyzeFood] Subscriber — skipping streak/check-in`);
 
-            // Increment challenge progress
-            try {
-              await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
-              await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
-            } catch (error) {
-              console.error("[analyzeFood] Failed to increment challenge:", error);
-            }
-
-            const currentBalance = (checkInResult.newBalance ?? userData.balance) || 0;
+            const currentBalance = userData.balance || 0;
             const miroId = userData.miroId || "unknown";
 
             // Log transaction (type: 'subscription_usage')
@@ -884,7 +877,7 @@ export const analyzeFood = onRequest(
               deviceId,
               miroId,
               type: "subscription_usage",
-              amount: 0, // ไม่หัก
+              amount: 0,
               balanceAfter: currentBalance,
               description: `AI analysis (Subscriber): ${type}`,
               metadata: {
@@ -893,12 +886,6 @@ export const analyzeFood = onRequest(
               },
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
-
-            // Read updated challenges & milestones
-            const updatedUser = await db.collection("users").doc(deviceId).get();
-            const updatedData = updatedUser.data()!;
-            const challenges = updatedData.challenges?.weekly || {};
-            const milestones = updatedData.milestones || {};
 
             res.status(200).json({
               success: true,
@@ -909,32 +896,24 @@ export const analyzeFood = onRequest(
               wasFreeAi: false,
               isSubscriber: true,
               streak: {
-                current: checkInResult.currentStreak,
-                longest: checkInResult.longestStreak,
-                tier: checkInResult.tier,
-                tierUpgraded: checkInResult.tierUpgraded,
-                newTier: checkInResult.newTier,
-                energyBonus: checkInResult.energyBonus,
+                current: userData.currentStreak || 0,
+                longest: userData.longestStreak || 0,
+                tier: userData.tier || "none",
+                tierUpgraded: false,
+                energyBonus: 0,
               },
               challenges: {
-                weekly: challenges,
+                weekly: userData.challenges?.weekly || {},
               },
-              milestones: milestones,
-              totalSpent: updatedData.totalSpent || 0,
+              milestones: userData.milestones || {},
+              totalSpent: userData.totalSpent || 0,
             });
             return;
           } else {
-            // Other types (image, text, barcode)
-            const checkInResult = await processCheckIn(deviceId, timezoneOffset);
+            // Other types (image, text, barcode) — Subscriber
+            console.log(`💎 [analyzeFood] Subscriber — skipping streak/check-in`);
 
-            try {
-              await incrementChallengeProgress(deviceId, "logMeals", timezoneOffset);
-              await incrementChallengeProgress(deviceId, "useAi", timezoneOffset);
-            } catch (error) {
-              console.error("[analyzeFood] Failed to increment challenge:", error);
-            }
-
-            const currentBalance = (checkInResult.newBalance ?? userData.balance) || 0;
+            const currentBalance = userData.balance || 0;
             const miroId = userData.miroId || "unknown";
 
             await db.collection("transactions").add({
@@ -951,12 +930,6 @@ export const analyzeFood = onRequest(
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Read updated challenges & milestones
-            const updatedUser = await db.collection("users").doc(deviceId).get();
-            const updatedData = updatedUser.data()!;
-            const challenges = updatedData.challenges?.weekly || {};
-            const milestones = updatedData.milestones || {};
-
             res.status(200).json({
               success: true,
               data: geminiResponse,
@@ -966,18 +939,17 @@ export const analyzeFood = onRequest(
               wasFreeAi: false,
               isSubscriber: true,
               streak: {
-                current: checkInResult.currentStreak,
-                longest: checkInResult.longestStreak,
-                tier: checkInResult.tier,
-                tierUpgraded: checkInResult.tierUpgraded,
-                newTier: checkInResult.newTier,
-                energyBonus: checkInResult.energyBonus,
+                current: userData.currentStreak || 0,
+                longest: userData.longestStreak || 0,
+                tier: userData.tier || "none",
+                tierUpgraded: false,
+                energyBonus: 0,
               },
               challenges: {
-                weekly: challenges,
+                weekly: userData.challenges?.weekly || {},
               },
-              milestones: milestones,
-              totalSpent: updatedData.totalSpent || 0,
+              milestones: userData.milestones || {},
+              totalSpent: userData.totalSpent || 0,
             });
             return;
           }
@@ -1083,14 +1055,18 @@ export const analyzeFood = onRequest(
             energyCost: 0,
             wasFreeAi: true, // ← บอก client ว่าฟรี!
 
-            // ← Streak info (ใหม่!)
             streak: {
               current: checkInResult.currentStreak,
               longest: checkInResult.longestStreak,
               tier: checkInResult.tier,
               tierUpgraded: checkInResult.tierUpgraded,
+              tierDemoted: checkInResult.tierDemoted,
+              previousTier: checkInResult.previousTier,
               newTier: checkInResult.newTier,
               energyBonus: checkInResult.energyBonus,
+              tierRewardEnergy: checkInResult.tierRewardEnergy,
+              promotionBonusRate: checkInResult.promotionBonusRate,
+              showWelcomeBackOffer: checkInResult.showWelcomeBackOffer,
             },
             challenges: {
               weekly: challenges,
@@ -1107,6 +1083,19 @@ export const analyzeFood = onRequest(
       }
 
       // ────── ถ้าไม่ฟรี → ทำตามเดิม (เช็ค balance + หัก energy) ──────
+
+      // Process daily check-in for paid users too (idempotent if already checked in today)
+      let paidCheckInResult;
+      try {
+        paidCheckInResult = await processCheckIn(deviceId, timezoneOffset);
+      } catch (error) {
+        console.error("[analyzeFood] Paid check-in failed:", error);
+      }
+
+      // Update serverBalance if daily check-in awarded energy
+      if (paidCheckInResult?.newBalance != null) {
+        serverBalance = paidCheckInResult.newBalance;
+      }
 
       // Determine BASE energy cost (chat/menu = 2, others = 1)
       // For chat: additional +1 per food item will be added AFTER Gemini responds
@@ -1267,22 +1256,28 @@ export const analyzeFood = onRequest(
           console.log(`⚡ Dynamic pricing: base=${baseCost} + items=${itemCount}×1 = total ${totalCost} energy`);
           console.log(`⚡ Deducted: ${totalCost} (balance: ${serverBalance} → ${newBalance})`);
 
-          // Read challenges & milestones (in case increment was before error)
+          // Read challenges & milestones
           let challenges = {};
           let milestones = {};
           let totalSpent = 0;
+          let welcomePromoResult = null;
           try {
             const updatedUser = await db.collection("users").doc(deviceId).get();
             const updatedData = updatedUser.data()!;
             challenges = updatedData.challenges?.weekly || {};
             milestones = updatedData.milestones || {};
             totalSpent = updatedData.totalSpent || 0;
+            newBalance = updatedData.balance || newBalance;
+
+            // Check welcome offer promotion (first 10 energy spent)
+            welcomePromoResult = await checkWelcomeOfferPromotion(deviceId, totalSpent);
+            if (welcomePromoResult) {
+              newBalance = updatedData.balance + welcomePromoResult.freeEnergy;
+            }
           } catch (error) {
             console.error("[analyzeFood] Failed to read challenges/milestones:", error);
           }
 
-          // ✅ PHASE 1: ส่ง balance กลับแทน token
-          // Return parsed result with energy breakdown
           res.status(200)
             .set("X-Energy-Balance", newBalance.toString())
             .json({
@@ -1290,7 +1285,6 @@ export const analyzeFood = onRequest(
               ...parsedResult,
               balance: newBalance,
               energyUsed: totalCost,
-              // Energy cost breakdown for client display
               energyCost: totalCost,
               energyBreakdown: {
                 baseCost,
@@ -1298,13 +1292,34 @@ export const analyzeFood = onRequest(
                 perItemCost,
                 totalCost,
               },
-              wasFreeAi: false, // ไม่ฟรี
+              wasFreeAi: false,
+              ...(paidCheckInResult ? {
+                streak: {
+                  current: paidCheckInResult.currentStreak,
+                  longest: paidCheckInResult.longestStreak,
+                  tier: paidCheckInResult.tier,
+                  tierUpgraded: paidCheckInResult.tierUpgraded,
+                  tierDemoted: paidCheckInResult.tierDemoted,
+                  previousTier: paidCheckInResult.previousTier,
+                  newTier: paidCheckInResult.newTier,
+                  energyBonus: paidCheckInResult.energyBonus,
+                  tierRewardEnergy: paidCheckInResult.tierRewardEnergy,
+                  promotionBonusRate: paidCheckInResult.promotionBonusRate,
+                  showWelcomeBackOffer: paidCheckInResult.showWelcomeBackOffer,
+                },
+              } : {}),
+              ...(welcomePromoResult ? {
+                promotion: {
+                  type: welcomePromoResult.type,
+                  bonusRate: welcomePromoResult.bonusRate,
+                  freeEnergy: welcomePromoResult.freeEnergy,
+                },
+              } : {}),
               challenges: {
                 weekly: challenges,
               },
               milestones: milestones,
               totalSpent: totalSpent,
-              // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
             });
           return;
         } catch (parseError: any) {
@@ -1369,18 +1384,23 @@ export const analyzeFood = onRequest(
       let challenges = {};
       let milestones = {};
       let totalSpent = 0;
+      let welcomePromoResult2 = null;
       try {
         const updatedUser = await db.collection("users").doc(deviceId).get();
         const updatedData = updatedUser.data()!;
         challenges = updatedData.challenges?.weekly || {};
         milestones = updatedData.milestones || {};
         totalSpent = updatedData.totalSpent || 0;
+        newBalance = updatedData.balance || newBalance;
+
+        welcomePromoResult2 = await checkWelcomeOfferPromotion(deviceId, totalSpent);
+        if (welcomePromoResult2) {
+          newBalance = updatedData.balance + welcomePromoResult2.freeEnergy;
+        }
       } catch (error) {
         console.error("[analyzeFood] Failed to read challenges/milestones:", error);
       }
 
-      // ────── 4.6. Return Response (สำหรับ type อื่นๆ) ──────
-      // ✅ PHASE 1: ส่ง balance กลับแทน token
       res.status(200)
         .set("X-Energy-Balance", newBalance.toString())
         .json({
@@ -1389,13 +1409,34 @@ export const analyzeFood = onRequest(
           balance: newBalance,
           energyUsed: baseCost,
           energyCost: baseCost,
-          wasFreeAi: false, // ไม่ฟรี
+          wasFreeAi: false,
+          ...(paidCheckInResult ? {
+            streak: {
+              current: paidCheckInResult.currentStreak,
+              longest: paidCheckInResult.longestStreak,
+              tier: paidCheckInResult.tier,
+              tierUpgraded: paidCheckInResult.tierUpgraded,
+              tierDemoted: paidCheckInResult.tierDemoted,
+              previousTier: paidCheckInResult.previousTier,
+              newTier: paidCheckInResult.newTier,
+              energyBonus: paidCheckInResult.energyBonus,
+              tierRewardEnergy: paidCheckInResult.tierRewardEnergy,
+              promotionBonusRate: paidCheckInResult.promotionBonusRate,
+              showWelcomeBackOffer: paidCheckInResult.showWelcomeBackOffer,
+            },
+          } : {}),
+          ...(welcomePromoResult2 ? {
+            promotion: {
+              type: welcomePromoResult2.type,
+              bonusRate: welcomePromoResult2.bonusRate,
+              freeEnergy: welcomePromoResult2.freeEnergy,
+            },
+          } : {}),
           challenges: {
             weekly: challenges,
           },
           milestones: milestones,
           totalSpent: totalSpent,
-          // ✅ PHASE 3: ไม่ส่ง energyToken อีกต่อไป (ส่ง balance แทน)
         });
     } catch (error: any) {
       console.error("❌ Error:", error);

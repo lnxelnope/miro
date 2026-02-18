@@ -20,6 +20,11 @@ class GhostMealSuggestion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Daily kcal exceeded → don't suggest anything
+    if (suggestion.dailyExceeded) {
+      return _buildDailyExceeded(context);
+    }
+
     if (!suggestion.hasData) {
       return _buildLearningState(context);
     }
@@ -32,13 +37,72 @@ class GhostMealSuggestion extends StatelessWidget {
     return Column(
       children: [
         _buildSuggestionCard(context, top),
-        // Show alternatives as separate tappable items
         for (final alt in suggestion.alternatives)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: _buildAlternativeCard(context, alt),
           ),
       ],
+    );
+  }
+
+  /// Daily kcal exceeded → show gentle "done for the day" state
+  Widget _buildDailyExceeded(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: (isDark ? Colors.white : Colors.green).withOpacity(0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: (isDark ? Colors.white24 : Colors.green).withOpacity(0.12),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.check_circle_outline_rounded,
+              color: Colors.green.withOpacity(0.5),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Daily goal reached',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: (isDark ? Colors.white : Colors.green.shade700)
+                        .withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'No more calories recommended',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: (isDark ? Colors.white : AppColors.textSecondary)
+                        .withOpacity(0.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -277,17 +341,25 @@ class GhostMealSuggestion extends StatelessWidget {
               children: [
                 const SizedBox(width: 52),
                 Icon(
-                  Icons.local_fire_department_rounded,
+                  suggestion.cappedByDaily
+                      ? Icons.trending_down_rounded
+                      : Icons.local_fire_department_rounded,
                   size: 11,
                   color: (isDark ? Colors.white : AppColors.health)
                       .withOpacity(0.3),
                 ),
                 const SizedBox(width: 3),
                 Text(
-                  'Budget ~${_safe(suggestion.allocatedCalories)} kcal',
+                  suggestion.cappedByDaily
+                      ? 'Daily remaining ~${_safe(suggestion.allocatedCalories)} kcal'
+                      : 'Budget ~${_safe(suggestion.allocatedCalories)} kcal',
                   style: TextStyle(
                     fontSize: 10,
-                    color: (isDark ? Colors.white : AppColors.textSecondary)
+                    color: (isDark
+                            ? Colors.white
+                            : suggestion.cappedByDaily
+                                ? Colors.orange.shade700
+                                : AppColors.textSecondary)
                         .withOpacity(0.3),
                   ),
                 ),

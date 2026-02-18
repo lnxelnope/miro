@@ -59,8 +59,8 @@
 □ Use AI 3 times → challenge สำเร็จ → claim 5 Energy
 □ totalSpent ≥ 500 → claim 15 Energy
 □ totalSpent ≥ 1000 → claim 30 Energy
-□ Gold tier ซื้อ 100 → ได้ 120 (+20% bonus)
-□ Diamond tier ซื้อ 100 → ได้ 130 (+30% bonus)
+□ Gold tier ซื้อ 100 → ได้ 110 (+10% bonus)
+□ Diamond tier ซื้อ 100 → ได้ 120 (+20% bonus)
 □ Random bonus ~5% chance → ได้ 5-10 Energy
 □ Weekly challenges reset ทุกวันจันทร์
 ```

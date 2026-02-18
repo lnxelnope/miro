@@ -251,7 +251,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('❌ ไม่สามารถอ่านฉลากได้ ลองถ่ายใหม่ให้ชัดกว่านี้')),
+              content: Text('Unable to read label. Try taking a clearer photo')),
         );
         return;
       }
@@ -287,7 +287,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
               ..source = DataSource.aiAnalyzed
               ..aiConfidence = confirmedData.confidence
               ..isVerified = true
-              ..notes = 'สแกนฉลากโภชนาการ';
+              ..notes = 'Scanned nutrition label';
 
             final notifier = ref.read(foodEntriesNotifierProvider.notifier);
             await notifier.addFoodEntry(entry);
@@ -318,7 +318,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
             if (!context.mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('✅ บันทึก "${confirmedData.foodName}" แล้ว'),
+                content: Text('Saved "${confirmedData.foodName}"'),
                 backgroundColor: AppColors.success,
               ),
             );

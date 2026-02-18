@@ -65,15 +65,26 @@ export const syncBalance = onRequest(
       const userData = userDoc.data()!;
       const serverBalance = userData.balance ?? 0;
 
+      // Compute bonusRate from tier
+      let bonusRate = 0;
+      if (userData.tier === "gold") bonusRate = 0.1;
+      else if (userData.tier === "diamond") bonusRate = 0.2;
+
       console.log(`✅ [syncBalance] Existing user ${deviceId}: ${serverBalance}`);
 
       res.status(200).json({
         success: true,
         balance: serverBalance,
         miroId: userData.miroId,
-        tier: userData.tier,
-        currentStreak: userData.currentStreak,
-        freeAiUsedToday: userData.freeAiUsedToday,
+        tier: userData.tier ?? "none",
+        currentStreak: userData.currentStreak ?? 0,
+        longestStreak: userData.longestStreak ?? 0,
+        freeAiUsedToday: userData.freeAiUsedToday ?? false,
+        challenges: userData.challenges ?? {},
+        milestones: userData.milestones ?? {},
+        totalSpent: userData.totalSpent ?? 0,
+        bonusRate: bonusRate,
+        subscription: userData.subscription ?? {},
         action: "synced",
       });
     } catch (error: any) {

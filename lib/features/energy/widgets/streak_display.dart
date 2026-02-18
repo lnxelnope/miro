@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
+import 'package:miro_hybrid/features/energy/presentation/tier_benefits_screen.dart';
 
 class StreakDisplay extends ConsumerWidget {
   const StreakDisplay({super.key});
@@ -20,7 +21,7 @@ class StreakDisplay extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Streak counter
+            // Header with info button
             Row(
               children: [
                 Icon(AppIcons.streak, size: 28, color: AppIcons.streakColor),
@@ -32,26 +33,76 @@ class StreakDisplay extends ConsumerWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const Spacer(),
+                // Info button
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TierBenefitsScreen(),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.info_outline,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                  tooltip: 'View Tier Benefits',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
               ],
             ),
             const SizedBox(height: 12),
             // Tier badge
-            Row(
-              children: [
-                Icon(
-                  gamification.tierIcon,
-                  size: 24,
-                  color: gamification.tierColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  gamification.tierName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TierBenefitsScreen(),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: gamification.tierColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: gamification.tierColor.withOpacity(0.3),
+                    width: 1,
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      gamification.tierIcon,
+                      size: 24,
+                      color: gamification.tierColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${gamification.tierName} Tier',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: gamification.tierColor,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: gamification.tierColor.withOpacity(0.5),
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             // Progress to next tier

@@ -30,23 +30,46 @@ class SubscriptionData {
     );
   }
 
-  /// Parse from Firestore document
+  /// Parse from Firestore document or Cloud Function response
+  /// Handles both Timestamp objects (Firestore) and serialized formats
   factory SubscriptionData.fromFirestore(Map<String, dynamic>? data) {
-    if (data == null) {
+    if (data == null || data.isEmpty) {
       return SubscriptionData.empty();
     }
 
     return SubscriptionData(
       status: SubscriptionStatusExtension.fromString(
-        data['status'] as String?,
+        data['status']?.toString(),
       ),
-      productId: data['productId'] as String?,
-      purchaseToken: data['purchaseToken'] as String?,
-      startDate: (data['startDate'] as Timestamp?)?.toDate(),
-      expiryDate: (data['expiryDate'] as Timestamp?)?.toDate(),
-      autoRenewing: data['autoRenewing'] as bool? ?? false,
-      lastVerifiedAt: (data['lastVerifiedAt'] as Timestamp?)?.toDate(),
+      productId: data['productId']?.toString(),
+      purchaseToken: data['purchaseToken']?.toString(),
+      startDate: _parseDateTime(data['startDate']),
+      expiryDate: _parseDateTime(data['expiryDate']),
+      autoRenewing: data['autoRenewing'] == true,
+      lastVerifiedAt: _parseDateTime(data['lastVerifiedAt']),
     );
+  }
+
+  /// Safely parse DateTime from various formats:
+  /// - Firestore Timestamp object
+  /// - ISO 8601 string
+  /// - Serialized map {_seconds, _nanoseconds}
+  /// - millisecondsSinceEpoch int
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    if (value is Map) {
+      final seconds = value['_seconds'] ?? value['seconds'];
+      if (seconds is num) {
+        return DateTime.fromMillisecondsSinceEpoch(seconds.toInt() * 1000);
+      }
+    }
+    if (value is num) {
+      return DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    }
+    return null;
   }
 
   /// Convert to Map for Firestore

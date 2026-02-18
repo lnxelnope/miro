@@ -360,6 +360,136 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     });
   }
 
+  /// Update parent ingredient totals from its sub-ingredients
+  void _recalculateParentFromSubs(_EditableIngredient parent) {
+    if (parent.subIngredients.isEmpty) return;
+    double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+    for (final sub in parent.subIngredients) {
+      totalCal += sub.calories;
+      totalP += sub.protein;
+      totalC += sub.carbs;
+      totalF += sub.fat;
+    }
+    parent.calories = totalCal;
+    parent.protein = totalP;
+    parent.carbs = totalC;
+    parent.fat = totalF;
+  }
+
+  /// AI lookup for a sub-ingredient
+  Future<void> _lookupSubIngredient(
+      _EditableIngredient parentRow, int subIdx) async {
+    final sub = parentRow.subIngredients[subIdx];
+    final subName = sub.nameController.text.trim();
+
+    if (subName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter sub-ingredient name first')),
+      );
+      return;
+    }
+
+    setState(() => sub.isLoading = true);
+
+    try {
+      // 1. Try database first
+      final dbMatch = _cachedIngredients.where((ing) =>
+          ing.name.toLowerCase() == subName.toLowerCase() ||
+          (ing.nameEn?.toLowerCase() == subName.toLowerCase()));
+
+      if (dbMatch.isNotEmpty) {
+        final ing = dbMatch.first;
+        final amount = double.tryParse(sub.amountController.text) ?? 1;
+        final ratio = amount / ing.baseAmount;
+        setState(() {
+          sub.nameController.text = ing.name;
+          sub.nameEn = ing.nameEn;
+          sub.unit = ing.baseUnit;
+          sub.calories = ing.caloriesPerBase * ratio;
+          sub.protein = ing.proteinPerBase * ratio;
+          sub.carbs = ing.carbsPerBase * ratio;
+          sub.fat = ing.fatPerBase * ratio;
+          sub.isFromDb = true;
+          sub.isLoading = false;
+          sub.saveBaseValues();
+          _recalculateParentFromSubs(parentRow);
+          _recalculateFromIngredients();
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Found "$subName" in database!'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2)),
+          );
+        }
+        return;
+      }
+
+      // 2. AI lookup
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy && mounted) {
+        await NoEnergyDialog.show(context);
+        setState(() => sub.isLoading = false);
+        return;
+      }
+
+      final amount = double.tryParse(sub.amountController.text) ?? 1;
+      final result = await GeminiService.analyzeFoodByName(
+        subName,
+        servingSize: amount,
+        servingUnit: sub.unit,
+      );
+
+      if (!mounted) return;
+
+      if (result != null) {
+        await UsageLimiter.recordAiUsage();
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+
+        setState(() {
+          sub.nameController.text = result.foodName;
+          sub.nameEn = result.foodNameEn;
+          sub.calories = result.nutrition.calories;
+          sub.protein = result.nutrition.protein;
+          sub.carbs = result.nutrition.carbs;
+          sub.fat = result.nutrition.fat;
+          sub.isFromDb = false;
+          sub.isLoading = false;
+          sub.saveBaseValues();
+          _recalculateParentFromSubs(parentRow);
+          _recalculateFromIngredients();
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('AI analyzed "$subName" (-1 Energy)'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2)),
+          );
+        }
+      } else {
+        setState(() => sub.isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Could not analyze sub-ingredient'),
+                backgroundColor: Colors.orange),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => sub.isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _servingSizeController.removeListener(_onServingSizeChanged);
@@ -1026,12 +1156,14 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     setState(() {
                       row.nameController.text = selection.name;
                       row.nameEn = selection.nameEn;
+                      row.unit = selection.baseUnit;
+                      row.amountController.text = amt.toStringAsFixed(
+                          amt == amt.roundToDouble() ? 0 : 1);
                       row.calories = selection.caloriesPerBase * ratio;
                       row.protein = selection.proteinPerBase * ratio;
                       row.carbs = selection.carbsPerBase * ratio;
                       row.fat = selection.fatPerBase * ratio;
                       row.isFromDb = true;
-                      // ล้าง sub-ingredients เก่าเมื่อเลือก ingredient ใหม่จาก DB
                       row.subIngredients = [];
                       row.saveBaseValues();
                     });
@@ -1290,127 +1422,227 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   ...row.subIngredients.asMap().entries.map((entry) {
                     final subIdx = entry.key;
                     final sub = entry.value;
-                    return Padding(
+                    return Container(
                       key: sub.key is ValueKey ? sub.key : ValueKey('sub_${row.key}_$subIdx'),
-                      padding: const EdgeInsets.only(bottom: 6, left: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                      margin: const EdgeInsets.only(bottom: 6, left: 4),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
                         children: [
-                          // Bullet
-                          Container(
-                            width: 3, height: 3,
-                            margin: const EdgeInsets.only(right: 6, top: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade400,
-                              shape: BoxShape.circle,
-                            ),
+                          // Row 1: Name (Autocomplete) + AI Search + Delete
+                          Row(
+                            children: [
+                              Container(
+                                width: 3, height: 3,
+                                margin: const EdgeInsets.only(right: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade400,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Expanded(
+                                child: Autocomplete<Ingredient>(
+                                  key: ValueKey('sub_ac_${sub.key}_$subIdx'),
+                                  initialValue: TextEditingValue(text: sub.nameController.text),
+                                  optionsBuilder: (TextEditingValue textEditingValue) {
+                                    if (textEditingValue.text.isEmpty) {
+                                      return const Iterable<Ingredient>.empty();
+                                    }
+                                    final query = textEditingValue.text.toLowerCase();
+                                    return _cachedIngredients.where((ing) {
+                                      return ing.name.toLowerCase().contains(query) ||
+                                          (ing.nameEn?.toLowerCase().contains(query) ?? false);
+                                    }).take(6);
+                                  },
+                                  displayStringForOption: (Ingredient ing) => ing.name,
+                                  onSelected: (Ingredient selection) {
+                                    final amt = double.tryParse(sub.amountController.text) ??
+                                        selection.baseAmount;
+                                    final ratio = amt / selection.baseAmount;
+                                    setState(() {
+                                      sub.nameController.text = selection.name;
+                                      sub.nameEn = selection.nameEn;
+                                      sub.unit = selection.baseUnit;
+                                      sub.amountController.text = amt.toStringAsFixed(
+                                          amt == amt.roundToDouble() ? 0 : 1);
+                                      sub.calories = selection.caloriesPerBase * ratio;
+                                      sub.protein = selection.proteinPerBase * ratio;
+                                      sub.carbs = selection.carbsPerBase * ratio;
+                                      sub.fat = selection.fatPerBase * ratio;
+                                      sub.isFromDb = true;
+                                      sub.saveBaseValues();
+                                      _recalculateParentFromSubs(row);
+                                      _recalculateFromIngredients();
+                                    });
+                                  },
+                                  optionsViewBuilder: (context, onSelected, options) {
+                                    return Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Material(
+                                        elevation: 4,
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxHeight: 160, maxWidth: 220),
+                                          child: ListView.builder(
+                                            padding: EdgeInsets.zero,
+                                            shrinkWrap: true,
+                                            itemCount: options.length,
+                                            itemBuilder: (context, idx) {
+                                              final ing = options.elementAt(idx);
+                                              return ListTile(
+                                                dense: true,
+                                                title: Text(ing.name,
+                                                    style: const TextStyle(fontSize: 11)),
+                                                subtitle: Text(
+                                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                                  style: const TextStyle(
+                                                      fontSize: 9,
+                                                      color: AppColors.textSecondary),
+                                                ),
+                                                onTap: () => onSelected(ing),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  fieldViewBuilder: (context, textEditingController,
+                                      focusNode, onFieldSubmitted) {
+                                    textEditingController.addListener(() {
+                                      if (sub.nameController.text !=
+                                          textEditingController.text) {
+                                        sub.nameController.text =
+                                            textEditingController.text;
+                                      }
+                                    });
+                                    return SizedBox(
+                                      height: 30,
+                                      child: TextField(
+                                        controller: textEditingController,
+                                        focusNode: focusNode,
+                                        style: const TextStyle(fontSize: 11),
+                                        decoration: InputDecoration(
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 6, vertical: 6),
+                                          hintText: 'Sub-ingredient name',
+                                          hintStyle: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade400),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                            borderSide: BorderSide(
+                                                color: Colors.grey.shade300),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                            borderSide: BorderSide(
+                                                color: Colors.grey.shade300),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              // AI Search button
+                              if (!sub.isLoading)
+                                InkWell(
+                                  onTap: () => _lookupSubIngredient(row, subIdx),
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Icon(Icons.search, size: 16, color: Colors.blue),
+                                  ),
+                                )
+                              else
+                                const SizedBox(
+                                    width: 16, height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2)),
+                              const SizedBox(width: 4),
+                              // Delete button
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    row.subIngredients.removeAt(subIdx);
+                                    _recalculateParentFromSubs(row);
+                                    _recalculateFromIngredients();
+                                  });
+                                },
+                                child: Icon(Icons.close,
+                                    size: 14, color: Colors.red.shade300),
+                              ),
+                            ],
                           ),
-                          // Name (editable)
-                          Expanded(
-                            flex: 3,
-                            child: SizedBox(
-                              height: 30,
-                              child: TextField(
-                                controller: sub.nameController,
-                                style: const TextStyle(fontSize: 11),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 6),
-                                  hintText: 'Name',
-                                  hintStyle: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade400),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                    borderSide: BorderSide(
-                                        color: AppColors.primary, width: 1.5),
+                          const SizedBox(height: 6),
+                          // Row 2: Amount + Unit + Kcal
+                          Row(
+                            children: [
+                              const SizedBox(width: 12),
+                              SizedBox(
+                                width: 50,
+                                height: 28,
+                                child: TextField(
+                                  controller: sub.amountController,
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(fontSize: 11),
+                                  textAlign: TextAlign.center,
+                                  onChanged: (_) {
+                                    setState(() {
+                                      sub.recalculate();
+                                      _recalculateParentFromSubs(row);
+                                      _recalculateFromIngredients();
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 5),
+                                    hintText: 'Amt',
+                                    hintStyle: TextStyle(
+                                        fontSize: 10, color: Colors.grey.shade400),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(6),
+                                      borderSide: BorderSide(color: Colors.grey.shade300),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          // Amount (editable)
-                          SizedBox(
-                            width: 45,
-                            height: 30,
-                            child: TextField(
-                              controller: sub.amountController,
-                              keyboardType: TextInputType.number,
-                              style: const TextStyle(fontSize: 11),
-                              textAlign: TextAlign.center,
-                              onChanged: (_) {
-                                setState(() {
-                                  sub.recalculate();
-                                  _recalculateFromIngredients();
-                                });
-                              },
-                              decoration: InputDecoration(
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 6),
-                                hintText: 'Amt',
-                                hintStyle: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey.shade400),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                  borderSide: BorderSide(
-                                      color: Colors.grey.shade300),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                  borderSide: BorderSide(
-                                      color: Colors.grey.shade300),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6),
-                                  borderSide: BorderSide(
-                                      color: AppColors.primary, width: 1.5),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          // Unit label
-                          Text(sub.unit,
-                              style: TextStyle(
+                              const SizedBox(width: 4),
+                              Text(sub.unit,
+                                  style: TextStyle(
+                                      fontSize: 10, color: Colors.grey.shade500)),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${sub.calories.toInt()} kcal',
+                                style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey.shade500)),
-                          const SizedBox(width: 4),
-                          // Kcal display
-                          Text(
-                            '${sub.calories.toInt()} kcal',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          // Delete button
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                row.subIngredients.removeAt(subIdx);
-                                _recalculateFromIngredients();
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Icon(Icons.close,
-                                  size: 14, color: Colors.red.shade300),
-                            ),
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                'P:${sub.protein.toStringAsFixed(0)} C:${sub.carbs.toStringAsFixed(0)} F:${sub.fat.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                    fontSize: 9, color: Colors.grey.shade500),
+                              ),
+                            ],
                           ),
                         ],
                       ),

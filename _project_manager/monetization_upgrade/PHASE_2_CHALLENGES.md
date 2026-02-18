@@ -418,7 +418,7 @@ const baseEnergy = PRODUCT_MAP[productId]; // e.g. 100
 
 // ดึง user tier เพื่อคำนวณ bonus
 const userDoc = await db.collection('users').doc(deviceId).get();
-const bonusRate = userDoc.data()?.bonusRate || 0; // 0, 0.2, or 0.3
+const bonusRate = userDoc.data()?.bonusRate || 0; // 0, 0.1, or 0.2
 
 const bonusEnergy = Math.floor(baseEnergy * bonusRate);
 const totalEnergy = baseEnergy + bonusEnergy;

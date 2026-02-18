@@ -4,11 +4,14 @@ import 'package:miro_hybrid/core/services/welcome_offer_service.dart';
 import 'package:miro_hybrid/core/services/purchase_service.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
+import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 import 'package:miro_hybrid/features/energy/widgets/welcome_offer_progress.dart';
 import 'package:miro_hybrid/features/energy/widgets/weekly_challenge_card.dart';
 import 'package:miro_hybrid/features/energy/widgets/milestone_progress_card.dart';
+import 'package:miro_hybrid/features/energy/widgets/streak_display.dart';
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
+import 'package:miro_hybrid/core/services/analytics_service.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Energy Store - Modern Design with gradient cards
@@ -22,21 +25,25 @@ class EnergyStoreScreen extends ConsumerStatefulWidget {
 class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
   WelcomeOfferStatus _offerStatus = WelcomeOfferStatus.notStarted;
   Duration? _remainingTime;
+  PromotionInfo? _activePromotion;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    AnalyticsService.logStoreOpened();
   }
 
   Future<void> _loadData() async {
     final status = await WelcomeOfferService.getStatus();
     final remaining = await WelcomeOfferService.getRemainingTime();
+    final promo = await WelcomeOfferService.getActivePromotion();
 
     if (mounted) {
       setState(() {
         _offerStatus = status;
         _remainingTime = remaining;
+        _activePromotion = promo;
       });
     }
   }
@@ -53,6 +60,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
   }
 
   Widget _buildScaffold(BuildContext context, int balance) {
+    final gamification = ref.watch(gamificationProvider);
+    final isSubscriber = gamification.isSubscriber;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -72,6 +82,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
         onRefresh: () async {
           ref.invalidate(currentEnergyProvider);
           ref.invalidate(energyBalanceProvider);
+          await ref.read(gamificationProvider.notifier).refresh();
           await _loadData();
         },
         child: ListView(
@@ -82,9 +93,29 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
             _buildBalanceCard(balance),
             const SizedBox(height: 20),
 
-            // ────── Energy Pass Subscription CTA ──────
-            _buildSubscriptionCTA(),
-            const SizedBox(height: 20),
+            // ────── Subscriber Active Badge (if subscriber) ──────
+            if (isSubscriber) ...[
+              _buildSubscriberActiveBadge(gamification),
+              const SizedBox(height: 20),
+            ],
+
+            // ────── Streak & Tier Display (only for non-subscribers) ──────
+            if (!isSubscriber) ...[
+              const StreakDisplay(),
+              const SizedBox(height: 20),
+            ],
+
+            // ────── Energy Pass Subscription CTA (only for non-subscribers) ──────
+            if (!isSubscriber) ...[
+              _buildSubscriptionCTA(),
+              const SizedBox(height: 20),
+            ],
+
+            // ────── Active Promotion Banner ──────
+            if (_activePromotion != null) ...[
+              _buildPromotionBanner(_activePromotion!),
+              const SizedBox(height: 20),
+            ],
 
             // ────── Weekly Challenges & Milestones ──────
             const WeeklyChallengeCard(),
@@ -246,6 +277,135 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriberActiveBadge(GamificationState gamification) {
+    final expiryDate = gamification.subscriptionExpiryDate;
+    final expiryText = expiryDate != null
+        ? '${expiryDate.day}/${expiryDate.month}/${expiryDate.year}'
+        : '';
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF7C3AED), const Color(0xFF6D28D9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7C3AED).withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.diamond_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            'Energy Pass',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'ACTIVE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Unlimited AI Analysis',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (expiryText.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Renews: $expiryText',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -485,9 +645,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
     bool isBest = false,
     bool isWelcome = false,
   }) {
-    // Phase 2: Calculate bonus energy from tier
+    // Effective bonus = max(tier bonus, promotion bonus)
     final gamification = ref.watch(gamificationProvider);
-    final bonusRate = gamification.bonusRate;
+    final tierRate = gamification.bonusRate;
+    final promoRate = _activePromotion?.bonusRate ?? 0;
+    final bonusRate = tierRate > promoRate ? tierRate : promoRate;
+    final isPromoBonus = promoRate > tierRate;
     final bonusEnergy = (energy * bonusRate).round();
     final totalEnergy = energy + bonusEnergy;
     return Container(
@@ -611,16 +774,24 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                gamification.tierIcon,
+                                isPromoBonus
+                                    ? Icons.local_fire_department_rounded
+                                    : gamification.tierIcon,
                                 size: 12,
-                                color: gamification.tierColor,
+                                color: isPromoBonus
+                                    ? Colors.purple
+                                    : gamification.tierColor,
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${gamification.tierName} Bonus: +${(bonusRate * 100).toInt()}%',
+                                isPromoBonus
+                                    ? 'Promo Bonus: +${(bonusRate * 100).toInt()}%'
+                                    : '${gamification.tierName} Bonus: +${(bonusRate * 100).toInt()}%',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.orange.shade700,
+                                  color: isPromoBonus
+                                      ? Colors.purple.shade700
+                                      : Colors.orange.shade700,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -733,6 +904,86 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
   // ───────────────────────────────────────────────────────────
   // ACTIONS
   // ───────────────────────────────────────────────────────────
+
+  Widget _buildPromotionBanner(PromotionInfo promo) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade400, Colors.blue.shade400],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.local_fire_department_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      promo.displayName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '+${(promo.bonusRate * 100).toInt()}% Bonus on all purchases!',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  promo.remainingText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _purchasePackage(String productId, int energy) async {
     final success = await PurchaseService.purchaseEnergy(productId);

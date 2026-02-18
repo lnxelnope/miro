@@ -157,18 +157,13 @@ class EnergyService {
 
   /// Sync balance กับ Server (เรียกตอน app startup)
   ///
-  /// Migration strategy:
-  /// - ถ้ามี balance เดิมใน local → ส่งไปให้ Server (one-time migration)
-  /// - ถ้า Server มี balance แล้ว → ใช้ค่าจาก Server (server wins)
-  Future<int> syncBalanceWithServer() async {
+  /// Returns full data map from server including balance, miroId,
+  /// challenges, milestones, subscription, tier, streak
+  Future<Map<String, dynamic>> syncBalanceWithServer() async {
     try {
-      // อ่าน balance เดิมจาก local (สำหรับ migration)
       final localBalance = await getBalance();
-
-      // ดึง deviceId
       final deviceId = await DeviceIdService.getDeviceId();
 
-      // เรียก Backend
       const url =
           'https://us-central1-miro-d6856.cloudfunctions.net/syncBalance';
 
@@ -183,55 +178,53 @@ class EnergyService {
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final serverBalance = data['balance'] as int;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final serverBalance = (data['balance'] as num?)?.toInt() ?? 0;
 
         debugPrint(
             '[EnergyService] ✅ Synced with server: $serverBalance (${data['action']})');
 
-        // อัพเดท local cache
         await updateFromServerResponse(serverBalance);
 
-        return serverBalance;
+        final miroId = data['miroId']?.toString() ?? '';
+        if (miroId.isNotEmpty) {
+          await _storage.write(key: 'miro_id', value: miroId);
+        }
+
+        return {
+          'miroId': miroId,
+          'balance': serverBalance,
+          'isNew': false,
+          'tier': data['tier']?.toString() ?? 'none',
+          'currentStreak': (data['currentStreak'] as num?)?.toInt() ?? 0,
+          'longestStreak': (data['longestStreak'] as num?)?.toInt() ?? 0,
+          'freeAiUsedToday': data['freeAiUsedToday'] ?? false,
+          'challenges': data['challenges'] ?? {},
+          'milestones': data['milestones'] ?? {},
+          'totalSpent': (data['totalSpent'] as num?)?.toInt() ?? 0,
+          'bonusRate': (data['bonusRate'] as num?)?.toDouble() ?? 0.0,
+          'subscription': data['subscription'] ?? {},
+        };
       } else {
         throw Exception('Server returned ${response.statusCode}');
       }
     } catch (e) {
       debugPrint('[EnergyService] ❌ Sync failed: $e');
-      // Fallback: ใช้ local balance
-      return await getBalance();
+      final balance = await getBalance();
+      final cachedMiroId = await _storage.read(key: 'miro_id');
+      return {
+        'miroId': cachedMiroId ?? '',
+        'balance': balance,
+        'isNew': false,
+      };
     }
   }
 
-  /// เรียก registerUser หรือ sync balance
-  /// เรียกตอน app startup
+  /// เรียก registerUser เพื่อ sync ข้อมูลครบ (balance, challenges, milestones, subscription, tier)
+  /// เรียกตอน app startup — registerUser handles both new & existing users
   Future<Map<String, dynamic>> registerOrSync() async {
     final deviceId = await DeviceIdService.getDeviceId();
 
-    // เช็คว่ามี MiRO ID cached อยู่หรือยัง
-    final cachedMiroId = await _storage.read(key: 'miro_id');
-
-    if (cachedMiroId != null) {
-      // มี MiRO ID แล้ว → sync balance ปกติ
-      try {
-        final balance = await syncBalanceWithServer();
-        return {
-          'miroId': cachedMiroId,
-          'balance': balance,
-          'isNew': false,
-        };
-      } catch (e) {
-        debugPrint('[EnergyService] Sync failed, using cached values: $e');
-        final balance = await getBalance();
-        return {
-          'miroId': cachedMiroId,
-          'balance': balance,
-          'isNew': false,
-        };
-      }
-    }
-
-    // ไม่มี MiRO ID → register
     const url = 'https://us-central1-miro-d6856.cloudfunctions.net/registerUser';
 
     try {
@@ -243,45 +236,49 @@ class EnergyService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
-        final miroId = data['miroId'] as String;
-        final balance = data['balance'] as int;
+        
+        // Safe parsing - ไม่ใช้ as int/String ที่อาจ crash
+        final miroId = data['miroId']?.toString() ?? '';
+        final balance = (data['balance'] as num?)?.toInt() ?? 0;
 
         // Cache MiRO ID
-        await _storage.write(key: 'miro_id', value: miroId);
+        if (miroId.isNotEmpty) {
+          await _storage.write(key: 'miro_id', value: miroId);
+        }
 
         // Update local balance
         await updateFromServerResponse(balance);
+
+        debugPrint('[EnergyService] ✅ registerOrSync OK: miroId=$miroId, balance=$balance');
 
         return {
           'miroId': miroId,
           'balance': balance,
           'isNew': data['isNew'] ?? false,
-          'tier': data['tier'] ?? 'none',
-          'currentStreak': data['currentStreak'] ?? 0,
+          'tier': data['tier']?.toString() ?? 'none',
+          'currentStreak': (data['currentStreak'] as num?)?.toInt() ?? 0,
+          'longestStreak': (data['longestStreak'] as num?)?.toInt() ?? 0,
           'freeAiUsedToday': data['freeAiUsedToday'] ?? false,
           'challenges': data['challenges'] ?? {},
           'milestones': data['milestones'] ?? {},
-          'totalSpent': data['totalSpent'] ?? 0,
-          'bonusRate': data['bonusRate'] ?? 0.0,
+          'totalSpent': (data['totalSpent'] as num?)?.toInt() ?? 0,
+          'bonusRate': (data['bonusRate'] as num?)?.toDouble() ?? 0.0,
           'subscription': data['subscription'] ?? {},
         };
       }
 
       throw Exception('Registration failed: ${response.statusCode}');
     } catch (e) {
-      debugPrint('[EnergyService] ❌ Registration failed: $e');
-      // Fallback: ใช้ syncBalance แทน
+      debugPrint('[EnergyService] ❌ registerOrSync failed: $e');
+      // Fallback: ใช้ syncBalanceWithServer ซึ่งตอนนี้ return ข้อมูลครบแล้ว
       try {
-        final balance = await syncBalanceWithServer();
-        return {
-          'miroId': '',
-          'balance': balance,
-          'isNew': false,
-        };
+        return await syncBalanceWithServer();
       } catch (syncError) {
+        debugPrint('[EnergyService] ❌ syncBalance also failed: $syncError');
         final balance = await getBalance();
+        final cachedMiroId = await _storage.read(key: 'miro_id');
         return {
-          'miroId': '',
+          'miroId': cachedMiroId ?? '',
           'balance': balance,
           'isNew': false,
         };
@@ -449,7 +446,7 @@ class EnergyService {
   // ───────────────────────────────────────────────────────────
 
   /// Migration: แปลง Pro user → 2,000 Energy
-  /// Migration: แปลง Free user → 100 Energy (ถ้ายังไม่ได้รับ welcome gift)
+  /// Migration: แปลง Free user → 10 Energy (ถ้ายังไม่ได้รับ welcome gift)
   /// Migration: Beta testers → 1,000 Energy (พิเศษ!)
   Future<void> migrateFromProSystem({
     required bool wasProUser,
@@ -482,13 +479,13 @@ class EnergyService {
       );
       print('✅ Pro user migrated: 2,000 Energy');
     } else {
-      // Free user → ได้ 100 Energy (เหมือน welcome gift)
+      // Free user → ได้ 10 Energy (เหมือน welcome gift)
       await addEnergy(
-        100,
+        10,
         type: 'pro_migration',
         description: 'Welcome to the new Energy system! 🎉',
       );
-      print('✅ Free user migrated: 100 Energy');
+      print('✅ Free user migrated: 10 Energy');
     }
 
     // ทำเครื่องหมายว่า migrated แล้ว (ไม่ให้ได้ welcome gift ซ้ำ)

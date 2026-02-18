@@ -493,7 +493,7 @@ interface UserDocument {
   };
 
   // ─── Bonus Energy ─── (Phase 2)
-  bonusRate: number;                // 0, 0.2, 0.3 (20%, 30%)
+  bonusRate: number;                // 0, 0.1, 0.2 (10%, 20%)
   lastRandomBonus: string | null;   // "YYYY-MM-DD"
   randomBonusCount: number;         // สถิติ
 
@@ -540,8 +540,8 @@ interface RewardsConfig {
   streakTiers: {
     bronze:  { days: 7,  energy: 10, graceDays: 0 };
     silver:  { days: 14, energy: 15, graceDays: 1 };
-    gold:    { days: 30, energy: 30, graceDays: 2, bonusRate: 0.20 };
-    diamond: { days: 60, energy: 45, graceDays: 3, bonusRate: 0.30 };
+    gold:    { days: 30, energy: 30, graceDays: 2, bonusRate: 0.10 };
+    diamond: { days: 60, energy: 45, graceDays: 3, bonusRate: 0.20 };
   };
 
   // Weekly Challenges (Phase 2)

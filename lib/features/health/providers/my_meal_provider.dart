@@ -274,7 +274,7 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required List<MealIngredientInput> ingredients,
   }) async {
     final meal = await DatabaseService.myMeals.get(mealId);
-    if (meal == null) throw Exception('ไม่พบเมนู');
+    if (meal == null) throw Exception('Meal not found');
 
     // คำนวณ total nutrition จาก ROOT เท่านั้น
     double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;

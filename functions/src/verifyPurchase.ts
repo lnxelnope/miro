@@ -165,16 +165,26 @@ export const verifyPurchase = onRequest(
         });
       }
 
-      // ─── 6. Calculate Bonus Energy (Phase 2) ───
+      // ─── 6. Calculate Bonus Energy (tier + promotion) ───
       const userDoc = await db.collection("users").doc(deviceId).get();
-      const bonusRate = userDoc.exists ? (userDoc.data()?.bonusRate || 0) : 0; // 0, 0.2, or 0.3
+      const userData_ = userDoc.exists ? userDoc.data()! : {};
+      const tierBonusRate = userData_.bonusRate || 0;
+      const promoBonusRate = userData_.promotionBonusRate || 0;
+      const promoExpires = userData_.promotionExpiresAt?.toDate?.() || new Date(0);
+      const promoType = userData_.promotionType || "";
+      const isPromoActive = promoExpires > new Date() && promoBonusRate > 0;
+
+      const bonusRate = isPromoActive
+        ? Math.max(tierBonusRate, promoBonusRate)
+        : tierBonusRate;
 
       const baseEnergy = energyAmount;
       const bonusEnergy = Math.floor(baseEnergy * bonusRate);
       const totalEnergy = baseEnergy + bonusEnergy;
 
       console.log(
-        `💎 [verifyPurchase] Purchase: ${baseEnergy} + ${bonusEnergy} bonus (${bonusRate * 100}%) = ${totalEnergy}`
+        `💎 [verifyPurchase] Purchase: ${baseEnergy} + ${bonusEnergy} bonus ` +
+        `(${bonusRate * 100}%${isPromoActive ? ` [promo: ${promoType}]` : ""}) = ${totalEnergy}`
       );
 
       // ─── 7. Add energy to Firestore (atomic transaction) ───
@@ -251,6 +261,8 @@ export const verifyPurchase = onRequest(
         baseEnergy,
         bonusEnergy,
         bonusRate,
+        promotionActive: isPromoActive,
+        promotionType: isPromoActive ? promoType : undefined,
         productId,
       });
     } catch (error: any) {

@@ -76,41 +76,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             child: DailySummaryCard(selectedDate: _selectedDate),
           ),
 
-          // Meals Info Bar (compact, below summary, above date selector)
-          SliverToBoxAdapter(
-            child: Builder(builder: (context) {
-              final items = timelineAsync.valueOrNull ?? [];
-              final foodEntries = items
-                  .where((i) => i.type == 'food')
-                  .map((i) => i.data as FoodEntry)
-                  .where((f) => !f.isDeleted)
-                  .toList();
-
-              final withImage = foodEntries.where((f) =>
-                f.imagePath != null && f.imagePath!.isNotEmpty
-              ).length;
-              final textOnly = foodEntries.where((f) =>
-                (f.imagePath == null || f.imagePath!.isEmpty) &&
-                f.source != DataSource.database
-              ).length;
-              final fromDb = foodEntries.where((f) =>
-                f.source == DataSource.database
-              ).length;
-              final unanalyzed = foodEntries.where((f) =>
-                !f.hasNutritionData
-              ).toList();
-
-              if (foodEntries.isEmpty && !_isAnalyzing) {
-                return const SizedBox.shrink();
-              }
-
-              return _buildCompactInfoBar(
-                context, foodEntries, unanalyzed,
-                withImage, textOnly, fromDb,
-              );
-            }),
-          ),
-
           // Date Selector
           SliverToBoxAdapter(
             child: _buildDateSelector(),
@@ -188,6 +153,41 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                       ),
                     ),
                 ],
+              );
+            }),
+          ),
+
+          // Meals Info Bar (compact, below meal sections)
+          SliverToBoxAdapter(
+            child: Builder(builder: (context) {
+              final items = timelineAsync.valueOrNull ?? [];
+              final foodEntries = items
+                  .where((i) => i.type == 'food')
+                  .map((i) => i.data as FoodEntry)
+                  .where((f) => !f.isDeleted)
+                  .toList();
+
+              final withImage = foodEntries.where((f) =>
+                f.imagePath != null && f.imagePath!.isNotEmpty
+              ).length;
+              final textOnly = foodEntries.where((f) =>
+                (f.imagePath == null || f.imagePath!.isEmpty) &&
+                f.source != DataSource.database
+              ).length;
+              final fromDb = foodEntries.where((f) =>
+                f.source == DataSource.database
+              ).length;
+              final unanalyzed = foodEntries.where((f) =>
+                !f.hasNutritionData
+              ).toList();
+
+              if (foodEntries.isEmpty && !_isAnalyzing) {
+                return const SizedBox.shrink();
+              }
+
+              return _buildCompactInfoBar(
+                context, foodEntries, unanalyzed,
+                withImage, textOnly, fromDb,
               );
             }),
           ),
@@ -799,7 +799,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                     Icon(AppIcons.ai, size: 14, color: Colors.white),
                     const SizedBox(width: 5),
                     const Text(
-                      'Analyze',
+                      'Analyze All',
                       style: TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w600,
                         color: Colors.white,

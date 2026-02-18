@@ -91,18 +91,29 @@ export const registerUser = onRequest(
       const existingUser = await db.collection("users").doc(deviceId).get();
 
       if (existingUser.exists) {
-        // User มีแล้ว → return ข้อมูลเดิม
+        // User มีแล้ว → return ข้อมูลครบทุก field
         const data = existingUser.data()!;
         console.log(`✅ [registerUser] Existing user: ${data.miroId}`);
+
+        // Compute bonusRate from tier
+        let bonusRate = 0;
+        if (data.tier === "gold") bonusRate = 0.1;
+        else if (data.tier === "diamond") bonusRate = 0.2;
 
         res.status(200).json({
           success: true,
           isNew: false,
           miroId: data.miroId,
-          balance: data.balance,
-          tier: data.tier,
-          currentStreak: data.currentStreak,
-          freeAiUsedToday: data.freeAiUsedToday,
+          balance: data.balance ?? 0,
+          tier: data.tier ?? "none",
+          currentStreak: data.currentStreak ?? 0,
+          longestStreak: data.longestStreak ?? 0,
+          freeAiUsedToday: data.freeAiUsedToday ?? false,
+          challenges: data.challenges ?? {},
+          milestones: data.milestones ?? {},
+          totalSpent: data.totalSpent ?? 0,
+          bonusRate: bonusRate,
+          subscription: data.subscription ?? {},
         });
         return;
       }

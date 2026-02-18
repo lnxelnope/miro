@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_analytics/firebase_analytics.dart';
+import '../services/analytics_service.dart';
 import '../services/energy_service.dart';
 import '../services/device_id_service.dart';
 import '../services/usage_limiter.dart';
@@ -11,6 +11,7 @@ import '../services/purchase_service.dart';
 import '../services/welcome_offer_service.dart';
 import '../../features/energy/widgets/welcome_offer_unlocked_dialog.dart';
 import '../../features/energy/providers/gamification_provider.dart';
+import '../../features/energy/presentation/energy_store_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/logger.dart';
 import '../constants/enums.dart';
@@ -39,6 +40,405 @@ class GeminiService {
   /// Set global context for showing dialogs
   static void setContext(BuildContext context) {
     _globalContext = context;
+  }
+
+  /// Show daily welcome dialog after first AI usage of the day
+  /// Handles: daily energy, tier upgrade + reward, tier demote, welcome back, welcome offer
+  static void _showDailyWelcomeDialog(
+    BuildContext context,
+    Map<String, dynamic> data,
+  ) {
+    if (!context.mounted) return;
+
+    final dailyEnergy = data['dailyEnergy'] as int? ?? 0;
+    final currentStreak = data['currentStreak'] as int? ?? 0;
+    final tier = data['tier'] as String? ?? 'none';
+    final tierUpgraded = data['tierUpgraded'] == true;
+    final tierDemoted = data['tierDemoted'] == true;
+    final previousTier = data['previousTier'] as String?;
+    final newTier = data['newTier'] as String?;
+    final showWelcomeBackOffer = data['showWelcomeBackOffer'] == true;
+    final tierRewardEnergy = data['tierRewardEnergy'] as int? ?? 0;
+    final promotionBonusRate = data['promotionBonusRate'] as double? ?? 0;
+    final welcomeOfferPromo = data['welcomeOfferPromo'] == true;
+    final welcomeOfferFreeEnergy = data['welcomeOfferFreeEnergy'] as int? ?? 0;
+    final welcomeOfferBonusRate = data['welcomeOfferBonusRate'] as double? ?? 0;
+
+    if (dailyEnergy <= 0 && !tierDemoted && !tierUpgraded && !welcomeOfferPromo) return;
+
+    final hasPromoOffer = showWelcomeBackOffer ||
+        (tierUpgraded && promotionBonusRate > 0) ||
+        welcomeOfferPromo;
+
+    // Save active promotion for Energy Store banner
+    if (hasPromoOffer) {
+      final promoRate = welcomeOfferPromo
+          ? welcomeOfferBonusRate
+          : showWelcomeBackOffer
+              ? 0.4
+              : promotionBonusRate;
+      final promoType = welcomeOfferPromo
+          ? 'welcome_offer'
+          : showWelcomeBackOffer
+              ? 'welcome_back'
+              : 'tier_upgrade_${tier}';
+      WelcomeOfferService.saveActivePromotion(
+        bonusRate: promoRate,
+        type: promoType,
+      );
+    }
+
+    final tierName = _tierDisplayName(tier);
+    final greeting = _getDailyGreeting();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ─── Icon ───
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: tierUpgraded
+                      ? Colors.purple.shade50
+                      : tierDemoted
+                          ? Colors.orange.shade50
+                          : welcomeOfferPromo
+                              ? Colors.blue.shade50
+                              : Colors.amber.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  tierUpgraded
+                      ? Icons.emoji_events_rounded
+                      : tierDemoted
+                          ? Icons.trending_down_rounded
+                          : welcomeOfferPromo
+                              ? Icons.card_giftcard_rounded
+                              : Icons.wb_sunny_rounded,
+                  size: 40,
+                  color: tierUpgraded
+                      ? Colors.purple.shade600
+                      : tierDemoted
+                          ? Colors.orange.shade600
+                          : welcomeOfferPromo
+                              ? Colors.blue.shade600
+                              : Colors.amber.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // ─── Title ───
+              Text(
+                tierUpgraded
+                    ? 'Congratulations!'
+                    : tierDemoted
+                        ? 'Welcome Back!'
+                        : welcomeOfferPromo
+                            ? 'Special Offer!'
+                            : greeting,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+
+              // ─── Tier Upgrade Info ───
+              if (tierUpgraded && newTier != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade100, Colors.blue.shade100],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Tier Up! ${_tierDisplayName(newTier)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple.shade700,
+                    ),
+                  ),
+                ),
+                if (tierRewardEnergy > 0) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '+$tierRewardEnergy Energy reward!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+              ],
+
+              // ─── Demote Info ───
+              if (tierDemoted && previousTier != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Text(
+                    '${_tierDisplayName(previousTier)} → $tierName',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Use AI daily to climb back up!',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 8),
+              ],
+
+              // ─── Normal Streak Info ───
+              if (!tierUpgraded && !tierDemoted && !welcomeOfferPromo) ...[
+                Text(
+                  'Streak: $currentStreak days ($tierName)',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 8),
+              ],
+
+              // ─── Daily Energy Reward ───
+              if (dailyEnergy > 0) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.bolt_rounded, color: Colors.green.shade600, size: 24),
+                      const SizedBox(width: 8),
+                      Text(
+                        '+$dailyEnergy Energy',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // ─── Welcome Offer (first 10 energy spent) ───
+              if (welcomeOfferPromo) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade50, Colors.purple.shade50],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      if (welcomeOfferFreeEnergy > 0) ...[
+                        Text(
+                          '+$welcomeOfferFreeEnergy Energy FREE!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      Text(
+                        '+${(welcomeOfferBonusRate * 100).toInt()}% Bonus on purchases',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '24 hours only!',
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // ─── Tier Upgrade Promo (20% bonus) ───
+              if (tierUpgraded && promotionBonusRate > 0 && !welcomeOfferPromo) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade50, Colors.blue.shade50],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '+${(promotionBonusRate * 100).toInt()}% Bonus on purchases!',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '24 hours only — celebrate your tier up!',
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // ─── Welcome Back Offer (40% bonus) ───
+              if (showWelcomeBackOffer && !welcomeOfferPromo) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.purple.shade50, Colors.blue.shade50],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Welcome Back Offer!',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '+40% Bonus on purchases — 24 hours only',
+                        style: TextStyle(fontSize: 13, color: Colors.purple.shade600),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (hasPromoOffer)
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Later'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EnergyStoreScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'View Offers →',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  ),
+                  child: const Text(
+                    'Let\'s go!',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    });
+  }
+
+  static String _tierDisplayName(String tier) {
+    switch (tier) {
+      case 'bronze':
+        return 'Bronze';
+      case 'silver':
+        return 'Silver';
+      case 'gold':
+        return 'Gold';
+      case 'diamond':
+        return 'Diamond';
+      default:
+        return 'Starter';
+    }
+  }
+
+  static String _getDailyGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning!';
+    if (hour < 17) return 'Good Afternoon!';
+    return 'Good Evening!';
   }
 
   /// Cuisine preference for biasing AI analysis toward user's typical cuisine
@@ -277,15 +677,30 @@ class GeminiService {
         await service.updateFromServerResponse(newBalance);
       }
 
-      // Update gamification state (ถ้ามี provider)
+      // Update gamification state & show daily welcome dialog
       try {
-        // ใช้ global provider container ถ้ามี
-        final container = ProviderScope.containerOf(_globalContext ?? service as BuildContext, listen: false);
-        container.read(gamificationProvider.notifier).updateFromAiResponse(result);
+        final ctx = _globalContext;
+        if (ctx != null && ctx.mounted) {
+          final container = ProviderScope.containerOf(ctx, listen: false);
+          final checkInData = container
+              .read(gamificationProvider.notifier)
+              .updateFromAiResponse(result);
+
+          // Show daily welcome dialog (first AI usage of the day)
+          if (checkInData != null) {
+            _showDailyWelcomeDialog(ctx, checkInData);
+          }
+        }
       } catch (e) {
-        // ไม่มี provider หรือ context → skip
         AppLogger.debug('[AI] Could not update gamification state: $e');
       }
+
+      // ────── 6b. Log analytics event ──────
+      AnalyticsService.logAiAnalysis(
+        analysisType: 'image',
+        energyCost: result['energyCost'] as int? ?? 1,
+        isSubscriber: result['isSubscriber'] == true,
+      );
 
       // ────── 7. Parse Gemini Response ──────
       final geminiData = result['data'];
@@ -299,10 +714,16 @@ class GeminiService {
           .trim();
 
       // ตรวจสอบว่า AI ตอบกลับเป็น JSON หรือไม่
-      // ถ้าไม่ใช่ JSON (เช่น ภาพไม่ใช่อาหาร) → แสดงข้อความที่เข้าใจง่าย
+      final isImageType = type == 'image';
+      final notFoundMsg = isImageType
+          ? 'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง'
+          : 'ไม่พบข้อมูลอาหารนี้\n\nกรุณาลองพิมพ์ชื่ออาหารใหม่อีกครั้ง';
+      final cannotAnalyzeMsg = isImageType
+          ? 'AI ไม่สามารถวิเคราะห์ภาพนี้ได้\n\nกรุณาลองถ่ายภาพใหม่อีกครั้ง'
+          : 'AI ไม่สามารถวิเคราะห์อาหารนี้ได้\n\nกรุณาลองพิมพ์ชื่อใหม่อีกครั้ง';
+
       if (cleanedText.isEmpty ||
           (!cleanedText.startsWith('{') && !cleanedText.startsWith('['))) {
-        // AI ตอบเป็นข้อความธรรมดา → ไม่ใช่อาหาร หรือวิเคราะห์ไม่ได้
         final lowerText = cleanedText.toLowerCase();
         if (lowerText.contains('sorry') ||
             lowerText.contains('cannot') ||
@@ -310,20 +731,16 @@ class GeminiService {
             lowerText.contains('unable') ||
             lowerText.contains('not a food') ||
             lowerText.contains('no food')) {
-          throw Exception(
-              'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง');
+          throw Exception(notFoundMsg);
         }
-        throw Exception(
-            'AI ไม่สามารถวิเคราะห์ภาพนี้ได้\n\nกรุณาลองถ่ายภาพใหม่อีกครั้ง');
+        throw Exception(cannotAnalyzeMsg);
       }
 
       late final dynamic parsedResult;
       try {
         parsedResult = json.decode(cleanedText);
       } on FormatException {
-        // JSON ไม่ถูกต้อง → อาจเป็นข้อความตอบกลับปนกับ JSON
-        throw Exception(
-            'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง');
+        throw Exception(notFoundMsg);
       }
 
       // ────── 6.5. Validate ingredients_detail (MANDATORY) ──────
@@ -382,27 +799,9 @@ class GeminiService {
         debugPrint('[GeminiService] Welcome offer error: $e');
       }
 
-      // ────── 8. Analytics (Firebase) ──────
-      await FirebaseAnalytics.instance.logEvent(
-        name: 'ai_analysis_success',
-        parameters: {
-          'type': type,
-          'energy_used': 1,
-        },
-      );
-
       return parsedResult;
     } catch (e) {
       print('❌ Gemini Backend Error: $e');
-
-      // Analytics: log failure
-      await FirebaseAnalytics.instance.logEvent(
-        name: 'ai_analysis_failed',
-        parameters: {
-          'type': type,
-          'error': e.toString(),
-        },
-      );
 
       rethrow;
     }
@@ -1040,14 +1439,30 @@ Respond in JSON format:
 Return ONLY valid JSON, no markdown or explanations.''';
   }
 
+  /// Convert internal unit key to human-readable label for AI prompts.
+  /// Keeps original key in JSON so the app can parse it back correctly.
+  static String _unitForAi(String? unit) {
+    if (unit == null || unit.isEmpty) return 'serving';
+    const map = {
+      'cup_c': 'cup',
+      'tbsp': 'tablespoon',
+      'tsp': 'teaspoon',
+      'fl oz': 'fluid ounce',
+      'lbs': 'pound',
+      'oz': 'ounce',
+    };
+    return map[unit] ?? unit;
+  }
+
   static String _getTextAnalysisPrompt(String foodName,
       {double? servingSize, String? servingUnit}) {
     final hasUserServing = servingSize != null &&
         servingSize > 0 &&
         servingUnit != null &&
         !((servingUnit == 'g' || servingUnit == 'กรัม') && servingSize <= 1);
+    final aiUnit = _unitForAi(servingUnit);
     final servingDesc =
-        hasUserServing ? '$servingSize $servingUnit' : '1 standard serving';
+        hasUserServing ? '$servingSize $aiUnit' : '1 standard serving';
     final servingSizeJson = hasUserServing ? servingSize : 1;
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 
@@ -1059,7 +1474,13 @@ Return ONLY valid JSON, no markdown or explanations.''';
 You are a Food Scientist. Deconstruct this food into precise ingredients with professional-level specificity.
 $cuisineBias
 Food to analyze: "$foodName"
-Serving: $servingDesc
+User-specified amount: $servingDesc
+
+CRITICAL — AMOUNT RULE:
+The user wants nutrition data for EXACTLY $servingDesc of "$foodName".
+You MUST calculate ALL nutrition values (calories, protein, carbs, fat, fiber, sugar, sodium) for this EXACT amount.
+Do NOT override with a different serving size. Do NOT default to 100g unless the user specified 100g.
+Example: "1 egg" means 1 whole egg (~50g), NOT 100g of egg.
 
 STEP-BY-STEP ANALYSIS:
 
@@ -1141,6 +1562,9 @@ CORRECT example (hierarchical):
   ]
 }
 
+IMPORTANT: Replace ALL numeric values below with actual calculated values for EXACTLY $servingDesc.
+Do NOT copy example numbers. Calculate from nutrition databases (e.g., USDA) for the correct weight.
+
 Respond in JSON only:
 {
   "food_name": "Original name as user entered (any language)",
@@ -1148,15 +1572,15 @@ Respond in JSON only:
   "confidence": 0.7,
   "serving_size": $servingSizeJson,
   "serving_unit": "$servingUnitJson",
-  "serving_grams": 300,
+  "serving_grams": 0,
   "nutrition": {
-    "calories": 450,
-    "protein": 15,
-    "carbs": 50,
-    "fat": 20,
-    "fiber": 2,
-    "sugar": 3,
-    "sodium": 800
+    "calories": 0,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 0
   },
   "ingredients": ["ingredient1", "ingredient2"],
   "ingredients_detail": [
@@ -1184,8 +1608,9 @@ Respond in JSON only:
         servingSize > 0 &&
         servingUnit != null &&
         servingUnit.isNotEmpty;
+    final aiUnit = _unitForAi(servingUnit);
     final servingDesc =
-        hasUserServing ? '$servingSize $servingUnit' : '1 serving';
+        hasUserServing ? '$servingSize $aiUnit' : '1 serving';
     final servingSizeJson = hasUserServing ? servingSize : 1;
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 

@@ -26,66 +26,83 @@ export async function GET(
 
     const userData = userDoc.data()!;
 
-    // Get user transactions (last 50)
-    const transactionsSnapshot = await db
-      .collection('transactions')
-      .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
-      .get();
-
-    const transactions = transactionsSnapshot.docs.map((doc: any) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        type: data.type,
-        amount: data.amount,
-        description: data.description,
-        createdAt: data.createdAt?.toDate().toISOString(),
-      };
+    // Debug: Log user data structure
+    console.log('📊 User data for', userId, ':', {
+      balance: userData.balance,
+      tier: userData.tier,
+      gamificationState: userData.gamificationState,
+      subscription: userData.subscription,
+      hasBalance: 'balance' in userData,
     });
 
-    // Format user data
-    const user = {
-      id: userDoc.id,
-      miroId: userData.miroId || '',
-      email: userData.email || '',
-      displayName: userData.displayName || '',
-      phoneNumber: userData.phoneNumber || '',
-      balance: userData.balance || 0,
-      createdAt: userData.createdAt?.toDate().toISOString() || null,
-      lastActiveAt: userData.lastActiveAt?.toDate().toISOString() || null,
-      isBanned: userData.isBanned || false,
+    // Get user transactions (last 50) - WITHOUT orderBy to avoid index requirement
+    let transactions: any[] = [];
+    try {
+      // Try deviceId first (no index needed without orderBy)
+      let transactionsSnapshot = await db
+        .collection('transactions')
+        .where('deviceId', '==', userId)
+        .limit(100)
+        .get();
       
-      // Gamification state
-      gamification: {
-        streakTier: userData.gamificationState?.streakTier || 'none',
-        currentStreak: userData.gamificationState?.currentStreak || 0,
-        lastCheckInDate: userData.gamificationState?.lastCheckInDate || null,
-        longestStreak: userData.gamificationState?.longestStreak || 0,
-        totalCheckIns: userData.gamificationState?.totalCheckIns || 0,
+      // Fallback to userId if deviceId query returns empty
+      if (transactionsSnapshot.empty) {
+        transactionsSnapshot = await db
+          .collection('transactions')
+          .where('userId', '==', userId)
+          .limit(100)
+          .get();
+      }
+
+      // Map and sort in code instead of Firestore
+      transactions = transactionsSnapshot.docs
+        .map((doc: any) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            type: data.type,
+            amount: data.amount,
+            description: data.description || '',
+            miroId: data.miroId || '',
+            createdAt: data.createdAt?.toDate?.()?.toISOString() || null,
+            createdAtTimestamp: data.createdAt?.toMillis() || 0,
+          };
+        })
+        .sort((a: any, b: any) => b.createdAtTimestamp - a.createdAtTimestamp)
+        .slice(0, 50)
+        .map(({ createdAtTimestamp, ...rest }: any) => rest);
+    } catch (txError) {
+      console.warn('Transaction fetch error:', txError);
+      // Continue without transactions
+    }
+
+    const gamification = userData.gamificationState || {};
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        deviceId: userDoc.id,
+        miroId: userData.miroId || '',
+        balance: userData.balance || 0,
+        tier: gamification.streakTier || userData.tier || 'none',
+        currentStreak: gamification.currentStreak || userData.currentStreak || 0,
+        longestStreak: gamification.longestStreak || userData.longestStreak || 0,
+        totalSpent: userData.lifetimeEnergySpent || userData.totalSpent || 0,
+        totalPurchased: userData.totalPurchased || 0,
+        totalEarned: userData.lifetimeEnergyEarned || userData.totalEarned || 0,
+        isSubscriber: userData.subscription?.status === 'active' || userData.isSubscriber || false,
+        subscriptionStatus: userData.subscription?.status || userData.subscriptionStatus,
+        subscriptionExpiryDate: userData.subscription?.expiryDate?.toDate?.()?.toISOString() || null,
+        isBanned: userData.isBanned || false,
+        banReason: userData.banReason || null,
+        challenges: userData.challenges || null,
+        milestones: userData.milestones || {},
+        promotions: userData.promotions || {},
+        createdAt: userData.createdAt?.toDate?.()?.toISOString() || null,
+        lastUpdated: userData.lastUpdated?.toDate?.()?.toISOString() || null,
       },
-
-      // Weekly challenge
-      weeklyChallenge: userData.weeklyChallenge || null,
-
-      // Milestones
-      milestones: userData.milestones || {},
-
-      // Referral
-      referralCode: userData.referralCode || null,
-      referredBy: userData.referredBy || null,
-      referralCount: userData.referralStats?.totalReferred || 0,
-
-      // Stats
-      lifetimeEnergyEarned: userData.lifetimeEnergyEarned || 0,
-      lifetimeEnergySpent: userData.lifetimeEnergySpent || 0,
-      totalAiAnalyses: userData.totalAiAnalyses || 0,
-
       transactions,
-    };
-
-    return NextResponse.json(user);
+    });
   } catch (error) {
     console.error('User detail error:', error);
     return NextResponse.json(

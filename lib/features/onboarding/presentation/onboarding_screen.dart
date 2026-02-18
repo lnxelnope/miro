@@ -8,6 +8,7 @@ import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/services/analytics_service.dart';
 import 'tutorial_food_analysis_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -417,7 +418,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  '100 FREE Energy',
+                  '10 FREE Energy',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
@@ -426,7 +427,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  '= 100 AI analyses',
+                  '= 10 AI analyses to get started',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -435,11 +436,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Each photo/chat analysis costs 1 Energy',
+                  'Each analysis costs 1 Energy\n'
+                  'The more you use, the more you earn!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.grey.shade600,
+                    height: 1.5,
                   ),
                 ),
               ],
@@ -545,6 +548,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // Mark disclaimer as acknowledged (inline disclaimer on page 1)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('disclaimer_acknowledged', true);
+
+    // Analytics: onboarding completed
+    AnalyticsService.logOnboardingComplete();
 
     // Navigate to tutorial
     if (mounted) {

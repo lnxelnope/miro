@@ -124,7 +124,8 @@ class FeatureTour {
                   const SizedBox(height: 16),
                   const Text(
                     'This is your Energy. Each analysis costs 1 Energy.\n\n'
-                    'You have 100 free Energy!\n\n'
+                    'You have 10 free Energy to get started!\n'
+                    'The more you use, the more you earn.\n\n'
                     'Tap here to visit the Energy Store.',
                     style: TextStyle(fontSize: 14, height: 1.5),
                   ),

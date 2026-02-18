@@ -150,6 +150,61 @@ class WelcomeOfferService {
     print('✅ Welcome Offer claimed: $packageId');
   }
 
+  /// Activate Welcome Back Offer for returning users
+  /// Resets the 24h timer regardless of previous offer status
+  static Future<void> startWelcomeBackOffer() async {
+    final deviceId = await DeviceIdService.getDeviceId();
+    final key = '$_keyOfferClaimed$deviceId';
+    final prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(key) != true) {
+      await prefs.setInt(
+        _keyFirstAiUsage,
+        DateTime.now().millisecondsSinceEpoch,
+      );
+      print('🎁 Welcome Back Offer activated! 24h timer started');
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // PROMOTION BONUS (server-side bonus, stored locally for UI)
+  // ───────────────────────────────────────────────────────────
+  static const String _keyPromoBonusRate = 'promo_bonus_rate';
+  static const String _keyPromoExpiresAt = 'promo_expires_at';
+  static const String _keyPromoType = 'promo_type';
+
+  /// Save active promotion bonus (from server response)
+  static Future<void> saveActivePromotion({
+    required double bonusRate,
+    required String type,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final expiresAt = DateTime.now().add(offerDuration).millisecondsSinceEpoch;
+    await prefs.setDouble(_keyPromoBonusRate, bonusRate);
+    await prefs.setInt(_keyPromoExpiresAt, expiresAt);
+    await prefs.setString(_keyPromoType, type);
+  }
+
+  /// Get active promotion info (null if expired or none)
+  static Future<PromotionInfo?> getActivePromotion() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rate = prefs.getDouble(_keyPromoBonusRate) ?? 0;
+    final expiresMs = prefs.getInt(_keyPromoExpiresAt) ?? 0;
+    final type = prefs.getString(_keyPromoType) ?? '';
+
+    if (rate <= 0 || expiresMs <= 0) return null;
+
+    final expiresAt = DateTime.fromMillisecondsSinceEpoch(expiresMs);
+    if (DateTime.now().isAfter(expiresAt)) return null;
+
+    return PromotionInfo(
+      bonusRate: rate,
+      expiresAt: expiresAt,
+      type: type,
+      remaining: expiresAt.difference(DateTime.now()),
+    );
+  }
+
   /// ตรวจสอบว่าซื้อ package ไหนไปแล้ว (สำหรับ analytics)
   static Future<String?> getPurchasedPackage() async {
     final prefs = await SharedPreferences.getInstance();
@@ -189,8 +244,37 @@ class WelcomeOfferService {
 
 /// สถานะของ Welcome Offer
 enum WelcomeOfferStatus {
-  notStarted, // ยังไม่ได้ใช้ AI เลย
-  active, // กำลังนับเวลา 24 ชั่วโมง — แสดง offer
-  expired, // หมดเวลาแล้ว
-  claimed, // ซื้อไปแล้ว
+  notStarted,
+  active,
+  expired,
+  claimed,
+}
+
+/// Active promotion info
+class PromotionInfo {
+  final double bonusRate;
+  final DateTime expiresAt;
+  final String type;
+  final Duration remaining;
+
+  const PromotionInfo({
+    required this.bonusRate,
+    required this.expiresAt,
+    required this.type,
+    required this.remaining,
+  });
+
+  String get displayName {
+    if (type.contains('welcome_back')) return 'Welcome Back';
+    if (type.contains('welcome_offer')) return 'Welcome Offer';
+    if (type.contains('tier_upgrade')) return 'Tier Up Bonus';
+    return 'Special Offer';
+  }
+
+  String get remainingText {
+    final h = remaining.inHours;
+    final m = remaining.inMinutes.remainder(60);
+    if (h > 0) return '${h}h ${m}m left';
+    return '${m}m left';
+  }
 }

@@ -5,8 +5,10 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/subscription_data.dart';
 import '../models/subscription_plan.dart';
+import '../../../core/services/device_id_service.dart';
 
 /// Subscription Service
 /// 
@@ -17,7 +19,7 @@ class SubscriptionService {
 
   // Firebase Functions endpoints
   static const String _verifySubscriptionUrl =
-      'https://verifysubscription-lkfwupvm7a-uc.a.run.app';
+      'https://us-central1-miro-d6856.cloudfunctions.net/verifySubscription';
 
   // Product IDs
   static const String kEnergyPassMonthlyId = 'energy_pass_monthly';
@@ -164,18 +166,28 @@ class SubscriptionService {
     }
   }
 
-  /// Get device ID (implement based on your existing service)
+  /// Get device ID from DeviceIdService
   Future<String> _getDeviceId() async {
-    // TODO: Implement using your existing DeviceIdService
-    // For now, return a placeholder
-    return 'device-id-placeholder';
+    return await DeviceIdService.getDeviceId();
   }
 
   /// Check subscription status from Firestore
   Future<SubscriptionData> checkSubscriptionStatus(String deviceId) async {
-    // This will be implemented in the provider
-    // For now, return empty
-    return SubscriptionData.empty();
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(deviceId)
+          .get();
+
+      if (!doc.exists) return SubscriptionData.empty();
+
+      final data = doc.data();
+      final subData = data?['subscription'] as Map<String, dynamic>?;
+      return SubscriptionData.fromFirestore(subData);
+    } catch (e) {
+      debugPrint('❌ [SubscriptionService] checkSubscriptionStatus error: $e');
+      return SubscriptionData.empty();
+    }
   }
 
   /// Dispose the service

@@ -72,35 +72,6 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
             // Daily Summary — Pass selectedDate to summarize by selected date
             DailySummaryCard(selectedDate: _selectedDate),
 
-            // Meals Info Bar (compact, below summary, above date selector)
-            Builder(builder: (context) {
-              final foods = foodsAsync.valueOrNull ?? [];
-              final active = foods.where((f) => !f.isDeleted).toList();
-
-              final imageCount = active.where((f) =>
-                f.imagePath != null && f.imagePath!.isNotEmpty
-              ).length;
-              final textCount = active.where((f) =>
-                (f.imagePath == null || f.imagePath!.isEmpty) &&
-                f.source != DataSource.database
-              ).length;
-              final dbCount = active.where((f) =>
-                f.source == DataSource.database
-              ).length;
-              final unanalyzed = active.where((f) =>
-                !f.hasNutritionData
-              ).toList();
-
-              if (active.isEmpty && !_isAnalyzing) {
-                return const SizedBox.shrink();
-              }
-
-              return _buildCompactInfoBar(
-                context, active, unanalyzed,
-                imageCount, textCount, dbCount,
-              );
-            }),
-
             // Date Selector
             _buildDateSelector(),
 
@@ -183,6 +154,35 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     ),
                   ),
                 ],
+              );
+            }),
+
+            // Meals Info Bar (compact, below meal sections)
+            Builder(builder: (context) {
+              final foods = foodsAsync.valueOrNull ?? [];
+              final active = foods.where((f) => !f.isDeleted).toList();
+
+              final imageCount = active.where((f) =>
+                f.imagePath != null && f.imagePath!.isNotEmpty
+              ).length;
+              final textCount = active.where((f) =>
+                (f.imagePath == null || f.imagePath!.isEmpty) &&
+                f.source != DataSource.database
+              ).length;
+              final dbCount = active.where((f) =>
+                f.source == DataSource.database
+              ).length;
+              final unanalyzed = active.where((f) =>
+                !f.hasNutritionData
+              ).toList();
+
+              if (active.isEmpty && !_isAnalyzing) {
+                return const SizedBox.shrink();
+              }
+
+              return _buildCompactInfoBar(
+                context, active, unanalyzed,
+                imageCount, textCount, dbCount,
               );
             }),
 
@@ -560,7 +560,7 @@ class _HealthDietTabState extends ConsumerState<HealthDietTab> {
                     Icon(AppIcons.ai, size: 14, color: Colors.white),
                     const SizedBox(width: 5),
                     const Text(
-                      'Analyze',
+                      'Analyze All',
                       style: TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w600,
                         color: Colors.white,

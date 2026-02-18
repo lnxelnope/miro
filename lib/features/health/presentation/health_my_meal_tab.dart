@@ -265,20 +265,69 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           return _buildEmptyIngredients();
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-          itemCount: ingredients.length,
-          itemBuilder: (context, index) {
-            final ingredient = ingredients[index];
-            return IngredientCard(
-              ingredient: ingredient,
-              onEdit: () => _editIngredient(ingredient),
-              onDelete: () => _deleteIngredient(ingredient),
-              onUse: () => _logFromIngredient(ingredient),
-            );
-          },
+        return Stack(
+          children: [
+            ListView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              itemCount: ingredients.length,
+              itemBuilder: (context, index) {
+                final ingredient = ingredients[index];
+                return IngredientCard(
+                  ingredient: ingredient,
+                  onEdit: () => _editIngredient(ingredient),
+                  onDelete: () => _deleteIngredient(ingredient),
+                  onUse: () => _logFromIngredient(ingredient),
+                );
+              },
+            ),
+            // Add ingredient button — bottom-center
+            Positioned(
+              left: 20,
+              right: 20,
+              bottom: 20,
+              child: _buildAddIngredientButton(),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildAddIngredientButton() {
+    return GestureDetector(
+      onTap: _addIngredient,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF10B981), Color(0xFF059669)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10B981).withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_rounded, color: Colors.white, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Add Ingredient',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -853,6 +902,57 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         ),
       );
     }
+  }
+
+  void _addIngredient() {
+    // Create a blank ingredient for create mode
+    final blankIngredient = Ingredient()
+      ..name = ''
+      ..baseAmount = 100
+      ..baseUnit = 'g'
+      ..caloriesPerBase = 0
+      ..proteinPerBase = 0
+      ..carbsPerBase = 0
+      ..fatPerBase = 0
+      ..source = 'manual';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => EditIngredientSheet(
+        ingredient: blankIngredient,
+        isCreateMode: true,
+        onSave: (newIngredient) async {
+          // Save the new ingredient
+          final notifier = ref.read(myMealNotifierProvider.notifier);
+          await notifier.saveIngredient(
+            name: newIngredient.name,
+            nameEn: null,
+            baseAmount: newIngredient.baseAmount,
+            baseUnit: newIngredient.baseUnit,
+            calories: newIngredient.caloriesPerBase,
+            protein: newIngredient.proteinPerBase,
+            carbs: newIngredient.carbsPerBase,
+            fat: newIngredient.fatPerBase,
+            source: newIngredient.source ?? 'manual',
+          );
+
+          ref.invalidate(allIngredientsProvider);
+
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Created "${newIngredient.name}"'),
+              backgroundColor: AppColors.success,
+              behavior: SnackBarBehavior.floating,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _editIngredient(Ingredient ingredient) {

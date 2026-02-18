@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
+import { signOut } from '@/auth';
 
 export async function POST() {
-  const response = NextResponse.json({
-    success: true,
-    message: 'Logged out successfully',
-  });
-
-  // Clear cookie
-  response.cookies.delete('admin_token');
-
-  return response;
+  await signOut({ redirectTo: '/login' });
+  return NextResponse.json({ success: true });
 }

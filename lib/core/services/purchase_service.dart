@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:http/http.dart' as http;
+import 'analytics_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
@@ -46,6 +46,21 @@ class PurchaseService {
     energy1200Welcome: 1200,
     energy2000Welcome: 2000,
   };
+
+  /// Approximate THB prices for analytics (actual prices from Google Play)
+  static double _getProductPrice(String productId) {
+    const prices = {
+      'energy_100': 35.0,
+      'energy_550': 179.0,
+      'energy_1200': 289.0,
+      'energy_2000': 359.0,
+      'energy_100_welcome': 19.0,
+      'energy_550_welcome': 109.0,
+      'energy_1200_welcome': 169.0,
+      'energy_2000_welcome': 219.0,
+    };
+    return prices[productId] ?? 0.0;
+  }
 
   static final InAppPurchase _iap = InAppPurchase.instance;
   static StreamSubscription<List<PurchaseDetails>>? _subscription;
@@ -254,25 +269,15 @@ class PurchaseService {
               if (!hasClaimed) {
                 await WelcomeOfferService.markClaimed(productId);
               }
-
-              // Analytics: track welcome offer purchase
-              await FirebaseAnalytics.instance.logEvent(
-                name: 'welcome_offer_purchased',
-                parameters: {
-                  'package_id': productId,
-                  'amount': energyAdded,
-                },
-              );
-            } else {
-              // Analytics: track regular purchase
-              await FirebaseAnalytics.instance.logEvent(
-                name: 'energy_purchased',
-                parameters: {
-                  'package_id': productId,
-                  'amount': energyAdded,
-                },
-              );
             }
+
+            // Analytics: standard purchase event (Google Ads conversion)
+            AnalyticsService.logEnergyPurchase(
+              packageId: productId,
+              energyAmount: energyAdded,
+              price: _getProductPrice(productId),
+              currency: 'THB',
+            );
           } else if (verified != null && verified['duplicate'] == true) {
             // Duplicate — เคย verify แล้ว (balance ถูก sync แล้วใน _verifyPurchaseWithServer)
             debugPrint(
@@ -623,6 +628,13 @@ class PurchaseService {
             if (response.statusCode == 200) {
               final data = jsonDecode(response.body) as Map<String, dynamic>;
               debugPrint('[PurchaseService] ✅ Subscription verified: ${data['status']}');
+
+              // Analytics: subscription conversion event
+              AnalyticsService.logSubscribe(
+                productId: subscriptionProductId,
+                price: 149.0,
+                currency: 'THB',
+              );
             } else {
               debugPrint('[PurchaseService] ⚠️ Subscription verification failed');
             }

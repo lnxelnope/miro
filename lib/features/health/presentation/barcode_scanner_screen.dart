@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
@@ -146,12 +147,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                     )
                   else ...[
                     const Text(
-                      'ส่องกล้องไปที่บาร์โค้ดบนสินค้า',
+                      'Point camera at product barcode',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'พยายามให้เห็นฉลากโภชนาการด้วยจะแม่นยำกว่า',
+                      'Including the nutrition label improves accuracy',
                       style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
                     const SizedBox(height: 16),
@@ -271,6 +272,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     });
 
     AppLogger.info('Barcode detected: ${barcode.rawValue}');
+    AnalyticsService.logBarcodeScan();
 
     try {
       // จับ frame จากกล้อง
@@ -306,7 +308,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ ไม่สามารถวิเคราะห์สินค้าได้')),
+          const SnackBar(content: Text('Unable to analyze product')),
         );
         setState(() => _hasScanned = false);
         return;
@@ -333,7 +335,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         await NoEnergyDialog.show(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ เกิดข้อผิดพลาด: $e')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
@@ -351,8 +353,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             Text('Barcode: $barcodeValue'),
             const SizedBox(height: 12),
             const Text(
-              'กรุณาถ่ายรูปบรรจุภัณฑ์หรือฉลากโภชนาการ\n'
-              'เพื่อให้ Gemini วิเคราะห์ข้อมูลสินค้า',
+              'Please take a photo of the packaging or nutrition label\n'
+              'for AI to analyze product information',
             ),
           ],
         ),
@@ -453,7 +455,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             ..source = DataSource.aiAnalyzed
             ..aiConfidence = confirmedData.confidence
             ..isVerified = true
-            ..notes = 'สแกนบาร์โค้ด: $barcodeValue';
+            ..notes = 'Barcode scan: $barcodeValue';
 
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);
@@ -484,7 +486,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ บันทึก "${confirmedData.foodName}" แล้ว'),
+              content: Text('Saved "${confirmedData.foodName}"'),
               backgroundColor: AppColors.success,
             ),
           );

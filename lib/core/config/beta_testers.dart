@@ -2,7 +2,7 @@
 ///
 /// ⚠️ CURRENT STRATEGY: ไม่ได้ใช้ตอนนี้!
 /// - ช่วง beta: ทุกคนได้ 1,000 Energy (ตั้งค่าใน energy_service.dart)
-/// - Production: เปลี่ยนกลับเป็น 100 Energy ก่อน launch
+/// - Production: เปลี่ยนเป็น 10 Energy สำหรับ launch
 ///
 /// ⚠️ ไฟล์นี้เก็บไว้สำหรับอนาคต (ถ้าต้องการแยก beta testers)
 class BetaTesters {

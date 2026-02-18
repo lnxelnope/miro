@@ -141,15 +141,13 @@ class GamificationState {
     }
   }
 
-  /// Grace period
+  /// Grace period (Silver/Gold/Diamond = 1 day, Starter/Bronze = 0)
   int get graceDays {
     switch (tier) {
       case 'silver':
-        return 1;
       case 'gold':
-        return 2;
       case 'diamond':
-        return 3;
+        return 1;
       default:
         return 0;
     }
@@ -169,6 +167,9 @@ class GamificationState {
     bool? spent500Claimed,
     bool? spent1000Claimed,
     double? bonusRate,
+    bool? isSubscriber,
+    String? subscriptionStatus,
+    DateTime? subscriptionExpiryDate,
   }) {
     return GamificationState(
       miroId: miroId ?? this.miroId,

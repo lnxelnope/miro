@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/subscription_data.dart';
-import '../models/subscription_status.dart';
 import '../services/subscription_service.dart';
 import '../../../core/services/device_id_service.dart';
 
@@ -47,27 +47,47 @@ class SubscriptionNotifier extends StateNotifier<SubscriptionState> {
   Future<void> _initialize() async {
     try {
       final deviceId = await DeviceIdService.getDeviceId();
+      debugPrint('[SubscriptionProvider] Listening to users/$deviceId');
 
-      // Listen to Firestore subscription changes
       _subscriptionListener = FirebaseFirestore.instance
           .collection('users')
           .doc(deviceId)
           .snapshots()
-          .listen((snapshot) {
-        if (snapshot.exists) {
-          final data = snapshot.data();
-          final subscriptionData = SubscriptionData.fromFirestore(
-            data?['subscription'] as Map<String, dynamic>?,
-          );
+          .listen(
+        (snapshot) {
+          if (snapshot.exists) {
+            final data = snapshot.data();
+            final rawSub = data?['subscription'];
+            debugPrint('[SubscriptionProvider] Firestore data received. '
+                'subscription=$rawSub');
 
+            final subscriptionData = SubscriptionData.fromFirestore(
+              rawSub as Map<String, dynamic>?,
+            );
+
+            debugPrint('[SubscriptionProvider] Parsed: '
+                'status=${subscriptionData.status}, '
+                'isActive=${subscriptionData.isActive}');
+
+            state = state.copyWith(
+              subscription: subscriptionData,
+              isLoading: false,
+              error: null,
+            );
+          } else {
+            debugPrint('[SubscriptionProvider] User doc does not exist');
+          }
+        },
+        onError: (error) {
+          debugPrint('[SubscriptionProvider] Firestore listener error: $error');
           state = state.copyWith(
-            subscription: subscriptionData,
+            error: error.toString(),
             isLoading: false,
-            error: null,
           );
-        }
-      });
+        },
+      );
     } catch (e) {
+      debugPrint('[SubscriptionProvider] Init error: $e');
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,

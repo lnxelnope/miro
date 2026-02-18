@@ -136,18 +136,18 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange),
             SizedBox(width: 12),
-            Expanded(child: Text('กำลังวิเคราะห์อยู่')),
+            Expanded(child: Text('Analyzing...')),
           ],
         ),
         content: const Text(
-          'AI กำลังวิเคราะห์อาหารอยู่\n\n'
-          'ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป '
-          'และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)',
+          'AI is analyzing food\n\n'
+          'If you leave now, the analysis result will be lost '
+          'and you will need to re-analyze (costs Energy again)',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('รอต่อ'),
+            child: const Text('Wait'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -155,7 +155,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('ออกเลย'),
+            child: const Text('Exit'),
           ),
         ],
       ),
@@ -187,7 +187,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             TextButton(
               onPressed: _saveFood,
               child: const Text(
-                'บันทึก',
+                'Save',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -240,8 +240,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'ชื่ออาหาร',
-                hintText: 'เช่น ข้าวผัดกุ้ง',
+                labelText: 'Food Name',
+                hintText: 'e.g. Fried Rice with Shrimp',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -259,9 +259,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'ปริมาณ',
+                      labelText: 'Amount',
                       helperText:
-                          _hasBaseValues ? 'เปลี่ยน → แคลเปลี่ยนตาม' : null,
+                          _hasBaseValues ? 'Change → calories adjust automatically' : null,
                       helperStyle: TextStyle(
                           fontSize: 11, color: Colors.purple.shade300),
                       border: OutlineInputBorder(
@@ -312,7 +312,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'ค่าฐาน: ${_baseCalories.toInt()} kcal / 1 $_servingUnit '
+                        'Base: ${_baseCalories.toInt()} kcal / 1 $_servingUnit '
                         '(P:${_baseProtein.toInt()}g C:${_baseCarbs.toInt()}g F:${_baseFat.toInt()}g)',
                         style: const TextStyle(
                           fontSize: 11,
@@ -355,7 +355,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             // Meal type
             AppIcons.iconWithLabel(
               AppIcons.meal,
-              'มื้ออาหาร',
+              'Meal Type',
               iconColor: AppIcons.mealColor,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -450,7 +450,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       Icon(AppIcons.save, size: 20, color: Colors.white),
                       const SizedBox(width: 8),
                       const Text(
-                        'บันทึก',
+                        'Save',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -503,7 +503,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'ไม่สามารถวิเคราะห์ได้',
+                  'Unable to analyze',
                   style: TextStyle(
                     color: AppColors.error,
                     fontWeight: FontWeight.w600,
@@ -595,7 +595,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'กรอกข้อมูลอาหารด้านล่าง หรือตั้งค่า Gemini API Key เพื่อวิเคราะห์อัตโนมัติ',
+              'Enter food details below or use AI analysis for automatic nutrition estimation',
               style: TextStyle(fontSize: 13),
             ),
           ),
@@ -779,7 +779,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           _servingSizeController.addListener(_onServingSizeChanged);
         });
       } else {
-        setState(() => _error = 'ไม่สามารถวิเคราะห์ภาพได้');
+        setState(() => _error = 'Unable to analyze image');
       }
     } catch (e) {
       if (_isCancelled || !mounted) return;
@@ -816,7 +816,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     final entry = FoodEntry()
       ..foodName = _nameController.text.trim().isEmpty
-          ? 'อาหาร (รอวิเคราะห์)'
+          ? 'Food (pending analysis)'
           : _nameController.text.trim()
       ..foodNameEn = _analysisResult?.foodNameEn
       ..calories = calories

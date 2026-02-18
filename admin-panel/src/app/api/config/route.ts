@@ -9,89 +9,107 @@ export async function GET(request: NextRequest) {
       return authError;
     }
 
-    // Get config document
-    const configDoc = await db.collection('config').doc('gamification').get();
+    // Get config document from Firestore
+    const configDoc = await db.collection('config').doc('promotions').get();
 
-    if (!configDoc.exists) {
-      // Return default config if doesn't exist
+    if (configDoc.exists) {
+      const data = configDoc.data();
       return NextResponse.json({
-        challenges: {
-          logMeals: { goal: 7, reward: 30, enabled: true },
-          useAi: { goal: 5, reward: 25, enabled: true },
-        },
-        milestones: [
-          { threshold: 100, reward: 50 },
-          { threshold: 500, reward: 100 },
-          { threshold: 1000, reward: 200 },
-          { threshold: 5000, reward: 500 },
-        ],
-        systemSettings: {
-          freeAiCredits: 3,
-          streakGracePeriod: 1,
-          aiAnalysisCost: 5,
-          welcomeGiftAmount: 50,
-        },
-        abTests: {},
+        success: true,
+        config: data,
       });
     }
 
-    return NextResponse.json(configDoc.data());
-  } catch (error) {
-    console.error('Get config error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch configuration' },
-      { status: 500 }
-    );
+    // Return default config if doesn't exist
+    const defaultConfig = {
+      promotions: {
+        welcomeOffer: {
+          threshold: 10,
+          freeEnergy: 50,
+          bonusRate: 0.40,
+          duration: 24,
+        },
+        tierUpgrade: {
+          bonusRate: 0.20,
+          duration: 24,
+          rewards: {
+            bronze: 3,
+            silver: 5,
+            gold: 10,
+            diamond: 15,
+          },
+        },
+        welcomeBack: {
+          bonusRate: 0.40,
+          duration: 24,
+          condition: 'ex-Diamond fell to Starter/Bronze',
+        },
+      },
+      dailyRewards: {
+        none: 1,
+        bronze: 1,
+        silver: 2,
+        gold: 3,
+        diamond: 4,
+      },
+      challenges: {
+        logMeals: {
+          goal: 7,
+          reward: 10,
+        },
+        useAi: {
+          goal: 3,
+          reward: 5,
+        },
+      },
+      milestones: {
+        spent500: 50,
+        spent1000: 100,
+      },
+    };
+
+    return NextResponse.json({
+      success: true,
+      config: defaultConfig,
+    });
+  } catch (error: any) {
+    console.error('Error fetching config:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const authError = await checkAuth(request);
     if (authError) {
       return authError;
     }
 
-    const body = await request.json();
-    const { section, data } = body;
+    const { config } = await request.json();
 
-    // Validate section
-    const validSections = ['challenges', 'milestones', 'systemSettings', 'abTests'];
-    if (!validSections.includes(section)) {
-      return NextResponse.json(
-        { error: 'Invalid section' },
-        { status: 400 }
-      );
+    if (!config) {
+      return NextResponse.json({ error: 'Missing config' }, { status: 400 });
     }
 
-    // Update config
-    const configRef = db.collection('config').doc('gamification');
-    await configRef.set(
+    // Save to Firestore config collection
+    await db.collection('config').doc('promotions').set(
       {
-        [section]: data,
-        updatedAt: new Date(),
-        updatedBy: 'admin', // In production, track which admin
+        ...config,
+        lastUpdated: new Date().toISOString(),
       },
       { merge: true }
     );
 
     // Log change to history
     await db.collection('config_history').add({
-      section,
-      changes: data,
-      timestamp: new Date(),
-      admin: 'admin',
+      type: 'promotions',
+      config,
+      changedAt: new Date().toISOString(),
     });
 
-    return NextResponse.json({
-      success: true,
-      message: `${section} updated successfully`,
-    });
-  } catch (error) {
-    console.error('Update config error:', error);
-    return NextResponse.json(
-      { error: 'Failed to update configuration' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error updating config:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

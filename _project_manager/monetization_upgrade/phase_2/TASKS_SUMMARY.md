@@ -31,7 +31,7 @@ await db.collection('users').doc(deviceId).update({
 ```typescript
 // ใน verifyPurchase.ts
 const baseEnergy = PRODUCT_MAP[productId];
-const bonusRate = userDoc.data()?.bonusRate || 0; // 0.2 หรือ 0.3
+const bonusRate = userDoc.data()?.bonusRate || 0; // 0.1 หรือ 0.2
 const bonusEnergy = Math.floor(baseEnergy * bonusRate);
 const totalEnergy = baseEnergy + bonusEnergy;
 
