@@ -60,7 +60,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
-              'ข้อมูลการใช้งาน',
+              'Usage Data',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -75,7 +75,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'เราใช้ Firebase Analytics เพื่อปรับปรุงประสบการณ์การใช้งานแอป',
+              'We use Firebase Analytics to improve your app experience',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -85,24 +85,24 @@ class AnalyticsConsentDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildInfoRow(
               icon: Icons.check_circle_outline,
-              text: 'ข้อมูลที่เก็บ: การใช้งานฟีเจอร์, หน้าจอที่เปิด',
+              text: 'What we collect: Feature usage, screens viewed',
               isDark: isDark,
             ),
             const SizedBox(height: 8),
             _buildInfoRow(
               icon: Icons.block,
-              text: 'ไม่เก็บ: ข้อมูลอาหาร, ภาพถ่าย, ข้อมูลสุขภาพ',
+              text: 'Not collected: Food data, photos, health info',
               isDark: isDark,
             ),
             const SizedBox(height: 8),
             _buildInfoRow(
               icon: Icons.shield_outlined,
-              text: 'ข้อมูลเป็นแบบรวม ไม่สามารถระบุตัวตนได้',
+              text: 'Data is aggregated and anonymous',
               isDark: isDark,
             ),
             const SizedBox(height: 16),
             Text(
-              'คุณสามารถเปลี่ยนการตั้งค่าได้ทุกเมื่อใน Profile → Settings',
+              'You can change this anytime in Profile → Settings',
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -112,7 +112,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
             InkWell(
               onTap: _openPrivacyPolicy,
               child: Text(
-                'อ่านนโยบายความเป็นส่วนตัวฉบับเต็ม',
+                'Read full Privacy Policy',
                 style: TextStyle(
                   fontSize: 13,
                   color: theme.colorScheme.primary,
@@ -127,7 +127,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
         TextButton(
           onPressed: () => _handleDecline(context),
           child: Text(
-            'ไม่ยินยอม',
+            'Decline',
             style: TextStyle(
               fontSize: 15,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -142,7 +142,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
           child: const Text(
-            'ยินยอม',
+            'Accept',
             style: TextStyle(fontSize: 15),
           ),
         ),
