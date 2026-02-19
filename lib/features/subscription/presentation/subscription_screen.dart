@@ -71,6 +71,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           const SnackBar(
             content: Text('Failed to initiate purchase'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -80,6 +81,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           SnackBar(
             content: Text('Error: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -284,7 +286,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             ),
             child: Column(
               children: [
-                Icon(
+                const Icon(
                   Icons.energy_savings_leaf,
                   size: 80,
                   color: AppColors.primary,
@@ -455,7 +457,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.check_circle,
             color: AppColors.primary,
             size: 24,

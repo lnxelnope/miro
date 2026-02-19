@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/constants/enums.dart';
@@ -13,6 +12,7 @@ import '../../../core/services/usage_limiter.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
+import '../../../core/database/database_service.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -43,6 +43,72 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     with SingleTickerProviderStateMixin {
   bool _isAnalyzing = false;
   bool _notesExpanded = false;
+  bool _ingredientsExpanded = false;
+  final Set<int> _expandedSubIndices = {};
+
+  List<IngredientDetail>? _cachedIngredients;
+  bool _loadedFromMeal = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadIngredients();
+  }
+
+  void _loadIngredients() {
+    final entry = widget.entry;
+
+    // ถ้ามี ingredientsJson → parse ตรงๆ
+    final parsed = _parseIngredientsFromJson(entry);
+    if (parsed.isNotEmpty) {
+      _cachedIngredients = parsed;
+      return;
+    }
+
+    // ถ้าไม่มี ingredientsJson แต่มี myMealId → โหลดจาก database
+    if (entry.myMealId != null && !_loadedFromMeal) {
+      _loadedFromMeal = true;
+      _loadIngredientsFromMeal(entry.myMealId!);
+    }
+  }
+
+  Future<void> _loadIngredientsFromMeal(int mealId) async {
+    try {
+      final tree = await ref.read(mealIngredientTreeProvider(mealId).future);
+      if (tree.isNotEmpty && mounted) {
+        setState(() {
+          _cachedIngredients = tree.map((node) {
+            return IngredientDetail(
+              name: node.ingredient.ingredientName,
+              detail: node.ingredient.detail,
+              amount: node.ingredient.amount,
+              unit: node.ingredient.unit,
+              calories: node.ingredient.calories,
+              protein: node.ingredient.protein,
+              carbs: node.ingredient.carbs,
+              fat: node.ingredient.fat,
+              subIngredients: node.children.isNotEmpty
+                  ? node.children.map((child) {
+                      return IngredientDetail(
+                        name: child.ingredientName,
+                        detail: child.detail,
+                        amount: child.amount,
+                        unit: child.unit,
+                        calories: child.calories,
+                        protein: child.protein,
+                        carbs: child.carbs,
+                        fat: child.fat,
+                      );
+                    }).toList()
+                  : null,
+            );
+          }).toList();
+        });
+      }
+    } catch (e) {
+      AppLogger.warn('Failed to load ingredients from myMealId: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +305,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(AppIcons.calories, size: 36, color: AppIcons.caloriesColor),
+                        const Icon(AppIcons.calories, size: 36, color: AppIcons.caloriesColor),
                         const SizedBox(width: 12),
                         Text(
                           '${entry.calories.toInt()}',
@@ -329,6 +395,12 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                         ],
                       ),
                     ),
+
+                  // === Ingredients Section (collapsible) ===
+                  if (_cachedIngredients != null && _cachedIngredients!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildIngredientsSection(_cachedIngredients!, isDark),
+                  ],
 
                   // === AI Confidence Badge ===
                   if (hasAiConfidence) ...[
@@ -483,6 +555,301 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // Parse Ingredients from JSON
+  // ============================================================
+  List<IngredientDetail> _parseIngredientsFromJson(FoodEntry entry) {
+    if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
+      return [];
+    }
+    try {
+      final List<dynamic> list = jsonDecode(entry.ingredientsJson!);
+      return list.map((e) => IngredientDetail.fromJson(e)).toList();
+    } catch (e) {
+      AppLogger.warn('Failed to parse ingredientsJson: $e');
+      return [];
+    }
+  }
+
+  // ============================================================
+  // Ingredients Section (Collapsible)
+  // ============================================================
+  Widget _buildIngredientsSection(List<IngredientDetail> ingredients, bool isDark) {
+    final headerColor = const Color(0xFF10B981);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : headerColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : headerColor.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header (tap to toggle)
+          GestureDetector(
+            onTap: () => setState(() => _ingredientsExpanded = !_ingredientsExpanded),
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.restaurant_menu_rounded,
+                    size: 18,
+                    color: headerColor,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Ingredients',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: headerColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${ingredients.length}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: headerColor,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  AnimatedRotation(
+                    turns: _ingredientsExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 22,
+                      color: isDark ? Colors.white38 : AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Ingredient list (animated)
+          AnimatedCrossFade(
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: _buildIngredientList(ingredients, isDark),
+            crossFadeState: _ingredientsExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIngredientList(List<IngredientDetail> ingredients, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.grey.withValues(alpha: 0.15),
+          ),
+          const SizedBox(height: 6),
+          ...ingredients.asMap().entries.map((e) {
+            final idx = e.key;
+            final ingredient = e.value;
+            final hasSub = ingredient.subIngredients != null &&
+                ingredient.subIngredients!.isNotEmpty;
+            final isSubExpanded = _expandedSubIndices.contains(idx);
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Main ingredient row
+                GestureDetector(
+                  onTap: hasSub
+                      ? () => setState(() {
+                            if (isSubExpanded) {
+                              _expandedSubIndices.remove(idx);
+                            } else {
+                              _expandedSubIndices.add(idx);
+                            }
+                          })
+                      : null,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                    child: Row(
+                      children: [
+                        // Expand arrow for sub-ingredients
+                        if (hasSub)
+                          AnimatedRotation(
+                            turns: isSubExpanded ? 0.25 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 12,
+                              color: isDark ? Colors.white38 : Colors.grey,
+                            ),
+                          )
+                        else
+                          Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: isDark ? Colors.white24 : Colors.grey[400],
+                          ),
+                        const SizedBox(width: 8),
+                        // Name + amount
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ingredient.name,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white : AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '${ingredient.amount % 1 == 0 ? ingredient.amount.toInt() : ingredient.amount} ${ingredient.unit}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark ? Colors.white38 : AppColors.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Calories
+                        Text(
+                          '${ingredient.calories.toInt()} kcal',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white60 : AppColors.textSecondary,
+                          ),
+                        ),
+                        if (hasSub) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.grey.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${ingredient.subIngredients!.length}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white38 : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Sub-ingredients (animated)
+                if (hasSub)
+                  AnimatedCrossFade(
+                    firstChild: const SizedBox(width: double.infinity, height: 0),
+                    secondChild: _buildSubIngredients(ingredient.subIngredients!, isDark),
+                    crossFadeState: isSubExpanded
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    duration: const Duration(milliseconds: 200),
+                  ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubIngredients(List<IngredientDetail> subs, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, bottom: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        border: Border(
+          left: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2),
+            width: 2,
+          ),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: subs.map((sub) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.circle,
+                  size: 4,
+                  color: isDark ? Colors.white24 : Colors.grey[400],
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sub.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white70 : AppColors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        '${sub.amount % 1 == 0 ? sub.amount.toInt() : sub.amount} ${sub.unit}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? Colors.white30 : AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${sub.calories.toInt()} kcal',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white38 : AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -857,6 +1224,16 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                     jsonEncode(confirmedData.ingredientsDetail);
               }
 
+              // Update searchMode based on AI's foodType response
+              FoodSearchMode? updatedSearchMode;
+              if (result?.foodType != null) {
+                if (result!.foodType == 'product') {
+                  updatedSearchMode = FoodSearchMode.product;
+                } else {
+                  updatedSearchMode = FoodSearchMode.normal;
+                }
+              }
+
               await notifier.updateFromGeminiConfirmed(
                 entry.id,
                 foodName: confirmedData.foodName,
@@ -879,6 +1256,17 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                 notes: confirmedData.notes,
                 ingredientsJson: ingredientsJsonStr,
               );
+
+              // Update searchMode separately if AI detected it
+              if (updatedSearchMode != null) {
+                final updatedEntry = await DatabaseService.foodEntries.get(entry.id);
+                if (updatedEntry != null) {
+                  updatedEntry.searchMode = updatedSearchMode;
+                  await DatabaseService.isar.writeTxn(() async {
+                    await DatabaseService.foodEntries.put(updatedEntry);
+                  });
+                }
+              }
 
               if (confirmedData.ingredientsDetail != null &&
                   confirmedData.ingredientsDetail!.isNotEmpty) {
@@ -934,6 +1322,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           const SnackBar(
             content: Text('❌ Could not analyze - please try again'),
             backgroundColor: AppColors.error,
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -965,7 +1354,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
         SnackBar(
           content: Text('❌ $errorMessage'),
           backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -1031,6 +1420,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           const SnackBar(
             content: Text('✅ Entry deleted'),
             backgroundColor: AppColors.success,
+            duration: Duration(seconds: 2),
           ),
         );
       } catch (e) {
@@ -1039,6 +1429,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           SnackBar(
             content: Text('❌ Error: $e'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -1061,7 +1452,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
 
     final hasImage =
         entry.imagePath != null && File(entry.imagePath!).existsSync();
-    FoodSearchMode searchMode = FoodSearchMode.normal;
+    FoodSearchMode searchMode = entry.searchMode; // Pre-fill from entry
 
     return showDialog<Map<String, dynamic>>(
       context: context,

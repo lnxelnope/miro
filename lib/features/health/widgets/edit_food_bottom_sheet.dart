@@ -384,7 +384,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
     if (subName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter sub-ingredient name first')),
+        const SnackBar(content: Text('Please enter sub-ingredient name first'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -476,7 +476,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Could not analyze sub-ingredient'),
-                backgroundColor: Colors.orange),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2)),
           );
         }
       }
@@ -484,7 +485,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       setState(() => sub.isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     }
@@ -515,7 +516,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter ingredient name')),
+        const SnackBar(content: Text('Please enter ingredient name'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -691,7 +692,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Unable to analyze'),
-                backgroundColor: AppColors.error),
+                backgroundColor: AppColors.error,
+                duration: Duration(seconds: 2)),
           );
         }
       }
@@ -707,7 +709,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Error: $e'), backgroundColor: AppColors.error),
+                content: Text('Error: $e'), backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -868,7 +871,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     readOnly: _canAutoRecalculate,
                     decoration: InputDecoration(
                       labelText: 'Calories (kcal)',
-                      prefixIcon: Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
+                      prefixIcon: const Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
                       filled: _canAutoRecalculate,
                       fillColor:
                           _canAutoRecalculate ? Colors.grey.shade100 : null,
@@ -1402,12 +1405,12 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                             ));
                           });
                         },
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.add_circle_outline,
                                 size: 13, color: AppColors.primary),
-                            const SizedBox(width: 2),
+                            SizedBox(width: 2),
                             Text('Add',
                                 style: TextStyle(
                                     fontSize: 10,
@@ -1817,7 +1820,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
           content: Text('✅ Saved successfully'),
-          backgroundColor: AppColors.success),
+          backgroundColor: AppColors.success,
+          duration: Duration(seconds: 2)),
     );
   }
 }

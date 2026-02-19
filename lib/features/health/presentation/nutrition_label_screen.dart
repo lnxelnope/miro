@@ -251,7 +251,8 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Unable to read label. Try taking a clearer photo')),
+              content: Text('Unable to read label. Try taking a clearer photo'),
+              duration: Duration(seconds: 2)),
         );
         return;
       }
@@ -320,6 +321,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
               SnackBar(
                 content: Text('Saved "${confirmedData.foodName}"'),
                 backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 2),
               ),
             );
             Navigator.pop(context); // ปิด screen
@@ -341,7 +343,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
         await NoEnergyDialog.show(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ $e')),
+          SnackBar(content: Text('❌ $e'), duration: const Duration(seconds: 2)),
         );
       }
     }

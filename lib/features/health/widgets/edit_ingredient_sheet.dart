@@ -255,7 +255,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
                       labelText: 'Calories (kcal)',
-                      prefixIcon: Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
+                      prefixIcon: const Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
                       prefixText: '',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -338,7 +338,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
     final ingredientName = _nameController.text.trim();
     if (ingredientName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter ingredient name first')),
+        const SnackBar(content: Text('Please enter ingredient name first'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -386,7 +386,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Found "$ingredientName" → ${result.nutrition.calories.toInt()} kcal'),
+              content: Text('AI: "$ingredientName" $baseAmount $_baseUnit → ${result.nutrition.calories.toInt()} kcal'),
               backgroundColor: Colors.purple,
               duration: const Duration(seconds: 2),
             ),
@@ -399,6 +399,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
             const SnackBar(
               content: Text('Unable to find this ingredient'),
               backgroundColor: AppColors.error,
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -413,6 +414,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
             SnackBar(
               content: Text('Search failed: $e'),
               backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -424,7 +426,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter ingredient name')),
+        const SnackBar(content: Text('Please enter ingredient name'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -450,7 +452,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Error: $e')),
+          SnackBar(content: Text('❌ Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     } finally {

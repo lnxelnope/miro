@@ -15,7 +15,7 @@ class ErrorHandler {
           ],
         ),
         backgroundColor: Colors.red[700],
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(

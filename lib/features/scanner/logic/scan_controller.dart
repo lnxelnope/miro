@@ -32,11 +32,18 @@ class ScanController {
     }
   }
 
-  Future<int> scanNewImages({DateTime? after}) async {
-    AppLogger.info(
-        'Starting scan for new images... ${after != null ? "after: ${after.toString()}" : "all"}');
+  Future<int> scanNewImages({DateTime? after, DateTime? specificDate}) async {
+    if (specificDate != null) {
+      AppLogger.info('Starting scan for images on specific date: ${specificDate.toString()}');
+    } else {
+      AppLogger.info(
+          'Starting scan for new images... ${after != null ? "after: ${after.toString()}" : "all"}');
+    }
 
-    final images = await _galleryService.fetchNewImages(after: after);
+    final images = await _galleryService.fetchNewImages(
+      after: after,
+      specificDate: specificDate,
+    );
     AppLogger.info('Found images: ${images.length}');
 
     if (images.isEmpty) {

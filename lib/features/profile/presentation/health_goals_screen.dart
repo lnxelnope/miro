@@ -1054,6 +1054,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           const SnackBar(
             content: Text('Goals saved successfully!'),
             backgroundColor: AppColors.success,
+            duration: Duration(seconds: 2),
           ),
         );
         Navigator.pop(context);
@@ -1061,7 +1062,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     } finally {

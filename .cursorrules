@@ -60,7 +60,7 @@
 - ตัวอย่าง: ลูกชิ้นเนื้อ 450 kcal / 16 ลูก → caloriesPerUnit = 28.125
 
 ### 5. Screens That MUST Follow This Pattern
-- `AddFoodBottomSheet` (health_diet_tab.dart) — เพิ่มอาหารใน Diet tab
+- `AddFoodBottomSheet` (widgets/add_food_bottom_sheet.dart) — Add food bottom sheet
 - `EditFoodBottomSheet` (edit_food_bottom_sheet.dart) — แก้ไขอาหาร
 - `GeminiAnalysisSheet` (gemini_analysis_sheet.dart) — วิเคราะห์ Gemini
 - `FoodDetailBottomSheet` (food_detail_bottom_sheet.dart) — ดูรายละเอียด

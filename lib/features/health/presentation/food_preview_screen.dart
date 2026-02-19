@@ -444,12 +444,12 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(AppIcons.save, size: 20, color: Colors.white),
-                      const SizedBox(width: 8),
-                      const Text(
+                      SizedBox(width: 8),
+                      Text(
                         'Save',
                         style: TextStyle(
                           fontSize: 16,
@@ -542,7 +542,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           Expanded(
             child: Row(
               children: [
-                Icon(AppIcons.aiAnalyzed, size: 16, color: AppColors.success),
+                const Icon(AppIcons.aiAnalyzed, size: 16, color: AppColors.success),
                 const SizedBox(width: 4),
                 Text(
                   'AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
@@ -570,7 +570,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Icon(AppIcons.aiAnalyzed, size: 20, color: Colors.purple),
+              : const Icon(AppIcons.aiAnalyzed, size: 20, color: Colors.purple),
           label: Text(_isAnalyzing ? 'ANALYZING...' : 'AI Analysis'),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.purple,
@@ -800,7 +800,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     // Validation
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter food name')),
+        const SnackBar(content: Text('Please enter food name'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -857,11 +857,12 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(AppIcons.success, size: 18, color: Colors.white),
-              const SizedBox(width: 8),
-              const Text('Food saved successfully!'),
+              SizedBox(width: 8),
+              Text('Food saved successfully!'),
             ],
           ),
           backgroundColor: AppColors.success,
+          duration: Duration(seconds: 2),
         ),
       );
       Navigator.pop(context);

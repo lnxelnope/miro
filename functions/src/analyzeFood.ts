@@ -647,6 +647,52 @@ User message: "${text}"`;
 }
 
 /**
+ * Extract JSON text from Gemini response (handles markdown code blocks, leading text, trailing newlines)
+ * Returns the extracted JSON string or null if no JSON found
+ */
+function extractJsonFromText(rawText: string): string | null {
+  const text = rawText.trim();
+  if (!text) return null;
+
+  // Case 1: Entire response is wrapped in ```json ... ```
+  if (text.startsWith("```json") || text.startsWith("```")) {
+    const cleaned = text
+      .replace(/^```(?:json)?\s*\n?/, "")
+      .replace(/\n?\s*```\s*$/, "")
+      .trim();
+    if (cleaned.startsWith("{") || cleaned.startsWith("[")) return cleaned;
+  }
+
+  // Case 2: Response is raw JSON (no code block)
+  if (text.startsWith("{") || text.startsWith("[")) return text;
+
+  // Case 3: JSON is embedded in text with markdown code block
+  const codeBlockMatch = text.match(/```(?:json)?\s*\n([\s\S]*?)\n\s*```/);
+  if (codeBlockMatch) {
+    const inner = codeBlockMatch[1].trim();
+    if (inner.startsWith("{") || inner.startsWith("[")) return inner;
+  }
+
+  // Case 4: JSON object/array is embedded in plain text (no code block)
+  const braceIdx = text.indexOf("{");
+  const bracketIdx = text.indexOf("[");
+  const startIdx = braceIdx >= 0 && bracketIdx >= 0
+    ? Math.min(braceIdx, bracketIdx)
+    : braceIdx >= 0 ? braceIdx : bracketIdx;
+
+  if (startIdx >= 0) {
+    const candidate = text.substring(startIdx).trim();
+    // Remove any trailing ``` that might follow the JSON
+    const withoutTrailing = candidate.replace(/\n?\s*```\s*$/, "").trim();
+    if (withoutTrailing.startsWith("{") || withoutTrailing.startsWith("[")) {
+      return withoutTrailing;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Validate และแก้ไข serving_unit ให้ถูกต้อง
  */
 function validateServingUnits(result: any): void {
@@ -696,8 +742,8 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
     });
   }
 
-  // Use higher token limit for chat/menu_suggestion (ingredients_detail needs more tokens)
-  const maxTokens = (request.type === "chat" || request.type === "menu_suggestion") ? 4096 : 2048;
+  // All analysis types need sufficient tokens for ingredients_detail + sub_ingredients JSON
+  const maxTokens = (request.type === "chat" || request.type === "menu_suggestion") ? 4096 : 4096;
 
   // Tune generation parameters per request type:
   // - Food analysis (image/text/barcode): low temperature for accuracy & consistency
@@ -856,11 +902,12 @@ export const analyzeFood = onRequest(
           // Process response (same as free AI)
           if (type === "chat" || type === "menu_suggestion") {
             const responseText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            let jsonText = responseText.trim();
-            if (jsonText.startsWith("```json")) {
-              jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-            } else if (jsonText.startsWith("```")) {
-              jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+            const jsonText = extractJsonFromText(responseText);
+
+            if (!jsonText) {
+              console.log("❌ [Subscriber Chat] Gemini returned non-JSON response");
+              res.status(422).json({error: "AI could not process this request. Please try again.", noCharge: true});
+              return;
             }
 
             const parsedResult = JSON.parse(jsonText);
@@ -912,6 +959,26 @@ export const analyzeFood = onRequest(
           } else {
             // Other types (image, text, barcode) — Subscriber
             console.log(`💎 [analyzeFood] Subscriber — skipping streak/check-in`);
+
+            // Validate Gemini response before returning to client
+            const rawSubText = geminiResponse?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const extractedSubJson = extractJsonFromText(rawSubText);
+
+            if (!extractedSubJson) {
+              console.log("❌ [Subscriber] Gemini returned non-JSON response");
+              console.log(`📝 Raw (first 300): ${rawSubText.substring(0, 300)}`);
+              res.status(422).json({error: "AI could not analyze this food. Please try again.", noCharge: true});
+              return;
+            }
+
+            try {
+              JSON.parse(extractedSubJson);
+            } catch {
+              console.log("❌ [Subscriber] Gemini response is not valid JSON");
+              console.log(`📝 Extracted (first 300): ${extractedSubJson.substring(0, 300)}`);
+              res.status(422).json({error: "AI returned invalid data. Please try again.", noCharge: true});
+              return;
+            }
 
             const currentBalance = userData.balance || 0;
             const miroId = userData.miroId || "unknown";
@@ -1169,13 +1236,12 @@ export const analyzeFood = onRequest(
         try {
           // Parse Gemini response text
           const responseText = geminiResponse.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          const jsonText = extractJsonFromText(responseText);
 
-          // Extract JSON from response (อาจมี markdown code blocks)
-          let jsonText = responseText.trim();
-          if (jsonText.startsWith("```json")) {
-            jsonText = jsonText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-          } else if (jsonText.startsWith("```")) {
-            jsonText = jsonText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+          if (!jsonText) {
+            console.log("❌ [Chat/Paid] Gemini returned non-JSON response");
+            console.log(`📝 Raw (first 300): ${responseText.substring(0, 300)}`);
+            throw new Error("AI returned invalid response");
           }
 
           const parsedResult = JSON.parse(jsonText);
@@ -1328,8 +1394,44 @@ export const analyzeFood = onRequest(
         }
       }
 
-      // ────── 4.5. Deduct Energy for non-chat types (or chat parse failure) ──────
-      // ✅ PHASE 1: หัก balance ใน Firestore
+      // ────── 4.5. Validate Gemini response before deducting energy ──────
+      // Validate that Gemini returned valid JSON before charging the user
+      const rawText = geminiResponse?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const finishReason = geminiResponse?.candidates?.[0]?.finishReason || "UNKNOWN";
+      console.log(`📊 [analyzeFood] type=${type}, finishReason=${finishReason}, rawText.length=${rawText.length}`);
+
+      if (finishReason === "MAX_TOKENS") {
+        console.log(`⚠️ [analyzeFood] Response was TRUNCATED (MAX_TOKENS) for type=${type}`);
+        console.log(`📝 Raw tail (last 200): ...${rawText.substring(Math.max(0, rawText.length - 200))}`);
+      }
+
+      const extractedJson = extractJsonFromText(rawText);
+
+      if (!extractedJson) {
+        const lower = rawText.toLowerCase();
+        if (lower.includes("sorry") || lower.includes("cannot") || lower.includes("unable") || lower.includes("not a food") || lower.includes("no food")) {
+          console.log("❌ [analyzeFood] Gemini returned refusal — NOT deducting energy");
+          res.status(422).json({error: "AI could not analyze this food. Please try a different name.", noCharge: true});
+          return;
+        }
+        console.log("❌ [analyzeFood] Gemini returned non-JSON — NOT deducting energy");
+        console.log(`📝 Raw response (first 500): ${rawText.substring(0, 500)}`);
+        res.status(422).json({error: "AI returned invalid response. Please try again.", noCharge: true});
+        return;
+      }
+
+      try {
+        JSON.parse(extractedJson);
+      } catch (parseError: any) {
+        console.log(`❌ [analyzeFood] Gemini response is not valid JSON — NOT deducting energy (finishReason=${finishReason})`);
+        console.log(`📝 Parse error: ${parseError.message}`);
+        console.log(`📝 Extracted (first 500): ${extractedJson.substring(0, 500)}`);
+        console.log(`📝 Extracted (last 200): ...${extractedJson.substring(Math.max(0, extractedJson.length - 200))}`);
+        res.status(422).json({error: "AI returned invalid data. Please try again.", noCharge: true});
+        return;
+      }
+
+      // ────── 4.6. Deduct Energy (only after validation passes) ──────
       let newBalance: number;
 
       try {

@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.1.7+32] - 2026-02-19
+
+### 🐛 Bug Fixes
+- **Food Scanning Auto-Analysis Disabled**: Fixed aggressive auto-analysis when scanning food images
+  - Removed auto-trigger listener that analyzed images immediately after scanning
+  - Scanned images now save as 0 kcal, 1 serving and wait for manual analysis
+  - Users must press "Analyze All" button when ready to analyze
+  - Prevents wasting Energy on food images the user didn't eat
+  - Updated feedback message: "Saved — use Analyze All when ready"
+
+### 🔧 Improvements
+- **AI Search Feedback Enhanced**: Ingredient search now shows quantity used in results
+  - Example: `AI: "chicken" 150.0 g → 165 kcal` (instead of just "chicken → 165 kcal")
+  - Makes it easier to verify that the correct quantity was sent to AI
+  - Applied to all ingredient editing sheets
+
+### 🔧 Technical
+- Removed `_autoTriggerAnalysisIfNeeded()` method from `HealthTimelineTab`
+- Removed `_triggerAutoAnalysisInTimeline()` method from `HomeScreen`
+- Removed auto-trigger listener in `initState()` of `HealthTimelineTab`
+- Updated `ImageAnalysisPreviewScreen` success message
+- Updated `EditIngredientSheet` AI search feedback to include quantity
+
+---
+
 ## [1.1.6+31] - 2026-02-18
 
 ### 🔒 Privacy & Compliance

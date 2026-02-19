@@ -153,49 +153,55 @@ const FoodEntrySchema = CollectionSchema(
       name: r'saturatedFat',
       type: IsarType.double,
     ),
-    r'servingGrams': PropertySchema(
+    r'searchMode': PropertySchema(
       id: 27,
+      name: r'searchMode',
+      type: IsarType.byte,
+      enumMap: _FoodEntrysearchModeEnumValueMap,
+    ),
+    r'servingGrams': PropertySchema(
+      id: 28,
       name: r'servingGrams',
       type: IsarType.double,
     ),
     r'servingSize': PropertySchema(
-      id: 28,
+      id: 29,
       name: r'servingSize',
       type: IsarType.double,
     ),
     r'servingUnit': PropertySchema(
-      id: 29,
+      id: 30,
       name: r'servingUnit',
       type: IsarType.string,
     ),
     r'sodium': PropertySchema(
-      id: 30,
+      id: 31,
       name: r'sodium',
       type: IsarType.double,
     ),
     r'source': PropertySchema(
-      id: 31,
+      id: 32,
       name: r'source',
       type: IsarType.byte,
       enumMap: _FoodEntrysourceEnumValueMap,
     ),
     r'sugar': PropertySchema(
-      id: 32,
+      id: 33,
       name: r'sugar',
       type: IsarType.double,
     ),
     r'syncedAt': PropertySchema(
-      id: 33,
+      id: 34,
       name: r'syncedAt',
       type: IsarType.dateTime,
     ),
     r'timestamp': PropertySchema(
-      id: 34,
+      id: 35,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'updatedAt': PropertySchema(
-      id: 35,
+      id: 36,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -294,15 +300,16 @@ void _foodEntrySerialize(
   writer.writeString(offsets[24], object.notes);
   writer.writeDouble(offsets[25], object.protein);
   writer.writeDouble(offsets[26], object.saturatedFat);
-  writer.writeDouble(offsets[27], object.servingGrams);
-  writer.writeDouble(offsets[28], object.servingSize);
-  writer.writeString(offsets[29], object.servingUnit);
-  writer.writeDouble(offsets[30], object.sodium);
-  writer.writeByte(offsets[31], object.source.index);
-  writer.writeDouble(offsets[32], object.sugar);
-  writer.writeDateTime(offsets[33], object.syncedAt);
-  writer.writeDateTime(offsets[34], object.timestamp);
-  writer.writeDateTime(offsets[35], object.updatedAt);
+  writer.writeByte(offsets[27], object.searchMode.index);
+  writer.writeDouble(offsets[28], object.servingGrams);
+  writer.writeDouble(offsets[29], object.servingSize);
+  writer.writeString(offsets[30], object.servingUnit);
+  writer.writeDouble(offsets[31], object.sodium);
+  writer.writeByte(offsets[32], object.source.index);
+  writer.writeDouble(offsets[33], object.sugar);
+  writer.writeDateTime(offsets[34], object.syncedAt);
+  writer.writeDateTime(offsets[35], object.timestamp);
+  writer.writeDateTime(offsets[36], object.updatedAt);
 }
 
 FoodEntry _foodEntryDeserialize(
@@ -340,17 +347,20 @@ FoodEntry _foodEntryDeserialize(
   object.notes = reader.readStringOrNull(offsets[24]);
   object.protein = reader.readDouble(offsets[25]);
   object.saturatedFat = reader.readDoubleOrNull(offsets[26]);
-  object.servingGrams = reader.readDoubleOrNull(offsets[27]);
-  object.servingSize = reader.readDouble(offsets[28]);
-  object.servingUnit = reader.readString(offsets[29]);
-  object.sodium = reader.readDoubleOrNull(offsets[30]);
+  object.searchMode =
+      _FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offsets[27])] ??
+          FoodSearchMode.normal;
+  object.servingGrams = reader.readDoubleOrNull(offsets[28]);
+  object.servingSize = reader.readDouble(offsets[29]);
+  object.servingUnit = reader.readString(offsets[30]);
+  object.sodium = reader.readDoubleOrNull(offsets[31]);
   object.source =
-      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[31])] ??
+      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[32])] ??
           DataSource.manual;
-  object.sugar = reader.readDoubleOrNull(offsets[32]);
-  object.syncedAt = reader.readDateTimeOrNull(offsets[33]);
-  object.timestamp = reader.readDateTime(offsets[34]);
-  object.updatedAt = reader.readDateTime(offsets[35]);
+  object.sugar = reader.readDoubleOrNull(offsets[33]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[34]);
+  object.timestamp = reader.readDateTime(offsets[35]);
+  object.updatedAt = reader.readDateTime(offsets[36]);
   return object;
 }
 
@@ -417,23 +427,26 @@ P _foodEntryDeserializeProp<P>(
     case 26:
       return (reader.readDoubleOrNull(offset)) as P;
     case 27:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (_FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offset)] ??
+          FoodSearchMode.normal) as P;
     case 28:
-      return (reader.readDouble(offset)) as P;
-    case 29:
-      return (reader.readString(offset)) as P;
-    case 30:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 29:
+      return (reader.readDouble(offset)) as P;
+    case 30:
+      return (reader.readString(offset)) as P;
     case 31:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 32:
       return (_FoodEntrysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           DataSource.manual) as P;
-    case 32:
-      return (reader.readDoubleOrNull(offset)) as P;
     case 33:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 34:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 35:
+      return (reader.readDateTime(offset)) as P;
+    case 36:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -451,6 +464,14 @@ const _FoodEntrymealTypeValueEnumMap = {
   1: MealType.lunch,
   2: MealType.dinner,
   3: MealType.snack,
+};
+const _FoodEntrysearchModeEnumValueMap = {
+  'normal': 0,
+  'product': 1,
+};
+const _FoodEntrysearchModeValueEnumMap = {
+  0: FoodSearchMode.normal,
+  1: FoodSearchMode.product,
 };
 const _FoodEntrysourceEnumValueMap = {
   'manual': 0,
@@ -2762,6 +2783,60 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeEqualTo(
+      FoodSearchMode value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      searchModeGreaterThan(
+    FoodSearchMode value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeLessThan(
+    FoodSearchMode value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeBetween(
+    FoodSearchMode lower,
+    FoodSearchMode upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'searchMode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
       servingGramsIsNull() {
     return QueryBuilder.apply(this, (query) {
@@ -3761,6 +3836,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortBySearchModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByServingGrams() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'servingGrams', Sort.asc);
@@ -4209,6 +4296,18 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenBySearchModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByServingGrams() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'servingGrams', Sort.asc);
@@ -4491,6 +4590,12 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'searchMode');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByServingGrams() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'servingGrams');
@@ -4714,6 +4819,13 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, double?, QQueryOperations> saturatedFatProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'saturatedFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodSearchMode, QQueryOperations>
+      searchModeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'searchMode');
     });
   }
 

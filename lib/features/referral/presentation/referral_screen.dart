@@ -60,12 +60,13 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             content: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(AppIcons.celebration, size: 18, color: Colors.white),
+                const Icon(AppIcons.celebration, size: 18, color: Colors.white),
                 const SizedBox(width: 8),
                 Text('+${result['bonusEnergy']} Energy!'),
               ],
             ),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -91,6 +92,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         const SnackBar(
           content: Text('Referral code copied to clipboard!'),
           backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
         ),
       );
     }
@@ -330,7 +332,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         Container(
           width: 32,
           height: 32,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.primary,
             shape: BoxShape.circle,
           ),

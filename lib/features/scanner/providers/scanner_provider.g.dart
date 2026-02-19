@@ -43,7 +43,7 @@ final permissionServiceProvider =
 
 typedef PermissionServiceRef = AutoDisposeProviderRef<PermissionService>;
 String _$galleryScanNotifierHash() =>
-    r'8554d135586fb254f938b4587af396a63f8e8400';
+    r'96c072098d4499ba4c04adccd09dbd7cfefc1618';
 
 /// Provider สำหรับสแกนรูปทั้งหมดใน Gallery
 /// return จำนวนรูปที่สแกนได้

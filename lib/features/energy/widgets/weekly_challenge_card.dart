@@ -60,12 +60,13 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
               content: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.celebration, size: 18, color: Colors.white),
+                  const Icon(AppIcons.celebration, size: 18, color: Colors.white),
                   const SizedBox(width: 8),
                   Text('+${data['energyReward']} Energy!'),
                 ],
               ),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -76,6 +77,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
             SnackBar(
               content: Text(error['error'] ?? 'Failed to claim reward'),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -86,6 +88,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
           SnackBar(
             content: Text('Error: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -225,7 +228,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Claim +$reward '),
-                  Icon(AppIcons.energy, size: 16, color: Colors.white),
+                  const Icon(AppIcons.energy, size: 16, color: Colors.white),
                 ],
               ),
               style: ElevatedButton.styleFrom(

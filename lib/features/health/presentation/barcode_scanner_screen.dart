@@ -308,7 +308,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to analyze product')),
+          const SnackBar(content: Text('Unable to analyze product'), duration: Duration(seconds: 2)),
         );
         setState(() => _hasScanned = false);
         return;
@@ -335,7 +335,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         await NoEnergyDialog.show(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     }
@@ -416,7 +416,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         _hasScanned = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ $e')),
+        SnackBar(content: Text('❌ $e'), duration: const Duration(seconds: 2)),
       );
     }
   }

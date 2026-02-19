@@ -367,7 +367,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     children: [
                       Row(
                         children: [
-                          Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
+                          const Icon(AppIcons.calories, size: 16, color: AppIcons.caloriesColor),
                           const SizedBox(width: 4),
                           Text(
                             '${_totalCalories.toInt()} kcal',
@@ -1033,7 +1033,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     if (name.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter ingredient name first')),
+          const SnackBar(content: Text('Please enter ingredient name first'), duration: Duration(seconds: 2)),
         );
       }
       return;
@@ -1220,6 +1220,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             SnackBar(
               content: Text('Search failed: $e'),
               backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -1286,7 +1287,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     if (missingRows.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No ingredients need nutrition lookup')),
+          const SnackBar(content: Text('No ingredients need nutrition lookup'), duration: Duration(seconds: 2)),
         );
       }
       return;
@@ -1417,6 +1418,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           content:
               Text('Search successful: $success/${missingRows.length} items'),
           backgroundColor: success > 0 ? AppColors.success : AppColors.error,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -1610,7 +1612,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Could not analyze sub-ingredient'),
-                backgroundColor: Colors.orange),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2)),
           );
         }
       }
@@ -1618,7 +1621,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       setState(() => sub.isLookingUp = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     }
@@ -1667,7 +1670,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter meal name')),
+        const SnackBar(content: Text('Please enter meal name'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -1675,7 +1678,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1.0;
     if (servingSize <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid serving size')),
+        const SnackBar(content: Text('Please enter valid serving size'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -1729,7 +1732,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Error: $e')),
+          SnackBar(content: Text('❌ Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     } finally {

@@ -462,6 +462,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -495,6 +496,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -721,6 +723,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
                         },
@@ -818,6 +821,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -899,6 +903,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           behavior: SnackBarBehavior.floating,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -948,6 +953,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               behavior: SnackBarBehavior.floating,
               shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -972,6 +978,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 2),
             ),
           );
         },
@@ -1048,6 +1055,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           behavior: SnackBarBehavior.floating,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 2),
         ),
       );
     }

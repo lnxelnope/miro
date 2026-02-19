@@ -18,7 +18,7 @@ import '../widgets/meal_section.dart';
 import '../../../core/database/database_service.dart';
 import '../models/food_entry.dart';
 import '../../../core/constants/enums.dart';
-import 'health_diet_tab.dart';
+import '../widgets/add_food_bottom_sheet.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
@@ -32,6 +32,9 @@ class HealthTimelineTab extends ConsumerStatefulWidget {
 class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   DateTime _selectedDate = dateOnly(DateTime.now());
   
+  // Scanning state
+  bool _isScanning = false;
+
   // Analyze All state
   bool _isAnalyzing = false;
   int _analyzeTotal = 0;
@@ -41,28 +44,20 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   bool _cancelRequested = false;
 
   @override
+  void initState() {
+    super.initState();
+    
+    // Auto-trigger disabled: entries stay at 0 kcal until user manually
+    // presses "Analyze All". Not every scanned image is food the user ate.
+  }
+
+  @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
     final fulfillAsync = ref.watch(fulfillCalorieProvider(_selectedDate));
 
     return RefreshIndicator(
-      onRefresh: () async {
-        AppLogger.info('Pull-to-refresh starting...');
-
-        // 1. Trigger auto-scan for new images
-        try {
-          AppLogger.info('Starting to scan new images from Gallery...');
-          final count = await ref
-              .read(galleryScanNotifierProvider.notifier)
-              .scanNewImages();
-          AppLogger.info('Scan complete - found: $count entries');
-        } catch (e) {
-          AppLogger.error('Scan failed', e);
-        }
-
-        // 2. Refresh existing data
-        refreshFoodProviders(ref, _selectedDate);
-      },
+      onRefresh: _scanForFood,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -74,6 +69,38 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           // Daily Summary Card
           SliverToBoxAdapter(
             child: DailySummaryCard(selectedDate: _selectedDate),
+          ),
+
+          // Analyze All Info Bar (moved here - between summary and date selector)
+          SliverToBoxAdapter(
+            child: Builder(builder: (context) {
+              final items = timelineAsync.valueOrNull ?? [];
+              final foodEntries = items
+                  .where((i) => i.type == 'food')
+                  .map((i) => i.data as FoodEntry)
+                  .where((f) => !f.isDeleted)
+                  .toList();
+
+              final withImage = foodEntries.where((f) =>
+                f.imagePath != null && f.imagePath!.isNotEmpty
+              ).length;
+              final textOnly = foodEntries.where((f) =>
+                (f.imagePath == null || f.imagePath!.isEmpty) &&
+                f.source != DataSource.database
+              ).length;
+              final fromDb = foodEntries.where((f) =>
+                f.source == DataSource.database
+              ).length;
+              final unanalyzed = foodEntries.where((f) =>
+                !f.hasNutritionData
+              ).toList();
+
+              // Always show the info bar (permanent)
+              return _buildCompactInfoBar(
+                context, foodEntries, unanalyzed,
+                withImage, textOnly, fromDb,
+              );
+            }),
           ),
 
           // Date Selector
@@ -157,41 +184,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             }),
           ),
 
-          // Meals Info Bar (compact, below meal sections)
-          SliverToBoxAdapter(
-            child: Builder(builder: (context) {
-              final items = timelineAsync.valueOrNull ?? [];
-              final foodEntries = items
-                  .where((i) => i.type == 'food')
-                  .map((i) => i.data as FoodEntry)
-                  .where((f) => !f.isDeleted)
-                  .toList();
-
-              final withImage = foodEntries.where((f) =>
-                f.imagePath != null && f.imagePath!.isNotEmpty
-              ).length;
-              final textOnly = foodEntries.where((f) =>
-                (f.imagePath == null || f.imagePath!.isEmpty) &&
-                f.source != DataSource.database
-              ).length;
-              final fromDb = foodEntries.where((f) =>
-                f.source == DataSource.database
-              ).length;
-              final unanalyzed = foodEntries.where((f) =>
-                !f.hasNutritionData
-              ).toList();
-
-              if (foodEntries.isEmpty && !_isAnalyzing) {
-                return const SizedBox.shrink();
-              }
-
-              return _buildCompactInfoBar(
-                context, foodEntries, unanalyzed,
-                withImage, textOnly, fromDb,
-              );
-            }),
-          ),
-
           // Bottom padding
           const SliverToBoxAdapter(
             child: SizedBox(height: 100),
@@ -269,6 +261,43 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ],
       ),
     );
+  }
+
+  Future<void> _scanForFood() async {
+    if (_isScanning) return;
+    setState(() => _isScanning = true);
+    try {
+      AppLogger.info('Scanning for food images on date: ${_selectedDate.toString()}');
+      final count = await ref
+          .read(galleryScanNotifierProvider.notifier)
+          .scanNewImages(specificDate: _selectedDate);
+      AppLogger.info('Scan complete - found: $count entries for ${_selectedDate.toString()}');
+
+      refreshFoodProviders(ref, _selectedDate);
+
+      if (!mounted) return;
+      if (count > 0) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Found $count new images on ${DateFormat('d MMM yyyy').format(_selectedDate)}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No new images found on ${DateFormat('d MMM yyyy').format(_selectedDate)}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Scan failed', e);
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
+    }
   }
 
   Widget _buildUpsellBanner() {
@@ -493,6 +522,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ref.invalidate(fulfillCalorieProvider(_selectedDate));
 
         if (!context.mounted) return;
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Entry deleted successfully'),
@@ -512,14 +542,14 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     }
   }
 
-  // ===== Analyze All Batch Processing =====
+  // ===== Analyze All Batch Processing with Auto-Continue Queue =====
   
-  Future<void> _startBatchAnalysis(List<FoodEntry> unanalyzedEntries) async {
+  Future<void> _startBatchAnalysis(List<FoodEntry> initialEntries) async {
     // Check energy first - use energy provider
     final energyAsync = ref.read(energyBalanceProvider);
     final currentBalance = energyAsync.valueOrNull ?? 0;
     
-    final requiredEnergy = unanalyzedEntries.length;
+    final requiredEnergy = initialEntries.length;
     
     if (currentBalance < requiredEnergy) {
       if (!mounted) return;
@@ -533,119 +563,145 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     // Start analyzing
     setState(() {
       _isAnalyzing = true;
-      _analyzeTotal = unanalyzedEntries.length;
+      _analyzeTotal = initialEntries.length;
       _analyzeCurrent = 0;
       _currentItemName = '';
       _failedIds = [];
       _cancelRequested = false;
     });
 
-    int successCount = 0;
+    int totalSuccessCount = 0;
+    var entriesToProcess = initialEntries;
 
-    for (int i = 0; i < unanalyzedEntries.length; i++) {
-      if (_cancelRequested) {
-        break;
-      }
+    // Auto-continue queue: keep processing until no more unanalyzed entries
+    while (entriesToProcess.isNotEmpty && !_cancelRequested) {
+      int batchSuccessCount = 0;
 
-      final entry = unanalyzedEntries[i];
-      
-      setState(() {
-        _analyzeCurrent = i + 1;
-        _currentItemName = entry.foodName;
-      });
-
-      try {
-        FoodAnalysisResult? result;
-        
-        // Analyze by image or by name
-        if (entry.imagePath != null && entry.imagePath!.isNotEmpty) {
-          result = await GeminiService.analyzeFoodImage(
-            File(entry.imagePath!),
-            foodName: entry.foodName,
-            quantity: entry.servingSize,
-            unit: entry.servingUnit,
-          );
-        } else {
-          result = await GeminiService.analyzeFoodByName(
-            entry.foodName,
-            servingSize: entry.servingSize,
-            servingUnit: entry.servingUnit,
-          );
+      for (int i = 0; i < entriesToProcess.length; i++) {
+        if (_cancelRequested) {
+          break;
         }
 
-        if (result != null) {
-          // Update entry with analysis results
-          entry.foodName = result.foodName;
-          entry.foodNameEn = result.foodNameEn;
-          entry.calories = result.nutrition.calories;
-          entry.protein = result.nutrition.protein;
-          entry.carbs = result.nutrition.carbs;
-          entry.fat = result.nutrition.fat;
-          entry.fiber = result.nutrition.fiber;
-          entry.sugar = result.nutrition.sugar;
-          entry.sodium = result.nutrition.sodium;
-          // Calculate base values from serving size
-          final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-          entry.baseCalories = result.nutrition.calories / serving;
-          entry.baseProtein = result.nutrition.protein / serving;
-          entry.baseCarbs = result.nutrition.carbs / serving;
-          entry.baseFat = result.nutrition.fat / serving;
-          entry.servingSize = result.servingSize;
-          entry.servingUnit = result.servingUnit;
-          entry.servingGrams = result.servingGrams?.toDouble();
-          entry.source = DataSource.aiAnalyzed;
-          entry.isVerified = true;
-          entry.aiConfidence = result.confidence;
+        final entry = entriesToProcess[i];
+        
+        setState(() {
+          _analyzeCurrent = totalSuccessCount + batchSuccessCount + _failedIds.length + 1;
+          _currentItemName = entry.foodName;
+        });
+
+        try {
+          FoodAnalysisResult? result;
           
-          // Save ingredients if available
-          if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
-            entry.ingredientsJson = jsonEncode(
-              result.ingredientsDetail!.map((item) => {
-                'name': item.name,
-                'nameEn': item.nameEn,
-                'amount': item.amount,
-                'unit': item.unit,
-                'calories': item.calories,
-                'protein': item.protein,
-                'carbs': item.carbs,
-                'fat': item.fat,
-              }).toList(),
+          // Analyze by image or by name
+          if (entry.imagePath != null && entry.imagePath!.isNotEmpty) {
+            AppLogger.info('[BatchAnalyze] Analyzing image: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
+            result = await GeminiService.analyzeFoodImage(
+              File(entry.imagePath!),
+              foodName: entry.foodName,
+              quantity: entry.servingSize,
+              unit: entry.servingUnit,
+              searchMode: entry.searchMode,
+            );
+          } else {
+            AppLogger.info('[BatchAnalyze] Analyzing text: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
+            result = await GeminiService.analyzeFoodByName(
+              entry.foodName,
+              servingSize: entry.servingSize,
+              servingUnit: entry.servingUnit,
+              searchMode: entry.searchMode,
             );
           }
 
-          // Save to database
-          await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-          successCount++;
-        } else {
+          if (result != null) {
+            // Update entry with analysis results
+            entry.foodName = result.foodName;
+            entry.foodNameEn = result.foodNameEn;
+            entry.calories = result.nutrition.calories;
+            entry.protein = result.nutrition.protein;
+            entry.carbs = result.nutrition.carbs;
+            entry.fat = result.nutrition.fat;
+            entry.fiber = result.nutrition.fiber;
+            entry.sugar = result.nutrition.sugar;
+            entry.sodium = result.nutrition.sodium;
+            
+            // Update searchMode based on AI response
+            if (result.foodType != null) {
+              if (result.foodType == 'product') {
+                entry.searchMode = FoodSearchMode.product;
+              } else {
+                entry.searchMode = FoodSearchMode.normal;
+              }
+            }
+            
+            // Calculate base values from serving size
+            final serving = result.servingSize > 0 ? result.servingSize : 1.0;
+            entry.baseCalories = result.nutrition.calories / serving;
+            entry.baseProtein = result.nutrition.protein / serving;
+            entry.baseCarbs = result.nutrition.carbs / serving;
+            entry.baseFat = result.nutrition.fat / serving;
+            entry.servingSize = result.servingSize;
+            entry.servingUnit = result.servingUnit;
+            entry.servingGrams = result.servingGrams?.toDouble();
+            entry.source = DataSource.aiAnalyzed;
+            entry.isVerified = true;
+            entry.aiConfidence = result.confidence;
+            
+            // Save ingredients if available
+            if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
+              entry.ingredientsJson = jsonEncode(
+                result.ingredientsDetail!.map((item) => item.toJson()).toList(),
+              );
+            }
+
+            // Save to database
+            await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+            batchSuccessCount++;
+          } else {
+            _failedIds.add(entry.id);
+          }
+        } catch (e, stackTrace) {
+          AppLogger.error('[BatchAnalyze] ❌ FAILED "${entry.foodName}" — $e', stackTrace);
           _failedIds.add(entry.id);
         }
-      } catch (e) {
-        AppLogger.error('Analyze failed for ${entry.foodName}', e);
-        _failedIds.add(entry.id);
-        
-        // Retry once for network errors
-        if (e.toString().contains('network') || e.toString().contains('timeout')) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          try {
-            // Retry logic here (simplified)
-            AppLogger.info('Retrying ${entry.foodName}...');
-          } catch (retryError) {
-            AppLogger.error('Retry failed', retryError);
-          }
+
+        // Rate limit protection
+        if (i < entriesToProcess.length - 1) {
+          await Future.delayed(const Duration(milliseconds: 300));
         }
       }
 
-      // Rate limit protection
-      if (i < unanalyzedEntries.length - 1) {
-        await Future.delayed(const Duration(milliseconds: 300));
+      totalSuccessCount += batchSuccessCount;
+
+      // Refresh providers to pick up any new entries added during analysis
+      ref.invalidate(healthTimelineProvider(_selectedDate));
+      ref.invalidate(todayCaloriesProvider);
+      ref.invalidate(todayMacrosProvider);
+      ref.invalidate(fulfillCalorieProvider(_selectedDate));
+
+      // Re-check: are there new unanalyzed entries?
+      if (_cancelRequested) break;
+      
+      try {
+        final refreshed = await ref.read(foodEntriesByDateProvider(_selectedDate).future);
+        entriesToProcess = refreshed
+            .where((f) => !f.hasNutritionData && !_failedIds.contains(f.id))
+            .toList();
+
+        if (entriesToProcess.isNotEmpty) {
+          // Update progress bar to show new total
+          setState(() {
+            _analyzeTotal += entriesToProcess.length;
+          });
+          AppLogger.info('[BatchAnalyze] Found ${entriesToProcess.length} new unanalyzed entries — continuing...');
+          
+          // Small delay before continuing
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      } catch (e) {
+        AppLogger.error('[BatchAnalyze] Error checking for new entries', e);
+        break;
       }
     }
-
-    // Refresh UI
-    ref.invalidate(healthTimelineProvider(_selectedDate));
-    ref.invalidate(todayCaloriesProvider);
-    ref.invalidate(todayMacrosProvider);
-    ref.invalidate(fulfillCalorieProvider(_selectedDate));
 
     // Show summary
     setState(() {
@@ -656,10 +712,10 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     
     final failedCount = _failedIds.length;
     final message = _cancelRequested
-        ? 'ยกเลิกแล้ว - วิเคราะห์สำเร็จ $successCount รายการ'
+        ? 'ยกเลิกแล้ว - วิเคราะห์สำเร็จ $totalSuccessCount รายการ'
         : failedCount == 0
-            ? '✅ วิเคราะห์สำเร็จ $successCount รายการ'
-            : '⚠️ วิเคราะห์สำเร็จ $successCount/${_analyzeTotal} รายการ ($failedCount ล้มเหลว)';
+            ? '✅ วิเคราะห์สำเร็จ $totalSuccessCount รายการ'
+            : '⚠️ วิเคราะห์สำเร็จ $totalSuccessCount/${_analyzeTotal} รายการ ($failedCount ล้มเหลว)';
     
     _showMessage(message);
   }
@@ -674,8 +730,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     );
   }
 
-  // ===== Compact Meals Info Bar =====
-
+  // ===== Compact Meals Info Bar (Always Visible) =====
+  
   Widget _buildCompactInfoBar(
     BuildContext context,
     List<FoodEntry> allEntries,
@@ -690,7 +746,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ? Colors.white.withOpacity(0.08)
         : Colors.black.withOpacity(0.05);
     final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final hasData = allEntries.isNotEmpty;
 
+    // Analyzing state — show progress bar
     if (_isAnalyzing) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -744,6 +802,41 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       );
     }
 
+    // Empty state — show pull to refresh hint
+    if (!hasData) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark ? AppColors.dividerDark : AppColors.divider,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.arrow_downward_rounded,
+              size: 18,
+              color: textColor,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Pull to scan your meal',
+              style: TextStyle(
+                fontSize: 13,
+                color: textColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Has data - show info chips and buttons
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -783,8 +876,22 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
           const Spacer(),
 
+          // Refresh button
+          GestureDetector(
+            onTap: _scanForFood,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: chipBg,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+            ),
+          ),
+
           // Analyze button (only if there are unanalyzed entries)
-          if (energyCost > 0)
+          if (energyCost > 0) ...[
+            const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _startBatchAnalysis(unanalyzed),
               child: Container(
@@ -819,6 +926,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                 ),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -849,4 +957,5 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       ),
     );
   }
+
 }

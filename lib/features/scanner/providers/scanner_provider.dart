@@ -41,8 +41,13 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
   }
 
   /// สแกนรูปใหม่จาก Gallery
-  Future<int> scanNewImages() async {
-    AppLogger.info('scanNewImages() starting');
+  /// ถ้าระบุ [specificDate] จะสแกนเฉพาะรูปที่ถ่ายในวันนั้นเท่านั้น
+  Future<int> scanNewImages({DateTime? specificDate}) async {
+    if (specificDate != null) {
+      AppLogger.info('scanNewImages() starting for specific date: ${specificDate.toString()}');
+    } else {
+      AppLogger.info('scanNewImages() starting (all recent images)');
+    }
     state = const AsyncValue.loading();
 
     try {
@@ -63,17 +68,19 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
         }
       }
 
-      // ดึงวันที่เริ่มต้นสำหรับสแกน (ตามการตั้งค่า)
-      AppLogger.info('Getting scan start date...');
-      final scanStartDate = await permService.getScanStartDate();
-      final daysBack = await permService.getScanDaysBack();
-      AppLogger.info('Scanning back: $daysBack days');
-      AppLogger.info('Start date: ${scanStartDate.toString()}');
-
-      // สแกนรูป
-      AppLogger.info('Calling ScanController.scanNewImages()...');
       final controller = ref.read(scanControllerProvider);
-      final savedCount = await controller.scanNewImages(after: scanStartDate);
+      int savedCount;
+
+      if (specificDate != null) {
+        // สแกนเฉพาะวันที่ที่กำหนด
+        AppLogger.info('Calling ScanController.scanNewImages() for date: ${specificDate.toString()}');
+        savedCount = await controller.scanNewImages(specificDate: specificDate);
+      } else {
+        // สแกนรูปล่าสุด (ตาม scan limit)
+        AppLogger.info('Calling ScanController.scanNewImages() for recent images');
+        savedCount = await controller.scanNewImages();
+      }
+
       AppLogger.info('Scan complete - saved: $savedCount entries');
 
       // อัปเดตเวลาสแกน

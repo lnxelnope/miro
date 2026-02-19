@@ -47,12 +47,13 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
               content: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.celebration, size: 18, color: Colors.white),
+                  const Icon(AppIcons.celebration, size: 18, color: Colors.white),
                   const SizedBox(width: 8),
                   Text('+${data['energyReward']} Energy!'),
                 ],
               ),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -63,6 +64,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
             SnackBar(
               content: Text(error['error'] ?? 'Failed to claim milestone'),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -73,6 +75,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
           SnackBar(
             content: Text('Error: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -170,7 +173,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
+                const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
               ],
             ),
           ],
@@ -221,7 +224,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('Claim +$reward '),
-                  Icon(AppIcons.energy, size: 16, color: Colors.white),
+                  const Icon(AppIcons.energy, size: 16, color: Colors.white),
                 ],
               ),
               style: ElevatedButton.styleFrom(

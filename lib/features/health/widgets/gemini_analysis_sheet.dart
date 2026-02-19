@@ -396,7 +396,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter ingredient name')),
+        const SnackBar(content: Text('Please enter ingredient name'), duration: Duration(seconds: 2)),
       );
       return;
     }
@@ -582,7 +582,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Unable to analyze'),
-                backgroundColor: AppColors.error),
+                backgroundColor: AppColors.error,
+                duration: Duration(seconds: 2)),
           );
         }
       }
@@ -598,7 +599,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Error: $e'), backgroundColor: AppColors.error),
+                content: Text('Error: $e'), backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -825,7 +827,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(AppIcons.calories, size: 32, color: AppIcons.caloriesColor),
+                  const Icon(AppIcons.calories, size: 32, color: AppIcons.caloriesColor),
                   const SizedBox(width: 12),
                   Text(
                     '${_displayCalories.toInt()}',
@@ -1547,7 +1549,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  value: _getValidUnit(sub.unit),
+                  initialValue: _getValidUnit(sub.unit),
                   isDense: true,
                   isExpanded: true,
                   style: const TextStyle(fontSize: 12, color: Colors.black87),
@@ -1849,6 +1851,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
             const SnackBar(
               content: Text('Could not analyze sub-ingredient'),
               backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -1858,7 +1861,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       setState(() => sub.isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     }

@@ -13,9 +13,10 @@ class DisclaimerScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Warning icon
@@ -39,9 +40,9 @@ class DisclaimerScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Full disclaimer text
-            Text(
+            const Text(
               AppDisclaimer.full,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 height: 1.6,
                 color: Colors.black87,
@@ -106,6 +107,7 @@ class DisclaimerScreen extends StatelessWidget {
             
             const SizedBox(height: 16),
           ],
+        ),
         ),
       ),
     );

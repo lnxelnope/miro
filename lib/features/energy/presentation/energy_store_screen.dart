@@ -247,7 +247,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(AppIcons.energy, size: 48, color: Colors.white),
+            child: const Icon(AppIcons.energy, size: 48, color: Colors.white),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -289,8 +289,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [const Color(0xFF7C3AED), const Color(0xFF6D28D9)],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -516,7 +516,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
       ),
       child: Row(
         children: [
-          Icon(AppIcons.celebration, size: 48, color: Colors.white),
+          const Icon(AppIcons.celebration, size: 48, color: Colors.white),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
@@ -549,7 +549,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(AppIcons.timer, size: 14, color: Colors.white),
+                      const Icon(AppIcons.timer, size: 14, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
                         'Expires in $timeStr',
@@ -741,7 +741,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
+                          const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
                           const SizedBox(width: 4),
                           Text(
                             bonusEnergy > 0
@@ -993,21 +993,25 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
       await _loadData();
 
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ Purchased $energy Energy!'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
     } else {
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('❌ Purchase failed. Please try again.'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
           ),
         );
       }

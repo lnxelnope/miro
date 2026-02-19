@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import 'health_timeline_tab.dart';
-import 'health_diet_tab.dart';
 import 'health_my_meal_tab.dart';
-// import 'health_workout_tab.dart';  // v1.0: ซ่อน
-// import 'health_other_tab.dart';    // v1.0: ซ่อน
-// import 'health_lab_tab.dart';      // v1.0: ซ่อน
 
 class HealthPage extends StatefulWidget {
   const HealthPage({super.key});
@@ -21,7 +17,7 @@ class _HealthPageState extends State<HealthPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -34,7 +30,6 @@ class _HealthPageState extends State<HealthPage>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Sub-tabs
         Container(
           color: Theme.of(context).cardColor,
           child: TabBar(
@@ -45,19 +40,16 @@ class _HealthPageState extends State<HealthPage>
             indicatorColor: AppColors.health,
             tabs: const [
               Tab(text: 'Timeline'),
-              Tab(text: 'Diet'),
               Tab(text: 'My Meal'),
             ],
           ),
         ),
-        // Tab content
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: [
-              const HealthTimelineTab(),
-              const HealthDietTab(),
-              const HealthMyMealTab(),
+            children: const [
+              HealthTimelineTab(),
+              HealthMyMealTab(),
             ],
           ),
         ),

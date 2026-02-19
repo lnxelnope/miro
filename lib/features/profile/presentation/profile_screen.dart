@@ -214,7 +214,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   
                   // ✅ Analytics Consent Toggle
-                  _AnalyticsConsentToggle(),
+                  const _AnalyticsConsentToggle(),
                   
                   _buildModernSettingCard(
                     context: context,
@@ -885,13 +885,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: const Color(0xFF6366F1),
               title: 'Miro AI',
               subtitle: 'Powered by Gemini • Multi-language • High accuracy',
-              cost: Row(
+              cost: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  const Text('2 + ', style: TextStyle(fontSize: 12)),
+                  Text('2 + ', style: TextStyle(fontSize: 12)),
                   Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  const Text('/item', style: TextStyle(fontSize: 12)),
+                  Text('/item', style: TextStyle(fontSize: 12)),
                 ],
               ),
               isSelected: isMiroAi,
@@ -1259,7 +1259,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('All data cleared successfully')),
+            const SnackBar(content: Text('All data cleared successfully'), duration: Duration(seconds: 2)),
           );
           // กลับไป Onboarding
           Navigator.pushAndRemoveUntil(
@@ -1271,7 +1271,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -1465,11 +1465,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            Row(
+            const Row(
               children: [
                 Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-                const SizedBox(width: 4),
-                const Text(
+                SizedBox(width: 4),
+                Text(
                   'Important:',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
@@ -1627,11 +1627,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 'Food Entries Imported:', '${result.foodEntriesImported}'),
             _buildInfoRow('My Meals Imported:', '${result.myMealsImported}'),
             const SizedBox(height: 16),
-            Row(
+            const Row(
               children: [
                 Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
-                const SizedBox(width: 4),
-                const Text(
+                SizedBox(width: 4),
+                Text(
                   'Your app will refresh to show the restored data.',
                   style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
                 ),
@@ -1721,7 +1721,6 @@ class _ScanSettingsCard extends StatefulWidget {
 }
 
 class _ScanSettingsCardState extends State<_ScanSettingsCard> {
-  int _scanDaysBack = 7;
   int _scanImageLimit = 500;
 
   @override
@@ -1731,12 +1730,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
   }
 
   Future<void> _loadSettings() async {
-    final permService = PermissionService();
     final galleryService = GalleryService();
-
-    _scanDaysBack = await permService.getScanDaysBack();
     _scanImageLimit = await galleryService.getScanLimit();
-
     if (mounted) setState(() {});
   }
 
@@ -1747,19 +1742,10 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.history, color: AppColors.primary),
-            title: const Text('Scan history'),
-            subtitle: Text('$_scanDaysBack days'),
-            trailing:
-                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-            onTap: _showScanDaysBackDialog,
-          ),
-          const Divider(height: 1),
-          ListTile(
             leading: const Icon(Icons.photo_library_outlined,
                 color: AppColors.primary),
-            title: const Text('Images to scan'),
-            subtitle: Text('$_scanImageLimit images'),
+            title: const Text('Images per day'),
+            subtitle: Text('Scan up to $_scanImageLimit images per day'),
             trailing:
                 const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             onTap: _showScanLimitDialog,
@@ -1768,53 +1754,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           ListTile(
             leading: const Icon(Icons.refresh, color: AppColors.warning),
             title: const Text('Reset Scan History'),
-            subtitle: const Text('Re-scan all images from start'),
+            subtitle: const Text('Delete all scanned entries and re-scan'),
             onTap: _resetScanHistory,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showScanDaysBackDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Scan history (days)'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Select how many days back to scan\nHigher values take longer',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [1, 3, 7, 14, 30, 90].map((days) {
-                return ChoiceChip(
-                  label: Text('$days days'),
-                  selected: _scanDaysBack == days,
-                  onSelected: (selected) async {
-                    if (selected) {
-                      final permService = PermissionService();
-                      await permService.setScanDaysBack(days);
-                      setState(() => _scanDaysBack = days);
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      _showMessage('Scan history set to $days days');
-                    }
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
           ),
         ],
       ),
@@ -1825,12 +1766,12 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Images to scan'),
+        title: const Text('Images per day'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Select maximum number of images to scan\nHigher values take longer',
+              'Maximum images to scan per day\nScans only the selected date',
               style: TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 16),
@@ -1839,7 +1780,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
               runSpacing: 8,
               children: [100, 250, 500, 1000, 2000, 5000].map((limit) {
                 return ChoiceChip(
-                  label: Text('$limit images'),
+                  label: Text('$limit'),
                   selected: _scanImageLimit == limit,
                   onSelected: (selected) async {
                     if (selected) {
@@ -1848,7 +1789,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
                       setState(() => _scanImageLimit = limit);
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      _showMessage('Scan limit set to $limit images');
+                      _showMessage('Scan limit set to $limit images per day');
                     }
                   },
                 );
@@ -1873,7 +1814,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
         title: const Text('Reset Scan History?'),
         content: const Text(
           'All gallery-scanned food entries will be deleted.\n'
-          'Images will be re-scanned based on your day setting.',
+          'Pull down on any date to re-scan images.',
         ),
         actions: [
           TextButton(
@@ -1891,7 +1832,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
 
     if (confirm == true) {
       try {
-        // 1. ลบ food entries ที่มาจาก gallery scan
+        // ลบ food entries ที่มาจาก gallery scan
         final scanEntries = await DatabaseService.foodEntries
             .filter()
             .sourceEqualTo(DataSource.galleryScanned)
@@ -1905,13 +1846,9 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
 
         AppLogger.info('Deleted ${ids.length} gallery-scanned entries');
 
-        // 2. ลบ last scan timestamp
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('last_scan_timestamp');
-
         if (!mounted) return;
         _showMessage(
-            'Reset complete - ${ids.length} entries deleted. Pull down to scan again.');
+            'Reset complete - ${ids.length} entries deleted. Pull down to re-scan.');
       } catch (e) {
         AppLogger.error('Error resetting scan history', e);
         if (!mounted) return;
@@ -1925,6 +1862,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -1986,6 +1924,7 @@ class _AnalyticsConsentToggleState
                 : 'Analytics disabled - ไม่เก็บข้อมูลการใช้งาน',
           ),
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
         ),
       );
     }

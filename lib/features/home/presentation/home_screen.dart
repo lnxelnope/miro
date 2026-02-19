@@ -160,6 +160,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SnackBar(
             content: Text('All permissions granted'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
       } else {
@@ -170,6 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SnackBar(
             content: Text('Permission denied: $denied'),
             backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
             action: SnackBarAction(
               label: 'Open Settings',
               textColor: Colors.white,
@@ -327,7 +329,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     if (capturedImage != null && mounted) {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ImageAnalysisPreviewScreen(
@@ -335,6 +337,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       );
+      
+      // After returning from preview screen, switch to timeline tab
+      // User can manually analyze when ready via "Analyze All"
+      if (_currentIndex != 0) {
+        setState(() => _currentIndex = 0);
+      }
     }
   }
 

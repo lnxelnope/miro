@@ -1,18 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miro_hybrid/core/ai/gemini_service.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
-import 'package:miro_hybrid/features/health/widgets/gemini_analysis_sheet.dart';
-import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
-import 'package:miro_hybrid/core/services/usage_limiter.dart';
 import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
-import 'dart:convert';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -38,9 +34,8 @@ class _ImageAnalysisPreviewScreenState
   late TextEditingController _foodNameController;
   late TextEditingController _quantityController;
   late String _selectedUnit;
-  bool _isAnalyzing = false;
-  bool _isCancelled = false;
   FoodSearchMode _searchMode = FoodSearchMode.normal;
+  String? _permanentImagePath;
 
   @override
   void initState() {
@@ -52,203 +47,90 @@ class _ImageAnalysisPreviewScreenState
       text: (widget.initialQuantity ?? 1.0).toString(),
     );
     _selectedUnit = widget.initialUnit ?? 'serving';
+    _copyImageToPermanentPath();
+  }
+
+  Future<void> _copyImageToPermanentPath() async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      if (widget.imageFile.path.startsWith(appDir.path)) {
+        _permanentImagePath = widget.imageFile.path;
+        return;
+      }
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final destPath = '${appDir.path}/$fileName';
+      await widget.imageFile.copy(destPath);
+      _permanentImagePath = destPath;
+    } catch (e) {
+      AppLogger.error('Failed to copy image to permanent path', e);
+      _permanentImagePath = widget.imageFile.path;
+    }
   }
 
   @override
   void dispose() {
-    _isCancelled = true;
     _foodNameController.dispose();
     _quantityController.dispose();
     super.dispose();
   }
 
-  /// เตือนผู้ใช้ก่อนออกขณะ AI กำลังวิเคราะห์
-  Future<bool> _onWillPop() async {
-    if (!_isAnalyzing) return true;
-
-    final shouldLeave = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            SizedBox(width: 12),
-            Expanded(child: Text('Analyzing...')),
-          ],
-        ),
-        content: const Text(
-          'AI is analyzing food\n\n'
-          'If you leave now, the analysis result will be lost '
-          'and you will need to re-analyze (costs Energy again)',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Wait'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Exit'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLeave == true) {
-      _isCancelled = true;
-      return true;
-    }
-    return false;
-  }
-
-  Future<void> _analyzeWithAI() async {
-    if (_isAnalyzing) return;
-
+  Future<void> _saveAndAnalyze() async {
     // Validate inputs
     final foodName = _foodNameController.text.trim();
     final quantityText = _quantityController.text.trim();
 
-    double? quantity;
+    double quantity = 1.0;
     if (quantityText.isNotEmpty) {
-      quantity = double.tryParse(quantityText);
-      if (quantity == null || quantity <= 0) {
+      final parsed = double.tryParse(quantityText);
+      if (parsed == null || parsed <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid quantity')),
+          const SnackBar(content: Text('Please enter a valid quantity'), duration: Duration(seconds: 2)),
         );
         return;
       }
+      quantity = parsed;
     }
 
-    setState(() {
-      _isAnalyzing = true;
-      _isCancelled = false;
-    });
+    // Create unanalyzed FoodEntry
+    final entry = FoodEntry()
+      ..foodName = foodName.isEmpty ? 'food' : foodName
+      ..mealType = _guessMealType()
+      ..timestamp = DateTime.now()
+      ..imagePath = _permanentImagePath ?? widget.imageFile.path
+      ..servingSize = quantity
+      ..servingUnit = _selectedUnit
+      ..calories = 0
+      ..protein = 0
+      ..carbs = 0
+      ..fat = 0
+      ..source = DataSource.galleryScanned
+      ..isVerified = false;
+
+    // Save to database
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    await notifier.addFoodEntry(entry);
 
     if (!mounted) return;
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
 
-    try {
-      // Call AI analysis with optional parameters + search mode
-      final result = await GeminiService.analyzeFoodImage(
-        widget.imageFile,
-        foodName: foodName.isEmpty ? null : foodName,
-        quantity: quantity,
-        unit: _selectedUnit,
-        searchMode: _searchMode,
-      );
+    // Refresh providers
+    final today = dateOnly(DateTime.now());
+    ref.invalidate(healthTimelineProvider(today));
+    ref.invalidate(foodEntriesByDateProvider(today));
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
 
-      // ถ้า user กดออกระหว่างรอ → หยุดทำงาน
-      if (_isCancelled || !mounted) return;
+    // Show success message
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('✅ Saved — use "Analyze All" when ready'),
+        backgroundColor: AppColors.success,
+        duration: Duration(seconds: 2),
+      ),
+    );
 
-      if (result == null) {
-        throw Exception('No result from AI analysis');
-      }
-
-      // Record AI usage after success
-      await UsageLimiter.recordAiUsage();
-
-      // Update energy badge
-      if (_isCancelled || !mounted) return;
-      ref.invalidate(energyBalanceProvider);
-      ref.invalidate(currentEnergyProvider);
-
-      // Show analysis result
-      if (_isCancelled || !mounted) return;
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (context) => GeminiAnalysisSheet(
-          analysisResult: result,
-          onConfirm: (confirmedData) async {
-            // Create new FoodEntry
-            final entry = FoodEntry()
-              ..foodName = confirmedData.foodName
-              ..foodNameEn = confirmedData.foodNameEn
-              ..mealType = _guessMealType()
-              ..timestamp = DateTime.now()
-              ..imagePath = widget.imageFile.path
-              ..servingSize = confirmedData.servingSize
-              ..servingUnit = confirmedData.servingUnit
-              ..servingGrams = confirmedData.servingGrams
-              ..calories = confirmedData.calories
-              ..protein = confirmedData.protein
-              ..carbs = confirmedData.carbs
-              ..fat = confirmedData.fat
-              ..baseCalories = confirmedData.baseCalories
-              ..baseProtein = confirmedData.baseProtein
-              ..baseCarbs = confirmedData.baseCarbs
-              ..baseFat = confirmedData.baseFat
-              ..fiber = confirmedData.fiber
-              ..sugar = confirmedData.sugar
-              ..sodium = confirmedData.sodium
-              ..source = DataSource.aiAnalyzed
-              ..aiConfidence = confirmedData.confidence
-              ..isVerified = true
-              ..notes = confirmedData.notes;
-
-            // Save ingredients JSON if available
-            if (confirmedData.ingredientsDetail != null &&
-                confirmedData.ingredientsDetail!.isNotEmpty) {
-              entry.ingredientsJson =
-                  jsonEncode(confirmedData.ingredientsDetail);
-            }
-
-            // Add to database
-            final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-            await notifier.addFoodEntry(entry);
-
-            // Refresh timeline to show the new entry immediately
-            if (mounted) {
-              final today = dateOnly(DateTime.now());
-              ref.invalidate(healthTimelineProvider(today));
-              ref.invalidate(foodEntriesByDateProvider(today));
-              // Also refresh the food entries list
-              ref.invalidate(foodEntriesNotifierProvider);
-            }
-
-            // Auto-save ingredients and meal if available
-            if (confirmedData.ingredientsDetail != null &&
-                confirmedData.ingredientsDetail!.isNotEmpty) {
-              try {
-                await notifier.saveIngredientsAndMeal(
-                  mealName: confirmedData.foodName,
-                  mealNameEn: confirmedData.foodNameEn,
-                  servingDescription:
-                      '${confirmedData.servingSize} ${confirmedData.servingUnit}',
-                  imagePath: entry.imagePath,
-                  ingredientsData: confirmedData.ingredientsDetail!,
-                );
-              } catch (e) {
-                AppLogger.error('Error saving ingredients/meal', e);
-              }
-            }
-
-            // Navigate back to home after analysis
-            if (mounted) {
-              navigator.popUntil((route) => route.isFirst);
-            }
-          },
-        ),
-      );
-    } catch (e) {
-      if (_isCancelled || !mounted) return;
-
-      messenger.showSnackBar(
-        SnackBar(content: Text('Analysis failed: ${e.toString()}')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isAnalyzing = false;
-        });
-      }
-    }
+    // Navigate back to dashboard
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   MealType _guessMealType() {
@@ -267,7 +149,7 @@ class _ImageAnalysisPreviewScreenState
       ..foodName = foodName.isEmpty ? 'food' : foodName
       ..mealType = _guessMealType()
       ..timestamp = DateTime.now()
-      ..imagePath = widget.imageFile.path
+      ..imagePath = _permanentImagePath ?? widget.imageFile.path
       ..servingSize = quantity
       ..servingUnit = _selectedUnit
       ..calories = 0
@@ -285,8 +167,10 @@ class _ImageAnalysisPreviewScreenState
     final today = dateOnly(DateTime.now());
     ref.invalidate(healthTimelineProvider(today));
     ref.invalidate(foodEntriesByDateProvider(today));
-    ref.invalidate(foodEntriesNotifierProvider);
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
 
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Saved — analyze later with Analyze All'),
@@ -301,14 +185,7 @@ class _ImageAnalysisPreviewScreenState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_isAnalyzing,
-      onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
-        final shouldLeave = await _onWillPop();
-        if (shouldLeave && context.mounted) {
-          Navigator.of(context).pop();
-        }
-      },
+      canPop: true,
       child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -333,46 +210,7 @@ class _ImageAnalysisPreviewScreenState
 
             const SizedBox(height: 24),
 
-            // Inline loading indicator (แทน dialog)
-            if (_isAnalyzing)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                ),
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      width: 36,
-                      height: 36,
-                      child: CircularProgressIndicator(strokeWidth: 3),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'AI is analyzing food...',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Please wait...',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            if (!_isAnalyzing) const SizedBox(height: 0),
-
-            // Input Section (ซ่อนเมื่อกำลังวิเคราะห์)
+            // Input Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -504,33 +342,22 @@ class _ImageAnalysisPreviewScreenState
 
                   const SizedBox(height: 32),
 
-                  // Analyze Button
+                  // Save & Analyze Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: _isAnalyzing ? null : _analyzeWithAI,
-                      icon: _isAnalyzing
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.auto_awesome, size: 24),
-                      label: Text(
-                        _isAnalyzing ? 'Analyzing...' : 'Analyze with AI',
-                        style: const TextStyle(
+                      onPressed: _saveAndAnalyze,
+                      icon: const Icon(Icons.save_rounded, size: 24),
+                      label: const Text(
+                        'Save & Analyze',
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isAnalyzing
-                            ? Colors.grey[400]
-                            : AppColors.primary,
+                        backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -543,29 +370,28 @@ class _ImageAnalysisPreviewScreenState
                   const SizedBox(height: 12),
 
                   // Save to Diary button (save photo as pending entry)
-                  if (!_isAnalyzing)
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: OutlinedButton.icon(
-                        onPressed: _saveToDiary,
-                        icon: const Icon(Icons.bookmark_add_outlined, size: 20),
-                        label: const Text(
-                          'Save to Diary',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: _saveToDiary,
+                      icon: const Icon(Icons.bookmark_add_outlined, size: 20),
+                      label: const Text(
+                        'Save without analysis',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textSecondary,
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textSecondary,
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                     ),
+                  ),
 
                   const SizedBox(height: 32),
                 ],

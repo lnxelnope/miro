@@ -46,6 +46,13 @@ class AppTheme {
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
     ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      dismissDirection: DismissDirection.horizontal,
+    ),
     dividerTheme: const DividerThemeData(
       color: AppColors.divider,
       thickness: 1,
@@ -121,13 +128,18 @@ class AppTheme {
     ),
     cardTheme: CardThemeData(
       color: AppColors.surfaceDark,
-      elevation: 1, // เปลี่ยนจาก 0 → 1
-      shadowColor:
-          Colors.black.withOpacity(0.2), // เพิ่มบรรทัดนี้ (0.2 เพราะ dark mode)
+      elevation: 1,
+      shadowColor: Colors.black.withOpacity(0.2),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16), // เปลี่ยนจาก 12 → 16
-        // ลบ side: const BorderSide(...) ออกทั้งบรรทัด
+        borderRadius: BorderRadius.circular(16),
       ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      dismissDirection: DismissDirection.horizontal,
     ),
   );
 }

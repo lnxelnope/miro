@@ -125,7 +125,7 @@ class AnalyticsService {
     await _logEvent('ai_analysis', {
       'analysis_type': analysisType,
       if (energyCost != null) 'energy_cost': energyCost,
-      if (isSubscriber != null) 'is_subscriber': isSubscriber,
+      if (isSubscriber != null) 'is_subscriber': isSubscriber.toString(),
       if (itemCount != null) 'item_count': itemCount,
     });
   }
@@ -214,7 +214,7 @@ class AnalyticsService {
     bool? productFound,
   }) async {
     await _logEvent('barcode_scan', {
-      if (productFound != null) 'product_found': productFound,
+      if (productFound != null) 'product_found': productFound.toString(),
     });
   }
 

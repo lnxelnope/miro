@@ -154,28 +154,30 @@ class PermissionService {
     await prefs.setInt(_keyLastScanTime, time.millisecondsSinceEpoch);
   }
 
-  // ========== Scan Days Back Setting ==========
+  // ========== Scan Days Back Setting (Deprecated - keeping for backward compatibility) ==========
 
-  /// ดึงจำนวนวันที่สแกนย้อนหลัง
+  /// ดึงจำนวนวันที่สแกนย้อนหลัง (Deprecated: ตอนนี้ scan เฉพาะวันที่เลือกแล้ว)
+  @Deprecated('Scan now targets specific dates only')
   Future<int> getScanDaysBack() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_keyScanDaysBack) ?? defaultScanDaysBack;
   }
 
-  /// บันทึกจำนวนวันที่สแกนย้อนหลัง
+  /// บันทึกจำนวนวันที่สแกนย้อนหลัง (Deprecated: ตอนนี้ scan เฉพาะวันที่เลือกแล้ว)
+  @Deprecated('Scan now targets specific dates only')
   Future<void> setScanDaysBack(int days) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyScanDaysBack, days);
-    AppLogger.info('Saved scanDaysBack: $days days');
+    AppLogger.info('Saved scanDaysBack: $days days (deprecated)');
   }
 
-  /// คำนวณวันที่เริ่มต้นสำหรับการสแกน
-  /// ใช้ daysBack เป็นหลัก เพื่อให้ได้รูปใหม่ทุกครั้งที่สแกน
+  /// คำนวณวันที่เริ่มต้นสำหรับการสแกน (Deprecated: ตอนนี้ scan เฉพาะวันที่เลือกแล้ว)
+  @Deprecated('Scan now targets specific dates only')
   Future<DateTime> getScanStartDate() async {
     final daysBack = await getScanDaysBack();
     final daysBackDate = DateTime.now().subtract(Duration(days: daysBack));
 
-    AppLogger.info('Using daysBack: $daysBack days → $daysBackDate');
+    AppLogger.info('Using daysBack: $daysBack days → $daysBackDate (deprecated)');
     return daysBackDate;
   }
 

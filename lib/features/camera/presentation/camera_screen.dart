@@ -63,7 +63,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error initializing camera: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to initialize camera')),
+          const SnackBar(content: Text('Failed to initialize camera'), duration: Duration(seconds: 2)),
         );
         Navigator.of(context).pop();
       }
@@ -107,7 +107,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error taking picture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to capture photo')),
+          const SnackBar(content: Text('Failed to capture photo'), duration: Duration(seconds: 2)),
         );
       }
     } finally {
@@ -138,7 +138,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error picking from gallery: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to pick image from gallery')),
+          const SnackBar(content: Text('Failed to pick image from gallery'), duration: Duration(seconds: 2)),
         );
         setState(() {
           _isProcessing = false;

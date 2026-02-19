@@ -42,6 +42,42 @@ class GeminiService {
     _globalContext = context;
   }
 
+  /// Extract JSON from AI response text (handles markdown code blocks, leading text, trailing newlines)
+  static String? _extractJsonFromResponse(String rawText) {
+    final text = rawText.trim();
+    if (text.isEmpty) return null;
+
+    // Case 1: Wrapped in ```json ... ``` or ``` ... ```
+    if (text.startsWith('```json') || text.startsWith('```')) {
+      final cleaned = text
+          .replaceFirst(RegExp(r'^```(?:json)?\s*\n?'), '')
+          .replaceFirst(RegExp(r'\n?\s*```\s*$'), '')
+          .trim();
+      if (cleaned.startsWith('{') || cleaned.startsWith('[')) return cleaned;
+    }
+
+    // Case 2: Raw JSON
+    if (text.startsWith('{') || text.startsWith('[')) return text;
+
+    // Case 3: JSON embedded in markdown code block somewhere in text
+    final codeBlockMatch = RegExp(r'```(?:json)?\s*\n([\s\S]*?)\n\s*```').firstMatch(text);
+    if (codeBlockMatch != null) {
+      final inner = codeBlockMatch.group(1)?.trim();
+      if (inner != null && (inner.startsWith('{') || inner.startsWith('['))) {
+        return inner;
+      }
+    }
+
+    // Case 4: JSON object embedded in plain text
+    final braceIdx = text.indexOf('{');
+    if (braceIdx >= 0) {
+      final candidate = text.substring(braceIdx).replaceFirst(RegExp(r'\n?\s*```\s*$'), '').trim();
+      if (candidate.startsWith('{')) return candidate;
+    }
+
+    return null;
+  }
+
   /// Show daily welcome dialog after first AI usage of the day
   /// Handles: daily energy, tier upgrade + reward, tier demote, welcome back, welcome offer
   static void _showDailyWelcomeDialog(
@@ -81,7 +117,7 @@ class GeminiService {
           ? 'welcome_offer'
           : showWelcomeBackOffer
               ? 'welcome_back'
-              : 'tier_upgrade_${tier}';
+              : 'tier_upgrade_$tier';
       WelcomeOfferService.saveActivePromotion(
         bonusRate: promoRate,
         type: promoType,
@@ -642,6 +678,20 @@ class GeminiService {
             'Your Energy has not been deducted.');
       }
 
+      // Handle 422 (AI returned invalid response — no energy charged)
+      if (response.statusCode == 422) {
+        try {
+          final error = json.decode(response.body);
+          final errorMsg = error['error']?.toString() ??
+              'AI could not analyze this food.';
+          throw Exception('$errorMsg\n\nYour Energy has not been deducted.');
+        } catch (e) {
+          if (e.toString().contains('Energy has not been deducted')) rethrow;
+          throw Exception(
+              'AI could not analyze this food.\n\nYour Energy has not been deducted.');
+        }
+      }
+
       if (response.statusCode != 200) {
         try {
           final error = json.decode(response.body);
@@ -697,7 +747,7 @@ class GeminiService {
 
       // ────── 6b. Log analytics event ──────
       AnalyticsService.logAiAnalysis(
-        analysisType: 'image',
+        analysisType: type,
         energyCost: result['energyCost'] as int? ?? 1,
         isSubscriber: result['isSubscriber'] == true,
       );
@@ -707,24 +757,21 @@ class GeminiService {
       final text =
           geminiData['candidates'][0]['content']['parts'][0]['text'] as String;
 
-      // ลบ markdown code block (```json ... ```)
-      final cleanedText = text
-          .replaceAll(RegExp(r'```json\s*'), '')
-          .replaceAll(RegExp(r'```\s*$'), '')
-          .trim();
+      AppLogger.debug('[AI] Raw response (first 300 chars): ${text.substring(0, text.length > 300 ? 300 : text.length)}');
 
-      // ตรวจสอบว่า AI ตอบกลับเป็น JSON หรือไม่
+      // Extract JSON from response (handles markdown blocks, leading text, trailing newlines)
+      final cleanedText = _extractJsonFromResponse(text);
+
       final isImageType = type == 'image';
       final notFoundMsg = isImageType
-          ? 'ไม่พบอาหารในภาพนี้\n\nกรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง'
-          : 'ไม่พบข้อมูลอาหารนี้\n\nกรุณาลองพิมพ์ชื่ออาหารใหม่อีกครั้ง';
+          ? 'No food found in this image.\n\nPlease try taking a new photo.'
+          : 'Could not find nutrition data for this food.\n\nPlease try a different name.';
       final cannotAnalyzeMsg = isImageType
-          ? 'AI ไม่สามารถวิเคราะห์ภาพนี้ได้\n\nกรุณาลองถ่ายภาพใหม่อีกครั้ง'
-          : 'AI ไม่สามารถวิเคราะห์อาหารนี้ได้\n\nกรุณาลองพิมพ์ชื่อใหม่อีกครั้ง';
+          ? 'AI could not analyze this image.\n\nPlease try taking a new photo.'
+          : 'AI could not analyze this food.\n\nPlease try a different name.';
 
-      if (cleanedText.isEmpty ||
-          (!cleanedText.startsWith('{') && !cleanedText.startsWith('['))) {
-        final lowerText = cleanedText.toLowerCase();
+      if (cleanedText == null || cleanedText.isEmpty) {
+        final lowerText = text.toLowerCase();
         if (lowerText.contains('sorry') ||
             lowerText.contains('cannot') ||
             lowerText.contains('not contain') ||
@@ -1149,11 +1196,11 @@ Return ONLY valid JSON.''';
 CUISINE CONTEXT (CRITICAL for accurate identification):
 The user's cuisine preference is: "${_cuisinePreference.toUpperCase()}".
 When the food in the image is visually ambiguous (e.g., curry, rice dish, noodles, soup, stew, grilled meat), 
-you MUST bias your identification toward ${_cuisinePreference} cuisine FIRST.
-- Example: A curry dish → identify as ${_cuisinePreference} curry (with typical ${_cuisinePreference} ingredients, spices, and cooking methods)
-- Example: A rice dish → identify as ${_cuisinePreference}-style rice (with typical ${_cuisinePreference} seasonings and sides)
-- Example: A noodle soup → identify as ${_cuisinePreference}-style noodle soup
-- Use ${_cuisinePreference} ingredient names, cooking techniques, and typical portion sizes
+you MUST bias your identification toward $_cuisinePreference cuisine FIRST.
+- Example: A curry dish → identify as $_cuisinePreference curry (with typical $_cuisinePreference ingredients, spices, and cooking methods)
+- Example: A rice dish → identify as $_cuisinePreference-style rice (with typical $_cuisinePreference seasonings and sides)
+- Example: A noodle soup → identify as $_cuisinePreference-style noodle soup
+- Use $_cuisinePreference ingredient names, cooking techniques, and typical portion sizes
 - Only override this bias if the food is CLEARLY from another cuisine (e.g., sushi is clearly Japanese even if user prefers Thai)
 '''
         : '';
@@ -1356,8 +1403,13 @@ Example for "Kimchi Fried Rice with Pork":
     }
   ],
   "ingredients": ["jasmine rice", "pork belly", "kimchi", "gochujang", "vegetable oil", "sesame oil", "soy sauce", "garlic", "sugar", "egg"],
+  "food_type": "food",
   "notes": "High sodium from kimchi + soy sauce + gochujang. Oil absorbed during stir-frying adds ~130 hidden calories."
 }
+
+IMPORTANT: Add "food_type" field:
+- If you clearly see a packaged product with a nutrition label → set "food_type": "product"
+- Otherwise → set "food_type": "food"
 
 Return ONLY valid JSON, no markdown or explanations.''';
   }
@@ -1366,41 +1418,65 @@ Return ONLY valid JSON, no markdown or explanations.''';
   /// Focuses on reading nutrition labels and using known product data
   static String _getProductImageAnalysisPrompt() {
     final cuisineHint = _cuisinePreference != 'international'
-        ? '\nThe user typically consumes ${_cuisinePreference} food products. If the product origin is ambiguous, prioritize ${_cuisinePreference} market products and brands.\n'
+        ? '\nThe user typically consumes $_cuisinePreference food products. If the product origin is ambiguous, prioritize $_cuisinePreference market products and brands.\n'
         : '';
 
     return '''You are a Nutrition Label Expert and Packaged Food Specialist.
-This image shows a WELL-KNOWN PACKAGED PRODUCT (snack, beverage, ready-to-eat meal, etc.) that has a Nutrition Facts label.
+This image shows a PACKAGED PRODUCT or BRANDED FOOD ITEM.
 $cuisineHint
 
 YOUR PRIORITY ORDER:
 1. If a Nutrition Facts label is visible → extract EXACT values from the label
-2. If the product is recognizable (brand name visible) → use known official nutrition data
+2. If the product is from a well-known brand/chain → use known official nutrition data
 3. If neither → estimate based on product type and packaging
 
 STEP-BY-STEP ANALYSIS:
 
 Step 1 — PRODUCT IDENTIFICATION:
 - Read brand name, product name, variant/flavor from packaging
-- Identify the product category (snack, beverage, dairy, candy, ready meal, etc.)
+- Identify the product category (snack, beverage, dairy, candy, ready meal, fast food, etc.)
+- Identify the SIZE/VARIANT: the same product comes in different sizes (e.g., Coke 330ml can vs 500ml bottle vs 1.5L). Use visual cues from the packaging to determine the correct size. Do NOT assume a default size.
 - Cross-reference against known product databases for accuracy
 
-Step 2 — NUTRITION LABEL EXTRACTION:
+Step 2 — NUTRITION DATA EXTRACTION:
 - If a Nutrition Facts label is visible, extract EXACT values (do NOT estimate)
 - Note the serving size as stated on label
 - Note servings per container if visible
+- IMPORTANT: Distinguish "per serving" vs "per package". If label says per serving = 30g but the package is 60g (2 servings), and user eats the whole package, multiply by 2.
 
 Step 3 — PORTION CALCULATION:
-- Use the portion the user specifies (e.g., "1 bag", "1 serving", "1 bottle")
-- If user says "1 bag/box/bottle" and label shows multiple servings per container, multiply accordingly
-- Calculate total nutrition for the specified portion
+- If the user specifies a portion (e.g., "300 ml"), calculate nutrition for THAT portion only, even if the container is larger.
+  Formula: user_portion / total_container × total_nutrition
+- Note the full container size in "notes" for reference (e.g., "Full bottle is 1000ml, user consumed 300ml")
+- If user says "1 bag/box/bottle", calculate for the ENTIRE container (multiply servings per container)
+- If NO portion is specified, use the most reasonable single-consumption portion
+
+MULTI-PACK / BOX-IN-BOX RULE:
+- If the image shows a large box/pack containing smaller individual packets/units inside, assume the user ate 1 INDIVIDUAL PACKET, NOT the entire outer box
+- Use per-packet nutrition from the label (divide total by number of packets if needed)
+- Set serving_unit to the individual unit (e.g., "packet", "sachet", "bar", "piece")
+- Example: A box of 12 granola bars → report nutrition for 1 bar, not 12
+
+BRANDED PREPARED FOOD RULE (KFC, McDonald's, Starbucks, Pizza Hut, Subway, etc.):
+- If the product is from a well-known food chain or restaurant brand:
+  1. COUNT the exact number of pieces/items visible in the image
+  2. IDENTIFY each piece by type (e.g., drumstick vs breast vs wing for fried chicken)
+  3. Look up the OFFICIAL per-piece/per-item nutrition for that brand
+  4. List EACH piece as a SEPARATE entry in "ingredients_detail" with brand-specific calories
+     Example: KFC bucket with 6 pieces → 6 separate entries, NOT a single "KFC Chicken 350 kcal"
+  5. For combo/set meals, break down into individual components (burger + fries + drink)
+  6. If brand is recognized but specific item is unclear, use the brand's average per-piece values
+- WRONG: {"name": "KFC Chicken", "amount": 6, "unit": "piece", "calories": 350}  ← WAY too low for 6 pieces
+- CORRECT: List each piece separately: Drumstick ~170kcal, Breast ~390kcal, Thigh ~290kcal, Wing ~130kcal
 
 CRITICAL RULES:
 - "ingredients_detail" array is MANDATORY
-- For packaged products, the main item IS the product itself
-- If ingredients list is visible, parse it; otherwise use the product as single ingredient
-- Use EXACT label values when visible, do NOT estimate
-- serving_unit should match what the user specified or what makes sense for the product (e.g., "bag", "bottle", "box", "bar", "pack", "can", "serving")
+- For simple packaged products, the product itself IS the main ingredient entry
+- For branded food with multiple pieces, list EACH piece separately
+- For combo/set meals, list EACH component separately
+- If ingredients list is visible on packaging, parse it
+- Use EXACT label/official values when available, do NOT estimate
+- serving_unit should match what the user specified or what makes sense (e.g., "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving", "cup")
 
 Respond in JSON format:
 {
@@ -1421,11 +1497,11 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Product Name",
+      "name": "Product Name or Individual Piece",
       "name_en": "Product Name in English",
-      "detail": "Source: nutrition label / known product data",
-      "amount": 28,
-      "unit": "g",
+      "detail": "Source: nutrition label / official brand data",
+      "amount": 1,
+      "unit": "piece",
       "calories": 150,
       "protein": 2,
       "carbs": 15,
@@ -1433,7 +1509,8 @@ Respond in JSON format:
     }
   ],
   "ingredients": ["ingredient1", "ingredient2"],
-  "notes": "Source: nutrition label / known product database. Per [portion specified]."
+  "food_type": "product",
+  "notes": "Source: nutrition label / known product database. Per [portion specified]. Full container: [size]."
 }
 
 Return ONLY valid JSON, no markdown or explanations.''';
@@ -1467,7 +1544,7 @@ Return ONLY valid JSON, no markdown or explanations.''';
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 
     final cuisineBias = _cuisinePreference != 'international'
-        ? 'The user\'s cuisine preference is "${_cuisinePreference}". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a ${_cuisinePreference} dish with typical ${_cuisinePreference} ingredients and cooking methods.\n'
+        ? 'The user\'s cuisine preference is "$_cuisinePreference". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a $_cuisinePreference dish with typical $_cuisinePreference ingredients and cooking methods.\n'
         : '';
 
     return '''
@@ -1596,8 +1673,11 @@ Respond in JSON only:
       "fat": 3
     }
   ],
-  "notes": "Flag hidden calorie sources and high sodium/sugar concerns"
-}''';
+  "notes": "Flag hidden calorie sources and high sodium/sugar concerns",
+  "food_type": "food"
+}
+
+IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant dishes.''';
   }
 
   /// Prompt for analyzing PACKAGED PRODUCTS by name (text only)
@@ -1616,28 +1696,55 @@ Respond in JSON only:
 
     return '''You are a Packaged Food & Nutrition Label Expert.
 
-The user wants nutrition data for a WELL-KNOWN PACKAGED PRODUCT (with a Nutrition Facts label).
+The user wants nutrition data for a PACKAGED PRODUCT or BRANDED FOOD ITEM.
 
 Product: "$productName"
 Portion: $servingDesc
 
 YOUR TASK:
-1. Identify the product (brand, variant, flavor)
+1. Identify the product (brand, variant, flavor, SIZE)
 2. Use the OFFICIAL nutrition facts data for this product
-3. Calculate nutrition for the specified portion
+3. Calculate nutrition for the SPECIFIED PORTION only
 
 IMPORTANT RULES:
 - Use known/official nutrition data — do NOT estimate like regular food
 - If the product has a known Nutrition Facts label, use those exact values
-- If the user says "1 bag" or "1 bottle" and the product has multiple servings per container, calculate for the ENTIRE container
 - If you don't recognize the product, indicate low confidence and estimate based on similar products
-- serving_unit should match what makes sense: "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving"
+- serving_unit should match what makes sense: "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving", "cup"
+
+PORTION vs CONTAINER RULE:
+- If the user specifies a portion SMALLER than the full container (e.g., "300 ml" from a 1000 ml bottle), calculate nutrition ONLY for that portion:
+  Formula: user_portion / total_container × total_nutrition
+- If user says "1 bag/box/bottle", calculate for the ENTIRE container (multiply servings per container if label shows multiple)
+- Always report nutrition for the portion the user specified, NOT the full container
+- Note the full container size in "notes" for reference
+
+MULTI-PACK / BOX-IN-BOX RULE:
+- If the product name suggests a multi-pack (e.g., "granola bars 12-pack"), assume 1 individual unit
+- Use per-unit nutrition, not the entire box
+- Set serving_unit to the individual unit (e.g., "bar", "packet", "sachet")
+
+BRANDED PREPARED FOOD RULE (KFC, McDonald's, Starbucks, Pizza Hut, Subway, etc.):
+- If the product is from a well-known food chain/restaurant brand:
+  1. Determine the number of pieces/items from the user's input (e.g., "KFC 6 pieces")
+  2. Identify each piece by type if possible (e.g., drumstick vs breast vs wing)
+  3. Look up the OFFICIAL per-piece/per-item nutrition for that brand
+  4. List EACH piece as a SEPARATE entry in "ingredients_detail" with brand-specific calories
+  5. For combo/set meals, break down into individual components (burger + fries + drink)
+  6. If brand is recognized but specific item is unclear, use the brand's average per-piece values
+- WRONG: {"name": "KFC Chicken", "amount": 6, "unit": "piece", "calories": 350}  ← WAY too low for 6 pieces
+- CORRECT: List each piece with its real calories: Drumstick ~170kcal, Breast ~390kcal, Thigh ~290kcal, Wing ~130kcal
+
+SIZE/VARIANT AWARENESS:
+- The same product comes in different sizes (e.g., Coke 330ml can vs 500ml bottle vs 1.5L)
+- If user specifies size, use that exact size
+- If not specified, use the most common single-serving size for that product
 
 FIELD REQUIREMENTS:
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
 - food_name: Keep original name as user entered
 - food_name_en: MUST ALWAYS be in English (include brand name)
-- "ingredients_detail" array is MANDATORY
+- "ingredients_detail" array is MANDATORY (for multi-piece items, list EACH piece separately)
 
 Respond in JSON only:
 {
@@ -1659,7 +1766,7 @@ Respond in JSON only:
   "ingredients_detail": [
     {
       "name": "$productName",
-      "name_en": "English product name",
+      "name_en": "English product name or individual piece name",
       "detail": "Source: official nutrition facts. Per $servingDesc.",
       "amount": $servingSizeJson,
       "unit": "$servingUnitJson",
@@ -1670,7 +1777,8 @@ Respond in JSON only:
     }
   ],
   "ingredients": [],
-  "notes": "Source: official nutrition facts for $productName. Portion: $servingDesc."
+  "food_type": "product",
+  "notes": "Source: official nutrition facts for $productName. Portion: $servingDesc. Full container: [size if applicable]."
 }
 
 Return ONLY valid JSON.''';
@@ -1684,6 +1792,7 @@ Return ONLY valid JSON.''';
 class FoodAnalysisResult {
   final String foodName;
   final String? foodNameEn;
+  final String? foodType; // 'food' or 'product'
   final double confidence;
   final double servingSize;
   final String servingUnit;
@@ -1696,6 +1805,7 @@ class FoodAnalysisResult {
   FoodAnalysisResult({
     required this.foodName,
     this.foodNameEn,
+    this.foodType,
     required this.confidence,
     required this.servingSize,
     required this.servingUnit,
@@ -1723,6 +1833,7 @@ class FoodAnalysisResult {
     return FoodAnalysisResult(
       foodName: json['food_name'] ?? 'Unknown',
       foodNameEn: json['food_name_en'],
+      foodType: json['food_type'], // 'food' or 'product'
       confidence: (json['confidence'] ?? 0.5).toDouble(),
       servingSize: rawSize,
       servingUnit: rawUnit,
@@ -1769,20 +1880,38 @@ class IngredientDetail {
   factory IngredientDetail.fromJson(Map<String, dynamic> json) {
     return IngredientDetail(
       name: json['name'] ?? '',
-      nameEn: json['name_en'],
-      detail: json['detail'], // NEW
+      nameEn: json['name_en'] ?? json['nameEn'],
+      detail: json['detail'],
       amount: (json['amount'] ?? 0).toDouble(),
       unit: json['unit'] ?? 'g',
       calories: (json['calories'] ?? 0).toDouble(),
       protein: (json['protein'] ?? 0).toDouble(),
       carbs: (json['carbs'] ?? 0).toDouble(),
       fat: (json['fat'] ?? 0).toDouble(),
-      subIngredients: json['sub_ingredients'] != null // NEW
+      subIngredients: json['sub_ingredients'] != null
           ? (json['sub_ingredients'] as List)
               .map((e) => IngredientDetail.fromJson(e))
               .toList()
           : null,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'name': name,
+      'name_en': nameEn,
+      'detail': detail,
+      'amount': amount,
+      'unit': unit,
+      'calories': calories,
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+    };
+    if (subIngredients != null && subIngredients!.isNotEmpty) {
+      map['sub_ingredients'] = subIngredients!.map((s) => s.toJson()).toList();
+    }
+    return map;
   }
 }
 

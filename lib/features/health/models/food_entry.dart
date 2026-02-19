@@ -53,6 +53,8 @@ class FoodEntry {
   // Metadata
   @enumerated
   late DataSource source;
+  @enumerated
+  FoodSearchMode searchMode = FoodSearchMode.normal; // Food or Product type
   double? aiConfidence;
   bool isVerified = false;
   bool isDeleted = false; // Soft delete - ป้องกันการสแกนรูปซ้ำ
