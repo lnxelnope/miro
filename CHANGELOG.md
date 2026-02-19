@@ -1,5 +1,97 @@
 # Changelog
 
+## [1.1.9+34] - 2026-02-20
+
+### ✨ New Features
+
+#### Smart Chat Context-Aware AI
+- **AI Database Knowledge**: Miro AI now knows your MyMeal and Ingredient database
+  - Suggests meals from your saved collection
+  - Smart food matching (e.g., "ไข่ 2 ลูก" auto-matches "ไข่ต้ม" in DB)
+  - Uses DB nutrition for instant logging (no energy cost!)
+
+- **Custom Meal Creation via Chat**: Create meals with ingredients through chat
+  - Example: "สร้างเมนู keto bread มี almond flour, butter, milk"
+  - Saves as preliminary entry → use "Analyze All" for full nutrition
+  - Auto-saves to MyMeal database after analysis
+
+- **Data-Driven Responses**: Ask questions about your eating habits
+  - "วันนี้กินไปกี่แคล?" → Shows consumed vs target
+  - "เดือนนี้กินอะไรเยอะสุด?" → Analyzes recent history
+  - "แนะนำเมนูประมาณ 500 kcal" → Suggests from your saved meals
+
+- **Enhanced AI Context**: AI now knows your full nutrition profile
+  - Carb/Fat goals (not just protein/calories)
+  - Meal budgets (Breakfast/Lunch/Dinner/Snack)
+  - Micronutrient targets (Fiber, Sugar, Sodium)
+
+#### UI Improvements
+- **Data Source Status Icons**: New visual indicators for food entries
+  - 🗄️ Database icon (purple) = From MyMeal/Ingredient DB
+  - ✨ Sparkle icon (green) = AI Verified
+  - ✏️ Edit icon (orange) = Pending Analyze
+  - Shows on food card (40x40 icon) and as badge overlay on food photos
+
+- **Chat UI Cleanup**
+  - Removed "2+" badge for cleaner interface
+  - More space for conversation
+  - Source icons in chat replies (🗄️ = from DB, ✏️ = pending)
+
+- **Analyze All Bar**: Database icon now consistent across all screens
+
+### 🐛 Bug Fixes
+- **Analyze All Database Save**: Fixed analyzed items not saving to MyMeal/Ingredient
+  - Added auto-save after successful analysis
+  - Checks for duplicates before saving
+  - Applied to batch analysis, individual fallback, and re-analysis flows
+
+- **Chat Ingredients Hint**: Fixed AI not returning ingredient hints
+  - Updated prompt to prioritize ingredient hints over full analysis
+  - Added fallback to extract names from ingredients_detail if needed
+  - Custom meals now properly save ingredient lists
+
+- **AI Prompt Conflict**: Fixed AI analyzing when it should only log ingredients
+  - Restructured prompt with CUSTOM MEAL MODE section at top
+  - Added clear exceptions for when NOT to analyze
+  - Example responses provided for clarity
+
+### 🔧 Technical Improvements
+- Added `_gatherFoodContext()` in chat provider (MyMeal, Ingredient, history, today's summary)
+- Updated `GeminiChatService.analyzeChatMessage()` to accept foodContext parameter
+- Backend `buildChatPrompt()` now injects user's food database context
+- `analyzeFoodBatch()` and `analyzeFoodByName()` now accept ingredientNames parameter
+- Added preliminary ingredientsJson support for chat-created entries
+- Energy cost display fixed (Menu/Tips chips now show 1 energy)
+
+---
+
+## [1.1.8+33] - 2026-02-19
+
+### 🐛 Bug Fixes
+- **Meal Ingredients Display**: Fixed meal detail bottom sheet not showing ingredients list
+  - Changed from `ref.read()` to `ref.watch()` for reactive updates
+  - Wrapped bottom sheet builder with `Consumer` widget
+  - Ingredients now display correctly when tapping on a meal
+  
+- **Add Ingredient Save Issue**: Fixed "Add Ingredient" button not saving new ingredients
+  - Corrected save logic to use `saveIngredient()` for create mode
+  - Corrected save logic to use `updateIngredient()` for edit mode
+  - Removed duplicate save operation in callback
+  - Added proper async/await handling
+
+- **Edit Ingredient Stale Data**: Fixed edit screen showing old values after saving
+  - Now reloads ingredient from database before opening edit sheet
+  - Ensures fresh data is always displayed when editing
+  - Applied same fix to meal editing
+
+### 🔧 Technical Improvements
+- Changed `EditIngredientSheet.onSave` callback from sync to async
+- Added debug logging for ingredient save operations
+- Improved error handling with stack traces in edit ingredient sheet
+- Added null checks and error messages for missing ingredients/meals
+
+---
+
 ## [1.1.7+32] - 2026-02-19
 
 ### 🐛 Bug Fixes
