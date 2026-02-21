@@ -1841,5 +1841,161 @@
       "days": { "type": "int" }
     }
   },
-  "greetingFallback": "Hi! How can I help you today? Tell me what you ate!"
+  "greetingFallback": "Hi! How can I help you today? Tell me what you ate!",
+
+  "saveFoodTitle": "Save Food",
+  "saveButton": "Save",
+  "analyzingTitle": "Analyzing...",
+  "analyzingWarningContent": "AI is analyzing food\n\nIf you leave now, the analysis result will be lost and you will need to re-analyze (costs Energy again)",
+  "waitButton": "Wait",
+  "exitButton": "Exit",
+  "foodNameHint": "e.g. Fried Rice with Shrimp",
+  "amountAutoAdjust": "Change → calories adjust automatically",
+  "processingImageData": "PROCESSING IMAGE DATA...",
+  "unableToAnalyzeTitle": "Unable to analyze",
+  "tryAgainButton": "Try Again",
+  "aiAnalyzedConfidence": "AI Analyzed ({confidence}% confidence)",
+  "@aiAnalyzedConfidence": {
+    "placeholders": {
+      "confidence": {"type": "String"}
+    }
+  },
+  "analyzingButton": "ANALYZING...",
+  "aiAnalysisButton": "AI Analysis",
+  "manualInputHint": "Enter food details below or use AI analysis for automatic nutrition estimation",
+  "caloriesTitle": "CALORIES",
+  "macrosTitle": "Macros",
+  "proteinLabel": "Protein",
+  "carbsLabel": "Carbs",
+  "fatLabel": "Fat",
+  "mealTypeTitle": "Meal Type",
+  "ingredientsTitle": "Ingredients",
+  "pleaseEnterFoodNameShort": "Please enter food name",
+  "foodPendingAnalysis": "Food (pending analysis)",
+  "unableToAnalyzeImage": "Unable to analyze image",
+  "foodSavedSuccess": "Food saved successfully!",
+  "baseInfo": "Base: {calories} kcal / 1 {unit} (P:{protein}g C:{carbs}g F:{fat}g)",
+  "@baseInfo": {
+    "placeholders": {
+      "calories": {"type": "String"},
+      "unit": {"type": "String"},
+      "protein": {"type": "String"},
+      "carbs": {"type": "String"},
+      "fat": {"type": "String"}
+    }
+  },
+
+  "editMealTitle": "Edit Meal",
+  "createNewMealTitle": "Create New Meal",
+  "mealNameLabel": "Meal Name *",
+  "mealNameHint": "e.g. Pad Krapow with fried egg",
+  "servingSizeLabel": "Serving Size *",
+  "unitRequired": "Unit *",
+  "ingredientsSectionTitle": "Ingredients",
+  "aiAllButton": "AI All",
+  "addButton": "Add",
+  "noIngredientsHint": "Tap \"Add\" button to add ingredients\nOr enter total nutrition below",
+  "totalNutritionTitle": "Total Nutrition",
+  "saveChangesButton": "Save Changes",
+  "saveMealButton": "Save Meal",
+  "kcalAutoCalculated": "kcal auto-calculated",
+  "typeIngredientNameHint": "Type ingredient name...",
+  "searchNutritionWithAi": "Search nutrition with AI",
+  "pleaseEnterIngredientFirst": "Please enter ingredient name first",
+  "reAnalyzeQuestion": "Re-analyze?",
+  "reAnalyzeContent": "\"{name}\" already has nutrition data.\n\nAnalyzing again will use 1 Energy.\n\nContinue?",
+  "@reAnalyzeContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "cancelButton": "Cancel",
+  "reAnalyzeEnergy": "Re-analyze (1 Energy)",
+  "amountNotEntered": "Amount not entered",
+  "amountNotEnteredContent": "Please enter amount for \"{name}\" first\ne.g. 100 (grams), 1 (piece), 200 (ml)\n\nOr use default 100 g?",
+  "@amountNotEnteredContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "enterManually": "Enter manually",
+  "use100g": "Use 100 g",
+  "aiAnalyzeAllTitle": "AI Analyze All",
+  "aiAnalyzeAllContent": "Will analyze {count} items:\n{names}\n\nThis will use {count} Energy ({count} × 1 Energy)\n\nContinue?",
+  "@aiAnalyzeAllContent": {
+    "placeholders": {
+      "count": {"type": "String"},
+      "names": {"type": "String"}
+    }
+  },
+  "analyzeCountEnergy": "Analyze ({count} Energy)",
+  "@analyzeCountEnergy": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "noIngredientsNeedLookup": "No ingredients need nutrition lookup",
+  "someMissingAmount": "Some ingredients missing amount",
+  "someMissingAmountContent": "The following items are missing amounts:\n{names}\n\nPlease enter amounts for accurate results\nOr use default 100 g for all items?",
+  "@someMissingAmountContent": {
+    "placeholders": {
+      "names": {"type": "String"}
+    }
+  },
+  "goBack": "Go back",
+  "searchSuccessCount": "Search successful: {success}/{total} items",
+  "@searchSuccessCount": {
+    "placeholders": {
+      "success": {"type": "String"},
+      "total": {"type": "String"}
+    }
+  },
+  "pleaseEnterMealName": "Please enter meal name",
+  "pleaseEnterValidServing": "Please enter valid serving size",
+  "addSubIngredientButton": "Add Sub-ingredient",
+  "subIngredientsCount": "Sub-ingredients ({count})",
+  "@subIngredientsCount": {
+    "placeholders": {
+      "count": {"type": "String"}
+    }
+  },
+  "subIngredientNameHintCreate": "Sub-ingredient name",
+  "editSubIngredientHint": "Edit sub-ingredient amounts to adjust nutrition",
+  "pleaseEnterSubFirst": "Please enter sub-ingredient name first",
+  "foundInDatabase": "Found \"{name}\" in database!",
+  "@foundInDatabase": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "aiAnalyzedEnergy": "AI analyzed \"{name}\" (-1 Energy)",
+  "@aiAnalyzedEnergy": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "couldNotAnalyzeSubIngredient": "Could not analyze sub-ingredient",
+  "ingredientSaved": "{name} ({amount} {unit}): {calories} kcal — ingredient saved",
+  "@ingredientSaved": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "amount": {"type": "String"},
+      "unit": {"type": "String"},
+      "calories": {"type": "String"}
+    }
+  },
+  "searchFailed": "Search failed: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+  "baseNutritionInfo": "Base: {calories} kcal / {amount} {unit}",
+  "@baseNutritionInfo": {
+    "placeholders": {
+      "calories": {"type": "String"},
+      "amount": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  }
 }

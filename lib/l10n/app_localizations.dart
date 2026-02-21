@@ -1561,7 +1561,7 @@ abstract class L10n {
   /// No description provided for @foodNameHint.
   ///
   /// In en, this message translates to:
-  /// **'Type to search e.g. fried rice, papaya salad'**
+  /// **'e.g. Fried Rice with Shrimp'**
   String get foodNameHint;
 
   /// No description provided for @selectedFromMyMeal.
@@ -1573,8 +1573,8 @@ abstract class L10n {
   /// No description provided for @foundInDatabase.
   ///
   /// In en, this message translates to:
-  /// **'✅ Found in database — nutrition data auto-filled'**
-  String get foundInDatabase;
+  /// **'Found \"{name}\" in database!'**
+  String foundInDatabase(String name);
 
   /// No description provided for @saveAndAnalyze.
   ///
@@ -4715,6 +4715,410 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Hi! How can I help you today? Tell me what you ate!'**
   String get greetingFallback;
+
+  /// No description provided for @saveFoodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Food'**
+  String get saveFoodTitle;
+
+  /// No description provided for @saveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButton;
+
+  /// No description provided for @analyzingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get analyzingTitle;
+
+  /// No description provided for @analyzingWarningContent.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is analyzing food\n\nIf you leave now, the analysis result will be lost and you will need to re-analyze (costs Energy again)'**
+  String get analyzingWarningContent;
+
+  /// No description provided for @waitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait'**
+  String get waitButton;
+
+  /// No description provided for @exitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exitButton;
+
+  /// No description provided for @amountAutoAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Change → calories adjust automatically'**
+  String get amountAutoAdjust;
+
+  /// No description provided for @processingImageData.
+  ///
+  /// In en, this message translates to:
+  /// **'PROCESSING IMAGE DATA...'**
+  String get processingImageData;
+
+  /// No description provided for @unableToAnalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to analyze'**
+  String get unableToAnalyzeTitle;
+
+  /// No description provided for @tryAgainButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgainButton;
+
+  /// No description provided for @aiAnalyzedConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analyzed ({confidence}% confidence)'**
+  String aiAnalyzedConfidence(String confidence);
+
+  /// No description provided for @analyzingButton.
+  ///
+  /// In en, this message translates to:
+  /// **'ANALYZING...'**
+  String get analyzingButton;
+
+  /// No description provided for @aiAnalysisButton.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analysis'**
+  String get aiAnalysisButton;
+
+  /// No description provided for @manualInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter food details below or use AI analysis for automatic nutrition estimation'**
+  String get manualInputHint;
+
+  /// No description provided for @caloriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CALORIES'**
+  String get caloriesTitle;
+
+  /// No description provided for @macrosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get macrosTitle;
+
+  /// No description provided for @mealTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Type'**
+  String get mealTypeTitle;
+
+  /// No description provided for @ingredientsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get ingredientsTitle;
+
+  /// No description provided for @pleaseEnterFoodNameShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter food name'**
+  String get pleaseEnterFoodNameShort;
+
+  /// No description provided for @foodPendingAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Food (pending analysis)'**
+  String get foodPendingAnalysis;
+
+  /// No description provided for @unableToAnalyzeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to analyze image'**
+  String get unableToAnalyzeImage;
+
+  /// No description provided for @foodSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Food saved successfully!'**
+  String get foodSavedSuccess;
+
+  /// No description provided for @baseInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Base: {calories} kcal / 1 {unit} (P:{protein}g C:{carbs}g F:{fat}g)'**
+  String baseInfo(
+      String calories, String unit, String protein, String carbs, String fat);
+
+  /// No description provided for @editMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Meal'**
+  String get editMealTitle;
+
+  /// No description provided for @createNewMealTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Meal'**
+  String get createNewMealTitle;
+
+  /// No description provided for @mealNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Name *'**
+  String get mealNameLabel;
+
+  /// No description provided for @mealNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Pad Krapow with fried egg'**
+  String get mealNameHint;
+
+  /// No description provided for @servingSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serving Size *'**
+  String get servingSizeLabel;
+
+  /// No description provided for @unitRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit *'**
+  String get unitRequired;
+
+  /// No description provided for @ingredientsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get ingredientsSectionTitle;
+
+  /// No description provided for @aiAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'AI All'**
+  String get aiAllButton;
+
+  /// No description provided for @addButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addButton;
+
+  /// No description provided for @noIngredientsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \"Add\" button to add ingredients\nOr enter total nutrition below'**
+  String get noIngredientsHint;
+
+  /// No description provided for @totalNutritionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Nutrition'**
+  String get totalNutritionTitle;
+
+  /// No description provided for @saveChangesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChangesButton;
+
+  /// No description provided for @saveMealButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Meal'**
+  String get saveMealButton;
+
+  /// No description provided for @kcalAutoCalculated.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal auto-calculated'**
+  String get kcalAutoCalculated;
+
+  /// No description provided for @typeIngredientNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type ingredient name...'**
+  String get typeIngredientNameHint;
+
+  /// No description provided for @searchNutritionWithAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Search nutrition with AI'**
+  String get searchNutritionWithAi;
+
+  /// No description provided for @pleaseEnterIngredientFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter ingredient name first'**
+  String get pleaseEnterIngredientFirst;
+
+  /// No description provided for @reAnalyzeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze?'**
+  String get reAnalyzeQuestion;
+
+  /// No description provided for @reAnalyzeContent.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" already has nutrition data.\n\nAnalyzing again will use 1 Energy.\n\nContinue?'**
+  String reAnalyzeContent(String name);
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButton;
+
+  /// No description provided for @reAnalyzeEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze (1 Energy)'**
+  String get reAnalyzeEnergy;
+
+  /// No description provided for @amountNotEntered.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount not entered'**
+  String get amountNotEntered;
+
+  /// No description provided for @amountNotEnteredContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter amount for \"{name}\" first\ne.g. 100 (grams), 1 (piece), 200 (ml)\n\nOr use default 100 g?'**
+  String amountNotEnteredContent(String name);
+
+  /// No description provided for @enterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter manually'**
+  String get enterManually;
+
+  /// No description provided for @use100g.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 100 g'**
+  String get use100g;
+
+  /// No description provided for @aiAnalyzeAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Analyze All'**
+  String get aiAnalyzeAllTitle;
+
+  /// No description provided for @aiAnalyzeAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Will analyze {count} items:\n{names}\n\nThis will use {count} Energy ({count} × 1 Energy)\n\nContinue?'**
+  String aiAnalyzeAllContent(String count, String names);
+
+  /// No description provided for @analyzeCountEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze ({count} Energy)'**
+  String analyzeCountEnergy(String count);
+
+  /// No description provided for @noIngredientsNeedLookup.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients need nutrition lookup'**
+  String get noIngredientsNeedLookup;
+
+  /// No description provided for @someMissingAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Some ingredients missing amount'**
+  String get someMissingAmount;
+
+  /// No description provided for @someMissingAmountContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The following items are missing amounts:\n{names}\n\nPlease enter amounts for accurate results\nOr use default 100 g for all items?'**
+  String someMissingAmountContent(String names);
+
+  /// No description provided for @goBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get goBack;
+
+  /// No description provided for @searchSuccessCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Search successful: {success}/{total} items'**
+  String searchSuccessCount(String success, String total);
+
+  /// No description provided for @pleaseEnterMealName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter meal name'**
+  String get pleaseEnterMealName;
+
+  /// No description provided for @pleaseEnterValidServing.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid serving size'**
+  String get pleaseEnterValidServing;
+
+  /// No description provided for @addSubIngredientButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Sub-ingredient'**
+  String get addSubIngredientButton;
+
+  /// No description provided for @subIngredientsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-ingredients ({count})'**
+  String subIngredientsCount(String count);
+
+  /// No description provided for @subIngredientNameHintCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub-ingredient name'**
+  String get subIngredientNameHintCreate;
+
+  /// No description provided for @editSubIngredientHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit sub-ingredient amounts to adjust nutrition'**
+  String get editSubIngredientHint;
+
+  /// No description provided for @pleaseEnterSubFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter sub-ingredient name first'**
+  String get pleaseEnterSubFirst;
+
+  /// No description provided for @aiAnalyzedEnergy.
+  ///
+  /// In en, this message translates to:
+  /// **'AI analyzed \"{name}\" (-1 Energy)'**
+  String aiAnalyzedEnergy(String name);
+
+  /// No description provided for @couldNotAnalyzeSubIngredient.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not analyze sub-ingredient'**
+  String get couldNotAnalyzeSubIngredient;
+
+  /// No description provided for @ingredientSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({amount} {unit}): {calories} kcal — ingredient saved'**
+  String ingredientSaved(
+      String name, String amount, String unit, String calories);
+
+  /// No description provided for @baseNutritionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Base: {calories} kcal / {amount} {unit}'**
+  String baseNutritionInfo(String calories, String amount, String unit);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

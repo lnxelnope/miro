@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/database/database_service.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/my_meal.dart';
@@ -195,16 +197,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: AppSpacing.paddingLg,
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        top: AppSpacing.xl,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.xl,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -214,18 +216,18 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             // Drag handle
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: AppSizes.dragHandleWidth,
+                height: AppSizes.dragHandleHeight,
                 decoration: BoxDecoration(
                   color: AppColors.textTertiary,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: AppRadius.pill,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
             AppIcons.iconWithLabel(
               _isEditMode ? AppIcons.edit : AppIcons.meal,
-              _isEditMode ? 'Edit Meal' : 'Create New Meal',
+              _isEditMode ? L10n.of(context)!.editMealTitle : L10n.of(context)!.createNewMealTitle,
               iconColor: _isEditMode ? AppIcons.editColor : AppIcons.mealColor,
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -236,13 +238,13 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Meal Name *',
-                hintText: 'e.g. Pad Krapow with fried egg',
+                labelText: L10n.of(context)!.mealNameLabel,
+                hintText: L10n.of(context)!.mealNameHint,
                 border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    OutlineInputBorder(borderRadius: AppRadius.md),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
 
             // Base Serving Size + Unit (2 fields)
             Row(
@@ -255,14 +257,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Serving Size *',
+                      labelText: L10n.of(context)!.servingSizeLabel,
                       hintText: '1',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: AppRadius.md),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppSpacing.md),
                 // Serving Unit (dropdown)
                 Expanded(
                   flex: 3,
@@ -275,9 +277,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       }
                     },
                     decoration: InputDecoration(
-                      labelText: 'Unit *',
+                      labelText: L10n.of(context)!.unitRequired,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: AppRadius.md),
                     ),
                     style: const TextStyle(color: Colors.black),
                     dropdownColor: Colors.white,
@@ -285,14 +287,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: AppSpacing.xl),
 
             // Ingredients
             Row(
               children: [
-                const Text('🥬 Ingredients',
+                Text('🥬 ${L10n.of(context)!.ingredientsSectionTitle}',
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 const Spacer(),
                 // ปุ่ม AI ค้นหาทุกตัวที่ยังไม่มี nutrition
                 if (_ingredients.any((r) =>
@@ -301,7 +303,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   TextButton.icon(
                     onPressed: _lookupAllMissingNutrition,
                     icon: const Icon(Icons.auto_awesome, size: 16),
-                    label: const Text('AI All', style: TextStyle(fontSize: 12)),
+                    label: Text(L10n.of(context)!.aiAllButton, style: const TextStyle(fontSize: 12)),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -310,7 +312,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 TextButton.icon(
                   onPressed: _addIngredientRow,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(L10n.of(context)!.addButton),
                 ),
               ],
             ),
@@ -318,19 +320,19 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
             if (_ingredients.isEmpty)
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: AppSpacing.paddingLg,
                 decoration: BoxDecoration(
                   color: AppColors.textTertiary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.md,
                   border: Border.all(
                       color: AppColors.textTertiary.withValues(alpha: 0.3),
                       style: BorderStyle.solid),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'Tap "Add" button to add ingredients\nOr enter total nutrition below',
+                    L10n.of(context)!.noIngredientsHint,
                     textAlign: TextAlign.center,
-                    style:
+                    style: const
                         TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   ),
                 ),
@@ -346,17 +348,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
             // Total nutrition (calculated or manual)
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: AppSpacing.paddingMd,
               decoration: BoxDecoration(
                 color: AppColors.health.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.md,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppIcons.iconWithLabel(
                     AppIcons.statistics,
-                    'Total Nutrition',
+                    L10n.of(context)!.totalNutritionTitle,
                     iconColor: AppIcons.statisticsColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -389,27 +391,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             const SizedBox(height: 24),
 
             // Save button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isSaving ? null : _save,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.health,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isSaving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : Text(_isEditMode ? 'Save Changes' : 'Save Meal',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
+            AppButton.primary(
+              label: _isEditMode ? L10n.of(context)!.saveChangesButton : L10n.of(context)!.saveMealButton,
+              icon: Icons.save_rounded,
+              isLoading: _isSaving,
+              onPressed: _save,
             ),
           ],
         ),
@@ -420,12 +406,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   Widget _buildIngredientRow(_IngredientRow row, int index) {
     return Container(
       key: row.key,
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: EdgeInsets.only(bottom: AppSpacing.md - 2),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md - 2, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         border:
             Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -448,7 +434,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   onPressed: () => _lookupIngredientNutrition(row),
                   icon: const Icon(Icons.auto_awesome, size: 18),
                   color: AppColors.primary,
-                  tooltip: 'Search nutrition with AI',
+                  tooltip: L10n.of(context)!.searchNutritionWithAi,
                   padding: EdgeInsets.zero,
                   constraints:
                       const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -477,16 +463,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    labelText: 'Amount',
+                    labelText: L10n.of(context)!.amountLabel,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     helperText:
-                        row.hasBaseValues ? '🔄 kcal auto-calculated' : null,
+                        row.hasBaseValues ? L10n.of(context)!.kcalAutoCalculated : null,
                     helperStyle:
-                        TextStyle(fontSize: 10, color: Colors.purple.shade300),
+                        TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
                   ),
                   style: const TextStyle(fontSize: 14),
                   onChanged: (_) {
@@ -508,12 +494,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     }
                   },
                   decoration: InputDecoration(
-                    labelText: 'Unit',
+                    labelText: L10n.of(context)!.unitLabel,
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 10),
+                    contentPadding: EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                   ),
                   style: const TextStyle(fontSize: 14, color: Colors.black),
                   dropdownColor: Colors.white,
@@ -536,17 +522,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'kcal',
                     isDense: true,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? Colors.grey.shade100 : null,
+                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.proteinController,
@@ -556,17 +542,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'P(g)',
                     isDense: true,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? Colors.grey.shade100 : null,
+                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.carbsController,
@@ -576,17 +562,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'C(g)',
                     isDense: true,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? Colors.grey.shade100 : null,
+                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.fatController,
@@ -596,11 +582,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'F(g)',
                     isDense: true,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? Colors.grey.shade100 : null,
+                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -611,22 +597,22 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           // แสดง base info ถ้ามี
           if (row.hasBaseValues)
             Padding(
-              padding: const EdgeInsets.only(top: 4),
+              padding: EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
-                'Base: ${row.baseCal.toInt()} kcal / ${row.baseAmount.toStringAsFixed(0)} ${row.unit}',
-                style: TextStyle(fontSize: 10, color: Colors.purple.shade300),
+                L10n.of(context)!.baseNutritionInfo(row.baseCal.toInt().toString(), row.baseAmount.toStringAsFixed(0), row.unit),
+                style: TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
               ),
             ),
 
           // NEW: แสดง detail ถ้ามี
           if (row.detail != null && row.detail!.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: EdgeInsets.only(top: AppSpacing.sm - 2),
               child: Text(
                 '${row.detail}',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.grey[600],
+                  color: AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -634,18 +620,18 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
           // Add Sub-ingredient button
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: EdgeInsets.only(top: AppSpacing.sm),
             child: OutlinedButton.icon(
               onPressed: () => _addSubIngredient(row),
               icon: const Icon(Icons.add, size: 14),
-              label: const Text(
-                'Add Sub-ingredient',
-                style: TextStyle(fontSize: 12),
+              label: Text(
+                L10n.of(context)!.addSubIngredientButton,
+                style: const TextStyle(fontSize: 12),
               ),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.blue.shade700,
-                side: BorderSide(color: Colors.blue.shade300),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                foregroundColor: AppColors.info,
+                side: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm - 2),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -654,13 +640,13 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
           // Sub-ingredients (editable)
           if (row.subIngredients != null && row.subIngredients!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: AppSpacing.paddingSm,
               decoration: BoxDecoration(
-                color: Colors.blue.shade50.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade100),
+                color: AppColors.info.withValues(alpha: 0.15),
+                borderRadius: AppRadius.sm,
+                border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -668,29 +654,29 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   Row(
                     children: [
                       Icon(Icons.subdirectory_arrow_right,
-                          size: 14, color: Colors.blue.shade700),
-                      const SizedBox(width: 4),
+                          size: 14, color: AppColors.info),
+                      SizedBox(width: AppSpacing.xs),
                       Text(
-                        'Sub-ingredients (${row.subIngredients!.length})',
+                        L10n.of(context)!.subIngredientsCount(row.subIngredients!.length.toString()),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue.shade700,
+                          color: AppColors.info,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   ...row.subIngredients!.asMap().entries.map((entry) {
                     final subIndex = entry.key;
                     final sub = entry.value;
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 6),
-                      padding: const EdgeInsets.all(8),
+                      margin: EdgeInsets.only(bottom: AppSpacing.sm - 2),
+                      padding: AppSpacing.paddingSm,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
+                        border: Border.all(color: AppColors.divider),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -739,7 +725,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                       alignment: Alignment.topLeft,
                                       child: Material(
                                         elevation: 4,
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: AppRadius.sm,
                                         child: ConstrainedBox(
                                           constraints: const BoxConstraints(
                                               maxHeight: 160, maxWidth: 220),
@@ -786,16 +772,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                           fontWeight: FontWeight.w500,
                                         ),
                                         decoration: InputDecoration(
-                                          hintText: 'Sub-ingredient name',
+                                          hintText: L10n.of(context)!.subIngredientNameHintCreate,
                                           hintStyle: TextStyle(
-                                              fontSize: 11, color: Colors.grey.shade400),
+                                              fontSize: 11, color: AppColors.textTertiary),
                                           isDense: true,
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 6),
+                                          contentPadding: EdgeInsets.symmetric(
+                                              horizontal: AppSpacing.sm, vertical: AppSpacing.sm - 2),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                             borderSide:
-                                                BorderSide(color: Colors.grey.shade300),
+                                                BorderSide(color: AppColors.divider),
                                           ),
                                         ),
                                       ),
@@ -803,30 +789,30 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: AppSpacing.xs),
                               // AI Search button
                               if (!sub.isLookingUp)
                                 InkWell(
                                   onTap: () => _lookupSubIngredient(row, subIndex),
-                                  borderRadius: BorderRadius.circular(6),
+                                  borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                   child: Container(
-                                    padding: const EdgeInsets.all(5),
+                                    padding: EdgeInsets.all(AppSpacing.xs + 1),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(6),
+                                      color: AppColors.info.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                     ),
-                                    child: const Icon(Icons.search, size: 16, color: Colors.blue),
+                                    child: const Icon(Icons.search, size: 16, color: AppColors.info),
                                   ),
                                 )
                               else
                                 const SizedBox(
                                     width: 16, height: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2)),
-                              const SizedBox(width: 4),
+                              SizedBox(width: AppSpacing.xs),
                               // Delete button
                               IconButton(
                                 icon: Icon(Icons.close, 
-                                    size: 16, color: Colors.red.shade400),
+                                    size: 16, color: AppColors.error.withValues(alpha: 0.7)),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(
                                     minWidth: 28, minHeight: 28),
@@ -855,10 +841,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   style: const TextStyle(fontSize: 12),
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 6),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm - 2),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                     ),
                                   ),
                                   onChanged: (_) {
@@ -870,36 +856,36 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: AppSpacing.xs),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 6),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm - 2),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(6),
+                                  color: AppColors.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                 ),
                                 child: Text(
                                   sub.unit,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey.shade700,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: AppSpacing.sm),
                               Text(
                                 '${sub.calController.text} kcal',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.blue.shade700,
+                                  color: AppColors.info,
                                 ),
                               ),
                               const Spacer(),
                               Text(
                                 'P:${sub.proteinController.text} C:${sub.carbsController.text} F:${sub.fatController.text}',
                                 style: TextStyle(
-                                    fontSize: 9, color: Colors.grey.shade500),
+                                    fontSize: 9, color: AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -907,12 +893,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       ),
                     );
                   }),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
-                    '💡 Edit sub-ingredient amounts to adjust nutrition',
+                    '💡 ${L10n.of(context)!.editSubIngredientHint}',
                     style: TextStyle(
                       fontSize: 9,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textSecondary,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -960,7 +946,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           alignment: Alignment.topLeft,
           child: Material(
             elevation: 4,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.sm,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 200, maxWidth: 280),
               child: ListView.builder(
@@ -998,21 +984,21 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           focusNode: focusNode,
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
-            hintText: 'Type ingredient name...',
-            hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+            hintText: L10n.of(context)!.typeIngredientNameHint,
+            hintStyle: TextStyle(fontSize: 13, color: AppColors.textTertiary),
             isDense: true,
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md - 2),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: AppRadius.sm,
+              borderSide: BorderSide(color: AppColors.divider),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderRadius: AppRadius.sm,
+              borderSide: BorderSide(color: AppColors.divider),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.sm,
               borderSide:
                   const BorderSide(color: AppColors.health, width: 1.5),
             ),
@@ -1033,7 +1019,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     if (name.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter ingredient name first'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(L10n.of(context)!.pleaseEnterIngredientFirst), duration: const Duration(seconds: 2)),
         );
       }
       return;
@@ -1045,31 +1031,29 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange),
-              SizedBox(width: 12),
-              Text('Re-analyze?'),
+              const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
+              SizedBox(width: AppSpacing.md),
+              Text(L10n.of(context)!.reAnalyzeQuestion),
             ],
           ),
           content: Text(
-            '"$name" already has nutrition data.\n\n'
-            'Analyzing again will use 1 Energy.\n\n'
-            'Continue?',
+            L10n.of(context)!.reAnalyzeContent(name),
             style: const TextStyle(fontSize: 15),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(L10n.of(context)!.cancelButton),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
+                backgroundColor: AppColors.warning,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Re-analyze (1 Energy)'),
+              child: Text(L10n.of(context)!.reAnalyzeEnergy),
             ),
           ],
         ),
@@ -1088,16 +1072,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         final useDefault = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Amount not entered'),
+            title: Text(L10n.of(context)!.amountNotEntered),
             content: Text(
-              'Please enter amount for "$name" first\n'
-              'e.g. 100 (grams), 1 (piece), 200 (ml)\n\n'
-              'Or use default 100 g?',
+              L10n.of(context)!.amountNotEnteredContent(name),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Enter manually'),
+                child: Text(L10n.of(context)!.enterManually),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -1105,7 +1087,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Use 100 g'),
+                child: Text(L10n.of(context)!.use100g),
               ),
             ],
           ),
@@ -1136,7 +1118,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     // === ตรวจสอบ Energy ก่อนเรียก AI ===
     final hasEnergy = await GeminiService.hasEnergy();
     if (!hasEnergy && mounted) {
-      await NoEnergyDialog.show(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -1203,7 +1190,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  '$name ($finalAmount $finalUnit): ${result.nutrition.calories.toInt()} kcal — ingredient saved'),
+                  L10n.of(context)!.ingredientSaved(name, finalAmount.toString(), finalUnit, result.nutrition.calories.toInt().toString())),
               backgroundColor: AppColors.success,
               duration: const Duration(seconds: 2),
             ),
@@ -1214,11 +1201,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       if (mounted) {
         // ตรวจสอบว่าเป็น Energy error หรือไม่
         if (e.toString().contains('Insufficient energy')) {
-          await NoEnergyDialog.show(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(L10n.of(context)!.notEnoughEnergy),
+              duration: const Duration(seconds: 3),
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Search failed: $e'),
+              content: Text(L10n.of(context)!.searchFailed(e.toString())),
               backgroundColor: AppColors.error,
               duration: const Duration(seconds: 2),
             ),
@@ -1287,7 +1279,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     if (missingRows.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No ingredients need nutrition lookup'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(L10n.of(context)!.noIngredientsNeedLookup), duration: const Duration(seconds: 2)),
         );
       }
       return;
@@ -1303,28 +1295,26 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.auto_awesome, color: Colors.amber),
-              SizedBox(width: 8),
-              Text('AI Analyze All'),
+              const Icon(Icons.auto_awesome, color: AppColors.warning),
+              SizedBox(width: AppSpacing.sm),
+              Text(L10n.of(context)!.aiAnalyzeAllTitle),
             ],
           ),
           content: Text(
-            'Will analyze $itemCount items:\n$ingredientNames\n\n'
-            'This will use $itemCount Energy ($itemCount × 1 Energy)\n\n'
-            'Continue?',
+            L10n.of(context)!.aiAnalyzeAllContent(itemCount.toString(), ingredientNames),
             style: const TextStyle(fontSize: 14),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child: Text(L10n.of(context)!.cancelButton),
             ),
             ElevatedButton.icon(
               onPressed: () => Navigator.pop(ctx, true),
               icon: const Icon(Icons.auto_awesome, size: 16),
-              label: Text('Analyze ($itemCount Energy)'),
+              label: Text(L10n.of(context)!.analyzeCountEnergy(itemCount.toString())),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -1340,7 +1330,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     // === เช็คว่ามี Energy เพียงพอหรือไม่ ===
     final hasEnergy = await GeminiService.hasEnergy();
     if (!hasEnergy && mounted) {
-      await NoEnergyDialog.show(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -1359,16 +1354,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         final proceed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Some ingredients missing amount'),
+            title: Text(L10n.of(context)!.someMissingAmount),
             content: Text(
-              'The following items are missing amounts:\n$missingNames\n\n'
-              'Please enter amounts for accurate results\n'
-              'Or use default 100 g for all items?',
+              L10n.of(context)!.someMissingAmountContent(missingNames),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Go back'),
+                child: Text(L10n.of(context)!.goBack),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(ctx, true),
@@ -1376,7 +1369,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Use 100 g'),
+                child: Text(L10n.of(context)!.use100g),
               ),
             ],
           ),
@@ -1416,7 +1409,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content:
-              Text('Search successful: $success/${missingRows.length} items'),
+              Text(L10n.of(context)!.searchSuccessCount(success.toString(), missingRows.length.toString())),
           backgroundColor: success > 0 ? AppColors.success : AppColors.error,
           duration: const Duration(seconds: 2),
         ),
@@ -1436,7 +1429,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     final hasEnergy = await GeminiService.hasEnergy();
     if (!hasEnergy) {
       if (mounted) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
       return;
     }
@@ -1503,7 +1501,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     } catch (e) {
       AppLogger.error('Batch lookup failed for "$name"', e);
       if (mounted && e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -1523,7 +1526,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
     if (subName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter sub-ingredient name first')),
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterSubFirst)),
       );
       return;
     }
@@ -1556,8 +1559,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('Found "$subName" in database!'),
-                backgroundColor: Colors.green,
+                content: Text(L10n.of(context)!.foundInDatabase(subName)),
+                backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2)),
           );
         }
@@ -1567,7 +1570,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       // 2. AI lookup
       final hasEnergy = await GeminiService.hasEnergy();
       if (!hasEnergy && mounted) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
         setState(() => sub.isLookingUp = false);
         return;
       }
@@ -1601,8 +1609,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text('AI analyzed "$subName" (-1 Energy)'),
-                backgroundColor: Colors.green,
+                content: Text(L10n.of(context)!.aiAnalyzedEnergy(subName)),
+                backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2)),
           );
         }
@@ -1610,9 +1618,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         setState(() => sub.isLookingUp = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Could not analyze sub-ingredient'),
-                backgroundColor: Colors.orange,
+            SnackBar(
+                content: Text(L10n.of(context)!.couldNotAnalyzeSubIngredient),
+                backgroundColor: AppColors.warning,
                 duration: Duration(seconds: 2)),
           );
         }
@@ -1670,7 +1678,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter meal name'), duration: Duration(seconds: 2)),
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterMealName), duration: const Duration(seconds: 2)),
       );
       return;
     }
@@ -1678,7 +1686,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1.0;
     if (servingSize <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid serving size'), duration: Duration(seconds: 2)),
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterValidServing), duration: const Duration(seconds: 2)),
       );
       return;
     }

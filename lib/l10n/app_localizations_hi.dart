@@ -831,7 +831,9 @@ class L10nHi extends L10n {
       '✅ मेरा भोजन से चयनित - पोषण डेटा स्वतः भरा हुआ';
 
   @override
-  String get foundInDatabase => '✅ डेटाबेस में मिला - पोषण डेटा स्वतः भरा हुआ';
+  String foundInDatabase(String name) {
+    return '✅ डेटाबेस में मिला - पोषण डेटा स्वतः भरा हुआ';
+  }
 
   @override
   String get saveAndAnalyze => 'सहेजें और विश्लेषण करें';
@@ -2692,4 +2694,235 @@ class L10nHi extends L10n {
   @override
   String get greetingFallback =>
       'नमस्ते! आज मैं आपकी मदद करने में कैसे सक्षम हूं? मुझे बताओ तुमने क्या खाया!';
+
+  @override
+  String get saveFoodTitle => 'Save Food';
+
+  @override
+  String get saveButton => 'Save';
+
+  @override
+  String get analyzingTitle => 'Analyzing...';
+
+  @override
+  String get analyzingWarningContent =>
+      'AI is analyzing food\n\nIf you leave now, the analysis result will be lost and you will need to re-analyze (costs Energy again)';
+
+  @override
+  String get waitButton => 'Wait';
+
+  @override
+  String get exitButton => 'Exit';
+
+  @override
+  String get amountAutoAdjust => 'Change → calories adjust automatically';
+
+  @override
+  String get processingImageData => 'PROCESSING IMAGE DATA...';
+
+  @override
+  String get unableToAnalyzeTitle => 'Unable to analyze';
+
+  @override
+  String get tryAgainButton => 'Try Again';
+
+  @override
+  String aiAnalyzedConfidence(String confidence) {
+    return 'AI Analyzed ($confidence% confidence)';
+  }
+
+  @override
+  String get analyzingButton => 'ANALYZING...';
+
+  @override
+  String get aiAnalysisButton => 'AI Analysis';
+
+  @override
+  String get manualInputHint =>
+      'Enter food details below or use AI analysis for automatic nutrition estimation';
+
+  @override
+  String get caloriesTitle => 'CALORIES';
+
+  @override
+  String get macrosTitle => 'Macros';
+
+  @override
+  String get mealTypeTitle => 'Meal Type';
+
+  @override
+  String get ingredientsTitle => 'Ingredients';
+
+  @override
+  String get pleaseEnterFoodNameShort => 'Please enter food name';
+
+  @override
+  String get foodPendingAnalysis => 'Food (pending analysis)';
+
+  @override
+  String get unableToAnalyzeImage => 'Unable to analyze image';
+
+  @override
+  String get foodSavedSuccess => 'Food saved successfully!';
+
+  @override
+  String baseInfo(
+      String calories, String unit, String protein, String carbs, String fat) {
+    return 'Base: $calories kcal / 1 $unit (P:${protein}g C:${carbs}g F:${fat}g)';
+  }
+
+  @override
+  String get editMealTitle => 'Edit Meal';
+
+  @override
+  String get createNewMealTitle => 'Create New Meal';
+
+  @override
+  String get mealNameLabel => 'Meal Name *';
+
+  @override
+  String get mealNameHint => 'e.g. Pad Krapow with fried egg';
+
+  @override
+  String get servingSizeLabel => 'Serving Size *';
+
+  @override
+  String get unitRequired => 'Unit *';
+
+  @override
+  String get ingredientsSectionTitle => 'Ingredients';
+
+  @override
+  String get aiAllButton => 'AI All';
+
+  @override
+  String get addButton => 'Add';
+
+  @override
+  String get noIngredientsHint =>
+      'Tap \"Add\" button to add ingredients\nOr enter total nutrition below';
+
+  @override
+  String get totalNutritionTitle => 'Total Nutrition';
+
+  @override
+  String get saveChangesButton => 'Save Changes';
+
+  @override
+  String get saveMealButton => 'Save Meal';
+
+  @override
+  String get kcalAutoCalculated => 'kcal auto-calculated';
+
+  @override
+  String get typeIngredientNameHint => 'Type ingredient name...';
+
+  @override
+  String get searchNutritionWithAi => 'Search nutrition with AI';
+
+  @override
+  String get pleaseEnterIngredientFirst => 'Please enter ingredient name first';
+
+  @override
+  String get reAnalyzeQuestion => 'Re-analyze?';
+
+  @override
+  String reAnalyzeContent(String name) {
+    return '\"$name\" already has nutrition data.\n\nAnalyzing again will use 1 Energy.\n\nContinue?';
+  }
+
+  @override
+  String get cancelButton => 'Cancel';
+
+  @override
+  String get reAnalyzeEnergy => 'Re-analyze (1 Energy)';
+
+  @override
+  String get amountNotEntered => 'Amount not entered';
+
+  @override
+  String amountNotEnteredContent(String name) {
+    return 'Please enter amount for \"$name\" first\ne.g. 100 (grams), 1 (piece), 200 (ml)\n\nOr use default 100 g?';
+  }
+
+  @override
+  String get enterManually => 'Enter manually';
+
+  @override
+  String get use100g => 'Use 100 g';
+
+  @override
+  String get aiAnalyzeAllTitle => 'AI Analyze All';
+
+  @override
+  String aiAnalyzeAllContent(String count, String names) {
+    return 'Will analyze $count items:\n$names\n\nThis will use $count Energy ($count × 1 Energy)\n\nContinue?';
+  }
+
+  @override
+  String analyzeCountEnergy(String count) {
+    return 'Analyze ($count Energy)';
+  }
+
+  @override
+  String get noIngredientsNeedLookup => 'No ingredients need nutrition lookup';
+
+  @override
+  String get someMissingAmount => 'Some ingredients missing amount';
+
+  @override
+  String someMissingAmountContent(String names) {
+    return 'The following items are missing amounts:\n$names\n\nPlease enter amounts for accurate results\nOr use default 100 g for all items?';
+  }
+
+  @override
+  String get goBack => 'Go back';
+
+  @override
+  String searchSuccessCount(String success, String total) {
+    return 'Search successful: $success/$total items';
+  }
+
+  @override
+  String get pleaseEnterMealName => 'Please enter meal name';
+
+  @override
+  String get pleaseEnterValidServing => 'Please enter valid serving size';
+
+  @override
+  String get addSubIngredientButton => 'Add Sub-ingredient';
+
+  @override
+  String subIngredientsCount(String count) {
+    return 'Sub-ingredients ($count)';
+  }
+
+  @override
+  String get subIngredientNameHintCreate => 'Sub-ingredient name';
+
+  @override
+  String get editSubIngredientHint =>
+      'Edit sub-ingredient amounts to adjust nutrition';
+
+  @override
+  String get pleaseEnterSubFirst => 'Please enter sub-ingredient name first';
+
+  @override
+  String aiAnalyzedEnergy(String name) {
+    return 'AI analyzed \"$name\" (-1 Energy)';
+  }
+
+  @override
+  String get couldNotAnalyzeSubIngredient => 'Could not analyze sub-ingredient';
+
+  @override
+  String ingredientSaved(
+      String name, String amount, String unit, String calories) {
+    return '$name ($amount $unit): $calories kcal — ingredient saved';
+  }
+
+  @override
+  String baseNutritionInfo(String calories, String amount, String unit) {
+    return 'Base: $calories kcal / $amount $unit';
+  }
 }

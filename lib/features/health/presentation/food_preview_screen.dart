@@ -11,6 +11,7 @@ import '../../../core/utils/logger.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 
@@ -132,22 +133,18 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final shouldLeave = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            SizedBox(width: 12),
-            Expanded(child: Text('Analyzing...')),
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 12),
+            Expanded(child: Text(L10n.of(context)!.analyzingTitle)),
           ],
         ),
-        content: const Text(
-          'AI is analyzing food\n\n'
-          'If you leave now, the analysis result will be lost '
-          'and you will need to re-analyze (costs Energy again)',
-        ),
+        content: Text(L10n.of(context)!.analyzingWarningContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Wait'),
+            child: Text(L10n.of(context)!.waitButton),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -155,7 +152,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Exit'),
+            child: Text(L10n.of(context)!.exitButton),
           ),
         ],
       ),
@@ -181,14 +178,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       },
       child: Scaffold(
       appBar: AppBar(
-        title: const Text('Save Food'),
+        title: Text(L10n.of(context)!.saveFoodTitle),
         actions: [
           if (!_isAnalyzing)
             TextButton(
               onPressed: _saveFood,
-              child: const Text(
-                'Save',
-                style: TextStyle(
+              child: Text(
+                L10n.of(context)!.saveButton,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -240,8 +237,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'Food Name',
-                hintText: 'e.g. Fried Rice with Shrimp',
+                labelText: L10n.of(context)!.foodNameLabel,
+                hintText: L10n.of(context)!.foodNameHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -259,9 +256,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'Amount',
+                      labelText: L10n.of(context)!.amountLabel,
                       helperText:
-                          _hasBaseValues ? 'Change → calories adjust automatically' : null,
+                          _hasBaseValues ? L10n.of(context)!.amountAutoAdjust : null,
                       helperStyle: TextStyle(
                           fontSize: 11, color: Colors.purple.shade300),
                       border: OutlineInputBorder(
@@ -276,7 +273,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   child: DropdownButtonFormField<String>(
                     initialValue: UnitConverter.ensureValid(_servingUnit),
                     decoration: InputDecoration(
-                      labelText: 'Unit',
+                      labelText: L10n.of(context)!.unitLabel,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -312,8 +309,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Base: ${_baseCalories.toInt()} kcal / 1 $_servingUnit '
-                        '(P:${_baseProtein.toInt()}g C:${_baseCarbs.toInt()}g F:${_baseFat.toInt()}g)',
+                        L10n.of(context)!.baseInfo(
+                          _baseCalories.toInt().toString(),
+                          _servingUnit,
+                          _baseProtein.toInt().toString(),
+                          _baseCarbs.toInt().toString(),
+                          _baseFat.toInt().toString(),
+                        ),
                         style: const TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary,
@@ -329,7 +331,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             // Macros
             AppIcons.iconWithLabel(
               AppIcons.macros,
-              'Macros',
+              L10n.of(context)!.macrosTitle,
               iconColor: AppIcons.macrosColor,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -339,15 +341,15 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               children: [
                 Expanded(
                     child: _buildMacroInput(
-                        'Protein', _proteinController, AppColors.health)),
+                        L10n.of(context)!.proteinLabel, _proteinController, AppColors.health)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _buildMacroInput(
-                        'Carbs', _carbsController, AppColors.health)),
+                        L10n.of(context)!.carbsLabel, _carbsController, AppColors.health)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _buildMacroInput(
-                        'Fat', _fatController, AppColors.health)),
+                        L10n.of(context)!.fatLabel, _fatController, AppColors.health)),
               ],
             ),
             const SizedBox(height: 24),
@@ -355,7 +357,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             // Meal type
             AppIcons.iconWithLabel(
               AppIcons.meal,
-              'Meal Type',
+              L10n.of(context)!.mealTypeTitle,
               iconColor: AppIcons.mealColor,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -390,7 +392,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               const SizedBox(height: 24),
               AppIcons.iconWithLabel(
                 Icons.restaurant_menu_rounded,
-                'Ingredients',
+                L10n.of(context)!.ingredientsTitle,
                 iconColor: AppIcons.mealColor,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -444,14 +446,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(AppIcons.save, size: 20, color: Colors.white),
-                      SizedBox(width: 8),
+                      const Icon(AppIcons.save, size: 20, color: Colors.white),
+                      const SizedBox(width: 8),
                       Text(
-                        'Save',
-                        style: TextStyle(
+                        L10n.of(context)!.saveButton,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -472,15 +474,15 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         color: AppColors.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          SizedBox(
+          const SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          SizedBox(width: 12),
-          Text('PROCESSING IMAGE DATA...'),
+          const SizedBox(width: 12),
+          Text(L10n.of(context)!.processingImageData),
         ],
       ),
     );
@@ -501,10 +503,10 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             children: [
               const Icon(Icons.error_outline, color: AppColors.error),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Unable to analyze',
-                  style: TextStyle(
+                  L10n.of(context)!.unableToAnalyzeTitle,
+                  style: const TextStyle(
                     color: AppColors.error,
                     fontWeight: FontWeight.w600,
                   ),
@@ -512,7 +514,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               ),
               TextButton(
                 onPressed: _analyzeFood,
-                child: const Text('Try Again'),
+                child: Text(L10n.of(context)!.tryAgainButton),
               ),
             ],
           ),
@@ -545,7 +547,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 const Icon(AppIcons.aiAnalyzed, size: 16, color: AppColors.success),
                 const SizedBox(width: 4),
                 Text(
-                  'AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
+                  L10n.of(context)!.aiAnalyzedConfidence(
+                    (_analysisResult!.confidence * 100).toInt().toString(),
+                  ),
                   style: const TextStyle(color: AppColors.success),
                 ),
               ],
@@ -571,7 +575,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(AppIcons.aiAnalyzed, size: 20, color: Colors.purple),
-          label: Text(_isAnalyzing ? 'ANALYZING...' : 'AI Analysis'),
+          label: Text(_isAnalyzing ? L10n.of(context)!.analyzingButton : L10n.of(context)!.aiAnalysisButton),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.purple,
             side: const BorderSide(color: Colors.purple),
@@ -589,18 +593,18 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         color: Colors.blue.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
-        children: [
-          Icon(Icons.info_outline, color: Colors.blue),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Enter food details below or use AI analysis for automatic nutrition estimation',
-              style: TextStyle(fontSize: 13),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.blue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                L10n.of(context)!.manualInputHint,
+                style: const TextStyle(fontSize: 13),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 
@@ -621,7 +625,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         children: [
           AppIcons.iconWithLabel(
             AppIcons.calories,
-            'CALORIES',
+            L10n.of(context)!.caloriesTitle,
             iconColor: AppIcons.caloriesColor,
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -779,7 +783,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           _servingSizeController.addListener(_onServingSizeChanged);
         });
       } else {
-        setState(() => _error = 'Unable to analyze image');
+        setState(() => _error = L10n.of(context)!.unableToAnalyzeImage);
       }
     } catch (e) {
       if (_isCancelled || !mounted) return;
@@ -800,7 +804,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     // Validation
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter food name'), duration: Duration(seconds: 2)),
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterFoodNameShort), duration: const Duration(seconds: 2)),
       );
       return;
     }
@@ -816,7 +820,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     final entry = FoodEntry()
       ..foodName = _nameController.text.trim().isEmpty
-          ? 'Food (pending analysis)'
+          ? L10n.of(context)!.foodPendingAnalysis
           : _nameController.text.trim()
       ..foodNameEn = _analysisResult?.foodNameEn
       ..calories = calories
@@ -852,17 +856,17 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(AppIcons.success, size: 18, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Food saved successfully!'),
+              const Icon(AppIcons.success, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(L10n.of(context)!.foodSavedSuccess),
             ],
           ),
           backgroundColor: AppColors.success,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
         ),
       );
       Navigator.pop(context);
