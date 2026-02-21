@@ -21,7 +21,12 @@ import 'core/utils/logger.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/profile/providers/locale_provider.dart';
+import 'features/energy/presentation/energy_store_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+// Global navigator key for deep linking
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -115,7 +120,23 @@ void main() async {
 
   // ✅ PHASE 3: Initialize Push Notifications (FCM)
   try {
-    await NotificationService.initialize();
+    await NotificationService.initialize(
+      onNotificationTap: (RemoteMessage message) {
+        final data = message.data;
+        final action = data['action'] as String?;
+        
+        if (action == 'open_offer') {
+          final offerId = data['offerId'] as String?;
+          if (offerId != null && navigatorKey.currentState != null) {
+            navigatorKey.currentState!.push(
+              MaterialPageRoute(
+                builder: (_) => EnergyStoreScreen(highlightOfferId: offerId),
+              ),
+            );
+          }
+        }
+      },
+    );
     AppLogger.info('✅ Notification Service initialized');
   } catch (e) {
     AppLogger.warn('⚠️ Failed to initialize Notification Service: $e');
@@ -167,6 +188,7 @@ class MiroApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'MIRO - My Intake Record Oracle',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
@@ -181,10 +203,7 @@ class MiroApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en'), // English (default)
-        Locale('th'), // Thai (future)
-      ],
+      supportedLocales: L10n.supportedLocales,
       locale: locale, // null = use system locale
       // === จบ Localization ===
 
