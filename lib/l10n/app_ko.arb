@@ -1,0 +1,1782 @@
+{
+  "@@locale": "ko",
+  "appName": "MiRO",
+  "save": "구하다",
+  "cancel": "취소",
+  "delete": "삭제",
+  "edit": "편집하다",
+  "search": "찾다",
+  "loading": "로드 중...",
+  "error": "오류가 발생했습니다",
+  "confirm": "확인하다",
+  "close": "닫다",
+  "done": "완료",
+  "next": "다음",
+  "skip": "건너뛰다",
+  "retry": "다시 해 보다",
+  "ok": "좋아요",
+  "foodName": "식품명",
+  "calories": "칼로리",
+  "protein": "Pro테인",
+  "carbs": "탄수화물",
+  "fat": "지방",
+  "servingSize": "서빙 크기",
+  "servingUnit": "단위",
+  "kcal": "kcal",
+  "mealBreakfast": "아침",
+  "mealLunch": "점심",
+  "mealDinner": "저녁",
+  "mealSnack": "간식",
+  "todaySummary": "오늘의 요약",
+  "dateSummary": "{date} 요약",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSuccess": "성공적으로 저장되었습니다",
+  "deletedSuccess": "삭제되었습니다.",
+  "pleaseEnterFoodName": "음식 이름을 입력해주세요",
+  "noDataYet": "아직 데이터가 없습니다",
+  "addFood": "음식 추가",
+  "editFood": "음식 편집",
+  "deleteFood": "음식 삭제",
+  "deleteConfirm": "삭제를 확인하시겠습니까?",
+  "foodLoggedSuccess": "음식이 기록되었습니다!",
+  "noApiKey": "Gemini API Key을(를) 설정하세요.",
+  "noApiKeyDescription": "Profile → API 설정으로 이동하여 설정하세요.",
+  "apiKeyTitle": "Gemini API Key 설정",
+  "apiKeyRequired": "API Key 필요",
+  "apiKeyFreeNote": "Gemini API은 무료로 사용할 수 있습니다.",
+  "apiKeySetup": "API Key 설정",
+  "testConnection": "테스트 연결",
+  "connectionSuccess": "성공적으로 연결되었습니다! 사용 준비 완료",
+  "connectionFailed": "연결 실패",
+  "pasteKey": "반죽",
+  "deleteKey": "API Key 삭제",
+  "openAiStudio": "Google AI Studio 열기",
+  "chatHint": "Miro에게 말하세요. \"로그볶음밥\"…",
+  "chatFoodSaved": "음식이 기록되었습니다!",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "죄송합니다. 이 기능은 아직 사용할 수 없습니다.",
+  "goalCalories": "칼로리/일",
+  "goalProtein": "Pro시간/일",
+  "goalCarbs": "탄수화물/일",
+  "goalFat": "지방/일",
+  "goalWater": "물/일",
+  "healthGoals": "건강 목표",
+  "profile": "Pro파일",
+  "settings": "설정",
+  "privacyPolicy": "개인 정보 보호 정책",
+  "termsOfService": "서비스 약관",
+  "clearAllData": "모든 데이터 지우기",
+  "clearAllDataConfirm": "모든 데이터가 삭제됩니다. 이 작업은 취소할 수 없습니다!",
+  "about": "에 대한",
+  "language": "언어",
+  "upgradePro": "Pro로 업그레이드",
+  "proUnlocked": "MiRO Pro",
+  "proDescription": "무제한 AI 식품 분석",
+  "aiRemaining": "AI 분석: 오늘 남은 {remaining}/{total}",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "오늘(3/3) AI 한도 도달",
+  "restorePurchase": "구매 복원",
+  "myMeals": "나의 식사:",
+  "createMeal": "식사 만들기",
+  "ingredients": "재료",
+  "searchFood": "음식 검색",
+  "analyzing": "분석 중...",
+  "analyzeWithAi": "AI로 분석",
+  "analysisComplete": "분석 완료",
+  "timeline": "타임라인",
+  "diet": "다이어트",
+  "quickAdd": "빠른 추가",
+  "welcomeTitle": "MiRO",
+  "welcomeSubtitle": "AI로 간편한 음식 기록",
+  "onboardingFeature1": "사진 찍기",
+  "onboardingFeature1Desc": "AI가 자동으로 칼로리를 계산한다",
+  "onboardingFeature2": "기록할 내용을 입력하세요",
+  "onboardingFeature2Desc": "\"볶음밥을 먹었습니다\"라고 말하면 기록됩니다.",
+  "onboardingFeature3": "일일 요약",
+  "onboardingFeature3Desc": "kcal, 단백질, 탄수화물, 지방을 추적하세요.",
+  "basicInfo": "기본 정보",
+  "basicInfoDesc": "일일 권장 칼로리를 계산하려면",
+  "gender": "성별",
+  "male": "남성",
+  "female": "여성",
+  "age": "나이",
+  "weight": "무게",
+  "height": "키",
+  "activityLevel": "활동 수준",
+  "tdeeResult": "귀하의 TDEE: {kcal} kcal/일",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "Gemini AI 설정",
+  "setupAiDesc": "사진을 찍으면 AI가 자동으로 분석합니다.",
+  "setupNow": "지금 설정하세요",
+  "skipForNow": "지금은 건너뛰세요",
+  "errorTimeout": "연결 시간이 초과되었습니다. 다시 시도해 주세요.",
+  "errorInvalidKey": "잘못된 API Key — 설정을 확인하세요",
+  "errorNoInternet": "인터넷에 연결되어 있지 않음",
+  "errorGeneral": "오류가 발생했습니다. 다시 시도해 주세요.",
+  "errorQuotaExceeded": "API 할당량을 초과했습니다. 잠시 기다렸다가 다시 시도하십시오.",
+  "apiKeyScreenTitle": "Gemini API Key 설정",
+  "analyzeFoodWithAi": "AI로 음식을 분석하다",
+  "analyzeFoodWithAiDesc": "사진 찍기 → AI가 자동으로 칼로리 계산\nGemini API은 무료로 사용할 수 있습니다!",
+  "openGoogleAiStudio": "Google AI Studio 열기",
+  "step1Title": "Google AI Studio 열기",
+  "step1Desc": "API Key을(를) 생성하려면 아래 버튼을 클릭하세요.",
+  "step2Title": "Google 계정으로 로그인",
+  "step2Desc": "Gmail 또는 Google 계정을 사용하세요(없는 경우 무료로 만드세요).",
+  "step3Title": "\"API Key 생성\"을 클릭하세요.",
+  "step3Desc": "파란색 \"API Key 만들기\" 버튼을 클릭하세요.\nProject를 선택하라는 메시지가 표시되면 → \"새 프로젝트에서 API 키 생성\"을 클릭합니다.",
+  "step4Title": "키를 복사하여 아래에 붙여넣으세요.",
+  "step4Desc": "생성된 키 옆에 있는 복사를 클릭하세요.\n키는 다음과 같습니다: AIzaSyxxxx...",
+  "step5Title": "여기에 API Key을(를) 붙여넣으세요.",
+  "pasteApiKeyHint": "복사한 API Key을 붙여넣으세요.",
+  "saveApiKey": "API Key 저장",
+  "testingConnection": "테스트 중...",
+  "deleteApiKey": "API Key 삭제",
+  "deleteApiKeyConfirm": "API Key을 삭제하시겠습니까?",
+  "deleteApiKeyConfirmDesc": "다시 설정할 때까지 AI 식품 분석을 사용할 수 없습니다.",
+  "apiKeySaved": "API Key이(가) 성공적으로 저장되었습니다",
+  "apiKeyDeleted": "API Key이(가) 성공적으로 삭제되었습니다.",
+  "pleasePasteApiKey": "먼저 API Key을(를) 붙여넣으세요.",
+  "apiKeyInvalidFormat": "잘못된 API Key — \"AIza\"로 시작해야 합니다.",
+  "connectionSuccessMessage": "✅ 성공적으로 연결되었습니다! 사용 준비 완료",
+  "connectionFailedMessage": "❌ 연결 실패",
+  "faqTitle": "자주 묻는 질문",
+  "faqFreeQuestion": "정말 무료인가요?",
+  "faqFreeAnswer": "예! Gemini 2.0 플래시는 하루 1,500개 요청에 대해 무료입니다.\n음식 기록용(1일 5~15회) → 영구 무료, 결제 불필요",
+  "faqSafeQuestion": "안전합니까?",
+  "faqSafeAnswer": "API Key은(는) 기기의 보안 저장소에만 저장됩니다.\n앱이 우리 서버에 키를 보내지 않습니다\nKey가 유출된 경우 → 삭제하고 새로 생성하세요. (귀하의 Google 비밀번호가 아닙니다.)",
+  "faqNoKeyQuestion": "키를 생성하지 않으면 어떻게 되나요?",
+  "faqNoKeyAnswer": "여전히 앱을 사용할 수 있습니다! 하지만:\n❌ 사진 촬영 불가 → AI 분석\n✅ 음식을 수동으로 기록할 수 있습니다\n✅ 빠른 추가 작동\n✅ kcal/매크로 요약 작품 보기",
+  "faqCreditCardQuestion": "신용카드가 필요합니까?",
+  "faqCreditCardAnswer": "아니요 — 신용카드 없이 무료로 API Key을(를) 생성하세요",
+  "navDashboard": "계기반",
+  "navMyMeals": "내 식사",
+  "navCamera": "카메라",
+  "navAiChat": "AI채팅",
+  "navProfile": "Pro파일",
+  "appBarTodayIntake": "오늘의 섭취량",
+  "appBarMyMeals": "내 식사",
+  "appBarCamera": "카메라",
+  "appBarAiChat": "AI채팅",
+  "appBarMiro": "미로",
+  "permissionRequired": "권한 필요",
+  "permissionRequiredDesc": "MIRO는 다음에 대한 액세스가 필요합니다.",
+  "permissionPhotos": "사진 — 음식 스캔",
+  "permissionCamera": "카메라 — 음식 사진 촬영",
+  "permissionSkip": "건너뛰다",
+  "permissionAllow": "허용하다",
+  "permissionAllGranted": "모든 권한이 부여됨",
+  "permissionDenied": "권한이 거부되었습니다: {denied}",
+  "@permissionDenied": {
+    "placeholders": {
+      "denied": {
+        "type": "String"
+      }
+    }
+  },
+  "openSettings": "설정 열기",
+  "exitAppTitle": "앱을 종료하시겠습니까?",
+  "exitAppMessage": "종료하시겠습니까?",
+  "exit": "출구",
+  "healthGoalsTitle": "건강 목표",
+  "healthGoalsInfo": "일일 칼로리 목표, 매크로, 식사당 예산을 설정하세요.\n자동 계산 잠금: 매크로 2개 또는 식사 3개.",
+  "dailyCalorieGoal": "일일 칼로리 목표",
+  "proteinLabel": "Pro테인",
+  "carbsLabel": "탄수화물",
+  "fatLabel": "지방",
+  "autoBadge": "자동",
+  "kcalPerGram": "{kcalPerGram} kcal/g • {kcal} __SW0__",
+  "@kcalPerGram": {
+    "placeholders": {
+      "kcalPerGram": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieBudget": "식사 칼로리 예산",
+  "mealBudgetBalanced": "합계 {total} kcal = 목표 {goal} __SW0__",
+  "@mealBudgetBalanced": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealBudgetRemaining": "총 {total} / {goal} kcal ({remaining} 남음)",
+  "@mealBudgetRemaining": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "lockMealsHint": "3번의 식사를 잠그면 4번째 식사가 자동 계산됩니다.",
+  "breakfastLabel": "아침",
+  "lunchLabel": "점심",
+  "dinnerLabel": "저녁",
+  "snackLabel": "간식",
+  "percentOfDailyGoal": "일일 목표의 {percent}%",
+  "@percentOfDailyGoal": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "smartSuggestionRange": "스마트 제안 범위",
+  "smartSuggestionHow": "스마트 제안은 어떻게 작동하나요?",
+  "smartSuggestionDesc": "내 식단의 음식과 식재료, 어제의 식단을 식단당 예산에 맞춰 추천해 드립니다.\n\n이 임계값은 제안의 유연성을 제어합니다. 예를 들어 점심 예산이 700 kcal이고 기준액이 {threshold} __SW0__인 경우 {min}~{max} __SW0__ 사이의 음식을 제안합니다.",
+  "@smartSuggestionDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionThreshold": "제안 임계값",
+  "suggestionThresholdDesc": "식사 예산에서 음식 ± {threshold} kcal 허용",
+  "@suggestionThresholdDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsSavedSuccess": "목표가 성공적으로 저장되었습니다!",
+  "canOnlyLockTwoMacros": "한 번에 2개의 매크로만 잠글 수 있습니다.",
+  "canOnlyLockThreeMeals": "식사는 3번만 잠글 수 있습니다. 4번째 자동 계산",
+  "tabMeals": "식사",
+  "tabIngredients": "재료",
+  "searchMealsOrIngredients": "식사 또는 재료 검색...",
+  "createNewMeal": "새 식사 만들기",
+  "addIngredient": "성분 추가",
+  "noMealsYet": "아직 식사 없음",
+  "noMealsYetDesc": "AI로 음식을 분석해 식사 자동 저장\n또는 수동으로 생성",
+  "noIngredientsYet": "아직 재료가 없습니다",
+  "noIngredientsYetDesc": "AI로 음식을 분석하면\n재료가 자동으로 저장됩니다",
+  "mealCreated": "'{name}'을(를) 생성했습니다.",
+  "@mealCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogged": "\"{name}\"이(가) 기록되었습니다.",
+  "@mealLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientAmount": "금액({unit})",
+  "@ingredientAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientLogged": "\"{name}\" {amount}{unit}이 기록되었습니다.",
+  "@ingredientLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNotFound": "식사를 찾을 수 없습니다",
+  "mealUpdated": "\"{name}\" 업데이트됨",
+  "@mealUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealTitle": "식사를 삭제하시겠습니까?",
+  "deleteMealMessage": "\"{name}\"",
+  "@deleteMealMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealNote": "구성품은 삭제되지 않습니다.",
+  "mealDeleted": "식사가 삭제되었습니다.",
+  "ingredientCreated": "'{name}'을(를) 생성했습니다.",
+  "@ingredientCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientNotFound": "성분을 찾을 수 없습니다",
+  "ingredientUpdated": "\"{name}\" 업데이트됨",
+  "@ingredientUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteIngredientTitle": "성분을 삭제하시겠습니까?",
+  "deleteIngredientMessage": "\"{name}\"",
+  "@deleteIngredientMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientDeleted": "성분이 삭제되었습니다.",
+  "noIngredientsData": "성분 데이터가 없습니다.",
+  "ingredientDetail": "{name} ({amount} {unit})",
+  "@ingredientDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientCalories": "{calories} kcal",
+  "@ingredientCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "useThisMeal": "이 식사를 사용하세요",
+  "errorLoading": "로드 중 오류 발생: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanFoundNewImages": "{date}에서 {count} 새 이미지를 찾았습니다.",
+  "@scanFoundNewImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoNewImages": "{date}에 새 이미지가 없습니다.",
+  "@scanNoNewImages": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalysisRemaining": "AI 분석: 오늘 {remaining}/{total} 남음",
+  "@aiAnalysisRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "upgradeToProUnlimited": "무제한 사용하려면 Pro로 업그레이드하세요.",
+  "upgrade": "치받이",
+  "confirmDelete": "삭제 확인",
+  "confirmDeleteMessage": "\"{name}\"을(를) 삭제하시겠습니까?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryDeletedSuccess": "✅ 항목이 삭제되었습니다.",
+  "entryDeleteError": "❌ 오류: {error}",
+  "@entryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "batchAnalyzeItems": "{count} 항목(일괄)",
+  "@batchAnalyzeItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeCancelled": "취소됨 — {success}개 항목을 성공적으로 분석했습니다.",
+  "@analyzeCancelled": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessAll": "✅ {success} 항목을 성공적으로 분석했습니다.",
+  "@analyzeSuccessAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessPartial": "⚠️ {success}/{total} 항목 분석됨({failed} 실패)",
+  "@analyzeSuccessPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgress": "{item} ({current}/{total})",
+  "@analyzeProgress": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pullToScanMeal": "당겨서 식사를 스캔하세요.",
+  "analyzeAll": "모두 분석",
+  "addFoodTitle": "음식 추가",
+  "foodNameRequired": "음식 이름 *",
+  "foodNameHint": "검색하려면 입력하세요. 볶음밥, 파파야 샐러드",
+  "selectedFromMyMeal": "✅ 내 식사에서 선택 — 영양 데이터 자동 입력",
+  "foundInDatabase": "✅ 데이터베이스에서 발견 — 영양 데이터가 자동으로 채워짐",
+  "saveAndAnalyze": "저장 및 분석",
+  "notFoundInDatabase": "데이터베이스에서 찾을 수 없음 - 백그라운드에서 분석됩니다.",
+  "amountLabel": "양",
+  "unitLabel": "단위",
+  "nutritionAutoCalculated": "영양(양별로 자동계산)",
+  "nutritionEnterZero": "영양(알 수 없는 경우 0 입력)",
+  "caloriesLabel": "칼로리 (kcal)",
+  "proteinLabelShort": "Pro테인(g)",
+  "carbsLabelShort": "탄수화물(g)",
+  "fatLabelShort": "지방(g)",
+  "mealTypeLabel": "식사 종류",
+  "pleaseEnterFoodNameFirst": "음식 이름을 먼저 입력해주세요",
+  "savedAnalyzingBackground": "✅ 저장됨 — 백그라운드에서 분석 중",
+  "foodAdded": "✅ 음식 추가됨",
+  "suggestionSourceMyMeal": "나의 식사",
+  "suggestionSourceIngredient": "재료",
+  "suggestionSourceDatabase": "데이터 베이스",
+  "editFoodTitle": "음식 편집",
+  "foodNameLabel": "식품명",
+  "changeAmountAutoUpdate": "양 변경 → 칼로리 자동 업데이트",
+  "baseNutrition": "기본: {calories} kcal / 1 {unit}",
+  "@baseNutrition": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "calculatedFromIngredients": "아래 성분으로 계산",
+  "ingredientsEditable": "성분 (편집 가능)",
+  "addIngredientButton": "추가하다",
+  "noIngredientsAddHint": "재료가 없습니다. 새로운 재료를 추가하려면 \"추가\"를 탭하세요.",
+  "editIngredientsHint": "이름/금액 수정 → 검색 아이콘을 눌러 데이터베이스 또는 AI를 검색하세요.",
+  "ingredientNameHint": "예를 들어 닭고기 달걀",
+  "searchDbOrAi": "DB/AI 검색",
+  "amountHint": "양",
+  "fromDatabase": "데이터베이스에서",
+  "subIngredients": "부성분({count})",
+  "@subIngredients": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSubIngredient": "추가하다",
+  "subIngredientNameHint": "부성분명",
+  "amountShort": "금액",
+  "pleaseEnterSubIngredientName": "부성분명을 먼저 입력해주세요",
+  "foundInDatabaseSub": "데이터베이스에서 \"{name}\"을(를) 찾았습니다!",
+  "@foundInDatabaseSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalyzedSub": "AI가 \"{name}\"(-1 에너지)을 분석했습니다.",
+  "@aiAnalyzedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotAnalyzeSub": "부성분을 분석할 수 없습니다.",
+  "pleaseEnterIngredientName": "성분명을 입력해주세요",
+  "reAnalyzeTitle": "다시 분석하시겠습니까?",
+  "reAnalyzeMessage": "'{name}'에는 이미 영양 데이터가 있습니다.\n\n다시 분석하면 에너지가 1 소모됩니다.\n\n계속하다?",
+  "@reAnalyzeMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzeButton": "재분석(에너지 1개)",
+  "amountNotSpecified": "금액이 지정되지 않음",
+  "amountNotSpecifiedMessage": "먼저 \"{name}\"에 대한 금액을 지정하십시오.\n아니면 기본 100g을 사용합니까?",
+  "@amountNotSpecifiedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "useDefault100g": "100g을 사용",
+  "aiAnalyzedResult": "AI: \"{name}\" → {calories} kcal",
+  "@aiAnalyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToAnalyze": "분석할 수 없음",
+  "today": "오늘",
+  "savedSuccessfully": "✅ 성공적으로 저장되었습니다",
+  "confirmFoodPhoto": "음식 사진 확인",
+  "photoSavedAutomatically": "사진이 자동으로 저장됨",
+  "foodNameHintExample": "예: 구운 치킨 샐러드",
+  "quantityLabel": "수량",
+  "quantityHint": "1",
+  "optionalFoodInfo": "식품명과 수량 입력은 선택사항이지만, 입력하시면 AI 분석 정확도가 향상됩니다.",
+  "saveOnly": "저장만",
+  "pleaseEnterValidQuantity": "올바른 수량을 입력하세요.",
+  "analyzedResult": "✅ 분석됨: {name} — {calories} kcal",
+  "@analyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotAnalyzeSaved": "⚠️ 분석할 수 없습니다. 저장했습니다. 나중에 \"모두 분석\"을 사용하세요.",
+  "savedAnalyzeLater": "✅ 저장됨 — 나중에 \"모두 분석\"으로 분석",
+  "editIngredientTitle": "성분 편집",
+  "ingredientNameRequired": "성분명 *",
+  "baseAmountLabel": "기본 금액",
+  "baseAmountHint": "100",
+  "nutritionPerBase": "{amount} {unit}당 영양",
+  "@nutritionPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionCalculatedPerBase": "{amount} {unit}별로 계산된 영양 — 시스템은 실제 소비된 양을 기준으로 자동 계산합니다.",
+  "@nutritionCalculatedPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "createIngredient": "재료 생성",
+  "saveChanges": "변경 사항 저장",
+  "pleaseEnterIngredientNameFirst": "성분명을 먼저 입력해주세요",
+  "aiAnalyzedIngredient": "AI: \"{name}\" {amount} {unit} → {calories} kcal",
+  "@aiAnalyzedIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToFindIngredient": "이 성분을 찾을 수 없습니다",
+  "searchFailed": "검색 실패: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEntriesTitle": "{count} {count, plural, =1 {Entry} other {Entries}}을(를) 삭제하시겠습니까?",
+  "@deleteEntriesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteEntriesMessage": "{count} 선택한 음식 {count, plural, =1 {entry} other {entries}}을(를) 삭제하시겠습니까?",
+  "@deleteEntriesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAll": "모두 삭제",
+  "deletedEntries": "{count} {count, plural, =1 {entry} other {entries}}을(를) 삭제했습니다.",
+  "@deletedEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedEntriesToDate": "{count} {count, plural, =1 {entry} other {entries}}을(를) {date}(으)로 이동했습니다.",
+  "@movedEntriesToDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "allSelectedAlreadyAnalyzed": "선택한 모든 항목이 이미 분석되었습니다.",
+  "analyzeCancelledSelected": "취소됨 — {success} 분석됨",
+  "@analyzeCancelledSelected": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesAll": "{success} {success, plural, =1 {entry} other {entries}}을(를) 분석했습니다.",
+  "@analyzedEntriesAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesPartial": "{success}/{total} 분석됨({failed} 실패)",
+  "@analyzedEntriesPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgressSelected": "{current}/{total} {item}",
+  "@analyzeProgressSelected": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "noEntriesYet": "아직 항목이 없습니다.",
+  "selectAll": "모두 선택",
+  "deselectAll": "모두 선택 취소",
+  "moveToDate": "날짜로 이동",
+  "analyzeSelected": "선택한 분석",
+  "deleteTooltip": "삭제",
+  "move": "이동하다",
+  "deleteTooltipAction": "삭제",
+  "switchToModeTitle": "{mode} 모드로 전환하시겠습니까?",
+  "@switchToModeTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToModeMessage": "이 항목은 {current}로 분석되었습니다.\n\n{newMode}로 재분석하면 에너지가 1 소모됩니다.\n\n계속하다?",
+  "@switchToModeMessage": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "newMode": {
+        "type": "String"
+      }
+    }
+  },
+  "analyzingAsMode": "{mode}(으)로 분석 중...",
+  "@analyzingAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzedAsMode": "✅ {mode}로 재분석됨",
+  "@reAnalyzedAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisFailed": "❌ 분석 실패",
+  "aiAnalysisComplete": "✅ AI가 분석하고 저장함",
+  "changeMealType": "식사 유형 변경",
+  "moveToAnotherDate": "다른 날짜로 이동",
+  "currentDate": "현재: {date}",
+  "@currentDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDateChange": "날짜 변경 취소",
+  "undo": "끄르다",
+  "chatHistory": "채팅 기록",
+  "newChat": "새 채팅",
+  "quickActions": "빠른 작업",
+  "clear": "분명한",
+  "helloImMiro": "안녕하세요! 나는 Miro입니다",
+  "tellMeWhatYouAteToday": "오늘 무엇을 먹었는지 말해 보세요!",
+  "tellMeWhatYouAte": "뭘 먹었는지 말해봐...",
+  "clearHistoryTitle": "기록을 삭제하시겠습니까?",
+  "clearHistoryMessage": "이 세션의 모든 메시지가 삭제됩니다.",
+  "chatHistoryTitle": "채팅 기록",
+  "newLabel": "새로운",
+  "noChatHistoryYet": "아직 채팅 기록이 없습니다",
+  "active": "활동적인",
+  "deleteChatTitle": "채팅을 삭제하시겠습니까?",
+  "deleteChatMessage": "'{title}'을 삭제하시겠습니까?",
+  "@deleteChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklySummaryTitle": "📊 주간 요약({start} - {end})",
+  "@weeklySummaryTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "daySummary": "📅 {day}: {calories} kcal {emoji} ({diff})",
+  "@daySummary": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "overTarget": "{amount} 목표 초과",
+  "@overTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTarget": "{amount} 타겟 미만",
+  "@underTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noFoodLoggedThisWeek": "이번 주에는 아직 기록된 음식이 없습니다.",
+  "averageKcalPerDay": "🔥 평균: {average} kcal/일",
+  "@averageKcalPerDay": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "targetKcalPerDay": "🎯 대상: {target} kcal/일",
+  "@targetKcalPerDay": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "resultOverTarget": "📈 결과: {amount} kcal 목표 초과",
+  "@resultOverTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resultUnderTarget": "📈 결과: {amount} kcal 목표 미만 — 잘했어요! 💪",
+  "@resultUnderTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadWeeklySummary": "❌ 주간 요약을 로드하지 못했습니다: {error}",
+  "@failedToLoadWeeklySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlySummaryTitle": "📊 월별 요약({month} {year})",
+  "@monthlySummaryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "totalDays": "📅 총 일수: {days}",
+  "@totalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "totalConsumed": "🔥 총 소비량: {calories} kcal",
+  "@totalConsumed": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "targetTotal": "🎯 목표 합계: {target} kcal",
+  "@targetTotal": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "averageKcalPerDayShort": "📈 평균: {average} kcal/일",
+  "@averageKcalPerDayShort": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "overTargetThisMonth": "⚠️ {amount} kcal 이번 달 목표 초과",
+  "@overTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTargetThisMonth": "✅ {amount} kcal 목표 미만 — 훌륭합니다! 💪",
+  "@underTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadMonthlySummary": "❌ 월별 요약을 로드하지 못했습니다: {error}",
+  "@failedToLoadMonthlySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiHelpTitle": "🤖 로컬 AI 도움말",
+  "localAiHelpFormat": "형식: [음식] [양] [단위]",
+  "localAiHelpExamples": "예:\n• 닭고기 100g, 밥 200g\n• 피자 2조각\n• 사과 1개, 바나나 1개",
+  "localAiHelpNote": "참고: 영어로만 제공, 기본 구문 분석\n더 나은 결과를 얻으려면 Miro AI로 전환하세요!",
+  "hiNoFoodLogged": "🤖 안녕하세요! 오늘은 아직 기록된 음식이 없습니다.\n   대상: {target} kcal — 로깅을 시작할 준비가 되셨습니까? 🍽️",
+  "@hiNoFoodLogged": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "hiKcalLeft": "🤖 안녕하세요! 오늘은 {remaining} kcal 남았습니다.\n   식사를 기록할 준비가 되셨나요? 😊",
+  "@hiKcalLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "hiOverTarget": "🤖 안녕하세요! 오늘 {calories} kcal을(를) 사용하셨습니다.\n   {over} __SW0__ 목표 초과 — 계속 추적해 보겠습니다! 💪",
+  "@hiOverTarget": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "hiReadyToLog": "🤖 안녕하세요! 식사를 기록할 준비가 되셨나요? 😊",
+  "notEnoughEnergy": "에너지가 충분하지 않습니다",
+  "thinkingMealIdeas": "🤖 당신을 위한 훌륭한 식사 아이디어를 생각 중입니다...",
+  "recentMeals": "최근 식사:",
+  "noRecentFood": "최근에 기록된 음식이 없습니다.",
+  "remainingCaloriesToday": ". 오늘 남은 칼로리: {remaining} kcal.",
+  "@remainingCaloriesToday": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToGetMenuSuggestions": "❌ 메뉴 제안을 가져오지 못했습니다: {error}",
+  "@failedToGetMenuSuggestions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionsTitle": "🤖 귀하의 음식 기록을 바탕으로 다음과 같은 3가지 식사 제안이 있습니다.",
+  "mealSuggestionItem": "{index}. {emoji} {name} (~{calories} kcal)",
+  "@mealSuggestionItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionMacros": "피: {protein}g | C: {carbs}g | 여: {fat}g",
+  "@mealSuggestionMacros": {
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
+  "pickOneAndLog": "하나를 선택하시면 제가 대신 기록해 드리겠습니다! 😊",
+  "energyCost": "⚡ -{cost} 에너지",
+  "@energyCost": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "giveMeTipsForHealthyEating": "건강한 식습관에 대한 조언을 알려주세요.",
+  "howManyCaloriesToday": "오늘은 몇 칼로리인가요?",
+  "menuLabel": "메뉴",
+  "weeklyLabel": "주간",
+  "monthlyLabel": "월간 간행물",
+  "tipsLabel": "팁",
+  "summaryLabel": "요약",
+  "helpLabel": "돕다",
+  "onboardingWelcomeSubtitle": "쉽게 칼로리를 추적하세요\nAI 기반 분석으로",
+  "onboardingSnap": "스냅",
+  "onboardingSnapDesc": "AI가 즉시 분석",
+  "onboardingType": "유형",
+  "onboardingTypeDesc": "로그인 초",
+  "onboardingEdit": "편집하다",
+  "onboardingEditDesc": "정확도 미세 조정",
+  "onboardingNext": "다음 →",
+  "onboardingDisclaimer": "AI 추정 데이터. 의학적 조언이 아닙니다.",
+  "onboardingQuickSetup": "빠른 설정",
+  "onboardingHelpAiUnderstand": "AI가 음식을 더 잘 이해할 수 있도록 도와주세요",
+  "onboardingYourTypicalCuisine": "전형적인 요리:",
+  "onboardingDailyCalorieGoal": "일일 칼로리 목표(선택 사항):",
+  "onboardingKcalPerDay": "kcal/일",
+  "onboardingCalorieGoalHint": "2000",
+  "onboardingCanChangeAnytime": "Pro파일 설정에서 언제든지 변경할 수 있습니다.",
+  "onboardingYoureAllSet": "모든 준비가 완료되었습니다!",
+  "onboardingStartTracking": "오늘부터 식사 추적을 시작해 보세요.\n사진을 찍거나 무엇을 먹었는지 입력하세요.",
+  "onboardingWelcomeGift": "환영 선물",
+  "onboardingFreeEnergy": "10개의 무료 에너지",
+  "onboardingFreeEnergyDesc": "= 시작하기 위한 10가지 AI 분석",
+  "onboardingEnergyCost": "각 분석 비용은 1 에너지입니다.\n더 많이 사용할수록 더 많은 수익을 얻을 수 있습니다!",
+  "onboardingStartTrackingButton": "추적을 시작하세요! →",
+  "onboardingNoCreditCard": "신용카드 없음 • 숨겨진 수수료 없음",
+  "cameraTakePhotoOfFood": "음식 사진을 찍어보세요",
+  "cameraFailedToInitialize": "카메라를 초기화하지 못했습니다.",
+  "cameraFailedToCapture": "사진을 캡처하지 못했습니다.",
+  "cameraFailedToPickFromGallery": "갤러리에서 이미지를 선택하지 못했습니다.",
+  "cameraProcessing": "Pro중지 중...",
+  "referralInviteFriends": "친구 초대",
+  "referralYourReferralCode": "귀하의 추천 코드",
+  "referralLoading": "로드 중...",
+  "referralCopy": "복사",
+  "referralShareCodeDescription": "이 코드를 친구들과 공유해보세요! AI를 3번 사용하면 둘 다 보상을 받습니다!",
+  "referralEnterReferralCode": "추천 코드 입력",
+  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralSubmitCode": "코드 제출",
+  "referralPleaseEnterCode": "추천코드를 입력해주세요",
+  "referralCodeAccepted": "추천코드가 승인되었습니다!",
+  "referralCodeCopied": "추천코드가 클립보드에 복사되었습니다!",
+  "referralEnergyBonus": "+{energy} 에너지!",
+  "@referralEnergyBonus": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralHowItWorks": "작동 방식",
+  "referralStep1Title": "추천 코드를 공유하세요",
+  "referralStep1Description": "MiRO ID를 복사하여 친구와 공유하세요.",
+  "referralStep2Title": "친구가 귀하의 코드를 입력했습니다.",
+  "referralStep2Description": "즉시 +20 에너지를 얻습니다.",
+  "referralStep3Title": "친구가 AI를 3번 사용함",
+  "referralStep3Description": "3개의 AI 분석을 완료하면",
+  "referralStep4Title": "보상을 받으세요!",
+  "referralStep4Description": "+5 에너지를 받습니다!",
+  "tierBenefitsTitle": "등급 혜택",
+  "tierBenefitsUnlockRewards": "보상 잠금 해제\n일일 연속",
+  "tierBenefitsKeepStreakDescription": "연속 기록을 유지하여 더 높은 등급을 잠금 해제하고 놀라운 혜택을 받으세요!",
+  "tierBenefitsHowItWorks": "작동 방식",
+  "tierBenefitsDailyEnergyReward": "일일 에너지 보상",
+  "tierBenefitsDailyEnergyDescription": "하루에 한 번 이상 AI를 사용하여 보너스 에너지를 얻으세요. 높은 등급 = 더 많은 일일 에너지!",
+  "tierBenefitsPurchaseBonus": "구매 보너스",
+  "tierBenefitsPurchaseBonusDescription": "골드 및 다이아몬드 등급은 구매할 때마다 추가 에너지를 얻습니다(10-20% 더!)",
+  "tierBenefitsGracePeriod": "유예기간",
+  "tierBenefitsGracePeriodDescription": "연속 기록을 잃지 않고 하루를 놓치지 마세요. 실버+ 등급은 보호를 받습니다!",
+  "tierBenefitsAllTiers": "모든 계층",
+  "tierBenefitsNew": "새로운",
+  "tierBenefitsPopular": "인기 있는",
+  "tierBenefitsBest": "최상의",
+  "tierBenefitsDailyCheckIn": "일일 체크인",
+  "tierBenefitsProTips": "Pro 팁",
+  "tierBenefitsTip1": "매일 AI를 사용하여 무료 에너지를 얻고 연속 기록을 쌓으세요.",
+  "tierBenefitsTip2": "다이아몬드 등급은 하루에 +4 에너지를 얻습니다. 즉, 월 120입니다!",
+  "tierBenefitsTip3": "구매 보너스는 모든 에너지 패키지에 적용됩니다!",
+  "tierBenefitsTip4": "유예 기간은 하루를 놓친 경우 연속 연속 기록을 보호합니다.",
+  "subscriptionEnergyPass": "에너지패스",
+  "subscriptionInAppPurchasesNotAvailable": "인앱 구매를 사용할 수 없습니다.",
+  "subscriptionFailedToInitiatePurchase": "구매를 시작하지 못했습니다.",
+  "subscriptionError": "오류: {error}",
+  "@subscriptionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailedToLoad": "구독을 로드하지 못했습니다.",
+  "subscriptionUnknownError": "알 수 없는 오류",
+  "subscriptionRetry": "다시 해 보다",
+  "subscriptionEnergyPassActive": "에너지 패스 액티브",
+  "subscriptionUnlimitedAccess": "무제한으로 액세스할 수 있습니다.",
+  "subscriptionStatus": "상태",
+  "subscriptionRenews": "갱신",
+  "subscriptionPrice": "가격",
+  "subscriptionYourBenefits": "귀하의 이점",
+  "subscriptionManageSubscription": "구독 관리",
+  "subscriptionNoProductAvailable": "사용 가능한 구독 제품이 없습니다.",
+  "subscriptionWhatYouGet": "당신이 얻는 것",
+  "subscriptionPerMonth": "매월",
+  "subscriptionSubscribeNow": "지금 구독하세요",
+  "subscriptionCancelAnytime": "언제든지 취소",
+  "subscriptionAutoRenewTerms": "구독이 자동으로 갱신됩니다. Google Play에서 언제든지 취소할 수 있습니다.",
+  "disclaimerHealthDisclaimer": "건강 면책 조항",
+  "disclaimerImportantReminders": "중요 알림:",
+  "disclaimerBullet1": "모든 영양 데이터는 추정치입니다.",
+  "disclaimerBullet2": "AI 분석에는 오류가 포함될 수 있습니다",
+  "disclaimerBullet3": "전문가의 조언을 대신할 수 없음",
+  "disclaimerBullet4": "의학적 지침은 의료 서비스 제공자에게 문의하세요.",
+  "disclaimerBullet5": "귀하의 재량과 위험에 따라 사용하십시오.",
+  "disclaimerIUnderstand": "이해합니다",
+  "privacyPolicyTitle": "개인 정보 보호 정책",
+  "privacyPolicySubtitle": "MiRO — 나의 섭취 기록 오라클",
+  "privacyPolicyHeaderNote": "귀하의 음식 데이터는 귀하의 장치에 유지됩니다. 에너지 균형은 Firebase을 통해 안전하게 동기화되었습니다.",
+  "privacyPolicySectionInformationWeCollect": "당사가 수집하는 정보",
+  "privacyPolicySectionDataStorage": "데이터 저장",
+  "privacyPolicySectionDataTransmission": "제3자에게 데이터 전송",
+  "privacyPolicySectionRequiredPermissions": "필수 권한",
+  "privacyPolicySectionSecurity": "보안",
+  "privacyPolicySectionUserRights": "사용자 권리",
+  "privacyPolicySectionDataRetention": "데이터 보존",
+  "privacyPolicySectionChildrenPrivacy": "아동의 개인정보 보호",
+  "privacyPolicySectionChangesToPolicy": "본 정책의 변경 사항",
+  "privacyPolicySectionDataCollectionConsent": "데이터 수집 동의",
+  "privacyPolicySectionPDPACompliance": "PDPA 규정 준수(태국 개인 데이터 Pro보호법)",
+  "privacyPolicySectionContactUs": "문의하기",
+  "privacyPolicyEffectiveDate": "시행일: 2026년 2월 18일\n최종 업데이트: 2026년 2월 18일",
+  "termsOfServiceTitle": "서비스 약관",
+  "termsSubtitle": "MiRO — 나의 섭취 기록 오라클",
+  "termsSectionAcceptanceOfTerms": "약관 동의",
+  "termsSectionServiceDescription": "서비스 설명",
+  "termsSectionDisclaimerOfWarranties": "보증의 부인",
+  "termsSectionEnergySystemTerms": "에너지 시스템 용어",
+  "termsSectionUserDataAndResponsibilities": "사용자 데이터 및 책임",
+  "termsSectionBackupTransfer": "백업 및 전송",
+  "termsSectionInAppPurchases": "인앱 구매",
+  "termsSectionProhibitedUses": "Pro사용 금지",
+  "termsSectionIntellectualProperty": "지적 Property",
+  "termsSectionLimitationOfLiability": "책임의 제한",
+  "termsSectionServiceTermination": "서비스 종료",
+  "termsSectionChangesToTerms": "약관 변경",
+  "termsSectionGoverningLaw": "준거법",
+  "termsSectionContactUs": "문의하기",
+  "termsAcknowledgment": "MiRO을(를) 사용함으로써 귀하는 본 서비스 약관을 읽고 이해했으며 이에 동의함을 인정합니다.",
+  "termsLastUpdated": "최종 업데이트 날짜: 2026년 2월 15일",
+  "profileAndSettings": "Pro파일 및 설정",
+  "errorOccurred": "오류: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGoalsSection": "건강 목표",
+  "dailyGoals": "일일 목표",
+  "chatAiModeSection": "채팅 AI 모드",
+  "selectAiPowersChat": "채팅을 지원하는 AI를 선택하세요",
+  "miroAi": "Miro AI",
+  "miroAiSubtitle": "Powered by Gemini • 다국어 • 높은 정확도",
+  "localAi": "로컬 AI",
+  "localAiSubtitle": "기기 내 • 영어로만 제공 • 기본 정확도",
+  "free": "무료",
+  "cuisinePreferenceSection": "선호하는 요리",
+  "preferredCuisine": "선호하는 요리",
+  "selectYourCuisine": "요리를 선택하세요",
+  "photoScanSection": "사진 스캔",
+  "languageSection": "언어",
+  "languageTitle": "언어 / 언어",
+  "selectLanguage": "언어를 선택하세요",
+  "systemDefault": "시스템 기본값",
+  "systemDefaultSublabel": "말하다",
+  "english": "영어",
+  "englishSublabel": "안녕하십니까",
+  "thai": "ไท้ (태국어)",
+  "thaiSublabel": "태국",
+  "closeBilingual": "닫기 / 페이지",
+  "languageChangedTo": "언어가 {language}로 변경되었습니다.",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSection": "계정",
+  "miroId": "MiRO ID",
+  "miroIdCopied": "MiRO ID가 복사되었습니다!",
+  "inviteFriends": "친구 초대",
+  "inviteFriendsSubtitle": "추천코드를 공유하고 보상을 받으세요!",
+  "unlimitedAiDoubleRewards": "무제한 AI + 두 배 보상",
+  "plan": "계획",
+  "monthly": "월간 간행물",
+  "started": "시작됨",
+  "renews": "갱신",
+  "expires": "만료",
+  "autoRenew": "자동 갱신",
+  "on": "~에",
+  "off": "끄다",
+  "tapToManageSubscription": "구독을 관리하려면 탭하세요.",
+  "dataSection": "데이터",
+  "backupData": "백업 데이터",
+  "backupDataSubtitle": "에너지 + 음식이력 → 파일로 저장",
+  "restoreFromBackup": "백업에서 복원",
+  "restoreFromBackupSubtitle": "백업 파일에서 데이터 가져오기",
+  "clearAllDataTitle": "모든 데이터를 삭제하시겠습니까?",
+  "clearAllDataContent": "모든 데이터가 삭제됩니다:\n• 음식 항목\n• 내 식사\n• 성분\n• 목표\n• 개인정보\n\n이 작업은 취소할 수 없습니다!",
+  "allDataClearedSuccess": "모든 데이터가 성공적으로 지워졌습니다.",
+  "aboutSection": "에 대한",
+  "version": "버전",
+  "healthDisclaimer": "건강 면책 조항",
+  "importantLegalInformation": "중요한 법률 정보",
+  "showTutorialAgain": "튜토리얼 다시 표시",
+  "viewFeatureTour": "기능 둘러보기",
+  "showTutorialDialogTitle": "튜토리얼 표시",
+  "showTutorialDialogContent": "다음을 강조하는 기능 둘러보기가 표시됩니다.\n\n• 에너지 시스템\n• 당겨서 새로고침하는 사진 스캔\n• Miro AI와 채팅\n\n홈 화면으로 돌아갑니다.",
+  "showTutorialButton": "튜토리얼 표시",
+  "tutorialResetMessage": "튜토리얼 초기화! 보려면 홈 화면으로 이동하세요.",
+  "foodAnalysisTutorial": "식품 분석 튜토리얼",
+  "foodAnalysisTutorialSubtitle": "식품 분석 기능 사용 방법 알아보기",
+  "backupCreated": "백업이 생성되었습니다!",
+  "backupCreatedContent": "백업 파일이 성공적으로 생성되었습니다.",
+  "backupChooseDestination": "백업을 어디에 저장하시겠습니까?",
+  "backupSaveToDevice": "장치에 저장",
+  "backupSaveToDeviceDesc": "이 장치에서 선택한 폴더에 저장",
+  "backupShareToOther": "다른 장치에 공유",
+  "backupShareToOtherDesc": "회선, 이메일, Google 드라이브 등을 통해 보내기",
+  "backupSavedSuccess": "백업이 저장되었습니다!",
+  "backupSavedSuccessContent": "백업 파일이 선택한 위치에 저장되었습니다.",
+  "important": "중요한:",
+  "backupImportantNotes": "• 이 파일을 안전한 장소(Google 드라이브 등)에 저장하세요.\n• 사진은 백업에 포함되지 않습니다.\n• 이전 키는 30일 후에 만료됩니다.\n• 키는 한 번만 사용할 수 있습니다.",
+  "restoreBackup": "백업을 복원하시겠습니까?",
+  "backupFrom": "백업 위치:",
+  "date": "날짜:",
+  "energy": "에너지:",
+  "foodEntries": "음식 항목:",
+  "restoreImportant": "중요한",
+  "restoreImportantNotes": "• 이 기기의 현재 에너지는 백업 에너지({energy})로 교체됩니다.\n• 음식 항목은 병합됩니다(대체되지 않음).\n• 사진은 백업에 포함되지 않습니다.\n• 전송 키가 사용됩니다(재사용 불가)",
+  "@restoreImportantNotes": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "복원하다",
+  "restoreComplete": "복원 완료!",
+  "restoreCompleteContent": "귀하의 데이터가 성공적으로 복원되었습니다.",
+  "newEnergyBalance": "새로운 에너지 균형:",
+  "foodEntriesImported": "수입된 식품:",
+  "myMealsImported": "내 식사가 수입되었습니다:",
+  "appWillRefresh": "복원된 데이터를 표시하기 위해 앱이 새로 고쳐집니다.",
+  "backupFailed": "백업 실패",
+  "invalidBackupFile": "잘못된 백업 파일",
+  "restoreFailed": "복원 실패",
+  "analyticsDataCollection": "분석 데이터 수집",
+  "analyticsEnabled": "분석 활성화됨 - ขאบคุณท่ช่ม้ปप्र्तบปप्र्ุแมป",
+  "analyticsDisabled": "분석이 비활성화되었습니다. - ไม่ม่่ม่่ม่่่่่่่่มูมูมูมูมูมูมูมชช้้้้้ม",
+  "enabled": "활성화됨",
+  "enabledSubtitle": "활성화됨 - ช่ม้ปप्र्तบปप्र्ุปप्रะมบมช้้้้넷",
+  "disabled": "장애가 있는",
+  "disabledSubtitle": "장애인 - ไม่ม่ม่่ม्่่่่่บข้้มูมูม้มูมูมูมูมูมช้้้้้ 이루고",
+  "imagesPerDay": "일일 이미지",
+  "scanUpToImagesPerDay": "하루에 최대 {limit}개의 이미지를 스캔하세요.",
+  "@scanUpToImagesPerDay": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "다시 놓기",
+  "resetScanHistory": "검사 기록 재설정",
+  "resetScanHistorySubtitle": "검사된 모든 항목을 삭제하고 다시 검사하십시오.",
+  "imagesPerDayDialog": "일일 이미지",
+  "maxImagesPerDayDescription": "하루에 스캔할 수 있는 최대 이미지\n선택한 날짜만 검사합니다.",
+  "scanLimitSetTo": "하루에 {limit}개의 이미지로 스캔 제한이 설정됨",
+  "@scanLimitSetTo": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "resetScanHistoryDialog": "스캔 기록을 재설정하시겠습니까?",
+  "resetScanHistoryContent": "갤러리에서 스캔한 모든 음식 항목이 삭제됩니다.\n이미지를 다시 스캔하려면 날짜를 아래로 당깁니다.",
+  "resetComplete": "재설정 완료 - {count} 항목이 삭제되었습니다. 아래로 당겨 다시 스캔하세요.",
+  "@resetComplete": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarStreak": "연속 {days}일",
+  "@questBarStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarDaysToNextTier": "{days}일 → {tier}",
+  "@questBarDaysToNextTier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarMaxTier": "맥스 티어! 💎",
+  "questBarOfferDismissed": "숨겨진 혜택",
+  "questBarViewOffer": "제안 보기",
+  "questBarNoOffersNow": "• 지금은 쿠폰이 없습니다.",
+  "questBarWeeklyChallenges": "🎯 주간 챌린지",
+  "questBarMilestones": "🏆 마일스톤",
+  "questBarInviteFriends": "👥 친구를 초대하고 20E를 받으세요",
+  "questBarTimeRemaining": "⏰ 남은 시간 {time}",
+  "@questBarTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarClaimDailyEnergy": "+{energy}E",
+  "@questBarClaimDailyEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarShareReferralError": "공유 오류: {error}",
+  "@questBarShareReferralError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationTitle": "{tier} 축하 🎉",
+  "@tierCelebrationTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationDay": "일 {day}",
+  "@tierCelebrationDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tierCelebrationExpired": "만료됨",
+  "tierCelebrationComplete": "완벽한!",
+  "questBarWatchAd": "광고 시청 +{energy}⚡",
+  "@questBarWatchAd": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdRemaining": "오늘 {remaining}/{total} 남음",
+  "@questBarAdRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdSuccess": "광고를 시청했습니다! +{energy} 에너지 유입...",
+  "@questBarAdSuccess": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdNotReady": "광고가 준비되지 않았습니다. 다시 시도해 주세요.",
+  "questBarDailyChallenge": "일일 도전",
+  "questBarUseAi": "에너지 사용",
+  "questBarResetsMonday": "매주 월요일 초기화",
+  "questBarClaimed": "소유권을 주장했습니다!",
+  "questBarHideOffer": "숨다",
+  "questBarViewDetails": "보다",
+  "questBarShareText": "MiRO을 시도해 보세요! AI 기반 식품 분석 🍔\n이 링크를 사용하면 우리 둘 다 +20 에너지를 무료로 얻을 수 있습니다!\n\n{link}",
+  "@questBarShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarShareSubject": "MiRO을 시도해 보세요",
+  "claimButtonTitle": "일일 에너지 청구",
+  "claimButtonReceived": "+{energy}E을(를) 받았습니다!",
+  "@claimButtonReceived": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "claimButtonAlreadyClaimed": "오늘 이미 소유권을 주장했습니다.",
+  "claimButtonError": "오류: {error}",
+  "@claimButtonError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonalQuestLimitedTime": "제한된 시간",
+  "seasonalQuestDaysLeft": "{days}일 남음",
+  "@seasonalQuestDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardDaily": "+{reward}E/일",
+  "@seasonalQuestRewardDaily": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardOnce": "+{reward}E 일회성",
+  "@seasonalQuestRewardOnce": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestClaimed": "소유권을 주장했습니다!",
+  "seasonalQuestClaimedToday": "오늘 소유권이 주장됨",
+  "errorFailed": "실패한",
+  "errorFailedToClaim": "소유권을 주장하지 못했습니다.",
+  "errorGeneric": "오류: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneNoMilestonesToClaim": "아직 청구할 마일스톤이 없습니다.",
+  "milestoneClaimedEnergy": "🎁 +{energy} 에너지를 획득했습니다!",
+  "@milestoneClaimedEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTitle": "마일스톤",
+  "milestoneUseEnergyComplete": "에너지 사용 {threshold}",
+  "@milestoneUseEnergyComplete": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneNext": "다음: {threshold}E",
+  "@milestoneNext": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneAllComplete": "모든 마일스톤이 완료되었습니다!",
+  "noEnergyTitle": "에너지 부족",
+  "noEnergyContent": "AI로 음식을 분석하려면 에너지 1개가 필요합니다.",
+  "noEnergyTip": "AI 없이 수동으로 음식을 계속 무료로 기록할 수 있습니다.",
+  "noEnergyLater": "나중에",
+  "noEnergyWatchAd": "광고 시청({remaining}/3)",
+  "@noEnergyWatchAd": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "noEnergyBuyEnergy": "에너지 구매",
+  "tierBronze": "청동",
+  "tierSilver": "은",
+  "tierGold": "금",
+  "tierDiamond": "다이아몬드",
+  "tierStarter": "기동기",
+  "tierUpCongratulations": "🎉 축하합니다!",
+  "tierUpYouReached": "{tier}에 도달했습니다!",
+  "@tierUpYouReached": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierUpMotivation": "전문가처럼 칼로리를 추적하세요\n당신의 꿈의 몸이 가까워지고 있습니다!",
+  "tierUpReward": "+{reward}E 보상!",
+  "@tierUpReward": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "referralAllLevelsClaimed": "모든 레벨을 획득했습니다!",
+  "referralLevel": "레벨 {level}: {subtitle}",
+  "@referralLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "subtitle": {
+        "type": "String"
+      }
+    }
+  },
+  "referralProgress": "[{current}/{target}] (레벨 {level}/{total})",
+  "@referralProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "referralClaimedLevel": "🎁 요구 레벨 {level}: +{reward} 에너지!",
+  "@referralClaimedLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUseAi10": "에너지 10 사용",
+  "specifyIngredients": "알려진 성분 지정",
+  "specifyIngredientsOptional": "알려진 성분 지정(선택사항)",
+  "specifyIngredientsHint": "알고 있는 재료를 입력하면 AI가 숨겨진 조미료, 오일, 소스를 찾아줍니다.",
+  "sendToAi": "AI로 보내기",
+  "reanalyzeWithIngredients": "성분 추가 및 재분석",
+  "reanalyzeButton": "재분석(에너지 1개)",
+  "ingredientsSaved": "성분 절약",
+  "pleaseAddAtLeastOneIngredient": "재료를 1개 이상 추가해주세요.",
+  "hiddenIngredientsDiscovered": "AI가 찾아낸 숨은 성분",
+  "retroScanTitle": "최근 사진을 스캔하시겠습니까?",
+  "retroScanDescription": "지난 7일간의 사진을 스캔하여 자동으로 음식 사진을 찾아 일기에 추가할 수 있습니다.",
+  "retroScanNote": "음식 사진만 감지되며 다른 사진은 무시됩니다. 기기에 사진이 남지 않습니다.",
+  "retroScanStart": "내 사진 스캔",
+  "retroScanSkip": "지금은 건너뛰세요",
+  "retroScanInProgress": "스캐닝...",
+  "retroScanTagline": "MiRO이 당신을 변화시키고 있습니다\n음식 사진을 건강 데이터로 변환합니다.",
+  "retroScanFetchingPhotos": "최근 사진을 가져오는 중...",
+  "retroScanAnalyzing": "음식 사진 감지 중...",
+  "retroScanPhotosFound": "지난 7일 동안 {count} 사진이 검색되었습니다.",
+  "@retroScanPhotosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanCompleteTitle": "스캔 완료!",
+  "retroScanCompleteDesc": "{count} 음식 사진을 찾았습니다! AI 분석을 위해 타임라인에 추가되었습니다.",
+  "@retroScanCompleteDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanNoResultsTitle": "음식 사진을 찾을 수 없습니다.",
+  "retroScanNoResultsDesc": "지난 7일 동안 음식 사진이 감지되지 않았습니다. 다음 식사 사진을 찍어보세요!",
+  "retroScanAnalyzeHint": "해당 항목에 대한 AI 영양 분석을 받으려면 타임라인에서 \"모두 분석\"을 탭하세요.",
+  "retroScanDone": "알았어요!",
+  "welcomeEndTitle": "MiRO에 오신 것을 환영합니다!",
+  "welcomeEndMessage": "MiRO이(가) 귀하의 서비스에 있습니다.",
+  "welcomeEndJourney": "즐거운 여행 함께 하세요!!",
+  "welcomeEndStart": "시작하자!",
+  "greetingCalorieSummary": "안녕! 오늘은 무엇을 도와드릴까요? 아직 {remaining} kcal이 남아 있습니다. 지금까지: Protein {protein}g, 탄수화물 {carbs}g, 지방 {fat}g. 무엇을 먹었는지 알려주세요. 식사별로 모든 것을 나열해 주시면 모두 기록해 드리겠습니다. More Detail 더 정확해요!!",
+  "@greetingCalorieSummary": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingCuisineTip": "선호하는 요리는 {cuisine}로 설정되어 있습니다. 언제든지 설정에서 변경할 수 있습니다!",
+  "@greetingCuisineTip": {
+    "placeholders": {
+      "cuisine": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEnergyTip": "{balance} 에너지를 사용할 수 있습니다. 에너지 배지로 일일 연속 보상을 획득하는 것을 잊지 마세요!",
+  "@greetingEnergyTip": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingRenamePhotoTip": "팁: MiRO이(가) 더 정확하게 분석하는 데 도움이 되도록 음식 사진의 이름을 바꿀 수 있습니다!",
+  "greetingAddIngredientsTip": "팁: 분석을 위해 MiRO로 보내기 전에 확실한 성분을 추가할 수 있습니다. 지루하고 사소한 세부 사항을 모두 알아내겠습니다!",
+  "greetingBackupReminder": "안녕하세요 사장님! {days}일 동안 데이터를 백업하지 않았습니다. 설정에서 백업하는 것이 좋습니다. 데이터는 로컬에 저장되며 어떤 일이 발생하면 복구할 수 없습니다!",
+  "@greetingBackupReminder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingFallback": "안녕! 오늘은 무엇을 도와드릴까요? 무엇을 먹었는지 말해 보세요!"
+}

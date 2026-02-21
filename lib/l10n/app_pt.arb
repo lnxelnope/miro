@@ -1,0 +1,1782 @@
+{
+  "@@locale": "pt",
+  "appName": "MiRO",
+  "save": "Salvar",
+  "cancel": "Cancelar",
+  "delete": "Excluir",
+  "edit": "Editar",
+  "search": "Procurar",
+  "loading": "Carregando...",
+  "error": "Ocorreu um erro",
+  "confirm": "Confirmar",
+  "close": "Fechar",
+  "done": "Feito",
+  "next": "Próximo",
+  "skip": "Pular",
+  "retry": "Tentar novamente",
+  "ok": "OK",
+  "foodName": "Nome da comida",
+  "calories": "Calorias",
+  "protein": "Proteína",
+  "carbs": "Carboidratos",
+  "fat": "Gordo",
+  "servingSize": "Tamanho da porção",
+  "servingUnit": "Unidade",
+  "kcal": "kcal",
+  "mealBreakfast": "Café da manhã",
+  "mealLunch": "Almoço",
+  "mealDinner": "Jantar",
+  "mealSnack": "Lanche",
+  "todaySummary": "Resumo de hoje",
+  "dateSummary": "Resumo para {date}",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSuccess": "Salvo com sucesso",
+  "deletedSuccess": "Excluído com sucesso",
+  "pleaseEnterFoodName": "Por favor insira o nome do alimento",
+  "noDataYet": "Ainda não há dados",
+  "addFood": "Adicione comida",
+  "editFood": "Editar comida",
+  "deleteFood": "Excluir comida",
+  "deleteConfirm": "Confirmar exclusão?",
+  "foodLoggedSuccess": "Alimentos registrados!",
+  "noApiKey": "Configure Gemini API Key",
+  "noApiKeyDescription": "Vá para Profile → API Configurações para configurar",
+  "apiKeyTitle": "Configurar Gemini API Key",
+  "apiKeyRequired": "API Key obrigatório",
+  "apiKeyFreeNote": "Gemini API é de uso gratuito",
+  "apiKeySetup": "Configurar API Key",
+  "testConnection": "Conexão de teste",
+  "connectionSuccess": "Conectado com sucesso! Pronto para usar",
+  "connectionFailed": "Falha na conexão",
+  "pasteKey": "Colar",
+  "deleteKey": "Excluir API Key",
+  "openAiStudio": "Abra Google AI Studio",
+  "chatHint": "Diga Miro, por exemplo. \"Arroz frito\"...",
+  "chatFoodSaved": "Alimentos registrados!",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "Desculpe, este recurso ainda não está disponível",
+  "goalCalories": "Calorias/dia",
+  "goalProtein": "Proteína/dia",
+  "goalCarbs": "Carboidratos/dia",
+  "goalFat": "Gordura/dia",
+  "goalWater": "Água/dia",
+  "healthGoals": "Metas de saúde",
+  "profile": "Proarquivo",
+  "settings": "Configurações",
+  "privacyPolicy": "política de Privacidade",
+  "termsOfService": "Termos de Serviço",
+  "clearAllData": "Limpar todos os dados",
+  "clearAllDataConfirm": "Todos os dados serão excluídos. Isso não pode ser desfeito!",
+  "about": "Sobre",
+  "language": "Linguagem",
+  "upgradePro": "Atualizar para Pro",
+  "proUnlocked": "MiRO Pro",
+  "proDescription": "Análise ilimitada de alimentos com IA",
+  "aiRemaining": "Análise de IA: {remaining}/{total} restantes hoje",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "Limite de IA atingido para hoje (3/3)",
+  "restorePurchase": "Restaurar compra",
+  "myMeals": "Minhas refeições:",
+  "createMeal": "Criar refeição",
+  "ingredients": "Ingredientes",
+  "searchFood": "Pesquisar comida",
+  "analyzing": "Analisando...",
+  "analyzeWithAi": "Analise com IA",
+  "analysisComplete": "Análise concluída",
+  "timeline": "Linha do tempo",
+  "diet": "Dieta",
+  "quickAdd": "Adição rápida",
+  "welcomeTitle": "MiRO",
+  "welcomeSubtitle": "Registro fácil de alimentos com IA",
+  "onboardingFeature1": "Tire uma foto",
+  "onboardingFeature1Desc": "AI calcula calorias automaticamente",
+  "onboardingFeature2": "Digite para registrar",
+  "onboardingFeature2Desc": "Diga \"comi arroz frito\" e está registrado",
+  "onboardingFeature3": "Resumo diário",
+  "onboardingFeature3Desc": "Rastreie kcal, proteínas, carboidratos, gordura",
+  "basicInfo": "Informações básicas",
+  "basicInfoDesc": "Para calcular suas calorias diárias recomendadas",
+  "gender": "Gênero",
+  "male": "Macho",
+  "female": "Fêmea",
+  "age": "Idade",
+  "weight": "Peso",
+  "height": "Altura",
+  "activityLevel": "Nível de atividade",
+  "tdeeResult": "Seu TDEE: {kcal} kcal/dia",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "Configurar Gemini IA",
+  "setupAiDesc": "Tire uma foto e a IA a analisa automaticamente",
+  "setupNow": "Configurar agora",
+  "skipForNow": "Pular por enquanto",
+  "errorTimeout": "Tempo limite de conexão — tente novamente",
+  "errorInvalidKey": "API Key inválido — verifique suas configurações",
+  "errorNoInternet": "Sem conexão com a internet",
+  "errorGeneral": "Ocorreu um erro. Tente novamente",
+  "errorQuotaExceeded": "Cota API excedida. Aguarde e tente novamente",
+  "apiKeyScreenTitle": "Configurar Gemini API Key",
+  "analyzeFoodWithAi": "Analise alimentos com IA",
+  "analyzeFoodWithAiDesc": "Tire uma foto → IA calcula calorias automaticamente\nGemini API é de uso gratuito!",
+  "openGoogleAiStudio": "Abra Google AI Studio",
+  "step1Title": "Abra Google AI Studio",
+  "step1Desc": "Clique no botão abaixo para criar um API Key",
+  "step2Title": "Faça login com a conta Google",
+  "step2Desc": "Use sua conta Gmail ou Google (crie uma gratuitamente se não tiver uma)",
+  "step3Title": "Clique em \"Criar API Key\"",
+  "step3Desc": "Clique no botão azul \"Criar API Key\"\nSe for solicitado a selecionar um Project → Clique em \"Criar chave API no novo projeto\"",
+  "step4Title": "Copie a chave e cole abaixo",
+  "step4Desc": "Clique em Copiar ao lado da chave criada\nA chave será semelhante a: AIzaSyxxxx...",
+  "step5Title": "Cole API Key aqui",
+  "pasteApiKeyHint": "Cole o API Key copiado",
+  "saveApiKey": "Salvar API Key",
+  "testingConnection": "Testando...",
+  "deleteApiKey": "Excluir API Key",
+  "deleteApiKeyConfirm": "Excluir API Key?",
+  "deleteApiKeyConfirmDesc": "Você não poderá usar a análise alimentar de IA até configurá-la novamente",
+  "apiKeySaved": "API Key salvo com sucesso",
+  "apiKeyDeleted": "API Key excluído com sucesso",
+  "pleasePasteApiKey": "Por favor cole API Key primeiro",
+  "apiKeyInvalidFormat": "API Key inválido — deve começar com \"AIza\"",
+  "connectionSuccessMessage": "✅Conectado com sucesso! Pronto para usar",
+  "connectionFailedMessage": "❌ Falha na conexão",
+  "faqTitle": "Perguntas frequentes",
+  "faqFreeQuestion": "É realmente grátis?",
+  "faqFreeAnswer": "Sim! Gemini 2.0 Flash é gratuito para 1.500 solicitações/dia\nPara registro de alimentos (5-15 vezes/dia) → Gratuito para sempre, sem necessidade de pagamento",
+  "faqSafeQuestion": "É seguro?",
+  "faqSafeAnswer": "API Key é armazenado no armazenamento seguro apenas no seu dispositivo\nO aplicativo não envia a chave para o nosso servidor\nSe a chave vazar → Exclua e crie uma nova (não é sua senha Google)",
+  "faqNoKeyQuestion": "E se eu não criar uma chave?",
+  "faqNoKeyAnswer": "Você ainda pode usar o aplicativo! Mas:\n❌ Não é possível tirar foto → Análise de IA\n✅ Pode registrar alimentos manualmente\n✅ A adição rápida funciona\n✅ Ver trabalhos de resumo de kcal/macro",
+  "faqCreditCardQuestion": "Preciso de um cartão de crédito?",
+  "faqCreditCardAnswer": "Não — Crie API Key gratuitamente sem cartão de crédito",
+  "navDashboard": "Painel",
+  "navMyMeals": "Minhas refeições",
+  "navCamera": "Câmera",
+  "navAiChat": "Bate-papo com IA",
+  "navProfile": "Proarquivo",
+  "appBarTodayIntake": "Ingestão de hoje",
+  "appBarMyMeals": "Minhas refeições",
+  "appBarCamera": "Câmera",
+  "appBarAiChat": "Bate-papo com IA",
+  "appBarMiro": "MIRO",
+  "permissionRequired": "Permissão necessária",
+  "permissionRequiredDesc": "MIRO precisa de acesso ao seguinte:",
+  "permissionPhotos": "Fotos – para escanear alimentos",
+  "permissionCamera": "Câmera – para fotografar comida",
+  "permissionSkip": "Pular",
+  "permissionAllow": "Permitir",
+  "permissionAllGranted": "Todas as permissões concedidas",
+  "permissionDenied": "Permissão negada: {denied}",
+  "@permissionDenied": {
+    "placeholders": {
+      "denied": {
+        "type": "String"
+      }
+    }
+  },
+  "openSettings": "Abra Configurações",
+  "exitAppTitle": "Sair do aplicativo?",
+  "exitAppMessage": "Tem certeza de que deseja sair?",
+  "exit": "Saída",
+  "healthGoalsTitle": "Metas de saúde",
+  "healthGoalsInfo": "Defina sua meta diária de calorias, macros e orçamentos por refeição.\nBloqueie para calcular automaticamente: 2 macros ou 3 refeições.",
+  "dailyCalorieGoal": "Meta diária de calorias",
+  "proteinLabel": "Proteína",
+  "carbsLabel": "Carboidratos",
+  "fatLabel": "Gordo",
+  "autoBadge": "auto",
+  "kcalPerGram": "{kcalPerGram} kcal/g • {kcal} __SW0__",
+  "@kcalPerGram": {
+    "placeholders": {
+      "kcalPerGram": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieBudget": "Orçamento de calorias de refeição",
+  "mealBudgetBalanced": "Total {total} kcal = Meta {goal} __SW0__",
+  "@mealBudgetBalanced": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealBudgetRemaining": "Total {total} / {goal} kcal ({remaining} restante)",
+  "@mealBudgetRemaining": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "lockMealsHint": "Bloqueie 3 refeições para calcular automaticamente a 4ª",
+  "breakfastLabel": "Café da manhã",
+  "lunchLabel": "Almoço",
+  "dinnerLabel": "Jantar",
+  "snackLabel": "Lanche",
+  "percentOfDailyGoal": "{percent}% da meta diária",
+  "@percentOfDailyGoal": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "smartSuggestionRange": "Faixa de sugestões inteligentes",
+  "smartSuggestionHow": "Como funciona a Sugestão Inteligente?",
+  "smartSuggestionDesc": "Sugerimos alimentos de Minhas Refeições, ingredientes e refeições de ontem que cabem no seu orçamento por refeição.\n\nEste limite controla a flexibilidade das sugestões. Por exemplo, se o seu orçamento para almoço for 700 kcal e o limite for {threshold} __SW0__, sugeriremos alimentos entre {min}–{max} __SW0__.",
+  "@smartSuggestionDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionThreshold": "Limite de sugestão",
+  "suggestionThresholdDesc": "Permitir alimentos ± {threshold} kcal do orçamento de refeições",
+  "@suggestionThresholdDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsSavedSuccess": "Metas salvas com sucesso!",
+  "canOnlyLockTwoMacros": "Só é possível bloquear 2 macros de uma vez",
+  "canOnlyLockThreeMeals": "Só é possível bloquear 3 refeições; o 4º calcula automaticamente",
+  "tabMeals": "Refeições",
+  "tabIngredients": "Ingredientes",
+  "searchMealsOrIngredients": "Pesquisar refeições ou ingredientes...",
+  "createNewMeal": "Criar nova refeição",
+  "addIngredient": "Adicionar ingrediente",
+  "noMealsYet": "Ainda não há refeições",
+  "noMealsYetDesc": "Analise alimentos com IA para salvar refeições automaticamente\nou crie um manualmente",
+  "noIngredientsYet": "Ainda não há ingredientes",
+  "noIngredientsYetDesc": "Quando você analisa alimentos com IA\ningredientes serão salvos automaticamente",
+  "mealCreated": "Criado \"{name}\"",
+  "@mealCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogged": "Registrado \"{name}\"",
+  "@mealLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientAmount": "Quantidade ({unit})",
+  "@ingredientAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientLogged": "Registrado \"{name}\" {amount}{unit}",
+  "@ingredientLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNotFound": "Refeição não encontrada",
+  "mealUpdated": "\"{name}\" atualizado",
+  "@mealUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealTitle": "Excluir refeição?",
+  "deleteMealMessage": "\"{name}\"",
+  "@deleteMealMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealNote": "Os ingredientes não serão excluídos.",
+  "mealDeleted": "Refeição excluída",
+  "ingredientCreated": "Criado \"{name}\"",
+  "@ingredientCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientNotFound": "Ingrediente não encontrado",
+  "ingredientUpdated": "\"{name}\" atualizado",
+  "@ingredientUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteIngredientTitle": "Excluir ingrediente?",
+  "deleteIngredientMessage": "\"{name}\"",
+  "@deleteIngredientMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientDeleted": "Ingrediente excluído",
+  "noIngredientsData": "Sem dados de ingredientes",
+  "ingredientDetail": "{name} ({amount} {unit})",
+  "@ingredientDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientCalories": "{calories} kcal",
+  "@ingredientCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "useThisMeal": "Use esta refeição",
+  "errorLoading": "Erro ao carregar: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanFoundNewImages": "Encontradas {count} novas imagens em {date}",
+  "@scanFoundNewImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoNewImages": "Nenhuma nova imagem encontrada em {date}",
+  "@scanNoNewImages": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalysisRemaining": "Análise de IA: {remaining}/{total} restantes hoje",
+  "@aiAnalysisRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "upgradeToProUnlimited": "Atualize para Pro para uso ilimitado",
+  "upgrade": "Atualizar",
+  "confirmDelete": "Confirmar exclusão",
+  "confirmDeleteMessage": "Deseja excluir \"{name}\"?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryDeletedSuccess": "✅ Entrada excluída com sucesso",
+  "entryDeleteError": "❌ Erro: {error}",
+  "@entryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "batchAnalyzeItems": "{count} itens (lote)",
+  "@batchAnalyzeItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeCancelled": "Cancelado — itens {success} analisados ​​com sucesso",
+  "@analyzeCancelled": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessAll": "✅ Itens {success} analisados ​​com sucesso",
+  "@analyzeSuccessAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessPartial": "⚠️ Itens {success}/{total} analisados ​​({failed} falhou)",
+  "@analyzeSuccessPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgress": "{item} ({current}/{total})",
+  "@analyzeProgress": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pullToScanMeal": "Puxe para digitalizar sua refeição",
+  "analyzeAll": "Analisar tudo",
+  "addFoodTitle": "Adicionar comida",
+  "foodNameRequired": "Nome do alimento *",
+  "foodNameHint": "Digite para pesquisar, por exemplo arroz frito, salada de mamão",
+  "selectedFromMyMeal": "✅ Selecionado em Minha Refeição - dados nutricionais preenchidos automaticamente",
+  "foundInDatabase": "✅ Encontrado no banco de dados – dados nutricionais preenchidos automaticamente",
+  "saveAndAnalyze": "Salvar e analisar",
+  "notFoundInDatabase": "Não encontrado no banco de dados — será analisado em segundo plano",
+  "amountLabel": "Quantia",
+  "unitLabel": "Unidade",
+  "nutritionAutoCalculated": "Nutrição (calculada automaticamente por quantidade)",
+  "nutritionEnterZero": "Nutrição (insira 0 se desconhecido)",
+  "caloriesLabel": "Calorias (kcal)",
+  "proteinLabelShort": "Proteína (g)",
+  "carbsLabelShort": "Carboidratos (g)",
+  "fatLabelShort": "Gordura (g)",
+  "mealTypeLabel": "Tipo de refeição",
+  "pleaseEnterFoodNameFirst": "Por favor, insira o nome do alimento primeiro",
+  "savedAnalyzingBackground": "✅ Salvo — analisando em segundo plano",
+  "foodAdded": "✅ Alimentos adicionados",
+  "suggestionSourceMyMeal": "Minha refeição",
+  "suggestionSourceIngredient": "Ingrediente",
+  "suggestionSourceDatabase": "Banco de dados",
+  "editFoodTitle": "Editar comida",
+  "foodNameLabel": "Nome da comida",
+  "changeAmountAutoUpdate": "Alterar quantidade → calorias são atualizadas automaticamente",
+  "baseNutrition": "Base: {calories} kcal / 1 {unit}",
+  "@baseNutrition": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "calculatedFromIngredients": "Calculado a partir dos ingredientes abaixo",
+  "ingredientsEditable": "Ingredientes (editáveis)",
+  "addIngredientButton": "Adicionar",
+  "noIngredientsAddHint": "Sem ingredientes – toque em \"Adicionar\" para adicionar novos",
+  "editIngredientsHint": "Editar nome/quantidade → Toque no ícone de pesquisa para pesquisar no banco de dados ou IA",
+  "ingredientNameHint": "por exemplo Ovo de galinha",
+  "searchDbOrAi": "Pesquisar banco de dados/IA",
+  "amountHint": "Quantia",
+  "fromDatabase": "Do banco de dados",
+  "subIngredients": "Subingredientes ({count})",
+  "@subIngredients": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSubIngredient": "Adicionar",
+  "subIngredientNameHint": "Nome do subingrediente",
+  "amountShort": "Valor",
+  "pleaseEnterSubIngredientName": "Por favor, insira o nome do subingrediente primeiro",
+  "foundInDatabaseSub": "Encontrado \"{name}\" no banco de dados!",
+  "@foundInDatabaseSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalyzedSub": "IA analisou \"{name}\" (-1 Energia)",
+  "@aiAnalyzedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotAnalyzeSub": "Não foi possível analisar o subingrediente",
+  "pleaseEnterIngredientName": "Por favor insira o nome do ingrediente",
+  "reAnalyzeTitle": "Reanalisar?",
+  "reAnalyzeMessage": "\"{name}\" já possui dados nutricionais.\n\nAnalisar novamente usará 1 Energia.\n\nContinuar?",
+  "@reAnalyzeMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzeButton": "Reanalisar (1 Energia)",
+  "amountNotSpecified": "Valor não especificado",
+  "amountNotSpecifiedMessage": "Especifique o valor para \"{name}\" primeiro\nOu usar o padrão 100g?",
+  "@amountNotSpecifiedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "useDefault100g": "Usar 100g",
+  "aiAnalyzedResult": "IA: \"{name}\" → {calories} kcal",
+  "@aiAnalyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToAnalyze": "Não é possível analisar",
+  "today": "Hoje",
+  "savedSuccessfully": "✅ Salvo com sucesso",
+  "confirmFoodPhoto": "Confirme a foto da comida",
+  "photoSavedAutomatically": "Foto salva automaticamente",
+  "foodNameHintExample": "por exemplo, salada de frango grelhado",
+  "quantityLabel": "Quantidade",
+  "quantityHint": "1",
+  "optionalFoodInfo": "Inserir o nome e a quantidade do alimento é opcional, mas fornecê-los melhorará a precisão da análise de IA.",
+  "saveOnly": "Salvar apenas",
+  "pleaseEnterValidQuantity": "Insira uma quantidade válida",
+  "analyzedResult": "✅ Analisado: {name} — {calories} kcal",
+  "@analyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotAnalyzeSaved": "⚠️ Não foi possível analisar — ​​salvo, use \"Analisar tudo\" mais tarde",
+  "savedAnalyzeLater": "✅ Salvo — analise mais tarde com \"Analisar tudo\"",
+  "editIngredientTitle": "Editar ingrediente",
+  "ingredientNameRequired": "Nome do Ingrediente *",
+  "baseAmountLabel": "Valor base",
+  "baseAmountHint": "100",
+  "nutritionPerBase": "Nutrição por {amount} {unit}",
+  "@nutritionPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionCalculatedPerBase": "Nutrição calculada por {amount} {unit} — o sistema calculará automaticamente com base na quantidade real consumida",
+  "@nutritionCalculatedPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "createIngredient": "Criar ingrediente",
+  "saveChanges": "Salvar alterações",
+  "pleaseEnterIngredientNameFirst": "Por favor, insira o nome do ingrediente primeiro",
+  "aiAnalyzedIngredient": "IA: \"{name}\" {amount} {unit} → {calories} kcal",
+  "@aiAnalyzedIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToFindIngredient": "Não foi possível encontrar este ingrediente",
+  "searchFailed": "Falha na pesquisa: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEntriesTitle": "Excluir {count} {count, plural, =1 {Entry} other {Entries}}?",
+  "@deleteEntriesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteEntriesMessage": "Excluir {count} alimento selecionado {count, plural, =1 {entry} other {entries}}?",
+  "@deleteEntriesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAll": "Excluir tudo",
+  "deletedEntries": "Excluído {count} {count, plural, =1 {entry} other {entries}}",
+  "@deletedEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedEntriesToDate": "Movido {count} {count, plural, =1 {entry} other {entries}} para {date}",
+  "@movedEntriesToDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "allSelectedAlreadyAnalyzed": "Todas as entradas selecionadas já foram analisadas",
+  "analyzeCancelledSelected": "Cancelado — {success} analisado",
+  "@analyzeCancelledSelected": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesAll": "Analisado {success} {success, plural, =1 {entry} other {entries}}",
+  "@analyzedEntriesAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesPartial": "Analisado {success}/{total} ({failed} falhou)",
+  "@analyzedEntriesPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgressSelected": "{current}/{total} {item}",
+  "@analyzeProgressSelected": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "noEntriesYet": "Nenhuma entrada ainda",
+  "selectAll": "Selecionar tudo",
+  "deselectAll": "Desmarcar tudo",
+  "moveToDate": "Mover para a data",
+  "analyzeSelected": "Análise selecionada",
+  "deleteTooltip": "Excluir",
+  "move": "Mover",
+  "deleteTooltipAction": "Excluir",
+  "switchToModeTitle": "Mudar para o modo {mode}?",
+  "@switchToModeTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToModeMessage": "Este item foi analisado como {current}.\n\nReanalisar como {newMode} usará 1 energia.\n\nContinuar?",
+  "@switchToModeMessage": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "newMode": {
+        "type": "String"
+      }
+    }
+  },
+  "analyzingAsMode": "Analisando como {mode}...",
+  "@analyzingAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzedAsMode": "✅ Reanalisado como {mode}",
+  "@reAnalyzedAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisFailed": "❌ Falha na análise",
+  "aiAnalysisComplete": "✅ IA analisada e salva",
+  "changeMealType": "Alterar tipo de refeição",
+  "moveToAnotherDate": "Mudar para outra data",
+  "currentDate": "Atual: {date}",
+  "@currentDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDateChange": "Cancelar alteração de data",
+  "undo": "Desfazer",
+  "chatHistory": "Histórico de bate-papo",
+  "newChat": "Novo bate-papo",
+  "quickActions": "Ações rápidas",
+  "clear": "Claro",
+  "helloImMiro": "Olá! Eu sou Miro",
+  "tellMeWhatYouAteToday": "Me conta o que você comeu hoje!",
+  "tellMeWhatYouAte": "Me conta o que você comeu...",
+  "clearHistoryTitle": "Limpar histórico?",
+  "clearHistoryMessage": "Todas as mensagens nesta sessão serão excluídas.",
+  "chatHistoryTitle": "Histórico de bate-papo",
+  "newLabel": "Novo",
+  "noChatHistoryYet": "Ainda não há histórico de bate-papo",
+  "active": "Ativo",
+  "deleteChatTitle": "Excluir bate-papo?",
+  "deleteChatMessage": "Excluir \"{title}\"?",
+  "@deleteChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklySummaryTitle": "📊 Resumo semanal ({start} - {end})",
+  "@weeklySummaryTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "daySummary": "📅 {day}: {calories} kcal {emoji} ({diff})",
+  "@daySummary": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "overTarget": "{amount} acima do alvo",
+  "@overTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTarget": "{amount} abaixo do alvo",
+  "@underTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noFoodLoggedThisWeek": "Nenhum alimento registrado esta semana ainda.",
+  "averageKcalPerDay": "🔥 Média: {average} kcal/dia",
+  "@averageKcalPerDay": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "targetKcalPerDay": "🎯 Meta: {target} kcal/dia",
+  "@targetKcalPerDay": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "resultOverTarget": "📈 Resultado: {amount} kcal acima da meta",
+  "@resultOverTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resultUnderTarget": "📈 Resultado: {amount} kcal abaixo da meta - Ótimo trabalho! 💪",
+  "@resultUnderTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadWeeklySummary": "❌ Falha ao carregar o resumo semanal: {error}",
+  "@failedToLoadWeeklySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlySummaryTitle": "📊 Resumo Mensal ({month} {year})",
+  "@monthlySummaryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "totalDays": "📅 Total de dias: {days}",
+  "@totalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "totalConsumed": "🔥 Total Consumido: {calories} kcal",
+  "@totalConsumed": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "targetTotal": "🎯 Meta Total: {target} kcal",
+  "@targetTotal": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "averageKcalPerDayShort": "📈 Média: {average} kcal/dia",
+  "@averageKcalPerDayShort": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "overTargetThisMonth": "⚠️ {amount} kcal acima da meta este mês",
+  "@overTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTargetThisMonth": "✅ {amount} kcal abaixo da meta - Excelente! 💪",
+  "@underTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadMonthlySummary": "❌ Falha ao carregar o resumo mensal: {error}",
+  "@failedToLoadMonthlySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiHelpTitle": "🤖 Ajuda local de IA",
+  "localAiHelpFormat": "Formato: [comida] [quantidade] [unidade]",
+  "localAiHelpExamples": "Exemplos:\n• frango 100g e arroz 200g\n• pizza 2 fatias\n• maçã 1 peça, banana 1 peça",
+  "localAiHelpNote": "Nota: somente em inglês, análise básica\nMude para Miro AI para obter melhores resultados!",
+  "hiNoFoodLogged": "🤖 Olá! Nenhum alimento registrado ainda hoje.\n   Alvo: {target} kcal — Pronto para começar a registrar? 🍽️",
+  "@hiNoFoodLogged": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "hiKcalLeft": "🤖 Olá! Você tem {remaining} kcal restante por hoje.\n   Pronto para registrar suas refeições? 😊",
+  "@hiKcalLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "hiOverTarget": "🤖 Olá! Você consumiu {calories} kcal hoje.\n   {over} __SW0__ acima da meta — Vamos continuar acompanhando! 💪",
+  "@hiOverTarget": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "hiReadyToLog": "🤖 Olá! Pronto para registrar suas refeições? 😊",
+  "notEnoughEnergy": "Energia insuficiente",
+  "thinkingMealIdeas": "🤖 Pensando em ótimas ideias de refeições para você...",
+  "recentMeals": "Refeições recentes:",
+  "noRecentFood": "Nenhum alimento recente registrado.",
+  "remainingCaloriesToday": ". Calorias restantes hoje: {remaining} kcal.",
+  "@remainingCaloriesToday": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToGetMenuSuggestions": "❌ Falha ao obter sugestões de menu: {error}",
+  "@failedToGetMenuSuggestions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionsTitle": "🤖 Com base no seu registo alimentar, aqui ficam 3 sugestões de refeições:",
+  "mealSuggestionItem": "{index}. {emoji} {name} (~{calories} kcal)",
+  "@mealSuggestionItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionMacros": "P: {protein}g | C: {carbs}g | F: {fat}g",
+  "@mealSuggestionMacros": {
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
+  "pickOneAndLog": "Escolha um e eu registrarei para você! 😊",
+  "energyCost": "⚡ -{cost} Energia",
+  "@energyCost": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "giveMeTipsForHealthyEating": "Dê-me dicas para uma alimentação saudável",
+  "howManyCaloriesToday": "Quantas calorias hoje?",
+  "menuLabel": "Menu",
+  "weeklyLabel": "Semanalmente",
+  "monthlyLabel": "Mensal",
+  "tipsLabel": "Pontas",
+  "summaryLabel": "Resumo",
+  "helpLabel": "Ajuda",
+  "onboardingWelcomeSubtitle": "Monitore calorias sem esforço\ncom análise alimentada por IA",
+  "onboardingSnap": "Foto",
+  "onboardingSnapDesc": "A IA analisa instantaneamente",
+  "onboardingType": "Tipo",
+  "onboardingTypeDesc": "Faça login em segundos",
+  "onboardingEdit": "Editar",
+  "onboardingEditDesc": "Precisão de ajuste fino",
+  "onboardingNext": "Próximo →",
+  "onboardingDisclaimer": "Dados estimados por IA. Não é conselho médico.",
+  "onboardingQuickSetup": "Configuração rápida",
+  "onboardingHelpAiUnderstand": "Ajude a IA a entender melhor sua comida",
+  "onboardingYourTypicalCuisine": "Sua culinária típica:",
+  "onboardingDailyCalorieGoal": "Meta diária de calorias (opcional):",
+  "onboardingKcalPerDay": "kcal/dia",
+  "onboardingCalorieGoalHint": "2000",
+  "onboardingCanChangeAnytime": "Você pode alterar isso a qualquer momento nas configurações do Profile",
+  "onboardingYoureAllSet": "Está tudo pronto!",
+  "onboardingStartTracking": "Comece a monitorar suas refeições hoje.\nTire uma foto ou digite o que você comeu.",
+  "onboardingWelcomeGift": "Presente de boas-vindas",
+  "onboardingFreeEnergy": "10 Energia GRATUITA",
+  "onboardingFreeEnergyDesc": "= 10 análises de IA para começar",
+  "onboardingEnergyCost": "Cada análise custa 1 Energia\nQuanto mais você usa, mais você ganha!",
+  "onboardingStartTrackingButton": "Comece a rastrear! →",
+  "onboardingNoCreditCard": "Sem cartão de crédito • Sem taxas ocultas",
+  "cameraTakePhotoOfFood": "Tire uma foto da sua comida",
+  "cameraFailedToInitialize": "Falha ao inicializar a câmera",
+  "cameraFailedToCapture": "Falha ao capturar foto",
+  "cameraFailedToPickFromGallery": "Falha ao escolher a imagem da galeria",
+  "cameraProcessing": "Proprocessando...",
+  "referralInviteFriends": "Convide amigos",
+  "referralYourReferralCode": "Seu código de referência",
+  "referralLoading": "Carregando...",
+  "referralCopy": "Cópia",
+  "referralShareCodeDescription": "Compartilhe este código com amigos! Quando eles usam IA 3 vezes, vocês dois recebem recompensas!",
+  "referralEnterReferralCode": "Insira o código de referência",
+  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralSubmitCode": "Enviar código",
+  "referralPleaseEnterCode": "Por favor insira um código de referência",
+  "referralCodeAccepted": "Código de referência aceito!",
+  "referralCodeCopied": "Código de referência copiado para a área de transferência!",
+  "referralEnergyBonus": "+{energy} Energia!",
+  "@referralEnergyBonus": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralHowItWorks": "Como funciona",
+  "referralStep1Title": "Compartilhe seu código de referência",
+  "referralStep1Description": "Copie e compartilhe seu ID MiRO com amigos",
+  "referralStep2Title": "Amigo digite seu código",
+  "referralStep2Description": "Eles recebem +20 de energia imediatamente",
+  "referralStep3Title": "Amigo usa IA 3 vezes",
+  "referralStep3Description": "Quando eles concluírem 3 análises de IA",
+  "referralStep4Title": "Você é recompensado!",
+  "referralStep4Description": "Você recebe +5 de energia!",
+  "tierBenefitsTitle": "Benefícios de nível",
+  "tierBenefitsUnlockRewards": "Desbloquear recompensas\ncom sequências diárias",
+  "tierBenefitsKeepStreakDescription": "Mantenha sua sequência viva para desbloquear níveis mais altos e ganhar benefícios incríveis!",
+  "tierBenefitsHowItWorks": "Como funciona",
+  "tierBenefitsDailyEnergyReward": "Recompensa diária de energia",
+  "tierBenefitsDailyEnergyDescription": "Use IA pelo menos uma vez por dia para ganhar energia bônus. Níveis mais altos = mais energia diária!",
+  "tierBenefitsPurchaseBonus": "Bônus de compra",
+  "tierBenefitsPurchaseBonusDescription": "Os níveis Gold e Diamond recebem energia extra em cada compra (10-20% a mais!)",
+  "tierBenefitsGracePeriod": "Período de carência",
+  "tierBenefitsGracePeriodDescription": "Perca um dia sem perder a sequência. Os níveis Silver+ recebem proteção!",
+  "tierBenefitsAllTiers": "Todos os níveis",
+  "tierBenefitsNew": "NOVO",
+  "tierBenefitsPopular": "POPULAR",
+  "tierBenefitsBest": "MELHOR",
+  "tierBenefitsDailyCheckIn": "Check-in Diário",
+  "tierBenefitsProTips": "Pro Dicas",
+  "tierBenefitsTip1": "Use a IA diariamente para ganhar energia grátis e construir sua sequência",
+  "tierBenefitsTip2": "O nível Diamante ganha +4 de energia por dia – são 120/mês!",
+  "tierBenefitsTip3": "O bônus de compra se aplica a TODOS os pacotes de energia!",
+  "tierBenefitsTip4": "O período de carência protege sua seqüência se você perder um dia",
+  "subscriptionEnergyPass": "Passe Energia",
+  "subscriptionInAppPurchasesNotAvailable": "Compras no aplicativo não disponíveis",
+  "subscriptionFailedToInitiatePurchase": "Falha ao iniciar a compra",
+  "subscriptionError": "Erro: {error}",
+  "@subscriptionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailedToLoad": "Falha ao carregar assinatura",
+  "subscriptionUnknownError": "Erro desconhecido",
+  "subscriptionRetry": "Tentar novamente",
+  "subscriptionEnergyPassActive": "Passe de Energia Ativo",
+  "subscriptionUnlimitedAccess": "Você tem acesso ilimitado",
+  "subscriptionStatus": "Status",
+  "subscriptionRenews": "Renova",
+  "subscriptionPrice": "Preço",
+  "subscriptionYourBenefits": "Seus benefícios",
+  "subscriptionManageSubscription": "Gerenciar assinatura",
+  "subscriptionNoProductAvailable": "Nenhum produto de assinatura disponível",
+  "subscriptionWhatYouGet": "O que você ganha",
+  "subscriptionPerMonth": "por mês",
+  "subscriptionSubscribeNow": "Assine agora",
+  "subscriptionCancelAnytime": "Cancele a qualquer momento",
+  "subscriptionAutoRenewTerms": "Sua assinatura será renovada automaticamente. Você pode cancelar a qualquer momento no Google Play.",
+  "disclaimerHealthDisclaimer": "Isenção de responsabilidade de saúde",
+  "disclaimerImportantReminders": "Lembretes importantes:",
+  "disclaimerBullet1": "Todos os dados nutricionais são estimados",
+  "disclaimerBullet2": "A análise de IA pode conter erros",
+  "disclaimerBullet3": "Não substitui o aconselhamento profissional",
+  "disclaimerBullet4": "Consulte profissionais de saúde para orientação médica",
+  "disclaimerBullet5": "Use a seu próprio critério e risco",
+  "disclaimerIUnderstand": "Eu entendo",
+  "privacyPolicyTitle": "política de Privacidade",
+  "privacyPolicySubtitle": "MiRO — Meu Oráculo de Registro de Ingestão",
+  "privacyPolicyHeaderNote": "Seus dados alimentares permanecem no seu dispositivo. Balanço de energia sincronizado com segurança via Firebase.",
+  "privacyPolicySectionInformationWeCollect": "Informações que coletamos",
+  "privacyPolicySectionDataStorage": "Armazenamento de dados",
+  "privacyPolicySectionDataTransmission": "Transmissão de Dados a Terceiros",
+  "privacyPolicySectionRequiredPermissions": "Permissões necessárias",
+  "privacyPolicySectionSecurity": "Segurança",
+  "privacyPolicySectionUserRights": "Direitos do usuário",
+  "privacyPolicySectionDataRetention": "Retenção de dados",
+  "privacyPolicySectionChildrenPrivacy": "Privacidade infantil",
+  "privacyPolicySectionChangesToPolicy": "Mudanças nesta política",
+  "privacyPolicySectionDataCollectionConsent": "Consentimento para coleta de dados",
+  "privacyPolicySectionPDPACompliance": "Conformidade com PDPA (Lei de Proteção de Dados Pessoais da Tailândia Pro)",
+  "privacyPolicySectionContactUs": "Contate-nos",
+  "privacyPolicyEffectiveDate": "Data de vigência: 18 de fevereiro de 2026\nÚltima atualização: 18 de fevereiro de 2026",
+  "termsOfServiceTitle": "Termos de Serviço",
+  "termsSubtitle": "MiRO — Meu Oráculo de Registro de Ingestão",
+  "termsSectionAcceptanceOfTerms": "Aceitação dos Termos",
+  "termsSectionServiceDescription": "Descrição do serviço",
+  "termsSectionDisclaimerOfWarranties": "Isenção de responsabilidade de garantias",
+  "termsSectionEnergySystemTerms": "Termos do Sistema Energético",
+  "termsSectionUserDataAndResponsibilities": "Dados e responsabilidades do usuário",
+  "termsSectionBackupTransfer": "Backup e transferência",
+  "termsSectionInAppPurchases": "Compras no aplicativo",
+  "termsSectionProhibitedUses": "ProUsos proibidos",
+  "termsSectionIntellectualProperty": "Propriedade intelectual Pro",
+  "termsSectionLimitationOfLiability": "Limitação de responsabilidade",
+  "termsSectionServiceTermination": "Rescisão do serviço",
+  "termsSectionChangesToTerms": "Mudanças nos Termos",
+  "termsSectionGoverningLaw": "Lei Aplicável",
+  "termsSectionContactUs": "Contate-nos",
+  "termsAcknowledgment": "Ao usar MiRO, você reconhece que leu, compreendeu e concorda com estes Termos de Serviço.",
+  "termsLastUpdated": "Última atualização: 15 de fevereiro de 2026",
+  "profileAndSettings": "Proarquivo e configurações",
+  "errorOccurred": "Erro: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGoalsSection": "Metas de saúde",
+  "dailyGoals": "Metas Diárias",
+  "chatAiModeSection": "Modo IA de bate-papo",
+  "selectAiPowersChat": "Selecione qual IA potencializa seu bate-papo",
+  "miroAi": "Miro IA",
+  "miroAiSubtitle": "Desenvolvido por Gemini • Multilíngue • Alta precisão",
+  "localAi": "IA local",
+  "localAiSubtitle": "No dispositivo • Somente em inglês • Precisão básica",
+  "free": "Livre",
+  "cuisinePreferenceSection": "Preferência de cozinha",
+  "preferredCuisine": "Cozinha preferida",
+  "selectYourCuisine": "Selecione sua cozinha",
+  "photoScanSection": "Digitalização de fotos",
+  "languageSection": "Linguagem",
+  "languageTitle": "Idioma / Português",
+  "selectLanguage": "Selecione o idioma / เลือกภาษา",
+  "systemDefault": "Padrão do sistema",
+  "systemDefaultSublabel": "Mais",
+  "english": "Inglês",
+  "englishSublabel": "O que é isso?",
+  "thai": "ไทย (tailandês)",
+  "thaiSublabel": "ภาษาไทย",
+  "closeBilingual": "Fechar / Fechar",
+  "languageChangedTo": "Idioma alterado para {language}",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSection": "Conta",
+  "miroId": "MiRO ID",
+  "miroIdCopied": "MiRO ID copiado!",
+  "inviteFriends": "Convide amigos",
+  "inviteFriendsSubtitle": "Compartilhe seu código de indicação e ganhe recompensas!",
+  "unlimitedAiDoubleRewards": "IA ilimitada + recompensas em dobro",
+  "plan": "Plano",
+  "monthly": "Mensal",
+  "started": "Iniciado",
+  "renews": "Renova",
+  "expires": "Expira",
+  "autoRenew": "Renovação automática",
+  "on": "Sobre",
+  "off": "Desligado",
+  "tapToManageSubscription": "Toque para gerenciar a assinatura",
+  "dataSection": "Dados",
+  "backupData": "Dados de backup",
+  "backupDataSubtitle": "Energia + Histórico Alimentar → salvar como arquivo",
+  "restoreFromBackup": "Restaurar do backup",
+  "restoreFromBackupSubtitle": "Importar dados do arquivo de backup",
+  "clearAllDataTitle": "Limpar todos os dados?",
+  "clearAllDataContent": "Todos os dados serão excluídos:\n• Entradas de alimentação\n• Minhas refeições\n• Ingredientes\n• Metas\n• Informações pessoais\n\nIsso não pode ser desfeito!",
+  "allDataClearedSuccess": "Todos os dados apagados com sucesso",
+  "aboutSection": "Sobre",
+  "version": "Versão",
+  "healthDisclaimer": "Isenção de responsabilidade de saúde",
+  "importantLegalInformation": "Informações legais importantes",
+  "showTutorialAgain": "Mostrar tutorial novamente",
+  "viewFeatureTour": "Ver tour pelos recursos",
+  "showTutorialDialogTitle": "Mostrar tutorial",
+  "showTutorialDialogContent": "Isso mostrará o tour de recursos que destaca:\n\n• Sistema Energético\n• Digitalização de fotos com puxar para atualizar\n• Converse com Miro IA\n\nVocê retornará à tela inicial.",
+  "showTutorialButton": "Mostrar tutorial",
+  "tutorialResetMessage": "Redefinição do tutorial! Vá para a tela inicial para visualizá-lo.",
+  "foodAnalysisTutorial": "Tutorial de Análise de Alimentos",
+  "foodAnalysisTutorialSubtitle": "Aprenda como usar recursos de análise de alimentos",
+  "backupCreated": "Backup criado!",
+  "backupCreatedContent": "Seu arquivo de backup foi criado com sucesso.",
+  "backupChooseDestination": "Onde você gostaria de salvar seu backup?",
+  "backupSaveToDevice": "Salvar no dispositivo",
+  "backupSaveToDeviceDesc": "Salve em uma pasta de sua escolha neste dispositivo",
+  "backupShareToOther": "Compartilhar para outro dispositivo",
+  "backupShareToOtherDesc": "Enviar via linha, e-mail, unidade Google, etc.",
+  "backupSavedSuccess": "Backup salvo!",
+  "backupSavedSuccessContent": "Seu arquivo de backup foi salvo no local escolhido.",
+  "important": "Importante:",
+  "backupImportantNotes": "• Salve este arquivo em um local seguro (unidade Google, etc.)\n• As fotos NÃO estão incluídas no backup\n• A chave de transferência expira em 30 dias\n• A chave só pode ser usada uma vez",
+  "restoreBackup": "Restaurar cópia de segurança?",
+  "backupFrom": "Backup de:",
+  "date": "Data:",
+  "energy": "Energia:",
+  "foodEntries": "Entradas de alimentos:",
+  "restoreImportant": "Importante",
+  "restoreImportantNotes": "• A energia atual neste dispositivo será SUBSTITUÍDA pela energia do backup ({energy})\n• As inscrições de alimentos serão MESCLADAS (não substituídas)\n• As fotos NÃO estão incluídas no backup\n• A chave de transferência será usada (não pode ser reutilizada)",
+  "@restoreImportantNotes": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "Restaurar",
+  "restoreComplete": "Restauração concluída!",
+  "restoreCompleteContent": "Seus dados foram restaurados com sucesso.",
+  "newEnergyBalance": "Novo Balanço Energético:",
+  "foodEntriesImported": "Entradas Alimentares Importadas:",
+  "myMealsImported": "Minhas refeições importadas:",
+  "appWillRefresh": "Seu aplicativo será atualizado para mostrar os dados restaurados.",
+  "backupFailed": "Falha no backup",
+  "invalidBackupFile": "Arquivo de backup inválido",
+  "restoreFailed": "Falha na restauração",
+  "analyticsDataCollection": "Coleta de dados analíticos",
+  "analyticsEnabled": "Analytics ativado -",
+  "analyticsDisabled": "Análise desativada -",
+  "enabled": "Habilitado",
+  "enabledSubtitle": "Ativado -",
+  "disabled": "Desabilitado",
+  "disabledSubtitle": "Desativado - ไม่เก็บข้อมูลการใช้งาน",
+  "imagesPerDay": "Imagens por dia",
+  "scanUpToImagesPerDay": "Digitalize até {limit} imagens por dia",
+  "@scanUpToImagesPerDay": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "Reiniciar",
+  "resetScanHistory": "Redefinir histórico de verificação",
+  "resetScanHistorySubtitle": "Exclua todas as entradas digitalizadas e verifique novamente",
+  "imagesPerDayDialog": "Imagens por dia",
+  "maxImagesPerDayDescription": "Máximo de imagens para digitalizar por dia\nVerifica apenas a data selecionada",
+  "scanLimitSetTo": "Limite de digitalização definido para {limit} imagens por dia",
+  "@scanLimitSetTo": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "resetScanHistoryDialog": "Redefinir histórico de verificação?",
+  "resetScanHistoryContent": "Todas as entradas de alimentos digitalizadas na galeria serão excluídas.\nPuxe para baixo em qualquer data para digitalizar novamente as imagens.",
+  "resetComplete": "Redefinição concluída - entradas {count} excluídas. Puxe para baixo para digitalizar novamente.",
+  "@resetComplete": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarStreak": "Sequência {days} dia",
+  "@questBarStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarDaysToNextTier": "{days} dias → {tier}",
+  "@questBarDaysToNextTier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarMaxTier": "Nível máximo! 💎",
+  "questBarOfferDismissed": "Oferta oculta",
+  "questBarViewOffer": "Ver oferta",
+  "questBarNoOffersNow": "• Nenhuma oferta no momento",
+  "questBarWeeklyChallenges": "🎯 Desafios Semanais",
+  "questBarMilestones": "🏆 Marcos",
+  "questBarInviteFriends": "👥 Convide amigos e ganhe 20E",
+  "questBarTimeRemaining": "⏰ Tempo restante {time}",
+  "@questBarTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarClaimDailyEnergy": "+{energy}E",
+  "@questBarClaimDailyEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarShareReferralError": "Erro ao compartilhar: {error}",
+  "@questBarShareReferralError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationTitle": "{tier} Comemoração 🎉",
+  "@tierCelebrationTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationDay": "Dia {day}",
+  "@tierCelebrationDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tierCelebrationExpired": "Expirado",
+  "tierCelebrationComplete": "Completo!",
+  "questBarWatchAd": "Assistir ao anúncio +{energy}⚡",
+  "@questBarWatchAd": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdRemaining": "{remaining}/{total} restantes hoje",
+  "@questBarAdRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdSuccess": "Anúncio assistido! +{energy} Energia entrando...",
+  "@questBarAdSuccess": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdNotReady": "O anúncio não está pronto. Tente novamente",
+  "questBarDailyChallenge": "Desafio Diário",
+  "questBarUseAi": "Usar energia",
+  "questBarResetsMonday": "Reinicia toda segunda-feira",
+  "questBarClaimed": "Reivindicado!",
+  "questBarHideOffer": "Esconder",
+  "questBarViewDetails": "Visualizar",
+  "questBarShareText": "Experimente MiRO! Análise de alimentos com tecnologia de IA 🍔\nUse este link e ambos ganharemos +20 de energia grátis!\n\n{link}",
+  "@questBarShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarShareSubject": "Tente MiRO",
+  "claimButtonTitle": "Reivindique energia diária",
+  "claimButtonReceived": "Recebido +{energy}E!",
+  "@claimButtonReceived": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "claimButtonAlreadyClaimed": "Já reivindicado hoje",
+  "claimButtonError": "Erro: {error}",
+  "@claimButtonError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonalQuestLimitedTime": "TEMPO LIMITADO",
+  "seasonalQuestDaysLeft": "{days} dias restantes",
+  "@seasonalQuestDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardDaily": "+{reward}E/dia",
+  "@seasonalQuestRewardDaily": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardOnce": "+{reward}E uma vez",
+  "@seasonalQuestRewardOnce": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestClaimed": "Reivindicado!",
+  "seasonalQuestClaimedToday": "Reivindicado hoje",
+  "errorFailed": "Fracassado",
+  "errorFailedToClaim": "Falha ao reivindicar",
+  "errorGeneric": "Erro: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneNoMilestonesToClaim": "Ainda não há marcos para reivindicar",
+  "milestoneClaimedEnergy": "🎁 Energia reivindicada +{energy}!",
+  "@milestoneClaimedEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTitle": "Conquistas",
+  "milestoneUseEnergyComplete": "Usar Energia {threshold}",
+  "@milestoneUseEnergyComplete": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneNext": "Próximo: {threshold}E",
+  "@milestoneNext": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneAllComplete": "Todos os marcos concluídos!",
+  "noEnergyTitle": "Sem energia",
+  "noEnergyContent": "Você precisa de 1 energia para analisar alimentos com IA",
+  "noEnergyTip": "Você ainda pode registrar alimentos manualmente (sem IA) gratuitamente",
+  "noEnergyLater": "Mais tarde",
+  "noEnergyWatchAd": "Assistir ao anúncio ({remaining}/3)",
+  "@noEnergyWatchAd": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "noEnergyBuyEnergy": "Comprar energia",
+  "tierBronze": "Bronze",
+  "tierSilver": "Prata",
+  "tierGold": "Ouro",
+  "tierDiamond": "Diamante",
+  "tierStarter": "Iniciante",
+  "tierUpCongratulations": "🎉 Parabéns!",
+  "tierUpYouReached": "Você alcançou {tier}!",
+  "@tierUpYouReached": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierUpMotivation": "Monitore calorias como um profissional\nO corpo dos seus sonhos está cada vez mais próximo!",
+  "tierUpReward": "+{reward}E Recompensa!",
+  "@tierUpReward": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "referralAllLevelsClaimed": "Todos os níveis reivindicados!",
+  "referralLevel": "Nível {level}: {subtitle}",
+  "@referralLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "subtitle": {
+        "type": "String"
+      }
+    }
+  },
+  "referralProgress": "[{current}/{target}] (Nível {level}/{total})",
+  "@referralProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "referralClaimedLevel": "🎁 Nível reivindicado {level}: +{reward} Energia!",
+  "@referralClaimedLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUseAi10": "Usar Energia 10",
+  "specifyIngredients": "Especifique ingredientes conhecidos",
+  "specifyIngredientsOptional": "Especifique ingredientes conhecidos (opcional)",
+  "specifyIngredientsHint": "Insira os ingredientes que você conhece e a IA descobrirá temperos, óleos e molhos escondidos para você.",
+  "sendToAi": "Enviar para IA",
+  "reanalyzeWithIngredients": "Adicione ingredientes e analise novamente",
+  "reanalyzeButton": "Reanalisar (1 Energia)",
+  "ingredientsSaved": "Ingredientes salvos",
+  "pleaseAddAtLeastOneIngredient": "Adicione pelo menos 1 ingrediente",
+  "hiddenIngredientsDiscovered": "Ingredientes ocultos descobertos pela IA",
+  "retroScanTitle": "Digitalizar fotos recentes?",
+  "retroScanDescription": "Podemos digitalizar suas fotos dos últimos 7 dias para encontrar automaticamente fotos de alimentos e adicioná-las ao seu diário.",
+  "retroScanNote": "Apenas fotos de comida são detectadas – outras fotos são ignoradas. Nenhuma foto sai do seu dispositivo.",
+  "retroScanStart": "Digitalizar minhas fotos",
+  "retroScanSkip": "Pular por enquanto",
+  "retroScanInProgress": "Digitalizando...",
+  "retroScanTagline": "MiRO está transformando seu\nfotos de alimentos em dados de saúde.",
+  "retroScanFetchingPhotos": "Buscando fotos recentes...",
+  "retroScanAnalyzing": "Detectando fotos de comida...",
+  "retroScanPhotosFound": "{count} fotos encontradas nos últimos 7 dias",
+  "@retroScanPhotosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanCompleteTitle": "Digitalização concluída!",
+  "retroScanCompleteDesc": "Encontrei {count} fotos de comida! Eles foram adicionados à sua linha do tempo, prontos para análise de IA.",
+  "@retroScanCompleteDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanNoResultsTitle": "Nenhuma foto de comida encontrada",
+  "retroScanNoResultsDesc": "Nenhuma foto de comida detectada nos últimos 7 dias. Experimente tirar uma foto da sua próxima refeição!",
+  "retroScanAnalyzeHint": "Toque em “Analisar tudo” na sua linha do tempo para obter análises nutricionais de IA para essas entradas.",
+  "retroScanDone": "Entendi!",
+  "welcomeEndTitle": "Bem-vindo ao MiRO!",
+  "welcomeEndMessage": "MiRO está ao seu serviço.",
+  "welcomeEndJourney": "Tenham uma boa viagem juntos!!",
+  "welcomeEndStart": "Vamos começar!",
+  "greetingCalorieSummary": "Oi! Como posso ajudá-lo hoje? Você ainda tem {remaining} kcal sobrando. Até agora: Proteína {protein}g, Carboidratos {carbs}g, Gordura {fat}g. Diga-me o que você comeu - liste tudo por refeição e eu registrarei tudo para você. Mais detalhes mais precisos!!",
+  "@greetingCalorieSummary": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingCuisineTip": "Sua culinária preferida está definida como {cuisine}. Você pode alterá-lo em Configurações a qualquer momento!",
+  "@greetingCuisineTip": {
+    "placeholders": {
+      "cuisine": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEnergyTip": "Você tem {balance} Energia disponível. Não se esqueça de resgatar sua recompensa diária no emblema de Energia!",
+  "@greetingEnergyTip": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingRenamePhotoTip": "Dica: você pode renomear fotos de alimentos para ajudar MiRO a analisar com mais precisão!",
+  "greetingAddIngredientsTip": "Dica: você pode adicionar ingredientes de que tenha certeza antes de enviar para MiRO para análise. Vou descobrir todos os pequenos detalhes chatos para você!",
+  "greetingBackupReminder": "Ei chefe! Você não faz backup dos seus dados há {days} dias. Recomendo fazer backup em Configurações — seus dados são armazenados localmente e não poderei recuperá-los se algo acontecer!",
+  "@greetingBackupReminder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingFallback": "Oi! Como posso ajudá-lo hoje? Me conta o que você comeu!"
+}

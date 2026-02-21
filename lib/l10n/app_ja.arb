@@ -1,0 +1,1782 @@
+{
+  "@@locale": "ja",
+  "appName": "MiRO",
+  "save": "保存",
+  "cancel": "キャンセル",
+  "delete": "消去",
+  "edit": "編集",
+  "search": "検索",
+  "loading": "読み込み中...",
+  "error": "エラーが発生しました",
+  "confirm": "確認する",
+  "close": "近い",
+  "done": "終わり",
+  "next": "次",
+  "skip": "スキップ",
+  "retry": "リトライ",
+  "ok": "わかりました",
+  "foodName": "食品名",
+  "calories": "カロリー",
+  "protein": "Proテイン",
+  "carbs": "炭水化物",
+  "fat": "脂肪",
+  "servingSize": "1回分の分量",
+  "servingUnit": "ユニット",
+  "kcal": "kcal",
+  "mealBreakfast": "朝食",
+  "mealLunch": "ランチ",
+  "mealDinner": "夕食",
+  "mealSnack": "スナック",
+  "todaySummary": "今日のまとめ",
+  "dateSummary": "{date} の概要",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSuccess": "正常に保存されました",
+  "deletedSuccess": "正常に削除されました",
+  "pleaseEnterFoodName": "食品名を入力してください",
+  "noDataYet": "まだデータがありません",
+  "addFood": "食べ物を追加する",
+  "editFood": "食べ物を編集する",
+  "deleteFood": "食べ物を削除する",
+  "deleteConfirm": "削除を確認しますか?",
+  "foodLoggedSuccess": "食事が記録されました！",
+  "noApiKey": "Gemini API Key を設定してください",
+  "noApiKeyDescription": "Profile → API 設定する設定に移動します",
+  "apiKeyTitle": "Gemini API Key のセットアップ",
+  "apiKeyRequired": "API Key が必要です",
+  "apiKeyFreeNote": "Gemini API は無料で使用できます",
+  "apiKeySetup": "API Key をセットアップする",
+  "testConnection": "テスト接続",
+  "connectionSuccess": "無事接続されました！すぐに使用できます",
+  "connectionFailed": "接続に失敗しました",
+  "pasteKey": "ペースト",
+  "deleteKey": "API Keyを削除",
+  "openAiStudio": "Google AI Studio を開く",
+  "chatHint": "Miro に伝えます。例: 「丸太チャーハン」…",
+  "chatFoodSaved": "食事が記録されました！",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "申し訳ありませんが、この機能はまだ利用できません",
+  "goalCalories": "カロリー/日",
+  "goalProtein": "Proテイン/日",
+  "goalCarbs": "炭水化物/日",
+  "goalFat": "脂肪/日",
+  "goalWater": "水/日",
+  "healthGoals": "健康の目標",
+  "profile": "Proファイル",
+  "settings": "設定",
+  "privacyPolicy": "プライバシーポリシー",
+  "termsOfService": "利用規約",
+  "clearAllData": "すべてのデータをクリア",
+  "clearAllDataConfirm": "すべてのデータが削除されます。これは取り消しできません!",
+  "about": "について",
+  "language": "言語",
+  "upgradePro": "Pro にアップグレードする",
+  "proUnlocked": "MiRO Pro",
+  "proDescription": "無制限のAI食品分析",
+  "aiRemaining": "AI 分析: 今日は残り {remaining}/{total}",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "本日（3/3）のAI制限に達しました",
+  "restorePurchase": "購入を復元する",
+  "myMeals": "私の食事:",
+  "createMeal": "食事を作成する",
+  "ingredients": "材料",
+  "searchFood": "食べ物を探す",
+  "analyzing": "分析中...",
+  "analyzeWithAi": "AIで分析する",
+  "analysisComplete": "分析完了",
+  "timeline": "タイムライン",
+  "diet": "ダイエット",
+  "quickAdd": "クイック追加",
+  "welcomeTitle": "MiRO",
+  "welcomeSubtitle": "AIを活用した簡単な食事記録",
+  "onboardingFeature1": "写真を撮る",
+  "onboardingFeature1Desc": "AIがカロリーを自動計算",
+  "onboardingFeature2": "ログに入力します",
+  "onboardingFeature2Desc": "「チャーハンを食べた」と言うと記録されます",
+  "onboardingFeature3": "毎日のサマリー",
+  "onboardingFeature3Desc": "kcal、タンパク質、炭水化物、脂肪を追跡します",
+  "basicInfo": "基本情報",
+  "basicInfoDesc": "1日の推奨カロリーを計算するには",
+  "gender": "性別",
+  "male": "男",
+  "female": "女性",
+  "age": "年",
+  "weight": "重さ",
+  "height": "身長",
+  "activityLevel": "活動レベル",
+  "tdeeResult": "あなたの TDEE: {kcal} kcal/日",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "Gemini AI をセットアップする",
+  "setupAiDesc": "写真を撮るとAIが自動分析",
+  "setupNow": "今すぐセットアップ",
+  "skipForNow": "今のところスキップしてください",
+  "errorTimeout": "接続タイムアウト — もう一度お試しください",
+  "errorInvalidKey": "無効な API Key — 設定を確認してください",
+  "errorNoInternet": "インターネット接続がありません",
+  "errorGeneral": "エラーが発生しました - もう一度試してください",
+  "errorQuotaExceeded": "API クォータを超えました — 待ってから再試行してください",
+  "apiKeyScreenTitle": "Gemini API Key のセットアップ",
+  "analyzeFoodWithAi": "AIで食品を分析する",
+  "analyzeFoodWithAiDesc": "写真を撮る → AIがカロリーを自動計算\nGemini API は無料で使用できます。",
+  "openGoogleAiStudio": "Google AI Studio を開く",
+  "step1Title": "Google AI Studio を開く",
+  "step1Desc": "API Key を作成するには、下のボタンをクリックしてください",
+  "step2Title": "Google アカウントでサインインする",
+  "step2Desc": "Gmail または Google アカウントを使用します (お持ちでない場合は無料で作成します)",
+  "step3Title": "「API Keyの作成」をクリックします。",
+  "step3Desc": "青い「API Keyを作成」ボタンをクリックします。\nProject を選択するよう求められたら → 「Create API key in new project」をクリックします。",
+  "step4Title": "キーをコピーして下に貼り付けます",
+  "step4Desc": "作成したキーの横にある「コピー」をクリックします\nキーは次のようになります: AIzaSyxxxx...",
+  "step5Title": "ここにAPI Keyを貼り付けてください",
+  "pasteApiKeyHint": "コピーした API Key を貼り付けます",
+  "saveApiKey": "API Key を保存",
+  "testingConnection": "テスト中...",
+  "deleteApiKey": "API Keyを削除",
+  "deleteApiKeyConfirm": "API Key を削除しますか?",
+  "deleteApiKeyConfirmDesc": "再度設定するまでAI食品分析を使用することはできません",
+  "apiKeySaved": "API Key は正常に保存されました",
+  "apiKeyDeleted": "API Key は正常に削除されました",
+  "pleasePasteApiKey": "最初にAPI Keyを貼り付けてください",
+  "apiKeyInvalidFormat": "無効な API Key — 「AIza」で始まる必要があります",
+  "connectionSuccessMessage": "✅ 正常に接続されました！すぐに使用できます",
+  "connectionFailedMessage": "❌ 接続に失敗しました",
+  "faqTitle": "よくある質問",
+  "faqFreeQuestion": "本当に無料ですか?",
+  "faqFreeAnswer": "はい！ Gemini 2.0 Flash は 1 日あたり 1,500 リクエストまで無料\n食事ログの場合（1日5～15回） → 永久無料、支払い不要",
+  "faqSafeQuestion": "安全ですか？",
+  "faqSafeAnswer": "API Key はデバイスのセキュア ストレージにのみ保存されます\nアプリがサーバーにキーを送信しません\nキーが漏洩した場合 → 削除して新しいキーを作成します (Google パスワードではありません)",
+  "faqNoKeyQuestion": "キーを作成しない場合はどうなりますか?",
+  "faqNoKeyAnswer": "アプリはまだ使えます！しかし:\n❌ 写真撮影不可 → AI解析\n✅ 食事を手動で記録できます\n✅ クイック追加機能\n✅ kcal/マクロ概要の作品を表示",
+  "faqCreditCardQuestion": "クレジットカードは必要ですか?",
+  "faqCreditCardAnswer": "いいえ — クレジット カードなしで API Key を無料で作成します",
+  "navDashboard": "ダッシュボード",
+  "navMyMeals": "私の食事",
+  "navCamera": "カメラ",
+  "navAiChat": "AIチャット",
+  "navProfile": "Proファイル",
+  "appBarTodayIntake": "今日の摂取量",
+  "appBarMyMeals": "私の食事",
+  "appBarCamera": "カメラ",
+  "appBarAiChat": "AIチャット",
+  "appBarMiro": "ミロ",
+  "permissionRequired": "許可が必要です",
+  "permissionRequiredDesc": "MIRO は次のものにアクセスする必要があります。",
+  "permissionPhotos": "写真 — 食べ物をスキャンするため",
+  "permissionCamera": "カメラ — 食べ物の写真を撮るため",
+  "permissionSkip": "スキップ",
+  "permissionAllow": "許可する",
+  "permissionAllGranted": "付与されたすべての権限",
+  "permissionDenied": "許可が拒否されました: {denied}",
+  "@permissionDenied": {
+    "placeholders": {
+      "denied": {
+        "type": "String"
+      }
+    }
+  },
+  "openSettings": "設定を開く",
+  "exitAppTitle": "アプリを終了しますか?",
+  "exitAppMessage": "終了してもよろしいですか?",
+  "exit": "出口",
+  "healthGoalsTitle": "健康の目標",
+  "healthGoalsInfo": "毎日のカロリー目標、マクロ、食事ごとの予算を設定します。\n自動計算にロック: 2 つのマクロまたは 3 つの食事。",
+  "dailyCalorieGoal": "毎日のカロリー目標",
+  "proteinLabel": "Proテイン",
+  "carbsLabel": "炭水化物",
+  "fatLabel": "脂肪",
+  "autoBadge": "自動",
+  "kcalPerGram": "{kcalPerGram} kcal/g • {kcal} __SW0__",
+  "@kcalPerGram": {
+    "placeholders": {
+      "kcalPerGram": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieBudget": "食事カロリーの予算",
+  "mealBudgetBalanced": "合計 {total} kcal = 目標 {goal} __SW0__",
+  "@mealBudgetBalanced": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealBudgetRemaining": "合計 {total} / {goal} kcal (残り {remaining})",
+  "@mealBudgetRemaining": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "lockMealsHint": "3 食をロックして 4 食目を自動計算",
+  "breakfastLabel": "朝食",
+  "lunchLabel": "ランチ",
+  "dinnerLabel": "夕食",
+  "snackLabel": "スナック",
+  "percentOfDailyGoal": "1 日の目標の {percent}%",
+  "@percentOfDailyGoal": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "smartSuggestionRange": "スマートな提案範囲",
+  "smartSuggestionHow": "スマートサジェストはどのように機能しますか?",
+  "smartSuggestionDesc": "マイミール、食材、昨日の食事から1食あたりの予算に合わせた料理を提案します。\n\nこのしきい値は、提案の柔軟性を制御します。たとえば、ランチの予算が 700 kcal で、しきい値が {threshold} __SW0__ の場合、{min} ～ {max} __SW0__ の間の料理が提案されます。",
+  "@smartSuggestionDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionThreshold": "提案のしきい値",
+  "suggestionThresholdDesc": "食事予算から± {threshold} kcal 分の食品を許可する",
+  "@suggestionThresholdDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsSavedSuccess": "目標は正常に保存されました。",
+  "canOnlyLockTwoMacros": "一度にロックできるマクロは 2 つだけです",
+  "canOnlyLockThreeMeals": "ロックできるのは 3 食のみです。 4番目は自動計算されます",
+  "tabMeals": "食事",
+  "tabIngredients": "材料",
+  "searchMealsOrIngredients": "食事や食材を検索...",
+  "createNewMeal": "新しい食事を作成する",
+  "addIngredient": "成分を追加する",
+  "noMealsYet": "まだ食事はありません",
+  "noMealsYetDesc": "AIで食事を分析して食事を自動保存\nまたは手動で作成します",
+  "noIngredientsYet": "まだ材料がありません",
+  "noIngredientsYetDesc": "AIで食品を分析すると\n材料は自動的に保存されます",
+  "mealCreated": "「{name}」を作成しました",
+  "@mealCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogged": "「{name}」が記録されました",
+  "@mealLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientAmount": "金額 ({unit})",
+  "@ingredientAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientLogged": "ログに記録された「{name}」 {amount}{unit}",
+  "@ingredientLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNotFound": "食事が見つかりません",
+  "mealUpdated": "「{name}」を更新しました",
+  "@mealUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealTitle": "食事を削除しますか?",
+  "deleteMealMessage": "「{name}」",
+  "@deleteMealMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealNote": "成分は削除されません。",
+  "mealDeleted": "食事が削除されました",
+  "ingredientCreated": "「{name}」を作成しました",
+  "@ingredientCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientNotFound": "成分が見つかりません",
+  "ingredientUpdated": "「{name}」を更新しました",
+  "@ingredientUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteIngredientTitle": "成分を削除しますか?",
+  "deleteIngredientMessage": "「{name}」",
+  "@deleteIngredientMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientDeleted": "成分が削除されました",
+  "noIngredientsData": "成分データなし",
+  "ingredientDetail": "{name} ({amount} {unit})",
+  "@ingredientDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientCalories": "{calories} kcal",
+  "@ingredientCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "useThisMeal": "この食事を使用してください",
+  "errorLoading": "読み込みエラー: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanFoundNewImages": "{date} で {count} 件の新しい画像が見つかりました",
+  "@scanFoundNewImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoNewImages": "{date} には新しい画像が見つかりませんでした",
+  "@scanNoNewImages": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalysisRemaining": "AI 分析: 今日は残り {remaining}/{total}",
+  "@aiAnalysisRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "upgradeToProUnlimited": "Pro にアップグレードすると無制限に使用できます",
+  "upgrade": "アップグレード",
+  "confirmDelete": "削除の確認",
+  "confirmDeleteMessage": "「{name}」を削除しますか?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryDeletedSuccess": "✅ エントリが正常に削除されました",
+  "entryDeleteError": "❌ エラー: {error}",
+  "@entryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "batchAnalyzeItems": "{count} アイテム (バッチ)",
+  "@batchAnalyzeItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeCancelled": "キャンセルされました — {success} アイテムは正常に分析されました",
+  "@analyzeCancelled": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessAll": "✅ {success} 項目を正常に分析しました",
+  "@analyzeSuccessAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessPartial": "⚠️ {success}/{total} 項目を分析しました ({failed} は失敗しました)",
+  "@analyzeSuccessPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgress": "{item} ({current}/{total})",
+  "@analyzeProgress": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pullToScanMeal": "引いて食事をスキャンします",
+  "analyzeAll": "すべて分析する",
+  "addFoodTitle": "食べ物を追加する",
+  "foodNameRequired": "食品名 *",
+  "foodNameHint": "検索するには次のように入力します。チャーハン、パパイヤサラダ",
+  "selectedFromMyMeal": "✅ 私の食事から選択 — 栄養データは自動入力されます",
+  "foundInDatabase": "✅ データベースで見つかりました - 栄養データは自動入力されます",
+  "saveAndAnalyze": "保存と分析",
+  "notFoundInDatabase": "データベースに見つかりません - バックグラウンドで分析されます",
+  "amountLabel": "額",
+  "unitLabel": "ユニット",
+  "nutritionAutoCalculated": "栄養成分（量により自動計算）",
+  "nutritionEnterZero": "栄養成分（不明な場合は0を入力してください）",
+  "caloriesLabel": "カロリー (kcal)",
+  "proteinLabelShort": "Proテイン (g)",
+  "carbsLabelShort": "炭水化物 (g)",
+  "fatLabelShort": "脂肪(g)",
+  "mealTypeLabel": "食事の種類",
+  "pleaseEnterFoodNameFirst": "最初に食品名を入力してください",
+  "savedAnalyzingBackground": "✅ 保存済み — バックグラウンドで分析中",
+  "foodAdded": "✅ 食品追加",
+  "suggestionSourceMyMeal": "私の食事",
+  "suggestionSourceIngredient": "材料",
+  "suggestionSourceDatabase": "データベース",
+  "editFoodTitle": "食べ物を編集する",
+  "foodNameLabel": "食品名",
+  "changeAmountAutoUpdate": "量変更→カロリー自動更新",
+  "baseNutrition": "ベース: {calories} kcal / 1 {unit}",
+  "@baseNutrition": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "calculatedFromIngredients": "下記成分より算出",
+  "ingredientsEditable": "材料（編集可能）",
+  "addIngredientButton": "追加",
+  "noIngredientsAddHint": "材料はありません — 新しいものを追加するには「追加」をタップします",
+  "editIngredientsHint": "名前/金額を編集→検索アイコンをタップしてデータベースまたはAIを検索します",
+  "ingredientNameHint": "例えば鶏の卵",
+  "searchDbOrAi": "検索DB・AI",
+  "amountHint": "額",
+  "fromDatabase": "データベースから",
+  "subIngredients": "副成分 ({count})",
+  "@subIngredients": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSubIngredient": "追加",
+  "subIngredientNameHint": "副成分名",
+  "amountShort": "アムト",
+  "pleaseEnterSubIngredientName": "最初に副成分名を入力してください",
+  "foundInDatabaseSub": "データベースに「{name}」が見つかりました!",
+  "@foundInDatabaseSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalyzedSub": "AIが分析した「{name}」（エネルギー-1）",
+  "@aiAnalyzedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotAnalyzeSub": "副成分を分析できませんでした",
+  "pleaseEnterIngredientName": "原材料名を入力してください",
+  "reAnalyzeTitle": "再分析しますか？",
+  "reAnalyzeMessage": "「{name}」にはすでに栄養データが含まれています。\n\n再度分析するとエネルギーを1消費します。\n\n続く？",
+  "@reAnalyzeMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzeButton": "再分析（1エネルギー）",
+  "amountNotSpecified": "金額は指定されていません",
+  "amountNotSpecifiedMessage": "最初に「{name}」の金額を指定してください\nそれともデフォルトの 100 g を使用しますか?",
+  "@amountNotSpecifiedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "useDefault100g": "100g使用",
+  "aiAnalyzedResult": "AI: \"{name}\" → {calories} kcal",
+  "@aiAnalyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToAnalyze": "分析できません",
+  "today": "今日",
+  "savedSuccessfully": "✅ 正常に保存されました",
+  "confirmFoodPhoto": "食べ物の写真を確認する",
+  "photoSavedAutomatically": "写真が自動的に保存されました",
+  "foodNameHintExample": "例：グリルチキンサラダ",
+  "quantityLabel": "量",
+  "quantityHint": "1",
+  "optionalFoodInfo": "食品名と数量の入力は任意ですが、入力することでAIの解析精度が向上します。",
+  "saveOnly": "保存のみ",
+  "pleaseEnterValidQuantity": "有効な数量を入力してください",
+  "analyzedResult": "✅ 分析済み: {name} — {calories} kcal",
+  "@analyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotAnalyzeSaved": "⚠️ 分析できませんでした — 保存されました。後で「すべて分析」を使用してください",
+  "savedAnalyzeLater": "✅ 保存済み — 後で「すべて分析」を使用して分析します",
+  "editIngredientTitle": "成分の編集",
+  "ingredientNameRequired": "成分名 *",
+  "baseAmountLabel": "基本金額",
+  "baseAmountHint": "100",
+  "nutritionPerBase": "{amount} {unit} あたりの栄養",
+  "@nutritionPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionCalculatedPerBase": "{amount} {unit} ごとに栄養成分を計算 — システムは実際の消費量に基づいて自動計算します",
+  "@nutritionCalculatedPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "createIngredient": "材料の作成",
+  "saveChanges": "変更を保存",
+  "pleaseEnterIngredientNameFirst": "最初に成分名を入力してください",
+  "aiAnalyzedIngredient": "AI: 「{name}」 {amount} {unit} → {calories} kcal",
+  "@aiAnalyzedIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToFindIngredient": "この成分が見つかりません",
+  "searchFailed": "検索に失敗しました: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEntriesTitle": "{count} {count, plural, =1 {Entry} other {Entries}} を削除しますか?",
+  "@deleteEntriesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteEntriesMessage": "{count} 選択した食品 {count, plural, =1 {entry} other {entries}} を削除しますか?",
+  "@deleteEntriesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAll": "すべて削除",
+  "deletedEntries": "{count} {count, plural, =1 {entry} other {entries}} を削除しました",
+  "@deletedEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedEntriesToDate": "{count} {count, plural, =1 {entry} other {entries}} を {date} に移動しました",
+  "@movedEntriesToDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "allSelectedAlreadyAnalyzed": "選択したすべてのエントリはすでに分析されています",
+  "analyzeCancelledSelected": "キャンセルされました — {success} が分析されました",
+  "@analyzeCancelledSelected": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesAll": "分析済み {success} {success, plural, =1 {entry} other {entries}}",
+  "@analyzedEntriesAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesPartial": "{success}/{total} を分析しました ({failed} は失敗しました)",
+  "@analyzedEntriesPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgressSelected": "{current}/{total} {item}",
+  "@analyzeProgressSelected": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "noEntriesYet": "まだエントリーはありません",
+  "selectAll": "すべて選択",
+  "deselectAll": "すべての選択を解除します",
+  "moveToDate": "現在までに移動",
+  "analyzeSelected": "選択したものを分析",
+  "deleteTooltip": "消去",
+  "move": "動く",
+  "deleteTooltipAction": "消去",
+  "switchToModeTitle": "{mode} モードに切り替えますか?",
+  "@switchToModeTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToModeMessage": "この項目は__P​​H0__として分析されました。\n\n{newMode} として再分析すると、エネルギーが 1 消費されます。\n\n続く？",
+  "@switchToModeMessage": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "newMode": {
+        "type": "String"
+      }
+    }
+  },
+  "analyzingAsMode": "{mode} として分析しています...",
+  "@analyzingAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzedAsMode": "✅ {mode} として再分析",
+  "@reAnalyzedAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisFailed": "❌ 分析に失敗しました",
+  "aiAnalysisComplete": "✅ AIが分析して保存",
+  "changeMealType": "食事の種類を変更する",
+  "moveToAnotherDate": "別の日付に移動",
+  "currentDate": "現在: {date}",
+  "@currentDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDateChange": "日付変更のキャンセル",
+  "undo": "元に戻す",
+  "chatHistory": "チャット履歴",
+  "newChat": "新しいチャット",
+  "quickActions": "クイックアクション",
+  "clear": "クリア",
+  "helloImMiro": "こんにちは！私はMiroです",
+  "tellMeWhatYouAteToday": "今日何を食べたか教えてください！",
+  "tellMeWhatYouAte": "何を食べたか教えてください...",
+  "clearHistoryTitle": "履歴をクリアしますか？",
+  "clearHistoryMessage": "このセッション内のすべてのメッセージが削除されます。",
+  "chatHistoryTitle": "チャット履歴",
+  "newLabel": "新しい",
+  "noChatHistoryYet": "チャット履歴はまだありません",
+  "active": "アクティブ",
+  "deleteChatTitle": "チャットを削除しますか?",
+  "deleteChatMessage": "「{title}」を削除しますか?",
+  "@deleteChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklySummaryTitle": "📊 週次サマリー ({start} - {end})",
+  "@weeklySummaryTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "daySummary": "📅 {day}: {calories} kcal {emoji} ({diff})",
+  "@daySummary": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "overTarget": "{amount} 目標を上回りました",
+  "@overTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTarget": "{amount} は目標を下回っています",
+  "@underTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noFoodLoggedThisWeek": "今週はまだ食事が記録されていません。",
+  "averageKcalPerDay": "🔥 平均: {average} kcal/日",
+  "@averageKcalPerDay": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "targetKcalPerDay": "🎯 目標: {target} kcal/日",
+  "@targetKcalPerDay": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "resultOverTarget": "📈 結果: {amount} kcal 目標を上回りました",
+  "@resultOverTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resultUnderTarget": "📈 結果: {amount} kcal は目標を下回りました — 素晴らしい仕事でした! 💪",
+  "@resultUnderTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadWeeklySummary": "❌ 週次サマリーのロードに失敗しました: {error}",
+  "@failedToLoadWeeklySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlySummaryTitle": "📊 月次サマリー ({month} {year})",
+  "@monthlySummaryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "totalDays": "📅 合計日数: {days}",
+  "@totalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "totalConsumed": "🔥 合計消費量: {calories} kcal",
+  "@totalConsumed": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "targetTotal": "🎯 目標合計: {target} kcal",
+  "@targetTotal": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "averageKcalPerDayShort": "📈 平均: {average} kcal/日",
+  "@averageKcalPerDayShort": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "overTargetThisMonth": "⚠️ {amount} kcal 今月の目標を超えました",
+  "@overTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTargetThisMonth": "✅ {amount} kcal は目標を下回りました — 素晴らしいです! 💪",
+  "@underTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadMonthlySummary": "❌ 月次サマリーのロードに失敗しました: {error}",
+  "@failedToLoadMonthlySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiHelpTitle": "🤖 ローカル AI ヘルプ",
+  "localAiHelpFormat": "形式: [食品] [量] [単位]",
+  "localAiHelpExamples": "例:\n• 鶏肉 100g、米 200g\n• ピザ2枚\n• リンゴ 1個、バナナ 1個",
+  "localAiHelpNote": "注: 英語のみ、基本的な解析\nより良い結果を得るには、Miro AI に切り替えてください。",
+  "hiNoFoodLogged": "🤖 こんにちは！今日はまだ食事が記録されていません。\n   ターゲット: {target} kcal — ロギングを開始する準備はできましたか? 🍽️",
+  "@hiNoFoodLogged": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "hiKcalLeft": "🤖 こんにちは！今日は {remaining} kcal が残っています。\n   食事を記録する準備はできましたか? 😊",
+  "@hiKcalLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "hiOverTarget": "🤖 こんにちは！今日は{calories} kcalを消費しました。\n   {over} __SW0__ 目標を上回りました — 追跡を続けましょう! 💪",
+  "@hiOverTarget": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "hiReadyToLog": "🤖 こんにちは！食事を記録する準備はできましたか? 😊",
+  "notEnoughEnergy": "エネルギーが足りない",
+  "thinkingMealIdeas": "🤖 あなたのための素晴らしい食事のアイデアを考えています...",
+  "recentMeals": "最近の食事:",
+  "noRecentFood": "最近の食事の記録はありません。",
+  "remainingCaloriesToday": "。今日の残りカロリー: {remaining} kcal。",
+  "@remainingCaloriesToday": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToGetMenuSuggestions": "❌ メニューの提案を取得できませんでした: {error}",
+  "@failedToGetMenuSuggestions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionsTitle": "🤖 あなたの食事記録に基づいて、ここに 3 つの食事の提案があります:",
+  "mealSuggestionItem": "{index}。 {emoji} {name} (~{calories} kcal)",
+  "@mealSuggestionItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionMacros": "P: {protein}g | C: {carbs}g | F: {fat}g",
+  "@mealSuggestionMacros": {
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
+  "pickOneAndLog": "1 つ選んでください。記録させていただきます。 😊",
+  "energyCost": "⚡ -{cost} エネルギー",
+  "@energyCost": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "giveMeTipsForHealthyEating": "健康的な食事のヒントを教えてください",
+  "howManyCaloriesToday": "今日のカロリーはどれくらいですか？",
+  "menuLabel": "メニュー",
+  "weeklyLabel": "毎週",
+  "monthlyLabel": "毎月",
+  "tipsLabel": "ヒント",
+  "summaryLabel": "まとめ",
+  "helpLabel": "ヘルプ",
+  "onboardingWelcomeSubtitle": "カロリーを簡単に追跡\nAIを活用した分析による",
+  "onboardingSnap": "スナップ",
+  "onboardingSnapDesc": "AIが瞬時に分析",
+  "onboardingType": "タイプ",
+  "onboardingTypeDesc": "数秒でログイン",
+  "onboardingEdit": "編集",
+  "onboardingEditDesc": "精度を微調整する",
+  "onboardingNext": "次へ →",
+  "onboardingDisclaimer": "AIによる推定データ。医学的なアドバイスではありません。",
+  "onboardingQuickSetup": "クイックセットアップ",
+  "onboardingHelpAiUnderstand": "AI があなたの食べ物をよりよく理解できるようにする",
+  "onboardingYourTypicalCuisine": "あなたの典型的な料理:",
+  "onboardingDailyCalorieGoal": "毎日のカロリー目標 (オプション):",
+  "onboardingKcalPerDay": "kcal/日",
+  "onboardingCalorieGoalHint": "2000年",
+  "onboardingCanChangeAnytime": "これは、Profile 設定でいつでも変更できます。",
+  "onboardingYoureAllSet": "準備は完了です!",
+  "onboardingStartTracking": "今日から食事の記録を始めましょう。\n写真を撮るか、食べたものを入力します。",
+  "onboardingWelcomeGift": "ウェルカムギフト",
+  "onboardingFreeEnergy": "10 フリーエネルギー",
+  "onboardingFreeEnergyDesc": "= 開始するには 10 回の AI 分析",
+  "onboardingEnergyCost": "各分析には 1 エネルギーがかかります\n使えば使うほどお得になります！",
+  "onboardingStartTrackingButton": "追跡を開始してください! →",
+  "onboardingNoCreditCard": "クレジットカード不要、隠れた手数料なし",
+  "cameraTakePhotoOfFood": "食べ物の写真を撮ってください",
+  "cameraFailedToInitialize": "カメラの初期化に失敗しました",
+  "cameraFailedToCapture": "写真のキャプチャに失敗しました",
+  "cameraFailedToPickFromGallery": "ギャラリーから画像を選択できませんでした",
+  "cameraProcessing": "Pro処理中...",
+  "referralInviteFriends": "友達を招待する",
+  "referralYourReferralCode": "あなたの紹介コード",
+  "referralLoading": "読み込み中...",
+  "referralCopy": "コピー",
+  "referralShareCodeDescription": "このコードを友達と共有してください! AIを3回使用すると、両方とも報酬を獲得できます!",
+  "referralEnterReferralCode": "紹介コードを入力してください",
+  "referralCodeHint": "ミロ-XXXX-XXXX-XXXX",
+  "referralSubmitCode": "コードを送信する",
+  "referralPleaseEnterCode": "紹介コードを入力してください",
+  "referralCodeAccepted": "紹介コード受付中！",
+  "referralCodeCopied": "紹介コードがクリップボードにコピーされました。",
+  "referralEnergyBonus": "+{energy} エネルギー!",
+  "@referralEnergyBonus": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralHowItWorks": "仕組み",
+  "referralStep1Title": "紹介コードを共有する",
+  "referralStep1Description": "MiRO ID をコピーして友達と共有します",
+  "referralStep2Title": "友達があなたのコードを入力しました",
+  "referralStep2Description": "彼らはすぐに +20 エネルギーを獲得します",
+  "referralStep3Title": "友人が AI を 3 回使用しました",
+  "referralStep3Description": "3 つの AI 分析が完了すると",
+  "referralStep4Title": "報酬が得られます!",
+  "referralStep4Description": "+5 エネルギーを受け取ります!",
+  "tierBenefitsTitle": "ティアの特典",
+  "tierBenefitsUnlockRewards": "報酬のロックを解除する\n毎日の連続記録あり",
+  "tierBenefitsKeepStreakDescription": "連続記録を維持してより高いティアのロックを解除し、素晴らしい特典を獲得してください!",
+  "tierBenefitsHowItWorks": "仕組み",
+  "tierBenefitsDailyEnergyReward": "毎日のエネルギー報酬",
+  "tierBenefitsDailyEnergyDescription": "少なくとも 1 日に 1 回は AI を使用して、ボーナス エネルギーを獲得してください。より高いレベル = より多くの毎日のエネルギー!",
+  "tierBenefitsPurchaseBonus": "購入特典",
+  "tierBenefitsPurchaseBonusDescription": "ゴールドおよびダイヤモンド層は、購入するたびに追加のエネルギーを獲得します (10 ～ 20% 多く!)",
+  "tierBenefitsGracePeriod": "猶予期間",
+  "tierBenefitsGracePeriodDescription": "連続記録を失わずに 1 日でも失敗しましょう。シルバー以上のティアは保護を受けられます!",
+  "tierBenefitsAllTiers": "すべてのティア",
+  "tierBenefitsNew": "新しい",
+  "tierBenefitsPopular": "人気のある",
+  "tierBenefitsBest": "最高",
+  "tierBenefitsDailyCheckIn": "毎日のチェックイン",
+  "tierBenefitsProTips": "Pro ヒント",
+  "tierBenefitsTip1": "毎日 AI を使用して無料エネルギーを獲得し、連続記録を達成しましょう",
+  "tierBenefitsTip2": "ダイヤモンド層では、1 日あたり +4 エネルギーを獲得できます。つまり、1 か月あたり 120 エネルギーです。",
+  "tierBenefitsTip3": "購入ボーナスはすべてのエネルギー パッケージに適用されます。",
+  "tierBenefitsTip4": "一日欠席しても猶予期間が連続記録を保護します",
+  "subscriptionEnergyPass": "エネルギーパス",
+  "subscriptionInAppPurchasesNotAvailable": "アプリ内購入は利用できません",
+  "subscriptionFailedToInitiatePurchase": "購入を開始できませんでした",
+  "subscriptionError": "エラー: {error}",
+  "@subscriptionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailedToLoad": "サブスクリプションの読み込みに失敗しました",
+  "subscriptionUnknownError": "不明なエラー",
+  "subscriptionRetry": "リトライ",
+  "subscriptionEnergyPassActive": "エナジーパス有効",
+  "subscriptionUnlimitedAccess": "無制限にアクセスできます",
+  "subscriptionStatus": "状態",
+  "subscriptionRenews": "更新します",
+  "subscriptionPrice": "価格",
+  "subscriptionYourBenefits": "あなたのメリット",
+  "subscriptionManageSubscription": "サブスクリプションの管理",
+  "subscriptionNoProductAvailable": "利用可能なサブスクリプション製品はありません",
+  "subscriptionWhatYouGet": "得られるもの",
+  "subscriptionPerMonth": "月あたり",
+  "subscriptionSubscribeNow": "今すぐ購読する",
+  "subscriptionCancelAnytime": "いつでもキャンセル可能",
+  "subscriptionAutoRenewTerms": "サブスクリプションは自動的に更新されます。 Google Play からいつでもキャンセルできます。",
+  "disclaimerHealthDisclaimer": "健康に関する免責事項",
+  "disclaimerImportantReminders": "重要な注意事項:",
+  "disclaimerBullet1": "すべての栄養データは推定値です",
+  "disclaimerBullet2": "AI分析にはエラーが含まれる可能性があります",
+  "disclaimerBullet3": "専門家のアドバイスに代わるものではありません",
+  "disclaimerBullet4": "医療提供者に相談して医学的指導を受ける",
+  "disclaimerBullet5": "ご自身の判断とリスクでご使用ください",
+  "disclaimerIUnderstand": "わかりました",
+  "privacyPolicyTitle": "プライバシーポリシー",
+  "privacyPolicySubtitle": "MiRO — 私の摂取記録 Oracle",
+  "privacyPolicyHeaderNote": "食事データはデバイスに残ります。エネルギーバランスは Firebase 経由で安全に同期されます。",
+  "privacyPolicySectionInformationWeCollect": "当社が収集する情報",
+  "privacyPolicySectionDataStorage": "データストレージ",
+  "privacyPolicySectionDataTransmission": "第三者へのデータ送信",
+  "privacyPolicySectionRequiredPermissions": "必要な権限",
+  "privacyPolicySectionSecurity": "安全",
+  "privacyPolicySectionUserRights": "ユーザーの権利",
+  "privacyPolicySectionDataRetention": "データの保持",
+  "privacyPolicySectionChildrenPrivacy": "子供のプライバシー",
+  "privacyPolicySectionChangesToPolicy": "このポリシーの変更",
+  "privacyPolicySectionDataCollectionConsent": "データ収集の同意",
+  "privacyPolicySectionPDPACompliance": "PDPA コンプライアンス (タイ個人データPro保護法)",
+  "privacyPolicySectionContactUs": "お問い合わせ",
+  "privacyPolicyEffectiveDate": "発効日: 2026 年 2 月 18 日\n最終更新日: 2026 年 2 月 18 日",
+  "termsOfServiceTitle": "利用規約",
+  "termsSubtitle": "MiRO — 私の摂取記録 Oracle",
+  "termsSectionAcceptanceOfTerms": "規約への同意",
+  "termsSectionServiceDescription": "サービスの説明",
+  "termsSectionDisclaimerOfWarranties": "保証の否認",
+  "termsSectionEnergySystemTerms": "エネルギーシステム用語",
+  "termsSectionUserDataAndResponsibilities": "ユーザーデータと責任",
+  "termsSectionBackupTransfer": "バックアップと転送",
+  "termsSectionInAppPurchases": "アプリ内購入",
+  "termsSectionProhibitedUses": "Pro禁止されている用途",
+  "termsSectionIntellectualProperty": "知的Proプロパティ",
+  "termsSectionLimitationOfLiability": "責任の制限",
+  "termsSectionServiceTermination": "サービス終了",
+  "termsSectionChangesToTerms": "規約の変更",
+  "termsSectionGoverningLaw": "準拠法",
+  "termsSectionContactUs": "お問い合わせ",
+  "termsAcknowledgment": "MiRO を使用すると、これらの利用規約を読み、理解し、同意したことになります。",
+  "termsLastUpdated": "最終更新日: 2026 年 2 月 15 日",
+  "profileAndSettings": "Proファイルと設定",
+  "errorOccurred": "エラー: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGoalsSection": "健康の目標",
+  "dailyGoals": "毎日の目標",
+  "chatAiModeSection": "チャットAIモード",
+  "selectAiPowersChat": "チャットを強化する AI を選択してください",
+  "miroAi": "Miro AI",
+  "miroAiSubtitle": "Gemini を搭載 • 多言語対応 • 高精度",
+  "localAi": "ローカルAI",
+  "localAiSubtitle": "オンデバイス • 英語のみ • 基本精度",
+  "free": "無料",
+  "cuisinePreferenceSection": "料理の好み",
+  "preferredCuisine": "好みの料理",
+  "selectYourCuisine": "料理をお選びください",
+  "photoScanSection": "写真スキャン",
+  "languageSection": "言語",
+  "languageTitle": "言語 / ภาษา",
+  "selectLanguage": "言語を選択 / เลือกภาษา",
+  "systemDefault": "システムのデフォルト",
+  "systemDefaultSublabel": "ตามระบบ",
+  "english": "英語",
+  "englishSublabel": "อังกฤษ",
+  "thai": "ไทย (タイ語)",
+  "thaiSublabel": "ภาษาไทย",
+  "closeBilingual": "閉じる / ปิด",
+  "languageChangedTo": "言語が{language}に変更されました",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSection": "アカウント",
+  "miroId": "MiRO ID",
+  "miroIdCopied": "MiRO ID がコピーされました!",
+  "inviteFriends": "友達を招待する",
+  "inviteFriendsSubtitle": "紹介コードを共有して特典を獲得しましょう！",
+  "unlimitedAiDoubleRewards": "無制限の AI + 2 倍の報酬",
+  "plan": "プラン",
+  "monthly": "毎月",
+  "started": "開始しました",
+  "renews": "更新します",
+  "expires": "有効期限が切れます",
+  "autoRenew": "自動更新",
+  "on": "の上",
+  "off": "オフ",
+  "tapToManageSubscription": "タップしてサブスクリプションを管理します",
+  "dataSection": "データ",
+  "backupData": "バックアップデータ",
+  "backupDataSubtitle": "エネルギー + 食事履歴 → ファイルとして保存",
+  "restoreFromBackup": "バックアップから復元",
+  "restoreFromBackupSubtitle": "バックアップファイルからデータをインポート",
+  "clearAllDataTitle": "すべてのデータを消去しますか?",
+  "clearAllDataContent": "すべてのデータが削除されます:\n• 食べ物のエントリー\n• 私の食事\n• 成分\n• 目標\n• 個人情報\n\nこれは取り消しできません!",
+  "allDataClearedSuccess": "すべてのデータが正常に消去されました",
+  "aboutSection": "について",
+  "version": "バージョン",
+  "healthDisclaimer": "健康に関する免責事項",
+  "importantLegalInformation": "重要な法的情報",
+  "showTutorialAgain": "チュートリアルを再度表示する",
+  "viewFeatureTour": "機能ツアーを見る",
+  "showTutorialDialogTitle": "チュートリアルを表示する",
+  "showTutorialDialogContent": "これにより、以下に焦点を当てた機能ツアーが表示されます。\n\n• エネルギーシステム\n• プルツーリフレッシュ写真スキャン\n• Miro AI とチャット\n\nホーム画面に戻ります。",
+  "showTutorialButton": "チュートリアルを表示する",
+  "tutorialResetMessage": "チュートリアルリセット！ホーム画面に移動して表示します。",
+  "foodAnalysisTutorial": "食品分析のチュートリアル",
+  "foodAnalysisTutorialSubtitle": "食品分析機能の使用方法を学ぶ",
+  "backupCreated": "バックアップが作成されました!",
+  "backupCreatedContent": "バックアップ ファイルが正常に作成されました。",
+  "backupChooseDestination": "バックアップをどこに保存しますか?",
+  "backupSaveToDevice": "デバイスに保存",
+  "backupSaveToDeviceDesc": "このデバイス上で選択したフォルダーに保存します",
+  "backupShareToOther": "他のデバイスに共有する",
+  "backupShareToOtherDesc": "Line、メール、Googleドライブなどで送信します。",
+  "backupSavedSuccess": "バックアップが保存されました!",
+  "backupSavedSuccessContent": "バックアップ ファイルが選択した場所に保存されました。",
+  "important": "重要：",
+  "backupImportantNotes": "• このファイルを安全な場所 (Google ドライブなど) に保存します。\n• 写真はバックアップに含まれません。\n• 転送キーの有効期限は 30 日です\n• キーは一度しか使用できません",
+  "restoreBackup": "バックアップを復元しますか?",
+  "backupFrom": "バックアップ元:",
+  "date": "日付：",
+  "energy": "エネルギー：",
+  "foodEntries": "食べ物のエントリー:",
+  "restoreImportant": "重要",
+  "restoreImportantNotes": "• このデバイスの現在のエネルギーは、バックアップ ({energy}) のエネルギーと置き換えられます。\n• 食品エントリはマージされます (置き換えられません)。\n• 写真はバックアップに含まれません\n・転送キーを使用します（再利用不可）",
+  "@restoreImportantNotes": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "復元する",
+  "restoreComplete": "復元完了！",
+  "restoreCompleteContent": "データは正常に復元されました。",
+  "newEnergyBalance": "新しいエネルギーバランス:",
+  "foodEntriesImported": "輸入された食品エントリ:",
+  "myMealsImported": "輸入した私の食事:",
+  "appWillRefresh": "アプリが更新されて、復元されたデータが表示されます。",
+  "backupFailed": "バックアップに失敗しました",
+  "invalidBackupFile": "無効なバックアップ ファイル",
+  "restoreFailed": "復元に失敗しました",
+  "analyticsDataCollection": "分析データの収集",
+  "analyticsEnabled": "分析が有効になっています - 分析が有効です - 分析が有効です",
+  "analyticsDisabled": "分析が無効になっています - ไม่เก็บข้อมูลการใช้งาน",
+  "enabled": "有効",
+  "enabledSubtitle": "有効 - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "disabled": "無効",
+  "disabledSubtitle": "無効 - ไม่เก็บข้อมูลการใช้งาน",
+  "imagesPerDay": "1日あたりの画像",
+  "scanUpToImagesPerDay": "1 日あたり最大 {limit} 枚の画像をスキャンします",
+  "@scanUpToImagesPerDay": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "リセット",
+  "resetScanHistory": "スキャン履歴をリセット",
+  "resetScanHistorySubtitle": "スキャンされたすべてのエントリを削除して再スキャンします",
+  "imagesPerDayDialog": "1日あたりの画像",
+  "maxImagesPerDayDescription": "1 日にスキャンできる最大画像数\n選択した日付のみをスキャンします",
+  "scanLimitSetTo": "スキャン制限は 1 日あたり {limit} 枚の画像に設定されています",
+  "@scanLimitSetTo": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "resetScanHistoryDialog": "スキャン履歴をリセットしますか?",
+  "resetScanHistoryContent": "ギャラリーでスキャンされたすべての食品エントリは削除されます。\n画像を再スキャンするには、任意の日付をプルダウンします。",
+  "resetComplete": "リセットが完了しました - {count} エントリが削除されました。再スキャンするには下に引き下げます。",
+  "@resetComplete": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarStreak": "連続{days}日",
+  "@questBarStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarDaysToNextTier": "{days} 日 → {tier}",
+  "@questBarDaysToNextTier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarMaxTier": "マックスティア！ 💎",
+  "questBarOfferDismissed": "非表示のオファー",
+  "questBarViewOffer": "オファーを見る",
+  "questBarNoOffersNow": "• 現在オファーはありません",
+  "questBarWeeklyChallenges": "🎯 ウィークリーチャレンジ",
+  "questBarMilestones": "🏆マイルストーン",
+  "questBarInviteFriends": "👥 友達を招待して 20E をゲット",
+  "questBarTimeRemaining": "⏰ 残り時間 {time}",
+  "@questBarTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarClaimDailyEnergy": "+{energy}E",
+  "@questBarClaimDailyEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarShareReferralError": "共有エラー: {error}",
+  "@questBarShareReferralError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationTitle": "{tier} お祝い ​​🎉",
+  "@tierCelebrationTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationDay": "{day}日",
+  "@tierCelebrationDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tierCelebrationExpired": "期限切れ",
+  "tierCelebrationComplete": "完了！",
+  "questBarWatchAd": "広告を見る +{energy}⚡",
+  "@questBarWatchAd": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdRemaining": "本日残り {remaining}/{total}",
+  "@questBarAdRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdSuccess": "広告を見ました! +{energy} エネルギーが入ってきます...",
+  "@questBarAdSuccess": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdNotReady": "広告の準備ができていません。もう一度お試しください。",
+  "questBarDailyChallenge": "デイリーチャレンジ",
+  "questBarUseAi": "エネルギーを使う",
+  "questBarResetsMonday": "毎週月曜日にリセットされる",
+  "questBarClaimed": "主張しました！",
+  "questBarHideOffer": "隠れる",
+  "questBarViewDetails": "ビュー",
+  "questBarShareText": "MiRO をお試しください! AI を活用した食品分析 🍔\nこのリンクを使用すると、両方とも +20 エネルギーを無料で獲得できます!\n\n{link}",
+  "@questBarShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarShareSubject": "MiRO を試してください",
+  "claimButtonTitle": "毎日のエネルギーを摂取する",
+  "claimButtonReceived": "+{energy}E を受け取りました!",
+  "@claimButtonReceived": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "claimButtonAlreadyClaimed": "今日すでに申請済み",
+  "claimButtonError": "エラー: {error}",
+  "@claimButtonError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonalQuestLimitedTime": "期間限定",
+  "seasonalQuestDaysLeft": "残り{days}日",
+  "@seasonalQuestDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardDaily": "+{reward}E / 日",
+  "@seasonalQuestRewardDaily": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardOnce": "+{reward}E 1 回限り",
+  "@seasonalQuestRewardOnce": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestClaimed": "主張しました！",
+  "seasonalQuestClaimedToday": "今日請求されました",
+  "errorFailed": "失敗した",
+  "errorFailedToClaim": "請求に失敗しました",
+  "errorGeneric": "エラー: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneNoMilestonesToClaim": "獲得できるマイルストーンはまだありません",
+  "milestoneClaimedEnergy": "🎁 +{energy} エネルギーを要求しました!",
+  "@milestoneClaimedEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTitle": "マイルストーン",
+  "milestoneUseEnergyComplete": "エネルギーを使用する {threshold}",
+  "@milestoneUseEnergyComplete": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneNext": "次へ: {threshold}E",
+  "@milestoneNext": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneAllComplete": "すべてのマイルストーンが完了しました!",
+  "noEnergyTitle": "エネルギー不足",
+  "noEnergyContent": "AIで食品を分析するにはエネルギーが1必要です",
+  "noEnergyTip": "AI を使用せずに手動で食事の記録を無料で行うこともできます",
+  "noEnergyLater": "後で",
+  "noEnergyWatchAd": "広告を見る ({remaining}/3)",
+  "@noEnergyWatchAd": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "noEnergyBuyEnergy": "エネルギーを購入する",
+  "tierBronze": "ブロンズ",
+  "tierSilver": "銀",
+  "tierGold": "金",
+  "tierDiamond": "ダイヤモンド",
+  "tierStarter": "スターター",
+  "tierUpCongratulations": "🎉 おめでとうございます！",
+  "tierUpYouReached": "{tier} に到達しました!",
+  "@tierUpYouReached": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierUpMotivation": "プロのようにカロリーを追跡\nあなたの理想のボディが近づいています！",
+  "tierUpReward": "+{reward}E ご褒美!",
+  "@tierUpReward": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "referralAllLevelsClaimed": "すべてのレベルを主張しました!",
+  "referralLevel": "レベル {level}: {subtitle}",
+  "@referralLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "subtitle": {
+        "type": "String"
+      }
+    }
+  },
+  "referralProgress": "[{current}/{target}] (レベル {level}/{total})",
+  "@referralProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "referralClaimedLevel": "🎁 要求レベル {level}: +{reward} エネルギー!",
+  "@referralClaimedLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUseAi10": "エネルギーを使う 10",
+  "specifyIngredients": "既知の成分を指定する",
+  "specifyIngredientsOptional": "既知の成分を指定します (オプション)",
+  "specifyIngredientsHint": "知っている材料を入力すると、AI が隠れた調味料、油、ソースを見つけてくれます。",
+  "sendToAi": "AIに送信",
+  "reanalyzeWithIngredients": "成分を追加して再分析する",
+  "reanalyzeButton": "再分析（1エネルギー）",
+  "ingredientsSaved": "材料を保存しました",
+  "pleaseAddAtLeastOneIngredient": "少なくとも 1 つの材料を追加してください",
+  "hiddenIngredientsDiscovered": "AIが発見した隠し食材",
+  "retroScanTitle": "最近の写真をスキャンしますか?",
+  "retroScanDescription": "過去 7 日間の写真をスキャンして、食べ物の写真を自動的に見つけて日記に追加できます。",
+  "retroScanNote": "食べ物の写真のみが検出され、他の写真は無視されます。写真がデバイスから離れることはありません。",
+  "retroScanStart": "私の写真をスキャンする",
+  "retroScanSkip": "今のところスキップしてください",
+  "retroScanInProgress": "走査...",
+  "retroScanTagline": "MiRO はあなたの変革をもたらします\n食べ物の写真を健康データに変換します。",
+  "retroScanFetchingPhotos": "最近の写真を取得しています...",
+  "retroScanAnalyzing": "食べ物の写真を検出しています...",
+  "retroScanPhotosFound": "過去 7 日間に {count} 枚の写真が見つかりました",
+  "@retroScanPhotosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanCompleteTitle": "スキャン完了！",
+  "retroScanCompleteDesc": "{count} 件の食べ物の写真が見つかりました!これらはタイムラインに追加され、AI 分析の準備が整いました。",
+  "@retroScanCompleteDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanNoResultsTitle": "食べ物の写真が見つかりません",
+  "retroScanNoResultsDesc": "過去 7 日間に食べ物の写真は検出されませんでした。次の食事の写真を撮ってみてください。",
+  "retroScanAnalyzeHint": "タイムラインで「すべて分析」をタップすると、これらのエントリの AI 栄養分析が行われます。",
+  "retroScanDone": "わかった！",
+  "welcomeEndTitle": "MiRO へようこそ!",
+  "welcomeEndMessage": "MiRO がお手伝いいたします。",
+  "welcomeEndJourney": "一緒に良い旅をしてください!!",
+  "welcomeEndStart": "始めましょう!",
+  "greetingCalorieSummary": "こんにちは！今日はどのようにお手伝いできますか?まだ {remaining} kcal が残っています。これまでのところ: Proテイン {protein}g、炭水化物 {carbs}g、脂肪 {fat}g。何を食べたか教えてください。すべてを食事ごとにリストアップしてください。すべて記録させていただきます。より詳細に、より正確に!!",
+  "@greetingCalorieSummary": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingCuisineTip": "あなたの好みの料理は{cuisine}に設定されています。設定でいつでも変更できます。",
+  "@greetingCuisineTip": {
+    "placeholders": {
+      "cuisine": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEnergyTip": "{balance} エネルギーが利用可能です。エネルギーバッジで毎日の連続獲得報酬を受け取ることを忘れないでください。",
+  "@greetingEnergyTip": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingRenamePhotoTip": "ヒント: MiRO がより正確に分析できるように、食べ物の写真の名前を変更できます。",
+  "greetingAddIngredientsTip": "ヒント: 分析のために MiRO に送信する前に、確信のある成分を追加できます。つまらない細かいことは全部解決してあげるよ！",
+  "greetingBackupReminder": "やあ、ボス！ {days} 日間データをバックアップしていません。設定でバックアップすることをお勧めします。データはローカルに保存されているため、何かが起こった場合は復元できません。",
+  "@greetingBackupReminder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingFallback": "こんにちは！今日はどのようにお手伝いできますか?何を食べたか教えてください！"
+}
