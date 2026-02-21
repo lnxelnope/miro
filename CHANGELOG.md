@@ -1,5 +1,136 @@
 # Changelog
 
+## [1.1.14+39] - 2026-02-21
+
+### 🔧 Build Update
+- Version bump to 1.1.14+39
+
+---
+
+## [1.1.13+38] - 2026-02-21
+
+### 🐛 Critical Bug Fixes
+
+#### Fixed: Bonus Rate Offers Not Disappearing After Purchase
+- **Issue**: Bonus rate offers (40% bonus, tier promo) not disappearing after purchase
+  - Root cause: `markOfferClaimed()` only checked `productId` match, but `bonus_rate` offers don't have `productId`
+  - Solution: Track `offerBonusTemplateId` and mark `claimed=true` after purchase completes
+  - Frontend: Remove offers from local state immediately after purchase (UX improvement)
+
+#### Fixed: Inactive Offers Still Visible
+- **Issue**: `getActiveOffers()` not checking `template.isActive` flag
+  - Admin-deactivated offers were still visible to users
+  - Solution: Added `isActive === false` check in `getActiveOffers()` filter
+
+### 🔧 Backend Changes
+- Updated `verifyPurchase.ts`: Added bonus_rate offer claiming logic
+- Updated `offersV2.ts`: Added `template.isActive` check in `getActiveOffers()`
+- Updated `energy_store_screen.dart`: Immediate offer removal from local state
+- Cleanup: Removed legacy code in `verifyPurchase.ts` (duplicate welcome bonus trigger)
+
+---
+
+## [1.1.12+37] - 2026-02-20
+
+### ✨ New Feature: Enhanced Add Food (Timeline)
+
+#### Add Food = Mini Create Meal
+- **Ingredient editing**: Add food now supports main-ingredients and sub-ingredients, same as Create Meal
+- **Autocomplete search**: Search from My Meal and Ingredient database while typing
+- **AI search per ingredient**: Tap AI icon to analyze individual ingredients via Gemini
+- **AI search per sub-ingredient**: Search DB first, fallback to AI for sub-ingredients
+- **Auto-save to DB**: AI lookup results saved to Ingredient DB immediately
+- **Auto-save meal**: When saving with ingredients, auto-creates MyMeal + Ingredient entries
+- **Load from MyMeal**: Selecting a MyMeal suggestion auto-loads its ingredient tree for editing
+
+#### Quick Add & Flexible Save
+- **Quick Add**: Save without food name if kcal is provided → auto-names "Quick Add"
+- **Name-only save**: Save with just a name (no kcal) → ready for Analyze All later
+- **Ingredients-only**: Save with only ingredients, no name → auto-names "Quick Add"
+- Only blocks save when there's truly nothing entered (no name, no kcal, no ingredients)
+
+### 🐛 Critical Bug Fix: Energy Not Deducted
+
+#### Fixed: AI usage not recording energy cost in batch operations
+- **Issue**: Analyze All and Analyze Selected were using AI without deducting energy
+  - Users could analyze unlimited items without spending energy points
+  - 7 code paths were missing `UsageLimiter.recordAiUsage()` calls
+  
+- **Affected functions**:
+  - `health_timeline_tab.dart` → `_startBatchAnalysis()` (3 paths: batch, fallback, image)
+  - `meal_section.dart` → `_analyzeSelected()` (3 paths: batch, fallback, image)
+  - `meal_section.dart` → `_analyzeSingleEntry()` (1 path: re-analyze)
+  
+- **Solution**: Added `UsageLimiter.recordAiUsage()` + energy provider invalidation after every successful AI call
+
+- **Files Changed**:
+  - `lib/features/health/widgets/add_food_bottom_sheet.dart`: Complete rewrite with ingredient system
+  - `lib/features/health/presentation/health_timeline_tab.dart`: +3 energy recording points
+  - `lib/features/health/widgets/meal_section.dart`: +4 energy recording points, +import
+
+---
+
+## [1.1.11+36] - 2026-02-20
+
+### 🐛 Critical Bug Fix (Continued)
+
+#### Fixed: Build Compilation Errors (Follow-up to 1.1.10)
+- **Issue**: v1.1.10+35 failed to build due to Android SDK compatibility issues
+  - Error: `android:attr/lStar not found`
+  - Error: `BAKLAVA constant not found` in sqflite_android
+  - Build failed before reaching production
+  
+- **Root Cause**: Dependency requirements changed
+  - `sqflite_android:2.4.2+` requires compileSdk 36 (Android 16) for new Java APIs
+  - `isar_flutter_libs` also needs compileSdk 36
+  - Previous build used compileSdk 35 (Android 15)
+  
+- **Solution**: Upgraded Android build configuration
+  - **compileSdk**: 35 → 36 (Android 16 / API 36)
+  - Force all subprojects to use compileSdk 36
+  - targetSdk remains 35 (Play Store requirement)
+  
+- **All NaN fixes from v1.1.10 are included**:
+  - 3-layer NaN sanitization (profile guard + food guard + JSON guard)
+  - All NaN/Infinity values converted to 0 before JSON encoding
+  - Tested successfully on production device
+
+- **Files Changed**:
+  - `android/app/build.gradle.kts`: `compileSdk = 36`
+  - `android/build.gradle.kts`: Force subprojects to compileSdk 36
+  - `lib/core/ai/gemini_chat_service.dart`: NaN sanitization (from 1.1.10)
+  - `lib/features/chat/providers/chat_provider.dart`: Safe conversions (from 1.1.10)
+
+---
+
+## [1.1.10+35] - 2026-02-20
+
+### 🐛 Critical Bug Fix
+
+#### Fixed: Chat NaN Error on Production Devices
+- **Issue**: "Converting object to an encodable object failed: NaN" error when using Chat
+  - Occurred only on production (Google Play Store) builds, not in development
+  - Caused by NaN (Not a Number) values in user profile or food data being sent to JSON encoder
+  - JSON standard does not support NaN/Infinity values
+
+- **Root Cause**: Legacy data from database migrations containing NaN values
+  - Profile fields: `calorieGoal`, `weight`, `height`, `meal budgets`
+  - Food context: `todayCalories`, `todayMacros`
+  - No validation before `jsonEncode()` call
+
+- **Solution**: 3-layer defense against NaN values
+  1. **Profile Context Guard**: Added `_safeDouble()` helper to sanitize all profile fields
+  2. **Food Context Guard**: Added `_safe()` validation before `.toInt()` conversions
+  3. **JSON Encoding Guard**: Added `_sanitizeForJson()` recursive sanitizer before all `jsonEncode()` calls
+  - All NaN/Infinity values now converted to 0 (or specified fallback)
+  - Applied to both `analyzeChatMessage` and `getMenuSuggestions` flows
+
+- **Files Changed**:
+  - `lib/core/ai/gemini_chat_service.dart`: Added sanitization helpers
+  - `lib/features/chat/providers/chat_provider.dart`: Added safe conversions
+
+---
+
 ## [1.1.9+34] - 2026-02-20
 
 ### ✨ New Features

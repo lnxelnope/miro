@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/services/consent_service.dart';
 import '../../../core/services/analytics_service.dart';
@@ -44,10 +45,20 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  // Collapsible sections state (default all collapsed except healthGoals)
+  bool _healthGoalsExpanded = true;
+  bool _languageExpanded = false;
+  bool _aiChatExpanded = false;
+  bool _cuisineExpanded = false;
+  bool _photoScanExpanded = false;
+  bool _accountExpanded = false;
+  bool _dataExpanded = false;
+  bool _aboutExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -61,287 +72,340 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, st) => Center(child: Text(L10n.of(context)!.errorOccurred(e.toString()))),
             data: (profile) => SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: AppSpacing.paddingXl,
               child: Column(
                 children: [
                   // Modern Avatar Section
                   _buildModernAvatarSection(context, profile.name ?? 'User'),
-                  const SizedBox(height: 28),
+                  SizedBox(height: AppSpacing.xxl),
 
-                  // Health Goals
-                  _buildModernSectionTitle('🎯 ${L10n.of(context)!.healthGoalsSection}'),
-                  const SizedBox(height: 12),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.dailyGoals,
-                    subtitle:
-                        '${profile.calorieGoal.toInt()} kcal • P ${profile.proteinGoal.toInt()}g • C ${profile.carbGoal.toInt()}g • F ${profile.fatGoal.toInt()}g',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const HealthGoalsScreen()),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // AI Chat Mode
-                  _buildModernSectionTitle('🤖 ${L10n.of(context)!.chatAiModeSection}'),
-                  const SizedBox(height: 12),
-                  _buildAiModeSettingCard(context),
-                  const SizedBox(height: 24),
-
-                  // Cuisine Preference
-                  _buildModernSectionTitle('🍽️ ${L10n.of(context)!.cuisinePreferenceSection}'),
-                  const SizedBox(height: 12),
-                  _buildCuisinePreferenceCard(context, profile),
-                  const SizedBox(height: 24),
-
-                  // Gallery Scan Settings
-                  _buildModernSectionTitle('📸 ${L10n.of(context)!.photoScanSection}'),
-                  const SizedBox(height: 12),
-                  _ScanSettingsCard(),
-                  const SizedBox(height: 24),
-
-                  // Language Settings
-                  _buildModernSectionTitle('🌐 ${L10n.of(context)!.languageSection}'),
-                  const SizedBox(height: 12),
-                  _buildLanguageCard(context),
-                  const SizedBox(height: 24),
-
-                  // Account
-                  _buildModernSectionTitle('🆔 ${L10n.of(context)!.accountSection}'),
-                  const SizedBox(height: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final gamification = ref.watch(gamificationProvider);
-                      return _buildModernSettingCard(
-                        context: context,
-                        title: L10n.of(context)!.miroId,
-                        subtitle: gamification.miroId.isEmpty
-                            ? L10n.of(context)!.loading
-                            : gamification.miroId,
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.purple.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(Icons.badge_outlined,
-                              color: Colors.purple.shade600, size: 20),
-                        ),
-                        showArrow: false,
-                        trailing: gamification.miroId.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.copy, size: 18),
-                                onPressed: () {
-                                  Clipboard.setData(
-                                    ClipboardData(text: gamification.miroId),
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(L10n.of(context)!.miroIdCopied),
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                },
-                              )
-                            : null,
-                      );
-                    },
-                  ),
-                  // Phase 4: Referral
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.inviteFriends,
-                    subtitle: L10n.of(context)!.inviteFriendsSubtitle,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.people_outline,
-                          color: Colors.green.shade600, size: 20),
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ReferralScreen(),
-                      ),
-                    ),
-                  ),
-                  // Phase 5: Subscription
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final subState = ref.watch(subscriptionProvider);
-                      final sub = subState.subscription;
-                      final isActive = sub.isActive;
-
-                      return _buildSubscriptionSection(
-                        context: context,
-                        sub: sub,
-                        isActive: isActive,
-                        isLoading: subState.isLoading,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Data
-                  _buildModernSectionTitle('💾 ${L10n.of(context)!.dataSection}'),
-                  const SizedBox(height: 12),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.backupData,
-                    subtitle: L10n.of(context)!.backupDataSubtitle,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.backup,
-                          color: Colors.blue.shade600, size: 20),
-                    ),
-                    onTap: () => _handleBackup(context),
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.restoreFromBackup,
-                    subtitle: L10n.of(context)!.restoreFromBackupSubtitle,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.restore,
-                          color: Colors.green.shade600, size: 20),
-                    ),
-                    onTap: () => _handleRestore(context),
-                  ),
-                  
-                  // ✅ Analytics Consent Toggle
-                  const _AnalyticsConsentToggle(),
-                  
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.clearAllData,
-                    textColor: AppColors.error,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.delete_forever,
-                          color: Colors.red.shade600, size: 20),
-                    ),
-                    onTap: () => _confirmClearAllData(context),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // About
-                  _buildModernSectionTitle('ℹ️ ${L10n.of(context)!.aboutSection}'),
-                  const SizedBox(height: 12),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.version,
-                    subtitle: '1.1.13',
-                    showArrow: false,
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.privacyPolicy,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.privacy_tip_outlined,
-                          color: Colors.purple.shade600, size: 20),
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const PrivacyPolicyScreen()),
-                    ),
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.termsOfService,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.indigo.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.description_outlined,
-                          color: Colors.indigo.shade600, size: 20),
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TermsScreen()),
-                    ),
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.healthDisclaimer,
-                    subtitle: L10n.of(context)!.importantLegalInformation,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.warning_amber,
-                          color: Colors.orange.shade600, size: 20),
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const DisclaimerScreen()),
-                    ),
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.showTutorialAgain,
-                    subtitle: L10n.of(context)!.viewFeatureTour,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.lightbulb_outline,
-                          color: Colors.amber.shade700, size: 20),
-                    ),
-                    onTap: () => _showTutorialAgain(),
-                  ),
-                  _buildModernSettingCard(
-                    context: context,
-                    title: L10n.of(context)!.foodAnalysisTutorial,
-                    subtitle: L10n.of(context)!.foodAnalysisTutorialSubtitle,
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.teal.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.school,
-                          color: Colors.teal.shade600, size: 20),
-                    ),
-                    onTap: () {
-                      Navigator.of(context).push(
+                  // ──────────────────────────────────────────────
+                  // Health Goals (expanded by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.healthGoalsSection,
+                    icon: Icons.track_changes_rounded,
+                    isExpanded: _healthGoalsExpanded,
+                    onToggle: () => setState(() => _healthGoalsExpanded = !_healthGoalsExpanded),
+                    child: _buildModernSettingCard(
+                      context: context,
+                      title: L10n.of(context)!.dailyGoals,
+                      subtitle:
+                          '${profile.calorieGoal.toInt()} kcal • P ${profile.proteinGoal.toInt()}g • C ${profile.carbGoal.toInt()}g • F ${profile.fatGoal.toInt()}g',
+                      onTap: () => Navigator.push(
+                        context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const TutorialFoodAnalysisScreen(),
-                        ),
-                      );
-                    },
+                            builder: (_) => const HealthGoalsScreen()),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 40),
+
+                  // ──────────────────────────────────────────────
+                  // Language Settings (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.languageSection,
+                    icon: Icons.language_rounded,
+                    isExpanded: _languageExpanded,
+                    onToggle: () => setState(() => _languageExpanded = !_languageExpanded),
+                    child: _buildLanguageCard(context),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // AI Chat Mode (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.chatAiModeSection,
+                    icon: Icons.auto_awesome_rounded,
+                    iconColor: AppColors.ai,
+                    isExpanded: _aiChatExpanded,
+                    onToggle: () => setState(() => _aiChatExpanded = !_aiChatExpanded),
+                    child: _buildAiModeSettingCard(context),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // Cuisine Preference (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.cuisinePreferenceSection,
+                    icon: Icons.restaurant_rounded,
+                    iconColor: AppColors.warning,
+                    isExpanded: _cuisineExpanded,
+                    onToggle: () => setState(() => _cuisineExpanded = !_cuisineExpanded),
+                    child: _buildCuisinePreferenceCard(context, profile),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // Gallery Scan Settings (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.photoScanSection,
+                    icon: Icons.photo_camera_rounded,
+                    isExpanded: _photoScanExpanded,
+                    onToggle: () => setState(() => _photoScanExpanded = !_photoScanExpanded),
+                    child: _ScanSettingsCard(),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // Account (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.accountSection,
+                    icon: Icons.person_outline_rounded,
+                    isExpanded: _accountExpanded,
+                    onToggle: () => setState(() => _accountExpanded = !_accountExpanded),
+                    child: Column(
+                      children: [
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final gamification = ref.watch(gamificationProvider);
+                            return _buildModernSettingCard(
+                              context: context,
+                              title: L10n.of(context)!.miroId,
+                              subtitle: gamification.miroId.isEmpty
+                                  ? L10n.of(context)!.loading
+                                  : gamification.miroId,
+                              leading: Container(
+                                padding: AppSpacing.paddingSm,
+                                decoration: BoxDecoration(
+                              color: AppColors.premiumLight,
+                              borderRadius: AppRadius.md,
+                                ),
+                                child: Icon(Icons.badge_outlined,
+                                    color: AppColors.premium, size: 20),
+                              ),
+                              showArrow: false,
+                              trailing: gamification.miroId.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.copy, size: 18),
+                                      onPressed: () {
+                                        Clipboard.setData(
+                                          ClipboardData(text: gamification.miroId),
+                                        );
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(L10n.of(context)!.miroIdCopied),
+                                            duration: const Duration(seconds: 2),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : null,
+                            );
+                          },
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.inviteFriends,
+                          subtitle: L10n.of(context)!.inviteFriendsSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.people_outline,
+                                color: AppColors.success, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ReferralScreen(),
+                            ),
+                          ),
+                        ),
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final subState = ref.watch(subscriptionProvider);
+                            final sub = subState.subscription;
+                            final isActive = sub.isActive;
+
+                            return _buildSubscriptionSection(
+                              context: context,
+                              sub: sub,
+                              isActive: isActive,
+                              isLoading: subState.isLoading,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // Data (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.dataSection,
+                    icon: Icons.storage_rounded,
+                    iconColor: AppColors.info,
+                    isExpanded: _dataExpanded,
+                    onToggle: () => setState(() => _dataExpanded = !_dataExpanded),
+                    child: Column(
+                      children: [
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.backupData,
+                          subtitle: L10n.of(context)!.backupDataSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.info.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.backup,
+                                color: AppColors.info, size: 20),
+                          ),
+                          onTap: () => _handleBackup(context),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.restoreFromBackup,
+                          subtitle: L10n.of(context)!.restoreFromBackupSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.restore,
+                                color: AppColors.success, size: 20),
+                          ),
+                          onTap: () => _handleRestore(context),
+                        ),
+                        const _AnalyticsConsentToggle(),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.clearAllData,
+                          textColor: AppColors.error,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.delete_forever,
+                                color: AppColors.error, size: 20),
+                          ),
+                          onTap: () => _confirmClearAllData(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // About (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.aboutSection,
+                    icon: Icons.info_outline_rounded,
+                    iconColor: AppColors.textSecondary,
+                    isExpanded: _aboutExpanded,
+                    onToggle: () => setState(() => _aboutExpanded = !_aboutExpanded),
+                    child: Column(
+                      children: [
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.version,
+                          subtitle: '1.1.14',
+                          showArrow: false,
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.privacyPolicy,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.premiumLight,
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.privacy_tip_outlined,
+                                color: AppColors.premium, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const PrivacyPolicyScreen()),
+                          ),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.termsOfService,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.ai.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.description_outlined,
+                                color: AppColors.ai, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                          ),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.healthDisclaimer,
+                          subtitle: L10n.of(context)!.importantLegalInformation,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.warning_amber,
+                                color: AppColors.warning, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const DisclaimerScreen()),
+                          ),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.showTutorialAgain,
+                          subtitle: L10n.of(context)!.viewFeatureTour,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.lightbulb_outline,
+                                color: AppColors.warning, size: 20),
+                          ),
+                          onTap: () => _showTutorialAgain(),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.foodAnalysisTutorial,
+                          subtitle: L10n.of(context)!.foodAnalysisTutorialSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: Icon(Icons.school,
+                                color: AppColors.primary, size: 20),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const TutorialFoodAnalysisScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: AppSpacing.xxxxl),
                 ],
               ),
             ),
@@ -359,7 +423,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(4),
+              padding: EdgeInsets.all(AppSpacing.xs),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
@@ -369,7 +433,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -385,7 +449,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
             Text(
               name,
               style: const TextStyle(
@@ -394,19 +458,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
             // Subscriber Badge (if subscriber)
             if (isSubscribed) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+                    colors: [AppColors.premium, AppColors.premiumDark],
                   ),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: AppRadius.xl,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C3AED).withOpacity(0.3),
+                      color: AppColors.premium.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -416,7 +480,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.diamond_rounded, size: 16, color: Colors.white),
-                    const SizedBox(width: 6),
+                    SizedBox(width: AppSpacing.sm - 2),
                     Text(
                       L10n.of(context)!.subscriptionEnergyPass,
                       style: const TextStyle(
@@ -425,12 +489,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: AppSpacing.sm - 2),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withValues(alpha: 0.25),
+                        borderRadius: AppRadius.sm,
                       ),
                       child: const Text(
                         'ACTIVE',
@@ -457,14 +521,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: AppRadius.xl,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: gamification.tierColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
+                  color: gamification.tierColor.withValues(alpha: 0.15),
+                  borderRadius: AppRadius.xl,
                   border: Border.all(
-                    color: gamification.tierColor.withOpacity(0.3),
+                    color: gamification.tierColor.withValues(alpha: 0.3),
                     width: 1.5,
                   ),
                 ),
@@ -490,14 +554,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       '• ${gamification.currentStreak} day streak',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
                       Icons.info_outline,
                       size: 16,
-                      color: gamification.tierColor.withOpacity(0.6),
+                      color: gamification.tierColor.withValues(alpha: 0.6),
                     ),
                   ],
                 ),
@@ -509,6 +573,87 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Collapsible Section Widget — simple elegance style
+  Widget _buildCollapsibleSection({
+    required String title,
+    required IconData icon,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required Widget child,
+    Color? iconColor,
+  }) {
+    final color = iconColor ?? AppColors.primary;
+
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          borderRadius: AppRadius.md,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onToggle,
+            borderRadius: AppRadius.md,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md + 2,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.md,
+                border: Border.all(
+                  color: isExpanded
+                      ? color.withValues(alpha: 0.3)
+                      : AppColors.divider,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, size: 20, color: color),
+                  SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 22,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: Padding(
+            padding: EdgeInsets.only(top: AppSpacing.md),
+            child: child,
+          ),
+          crossFadeState: isExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+        SizedBox(height: AppSpacing.md),
+      ],
+    );
+  }
+
+  /// Legacy section title builder (kept for future use)
+  // ignore: unused_element
   Widget _buildModernSectionTitle(String title) {
     // Helper method to extract icon and label from emoji-prefixed title
     IconData? icon;
@@ -575,10 +720,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+                  borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -588,9 +733,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
+                  borderRadius: AppRadius.lg,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingLg,
             child: Row(
               children: [
                 if (leading != null) ...[
@@ -615,7 +760,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           subtitle,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade600,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -627,7 +772,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 else if (showArrow)
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.grey.shade400,
+                    color: AppColors.textTertiary,
                     size: 20,
                   ),
               ],
@@ -656,26 +801,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       Color statusColor;
       if (sub.status == SubscriptionStatus.gracePeriod) {
         statusLabel = 'GRACE PERIOD';
-        statusColor = Colors.orange;
+        statusColor = AppColors.warning;
       } else {
         statusLabel = 'ACTIVE';
-        statusColor = const Color(0xFF7C3AED);
+        statusColor = AppColors.premium;
       }
 
       return Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: EdgeInsets.only(bottom: AppSpacing.md - 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF7C3AED).withOpacity(0.05),
-              const Color(0xFF6D28D9).withOpacity(0.08),
+              AppColors.premium.withValues(alpha: 0.05),
+              AppColors.premiumDark.withValues(alpha: 0.08),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(14),
+                  borderRadius: AppRadius.lg,
           border: Border.all(
-            color: const Color(0xFF7C3AED).withOpacity(0.2),
+            color: AppColors.premium.withValues(alpha: 0.2),
           ),
         ),
         child: Material(
@@ -685,23 +830,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               context,
               MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
             ),
-            borderRadius: BorderRadius.circular(14),
+                  borderRadius: AppRadius.lg,
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingLg,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: AppSpacing.paddingSm,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C3AED).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.premium.withValues(alpha: 0.15),
+                          borderRadius: AppRadius.md,
                         ),
                         child: const Icon(
                           Icons.diamond,
-                          color: Color(0xFF7C3AED),
+                          color: AppColors.premium,
                           size: 20,
                         ),
                       ),
@@ -721,10 +866,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(8),
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: AppRadius.sm,
                           border: Border.all(
-                            color: statusColor.withOpacity(0.3),
+                            color: statusColor.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Text(
@@ -739,12 +884,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: AppSpacing.paddingMd,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white.withValues(alpha: 0.7),
+                      borderRadius: AppRadius.md,
                     ),
                     child: Column(
                       children: [
@@ -777,8 +922,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           sub.autoRenewing ? L10n.of(context)!.on : L10n.of(context)!.off,
                           Icons.repeat,
                           valueColor: sub.autoRenewing
-                              ? Colors.green
-                              : Colors.orange,
+                              ? AppColors.success
+                              : AppColors.warning,
                         ),
                       ],
                     ),
@@ -789,20 +934,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Icon(
                         Icons.info_outline,
                         size: 14,
-                        color: Colors.grey.shade500,
+                        color: AppColors.textTertiary,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         L10n.of(context)!.tapToManageSubscription,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textTertiary,
                         ),
                       ),
                       const Spacer(),
                       Icon(
                         Icons.chevron_right,
-                        color: Colors.grey.shade400,
+                        color: AppColors.textTertiary,
                         size: 20,
                       ),
                     ],
@@ -822,14 +967,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ? L10n.of(context)!.loading
           : L10n.of(context)!.unlimitedAiDoubleRewards,
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: AppSpacing.paddingSm,
         decoration: BoxDecoration(
-          color: Colors.purple.shade50,
-          borderRadius: BorderRadius.circular(10),
+                        color: AppColors.premiumLight,
+                        borderRadius: AppRadius.md,
         ),
         child: Icon(
           Icons.diamond,
-          color: Colors.purple.shade600,
+          color: AppColors.premium,
           size: 20,
         ),
       ),
@@ -848,13 +993,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF7C3AED).withOpacity(0.6)),
-        const SizedBox(width: 8),
+        Icon(icon, size: 16, color: AppColors.premium.withValues(alpha: 0.6)),
+        SizedBox(width: AppSpacing.sm),
         Text(
           label,
           style: TextStyle(
             fontSize: 13,
-            color: Colors.grey.shade600,
+            color: AppColors.textSecondary,
           ),
         ),
         const Spacer(),
@@ -863,7 +1008,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: valueColor ?? Colors.grey.shade800,
+                            color: valueColor ?? AppColors.textPrimary,
           ),
         ),
       ],
@@ -877,7 +1022,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.paddingLg,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -888,12 +1033,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
             // Miro AI option
             _buildAiModeOption(
               context: context,
               icon: Icons.auto_awesome,
-              color: const Color(0xFF6366F1),
+              color: AppColors.ai,
               title: L10n.of(context)!.miroAi,
               subtitle: L10n.of(context)!.miroAiSubtitle,
               cost: Row(
@@ -915,7 +1060,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _buildAiModeOption(
               context: context,
               icon: Icons.psychology,
-              color: Colors.green,
+              color: AppColors.success,
               title: L10n.of(context)!.localAi,
               subtitle: L10n.of(context)!.localAiSubtitle,
               cost: Text(L10n.of(context)!.free, style: const TextStyle(fontSize: 12)),
@@ -966,10 +1111,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       title: L10n.of(context)!.languageTitle,
       subtitle: languageLabel,
       leading: Container(
-        padding: const EdgeInsets.all(8),
+        padding: AppSpacing.paddingSm,
         decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(10),
+          color: AppColors.info.withValues(alpha: 0.1),
+          borderRadius: AppRadius.md,
         ),
         child: Text(
           languageFlag,
@@ -1097,16 +1242,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadius.md,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: AppSpacing.paddingMd,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: AppRadius.md,
           border: Border.all(
             color: isSelected
-                ? AppColors.primary.withOpacity(0.4)
-                : Colors.grey.withOpacity(0.2),
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.divider.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1119,7 +1264,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade400,
+                  color: isSelected ? AppColors.primary : AppColors.textTertiary,
                   width: 2,
                 ),
               ),
@@ -1191,16 +1336,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: AppRadius.md,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: AppSpacing.paddingMd,
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: AppRadius.md,
           border: Border.all(
             color: isSelected
-                ? color.withOpacity(0.4)
-                : Colors.grey.withOpacity(0.2),
+                ? color.withValues(alpha: 0.4)
+                : AppColors.divider.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1213,7 +1358,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? color : Colors.grey.shade400,
+                  color: isSelected ? color : AppColors.textTertiary,
                   width: 2,
                 ),
               ),
@@ -1251,17 +1396,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.warning.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.md,
                         ),
                         child: DefaultTextStyle(
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: Colors.orange.shade700,
+                            color: AppColors.warning,
                           ),
                           child: cost,
                         ),
@@ -1419,7 +1564,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (ctx) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.warning, color: Colors.red),
+            const Icon(Icons.warning, color: AppColors.error),
             const SizedBox(width: 8),
             Text(L10n.of(context)!.clearAllDataTitle),
           ],
@@ -1436,7 +1581,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child:
                 Text(L10n.of(context)!.deleteAll, style: const TextStyle(color: Colors.white)),
           ),
@@ -1477,7 +1622,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(L10n.of(context)!.errorOccurred(e.toString())), backgroundColor: Colors.red, duration: const Duration(seconds: 2)),
+            SnackBar(content: Text(L10n.of(context)!.errorOccurred(e.toString())), backgroundColor: AppColors.error, duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -1537,21 +1682,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     try {
-      // สร้าง Backup
-      final file = await BackupService.createBackup();
+      // สร้าง Backup (2 ไฟล์)
+      final files = await BackupService.createBackup();
 
       // ปิด Loading
       if (context.mounted) Navigator.pop(context);
 
-      // Share ไฟล์
-      await BackupService.shareBackupFile(file);
+      // แสดง Bottom Sheet ถามว่าจะบันทึกหรือแชร์
+      if (!context.mounted) return;
+      final choice = await _showBackupChoiceSheet(context);
 
-      // แสดง Success Dialog
-      if (context.mounted) {
-        _showBackupSuccessDialog(context, file);
+      if (choice == null || !context.mounted) return;
+
+      if (choice == 'save') {
+        // บันทึก data file ก่อน
+        final savedDataPath = await BackupService.saveToUserDirectory(files.dataFile);
+        if (savedDataPath != null && context.mounted) {
+          // บันทึก energy file ต่อ
+          final savedEnergyPath = await BackupService.saveToUserDirectory(files.energyFile);
+          if (context.mounted) {
+            _showBackupSavedDialog(context, savedDataPath, energyPath: savedEnergyPath);
+          }
+        }
+      } else if (choice == 'share') {
+        await BackupService.shareBackupFiles(files.dataFile, files.energyFile);
+        if (context.mounted) {
+          _showBackupSuccessDialog(context, files.dataFile, energyFile: files.energyFile);
+        }
       }
     } catch (e) {
-      // ปิด Loading
+      // ปิด Loading (ถ้ายังอยู่)
       if (context.mounted) Navigator.pop(context);
 
       // แสดง Error
@@ -1563,6 +1723,178 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       }
     }
+  }
+
+  /// Bottom Sheet ให้เลือกว่าจะบันทึกหรือแชร์
+  Future<String?> _showBackupChoiceSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: AppSizes.dragHandleWidth,
+                height: AppSizes.dragHandleHeight,
+                margin: EdgeInsets.only(bottom: AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.textTertiary,
+                  borderRadius: AppRadius.pill,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                child: Text(
+                  L10n.of(context)!.backupCreated,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  L10n.of(context)!.backupChooseDestination,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              SizedBox(height: AppSpacing.lg),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: Container(
+                  padding: EdgeInsets.all(AppSpacing.md - 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.info.withValues(alpha: 0.2) : AppColors.info.withValues(alpha: 0.1),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: Icon(Icons.save_alt_rounded,
+                      color: isDark ? AppColors.info.withValues(alpha: 0.7) : AppColors.info,
+                      size: 24),
+                ),
+                title: Text(
+                  L10n.of(context)!.backupSaveToDevice,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(L10n.of(context)!.backupSaveToDeviceDesc),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.pop(ctx, 'save'),
+              ),
+              const Divider(indent: 24, endIndent: 24),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                leading: Container(
+                  padding: EdgeInsets.all(AppSpacing.md - 2),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.success.withValues(alpha: 0.2) : AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: Icon(Icons.share_rounded,
+                      color: isDark ? AppColors.success.withValues(alpha: 0.7) : AppColors.success,
+                      size: 24),
+                ),
+                title: Text(
+                  L10n.of(context)!.backupShareToOther,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(L10n.of(context)!.backupShareToOtherDesc),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.pop(ctx, 'share'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Success Dialog หลังบันทึกลงเครื่อง
+  void _showBackupSavedDialog(BuildContext context, String savedPath, {String? energyPath}) {
+    final dataFileName = savedPath.split('/').last.split('\\').last;
+    final energyFileName = energyPath?.split('/').last.split('\\').last;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
+            const SizedBox(width: 12),
+            Expanded(child: Text(L10n.of(context)!.backupSavedSuccess)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              L10n.of(context)!.backupSavedSuccessContent,
+              style: const TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: AppSpacing.lg),
+            _buildFileInfoBox(Icons.restaurant_menu, dataFileName, AppColors.info),
+            if (energyFileName != null) ...[
+              const SizedBox(height: 8),
+              _buildFileInfoBox(Icons.bolt, energyFileName, AppColors.warning),
+            ],
+            SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
+                const SizedBox(width: 4),
+                Text(
+                  L10n.of(context)!.important,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              L10n.of(context)!.backupImportantNotes,
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileInfoBox(IconData icon, String fileName, Color color) {
+    return Container(
+      padding: AppSpacing.paddingMd,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.sm,
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              fileName,
+              style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Handle Restore Flow
@@ -1644,14 +1976,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // DIALOGS
   // ============================================================
 
-  /// Success Dialog หลัง Backup
-  void _showBackupSuccessDialog(BuildContext context, File file) {
+  /// Success Dialog หลัง Backup (Share)
+  void _showBackupSuccessDialog(BuildContext context, File file, {File? energyFile}) {
+    final dataFileName = file.path.split('/').last.split('\\').last;
+    final energyFileName = energyFile?.path.split('/').last.split('\\').last;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
             const SizedBox(width: 12),
             Text(L10n.of(context)!.backupCreated),
           ],
@@ -1664,36 +1998,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               L10n.of(context)!.backupCreatedContent,
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
+            _buildFileInfoBox(Icons.restaurant_menu, dataFileName, AppColors.info),
+            if (energyFileName != null) ...[
+              const SizedBox(height: 8),
+              _buildFileInfoBox(Icons.bolt, energyFileName, AppColors.warning),
+            ],
+            SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-                const SizedBox(width: 4),
+                SizedBox(width: AppSpacing.xs),
                 Text(
                   L10n.of(context)!.important,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.backupImportantNotes,
               style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                file.path.split('/').last,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                ),
-              ),
             ),
           ],
         ),
@@ -1712,6 +2037,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     BuildContext context,
     BackupInfo info,
   ) {
+    final isDataOnly = info.fileType == BackupFileType.data;
+    final isEnergyOnly = info.fileType == BackupFileType.energy;
+
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -1721,6 +2049,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // File type badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isDataOnly
+                      ? AppColors.info.withValues(alpha: 0.1)
+                      : isEnergyOnly
+                          ? AppColors.warning.withValues(alpha: 0.1)
+                          : AppColors.premium.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
+                ),
+                child: Text(
+                  isDataOnly
+                      ? '📋 Data Backup'
+                      : isEnergyOnly
+                          ? '⚡ Energy Backup'
+                          : '📦 Full Backup',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isDataOnly
+                        ? AppColors.info
+                        : isEnergyOnly
+                            ? AppColors.warning
+                            : AppColors.premium,
+                  ),
+                ),
+              ),
+              SizedBox(height: AppSpacing.md),
+
               // Preview Info
               _buildInfoRow(
                   '${L10n.of(context)!.backupFrom} ', info.deviceInfo ?? L10n.of(context)!.error),
@@ -1728,50 +2086,55 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 '${L10n.of(context)!.date} ',
                 _formatDate(info.createdAt),
               ),
-              _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
-              _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
-              _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
+              if (!isDataOnly)
+                _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
+              if (!isEnergyOnly) ...[
+                _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
+                _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
+              ],
 
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
+              if (!isDataOnly) ...[
+                SizedBox(height: AppSpacing.lg),
+                const Divider(),
+                SizedBox(height: AppSpacing.lg),
 
-              // Warning
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  border: Border.all(color: Colors.orange),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.warning, color: Colors.orange, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          L10n.of(context)!.restoreImportant,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                // Warning สำหรับ energy/legacy file เท่านั้น
+                Container(
+                  padding: AppSpacing.paddingMd,
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    border: Border.all(color: AppColors.warning),
+                    borderRadius: AppRadius.sm,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.warning, color: AppColors.warning, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            L10n.of(context)!.restoreImportant,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
-                      style: TextStyle(
-                        fontSize: 13,
-                        height: 1.5,
-                        color: Colors.orange[900],
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -1783,7 +2146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
             child: Text(L10n.of(context)!.restore),
           ),
@@ -1797,12 +2160,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     BuildContext context,
     BackupRestoreResult result,
   ) {
+    final isDataOnly = result.fileType == BackupFileType.data;
+    final isEnergyOnly = result.fileType == BackupFileType.energy;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
             const SizedBox(width: 12),
             Text(L10n.of(context)!.restoreComplete),
           ],
@@ -1815,12 +2181,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               L10n.of(context)!.restoreCompleteContent,
               style: const TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
-            _buildInfoRow(
-                '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
-            _buildInfoRow('${L10n.of(context)!.myMealsImported} ', '${result.myMealsImported}'),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
+            if (!isDataOnly)
+              _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
+            if (!isEnergyOnly) ...[
+              _buildInfoRow(
+                  '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
+              _buildInfoRow('${L10n.of(context)!.myMealsImported} ', '${result.myMealsImported}'),
+            ],
+            SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 const Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
@@ -1837,7 +2206,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Refresh app state (reload providers, etc.)
             },
             child: Text(L10n.of(context)!.ok),
           ),
@@ -1853,7 +2221,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.error, color: Colors.red, size: 28),
+            const Icon(Icons.error, color: AppColors.error, size: 28),
             const SizedBox(width: 12),
             Text(title),
           ],
@@ -1966,9 +2334,9 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           children: [
             Text(
               L10n.of(context)!.maxImagesPerDayDescription,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+              style: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -2014,7 +2382,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
             child: Text(L10n.of(context)!.reset),
           ),
         ],
@@ -2127,20 +2495,20 @@ class _AnalyticsConsentToggleState
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: AppRadius.md,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: AppSpacing.paddingSm,
           decoration: BoxDecoration(
-            color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(10),
+            color: isDark ? AppColors.info.withValues(alpha: 0.2) : AppColors.info.withValues(alpha: 0.1),
+            borderRadius: AppRadius.md,
           ),
           child: Icon(
             Icons.analytics_outlined,
-            color: isDark ? Colors.blue.shade300 : Colors.blue.shade600,
+            color: isDark ? AppColors.info.withValues(alpha: 0.7) : AppColors.info,
             size: 20,
           ),
         ),
@@ -2157,7 +2525,7 @@ class _AnalyticsConsentToggleState
               : L10n.of(context)!.disabledSubtitle,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? Colors.grey[400] : Colors.grey[600],
+            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
           ),
         ),
         trailing: _isLoading
