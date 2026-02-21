@@ -20,6 +20,7 @@ import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
+import 'features/onboarding/presentation/language_selection_screen.dart';
 import 'features/profile/providers/locale_provider.dart';
 import 'features/energy/presentation/energy_store_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -170,21 +171,48 @@ void main() async {
   );
 }
 
-class MiroApp extends ConsumerWidget {
+class MiroApp extends ConsumerStatefulWidget {
   const MiroApp({super.key});
 
-  /// ตรวจว่า onboarding เสร็จแล้วหรือยัง
-  Future<bool> _checkOnboardingComplete() async {
+  @override
+  ConsumerState<MiroApp> createState() => _MiroAppState();
+}
+
+class _MiroAppState extends ConsumerState<MiroApp> {
+  bool _isLoading = true;
+  bool _languageSelected = false;
+  bool _onboardingComplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initApp();
+  }
+
+  Future<void> _initApp() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // โหลดภาษาที่เคยเลือกไว้
+    final savedLocale = prefs.getString('selected_locale');
+    if (savedLocale != null) {
+      ref.read(localeProvider.notifier).state = Locale(savedLocale);
+      _languageSelected = true;
+    } else {
+      _languageSelected = prefs.getBool('language_selected') ?? false;
+    }
+
+    // เช็ค onboarding
     final count = await DatabaseService.userProfiles.count();
+    if (count > 0) {
+      final profile = await DatabaseService.userProfiles.get(1);
+      _onboardingComplete = profile?.onboardingComplete ?? false;
+    }
 
-    if (count == 0) return false;
-
-    final profile = await DatabaseService.userProfiles.get(1);
-    return profile?.onboardingComplete ?? false;
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final locale = ref.watch(localeProvider);
 
     return MaterialApp(
@@ -204,26 +232,35 @@ class MiroApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: L10n.supportedLocales,
-      locale: locale, // null = use system locale
+      locale: locale,
       // === จบ Localization ===
 
-      home: FutureBuilder<bool>(
-        future: _checkOnboardingComplete(),
-        builder: (context, snapshot) {
-          // กำลังโหลด
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          // เคยทำ onboarding แล้ว → ไป Home
-          if (snapshot.data == true) {
-            return const HomeScreen();
-          }
-          // ยังไม่เคย → ไป Onboarding
-          return const OnboardingScreen();
-        },
-      ),
+      home: _buildHome(),
     );
+  }
+
+  Widget _buildHome() {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // ยังไม่เคยเลือกภาษา → แสดงหน้าเลือกภาษาก่อน
+    if (!_languageSelected) {
+      return LanguageSelectionScreen(
+        onLanguageSelected: () {
+          setState(() => _languageSelected = true);
+        },
+      );
+    }
+
+    // เคยทำ onboarding แล้ว → ไป Home
+    if (_onboardingComplete) {
+      return const HomeScreen();
+    }
+
+    // ยังไม่เคย → ไป Onboarding
+    return const OnboardingScreen();
   }
 }
