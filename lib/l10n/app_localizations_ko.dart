@@ -1919,6 +1919,66 @@ class L10nKo extends L10n {
   String get thaiSublabel => '태국';
 
   @override
+  String get vietnamese => 'Tiếng Việt';
+
+  @override
+  String get vietnameseSublabel => 'Vietnamese';
+
+  @override
+  String get indonesian => 'Bahasa Indonesia';
+
+  @override
+  String get indonesianSublabel => 'Indonesian';
+
+  @override
+  String get chinese => '中文';
+
+  @override
+  String get chineseSublabel => 'Chinese';
+
+  @override
+  String get japanese => '日本語';
+
+  @override
+  String get japaneseSublabel => 'Japanese';
+
+  @override
+  String get korean => '한국어';
+
+  @override
+  String get koreanSublabel => 'Korean';
+
+  @override
+  String get spanish => 'Español';
+
+  @override
+  String get spanishSublabel => 'Spanish';
+
+  @override
+  String get french => 'Français';
+
+  @override
+  String get frenchSublabel => 'French';
+
+  @override
+  String get german => 'Deutsch';
+
+  @override
+  String get germanSublabel => 'German';
+
+  @override
+  String get portuguese => 'Português';
+
+  @override
+  String get portugueseSublabel => 'Portuguese';
+
+  @override
+  String get hindi => 'हिन्दी';
+
+  @override
+  String get hindiSublabel => 'Hindi';
+
+  @override
   String get closeBilingual => '닫기 / 페이지';
 
   @override

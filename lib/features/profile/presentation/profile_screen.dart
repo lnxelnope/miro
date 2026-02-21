@@ -1088,20 +1088,74 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  static const _supportedLanguages = [
+    {'code': 'en', 'flag': '🇺🇸'},
+    {'code': 'th', 'flag': '🇹🇭'},
+    {'code': 'vi', 'flag': '🇻🇳'},
+    {'code': 'id', 'flag': '🇮🇩'},
+    {'code': 'zh', 'flag': '🇨🇳'},
+    {'code': 'ja', 'flag': '🇯🇵'},
+    {'code': 'ko', 'flag': '🇰🇷'},
+    {'code': 'es', 'flag': '🇪🇸'},
+    {'code': 'fr', 'flag': '🇫🇷'},
+    {'code': 'de', 'flag': '🇩🇪'},
+    {'code': 'pt', 'flag': '🇵🇹'},
+    {'code': 'hi', 'flag': '🇮🇳'},
+  ];
+
+  String _getLanguageLabel(BuildContext context, String code) {
+    switch (code) {
+      case 'en': return L10n.of(context)!.english;
+      case 'th': return L10n.of(context)!.thai;
+      case 'vi': return L10n.of(context)!.vietnamese;
+      case 'id': return L10n.of(context)!.indonesian;
+      case 'zh': return L10n.of(context)!.chinese;
+      case 'ja': return L10n.of(context)!.japanese;
+      case 'ko': return L10n.of(context)!.korean;
+      case 'es': return L10n.of(context)!.spanish;
+      case 'fr': return L10n.of(context)!.french;
+      case 'de': return L10n.of(context)!.german;
+      case 'pt': return L10n.of(context)!.portuguese;
+      case 'hi': return L10n.of(context)!.hindi;
+      default: return code;
+    }
+  }
+
+  String _getLanguageSublabel(BuildContext context, String code) {
+    switch (code) {
+      case 'en': return L10n.of(context)!.englishSublabel;
+      case 'th': return L10n.of(context)!.thaiSublabel;
+      case 'vi': return L10n.of(context)!.vietnameseSublabel;
+      case 'id': return L10n.of(context)!.indonesianSublabel;
+      case 'zh': return L10n.of(context)!.chineseSublabel;
+      case 'ja': return L10n.of(context)!.japaneseSublabel;
+      case 'ko': return L10n.of(context)!.koreanSublabel;
+      case 'es': return L10n.of(context)!.spanishSublabel;
+      case 'fr': return L10n.of(context)!.frenchSublabel;
+      case 'de': return L10n.of(context)!.germanSublabel;
+      case 'pt': return L10n.of(context)!.portugueseSublabel;
+      case 'hi': return L10n.of(context)!.hindiSublabel;
+      default: return code;
+    }
+  }
+
+  String _getLanguageFlag(String? code) {
+    for (final lang in _supportedLanguages) {
+      if (lang['code'] == code) return lang['flag']!;
+    }
+    return '🌐';
+  }
+
   Widget _buildLanguageCard(BuildContext context) {
     final currentLocale = ref.watch(localeProvider);
     
-    String languageLabel;
-    String languageFlag;
+    final String languageLabel;
+    final String languageFlag;
     
-    if (currentLocale?.languageCode == 'th') {
-      languageLabel = L10n.of(context)!.thai;
-      languageFlag = '🇹🇭';
-    } else if (currentLocale?.languageCode == 'en') {
-      languageLabel = L10n.of(context)!.english;
-      languageFlag = '🇺🇸';
+    if (currentLocale != null) {
+      languageLabel = _getLanguageLabel(context, currentLocale.languageCode);
+      languageFlag = _getLanguageFlag(currentLocale.languageCode);
     } else {
-      // System default
       languageLabel = L10n.of(context)!.systemDefault;
       languageFlag = '🌐';
     }
@@ -1176,51 +1230,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(L10n.of(context)!.selectLanguage),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // System Default
-            _buildLanguageOption(
-              context: ctx,
-              flag: '🌐',
-              label: L10n.of(context)!.systemDefault,
-              sublabel: L10n.of(context)!.systemDefaultSublabel,
-              isSelected: currentLocale == null,
-              onTap: () {
-                ref.read(localeProvider.notifier).state = null;
-                Navigator.pop(ctx);
-                _showLanguageChangedSnackbar(L10n.of(context)!.systemDefault);
-              },
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLanguageOption(
+                  context: ctx,
+                  flag: '🌐',
+                  label: L10n.of(context)!.systemDefault,
+                  sublabel: L10n.of(context)!.systemDefaultSublabel,
+                  isSelected: currentLocale == null,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).state = null;
+                    Navigator.pop(ctx);
+                    _showLanguageChangedSnackbar(L10n.of(context)!.systemDefault);
+                  },
+                ),
+                const SizedBox(height: 8),
+                ..._supportedLanguages.map((lang) {
+                  final code = lang['code']!;
+                  final flag = lang['flag']!;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _buildLanguageOption(
+                      context: ctx,
+                      flag: flag,
+                      label: _getLanguageLabel(context, code),
+                      sublabel: _getLanguageSublabel(context, code),
+                      isSelected: currentLocale?.languageCode == code,
+                      onTap: () {
+                        ref.read(localeProvider.notifier).state = Locale(code);
+                        Navigator.pop(ctx);
+                        _showLanguageChangedSnackbar(_getLanguageLabel(context, code));
+                      },
+                    ),
+                  );
+                }),
+              ],
             ),
-            const SizedBox(height: 8),
-            // English
-            _buildLanguageOption(
-              context: ctx,
-              flag: '🇺🇸',
-              label: L10n.of(context)!.english,
-              sublabel: L10n.of(context)!.englishSublabel,
-              isSelected: currentLocale?.languageCode == 'en',
-              onTap: () {
-                ref.read(localeProvider.notifier).state = const Locale('en');
-                Navigator.pop(ctx);
-                _showLanguageChangedSnackbar(L10n.of(context)!.english);
-              },
-            ),
-            const SizedBox(height: 8),
-            // Thai
-            _buildLanguageOption(
-              context: ctx,
-              flag: '🇹🇭',
-              label: L10n.of(context)!.thai,
-              sublabel: L10n.of(context)!.thaiSublabel,
-              isSelected: currentLocale?.languageCode == 'th',
-              onTap: () {
-                ref.read(localeProvider.notifier).state = const Locale('th');
-                Navigator.pop(ctx);
-                _showLanguageChangedSnackbar(L10n.of(context)!.thai);
-              },
-            ),
-          ],
+          ),
         ),
         actions: [
           TextButton(

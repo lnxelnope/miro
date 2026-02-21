@@ -3480,6 +3480,126 @@ abstract class L10n {
   /// **'ภาษาไทย'**
   String get thaiSublabel;
 
+  /// No description provided for @vietnamese.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiếng Việt'**
+  String get vietnamese;
+
+  /// No description provided for @vietnameseSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnamese'**
+  String get vietnameseSublabel;
+
+  /// No description provided for @indonesian.
+  ///
+  /// In en, this message translates to:
+  /// **'Bahasa Indonesia'**
+  String get indonesian;
+
+  /// No description provided for @indonesianSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Indonesian'**
+  String get indonesianSublabel;
+
+  /// No description provided for @chinese.
+  ///
+  /// In en, this message translates to:
+  /// **'中文'**
+  String get chinese;
+
+  /// No description provided for @chineseSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get chineseSublabel;
+
+  /// No description provided for @japanese.
+  ///
+  /// In en, this message translates to:
+  /// **'日本語'**
+  String get japanese;
+
+  /// No description provided for @japaneseSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get japaneseSublabel;
+
+  /// No description provided for @korean.
+  ///
+  /// In en, this message translates to:
+  /// **'한국어'**
+  String get korean;
+
+  /// No description provided for @koreanSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get koreanSublabel;
+
+  /// No description provided for @spanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Español'**
+  String get spanish;
+
+  /// No description provided for @spanishSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get spanishSublabel;
+
+  /// No description provided for @french.
+  ///
+  /// In en, this message translates to:
+  /// **'Français'**
+  String get french;
+
+  /// No description provided for @frenchSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get frenchSublabel;
+
+  /// No description provided for @german.
+  ///
+  /// In en, this message translates to:
+  /// **'Deutsch'**
+  String get german;
+
+  /// No description provided for @germanSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'German'**
+  String get germanSublabel;
+
+  /// No description provided for @portuguese.
+  ///
+  /// In en, this message translates to:
+  /// **'Português'**
+  String get portuguese;
+
+  /// No description provided for @portugueseSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get portugueseSublabel;
+
+  /// No description provided for @hindi.
+  ///
+  /// In en, this message translates to:
+  /// **'हिन्दी'**
+  String get hindi;
+
+  /// No description provided for @hindiSublabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hindi'**
+  String get hindiSublabel;
+
   /// No description provided for @closeBilingual.
   ///
   /// In en, this message translates to:
