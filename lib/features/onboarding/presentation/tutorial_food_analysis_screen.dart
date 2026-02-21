@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
+import 'package:miro_hybrid/core/services/permission_service.dart';
+import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/features/onboarding/models/tutorial_step.dart';
 import 'package:miro_hybrid/features/home/presentation/home_screen.dart';
+import 'package:miro_hybrid/features/scanner/widgets/retro_scan_dialog.dart';
 
 class TutorialFoodAnalysisScreen extends StatefulWidget {
   const TutorialFoodAnalysisScreen({super.key});
@@ -98,11 +102,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
         }
       });
     } else {
-      // Tutorial complete, navigate to home
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (_) => false,
-      );
+      _finishAndRetroScan();
     }
   }
 
@@ -121,6 +121,30 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
   }
 
   void _skipTutorial() {
+    _finishAndRetroScan();
+  }
+
+  Future<void> _finishAndRetroScan() async {
+    try {
+      final permissionService = PermissionService();
+      final hasGallery = await permissionService.hasGalleryPermission();
+
+      if (!hasGallery) {
+        final results = await permissionService.requestInitialPermissions();
+        AppLogger.info('Permission results from tutorial: $results');
+      }
+
+      await permissionService.markFirstLaunchComplete();
+
+      if (!mounted) return;
+
+      await RetroScanDialog.show(context);
+    } catch (e) {
+      AppLogger.warn('RetroScan from tutorial failed: $e');
+    }
+
+    if (!mounted) return;
+
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
       (_) => false,
@@ -189,7 +213,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Fixed! AI found the correct ingredient.'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             duration: Duration(seconds: 2),
           ),
         );
@@ -228,10 +252,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: AppRadius.sm,
               child: LinearProgressIndicator(
                 value: (_currentStep + 1) / _steps.length,
-                backgroundColor: Colors.grey[200],
+                backgroundColor: AppColors.divider,
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppColors.primary),
                 minHeight: 6,
@@ -276,9 +300,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: AppRadius.md,
                         ),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: const BorderSide(color: AppColors.divider),
                       ),
                       child: const Text(
                         'Previous',
@@ -300,7 +324,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                       elevation: 2,
                     ),
@@ -333,11 +357,11 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
         Container(
           height: 220,
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(16),
+            color: AppColors.divider,
+            borderRadius: AppRadius.lg,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: AppRadius.lg,
             child: Image.asset(
               'assets/images/tutorial_steak.png',
               fit: BoxFit.cover,
@@ -347,12 +371,12 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.restaurant_menu,
-                          size: 64, color: Colors.grey[400]),
+                          size: 64, color: AppColors.textSecondary),
                       const SizedBox(height: 8),
                       Text(
                         'Sample: Steak and Fries',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -381,7 +405,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           decoration: InputDecoration(
             hintText: 'e.g., Steak and Fries',
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.md,
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -422,7 +446,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                     decoration: InputDecoration(
                       hintText: '1',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -452,7 +476,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                     initialValue: _selectedUnit,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -498,7 +522,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.md,
               ),
             ),
             child: const Row(
@@ -573,14 +597,14 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     return Expanded(
       child: InkWell(
         onTap: () => setState(() => _searchMode = mode),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(20),
+            color: isSelected ? AppColors.primary : AppColors.surfaceVariant,
+            borderRadius: AppRadius.xl,
             border: Border.all(
-              color: isSelected ? AppColors.primary : Colors.grey.shade300,
+              color: isSelected ? AppColors.primary : AppColors.divider,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -628,9 +652,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
+            color: AppColors.background,
+            borderRadius: AppRadius.lg,
+            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             children: [
@@ -713,17 +737,17 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: showWarning
-            ? Colors.orange.shade50
+            ? AppColors.warning.withValues(alpha: 0.1)
             : isFixed
-                ? Colors.green.shade50
+                ? AppColors.success.withValues(alpha: 0.1)
                 : Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.md,
         border: Border.all(
           color: showWarning
-              ? Colors.orange.shade400
+              ? AppColors.warning.withValues(alpha: 0.7)
               : isFixed
-                  ? Colors.green.shade400
-                  : Colors.grey.shade300,
+                  ? AppColors.success.withValues(alpha: 0.7)
+                  : AppColors.divider,
           width: showWarning || isFixed ? 2 : 1,
         ),
       ),
@@ -733,9 +757,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Row(
             children: [
               if (showWarning)
-                Icon(AppIcons.warning, size: 20, color: AppIcons.warningColor)
+                const Icon(AppIcons.warning, size: 20, color: AppIcons.warningColor)
               else if (isFixed)
-                Icon(AppIcons.success, size: 20, color: AppIcons.successColor)
+                const Icon(AppIcons.success, size: 20, color: AppIcons.successColor)
               else
                 const Text('✅ ', style: TextStyle(fontSize: 18)),
               Expanded(
@@ -752,15 +776,15 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.warning.withValues(alpha: 0.15),
+                    borderRadius: AppRadius.sm,
                   ),
                   child: const Text(
                     'WRONG!',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      color: Colors.orange,
+                      color: AppColors.warning,
                     ),
                   ),
                 ),
@@ -770,7 +794,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Text(
             amount,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -778,13 +802,13 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Row(
             children: [
               _buildMacroChip(
-                  '${calories.toStringAsFixed(0)} kcal', Colors.purple),
+                  '${calories.toStringAsFixed(0)} kcal', AppColors.premium),
               const SizedBox(width: 8),
-              _buildMacroChip('P:${protein.toStringAsFixed(1)}', Colors.blue),
+              _buildMacroChip('P:${protein.toStringAsFixed(1)}', AppColors.info),
               const SizedBox(width: 8),
-              _buildMacroChip('C:${carbs.toStringAsFixed(1)}', Colors.orange),
+              _buildMacroChip('C:${carbs.toStringAsFixed(1)}', AppColors.warning),
               const SizedBox(width: 8),
-              _buildMacroChip('F:${fat.toStringAsFixed(1)}', Colors.green),
+              _buildMacroChip('F:${fat.toStringAsFixed(1)}', AppColors.success),
             ],
           ),
 
@@ -801,7 +825,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.sm,
                       ),
                     ),
                   ),
@@ -817,7 +841,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.sm,
                       ),
                     ),
                   ),
@@ -834,15 +858,15 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: AppRadius.sm,
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: color.withOpacity(0.9),
+          color: color.withValues(alpha: 0.9),
         ),
       ),
     );
@@ -854,7 +878,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     return Column(
       children: [
         const SizedBox(height: 20),
-        Icon(AppIcons.milestone, size: 96, color: AppIcons.milestoneColor),
+        const Icon(AppIcons.milestone, size: 96, color: AppIcons.milestoneColor),
         const SizedBox(height: 24),
         const Text(
           'You\'re Ready!',
@@ -906,10 +930,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: AppRadius.lg,
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
+          color: AppColors.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Row(
@@ -933,7 +957,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                   subtitle,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -950,9 +974,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.shade200),
+        color: AppColors.info.withValues(alpha: 0.1),
+        borderRadius: AppRadius.lg,
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -996,7 +1020,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
             style: TextStyle(
               fontSize: 14,
               height: 1.6,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -1008,21 +1032,21 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.shade200),
+        color: AppColors.warning.withValues(alpha: 0.1),
+        borderRadius: AppRadius.md,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(AppIcons.tips, size: 20, color: AppIcons.tipsColor),
+          const Icon(AppIcons.tips, size: 20, color: AppIcons.tipsColor),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade700,
+                color: AppColors.textSecondary,
                 height: 1.4,
               ),
             ),
