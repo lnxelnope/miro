@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_icons.dart';
-import '../../../core/services/permission_service.dart';
 import '../../../core/services/consent_service.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/constants/cuisine_options.dart';
@@ -16,6 +14,7 @@ import '../../../core/ai/gemini_service.dart';
 import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
+import '../providers/locale_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../onboarding/presentation/tutorial_food_analysis_screen.dart';
 import '../../legal/presentation/disclaimer_screen.dart';
@@ -33,6 +32,9 @@ import '../../subscription/models/subscription_status.dart';
 import '../../referral/presentation/referral_screen.dart';
 import '../../energy/presentation/tier_benefits_screen.dart';
 import 'package:flutter/services.dart';
+import '../../../l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -49,15 +51,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: const Text(
-          'Profile & Settings',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          L10n.of(context)!.profileAndSettings,
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
       body: ref.watch(profileNotifierProvider).when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Center(child: Text('Error: $e')),
+            error: (e, st) => Center(child: Text(L10n.of(context)!.errorOccurred(e.toString()))),
             data: (profile) => SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -67,11 +69,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 28),
 
                   // Health Goals
-                  _buildModernSectionTitle('🎯 Health Goals'),
+                  _buildModernSectionTitle('🎯 ${L10n.of(context)!.healthGoalsSection}'),
                   const SizedBox(height: 12),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Daily Goals',
+                    title: L10n.of(context)!.dailyGoals,
                     subtitle:
                         '${profile.calorieGoal.toInt()} kcal • P ${profile.proteinGoal.toInt()}g • C ${profile.carbGoal.toInt()}g • F ${profile.fatGoal.toInt()}g',
                     onTap: () => Navigator.push(
@@ -83,34 +85,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // AI Chat Mode
-                  _buildModernSectionTitle('🤖 Chat AI Mode'),
+                  _buildModernSectionTitle('🤖 ${L10n.of(context)!.chatAiModeSection}'),
                   const SizedBox(height: 12),
                   _buildAiModeSettingCard(context),
                   const SizedBox(height: 24),
 
                   // Cuisine Preference
-                  _buildModernSectionTitle('🍽️ Cuisine Preference'),
+                  _buildModernSectionTitle('🍽️ ${L10n.of(context)!.cuisinePreferenceSection}'),
                   const SizedBox(height: 12),
                   _buildCuisinePreferenceCard(context, profile),
                   const SizedBox(height: 24),
 
                   // Gallery Scan Settings
-                  _buildModernSectionTitle('📸 Photo Scan'),
+                  _buildModernSectionTitle('📸 ${L10n.of(context)!.photoScanSection}'),
                   const SizedBox(height: 12),
                   _ScanSettingsCard(),
                   const SizedBox(height: 24),
 
+                  // Language Settings
+                  _buildModernSectionTitle('🌐 ${L10n.of(context)!.languageSection}'),
+                  const SizedBox(height: 12),
+                  _buildLanguageCard(context),
+                  const SizedBox(height: 24),
+
                   // Account
-                  _buildModernSectionTitle('🆔 Account'),
+                  _buildModernSectionTitle('🆔 ${L10n.of(context)!.accountSection}'),
                   const SizedBox(height: 12),
                   Consumer(
                     builder: (context, ref, _) {
                       final gamification = ref.watch(gamificationProvider);
                       return _buildModernSettingCard(
                         context: context,
-                        title: 'MiRO ID',
+                        title: L10n.of(context)!.miroId,
                         subtitle: gamification.miroId.isEmpty
-                            ? 'Loading...'
+                            ? L10n.of(context)!.loading
                             : gamification.miroId,
                         leading: Container(
                           padding: const EdgeInsets.all(8),
@@ -130,9 +138,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     ClipboardData(text: gamification.miroId),
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('MiRO ID copied!'),
-                                      duration: Duration(seconds: 2),
+                                    SnackBar(
+                                      content: Text(L10n.of(context)!.miroIdCopied),
+                                      duration: const Duration(seconds: 2),
                                     ),
                                   );
                                 },
@@ -144,8 +152,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   // Phase 4: Referral
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Invite Friends',
-                    subtitle: 'Share your referral code and earn rewards!',
+                    title: L10n.of(context)!.inviteFriends,
+                    subtitle: L10n.of(context)!.inviteFriendsSubtitle,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -180,12 +188,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // Data
-                  _buildModernSectionTitle('💾 Data'),
+                  _buildModernSectionTitle('💾 ${L10n.of(context)!.dataSection}'),
                   const SizedBox(height: 12),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Backup Data',
-                    subtitle: 'Energy + Food History → save as file',
+                    title: L10n.of(context)!.backupData,
+                    subtitle: L10n.of(context)!.backupDataSubtitle,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -199,8 +207,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Restore from Backup',
-                    subtitle: 'Import data from backup file',
+                    title: L10n.of(context)!.restoreFromBackup,
+                    subtitle: L10n.of(context)!.restoreFromBackupSubtitle,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -218,7 +226,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Clear All Data',
+                    title: L10n.of(context)!.clearAllData,
                     textColor: AppColors.error,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
@@ -234,17 +242,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 24),
 
                   // About
-                  _buildModernSectionTitle('ℹ️ About'),
+                  _buildModernSectionTitle('ℹ️ ${L10n.of(context)!.aboutSection}'),
                   const SizedBox(height: 12),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Version',
-                    subtitle: '1.0.2',
+                    title: L10n.of(context)!.version,
+                    subtitle: '1.1.13',
                     showArrow: false,
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Privacy Policy',
+                    title: L10n.of(context)!.privacyPolicy,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -262,7 +270,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Terms of Service',
+                    title: L10n.of(context)!.termsOfService,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -279,8 +287,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Health Disclaimer',
-                    subtitle: 'Important legal information',
+                    title: L10n.of(context)!.healthDisclaimer,
+                    subtitle: L10n.of(context)!.importantLegalInformation,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -298,8 +306,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Show Tutorial Again',
-                    subtitle: 'View feature tour',
+                    title: L10n.of(context)!.showTutorialAgain,
+                    subtitle: L10n.of(context)!.viewFeatureTour,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -313,8 +321,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _buildModernSettingCard(
                     context: context,
-                    title: 'Food Analysis Tutorial',
-                    subtitle: 'Learn how to use food analysis features',
+                    title: L10n.of(context)!.foodAnalysisTutorial,
+                    subtitle: L10n.of(context)!.foodAnalysisTutorialSubtitle,
                     leading: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -409,9 +417,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     const Icon(Icons.diamond_rounded, size: 16, color: Colors.white),
                     const SizedBox(width: 6),
-                    const Text(
-                      'Energy Pass',
-                      style: TextStyle(
+                    Text(
+                      L10n.of(context)!.subscriptionEnergyPass,
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -517,6 +525,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       label = title.substring(3).trim();
     } else if (title.startsWith('📸')) {
       icon = AppIcons.camera;
+      label = title.substring(2).trim();
+    } else if (title.startsWith('🌐')) {
+      icon = Icons.language;
       label = title.substring(2).trim();
     } else if (title.startsWith('💾')) {
       icon = AppIcons.save;
@@ -695,10 +706,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Energy Pass',
-                          style: TextStyle(
+                          L10n.of(context)!.subscriptionEnergyPass,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -738,14 +749,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: Column(
                       children: [
                         _buildSubscriptionInfoRow(
-                          'Plan',
-                          'Monthly',
+                          L10n.of(context)!.plan,
+                          L10n.of(context)!.monthly,
                           Icons.calendar_month,
                         ),
                         if (startText.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           _buildSubscriptionInfoRow(
-                            'Started',
+                            L10n.of(context)!.started,
                             startText,
                             Icons.play_circle_outline,
                           ),
@@ -753,7 +764,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         if (expiryText.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           _buildSubscriptionInfoRow(
-                            sub.autoRenewing ? 'Renews' : 'Expires',
+                            sub.autoRenewing ? L10n.of(context)!.renews : L10n.of(context)!.expires,
                             expiryText,
                             sub.autoRenewing
                                 ? Icons.autorenew
@@ -762,8 +773,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                         const SizedBox(height: 8),
                         _buildSubscriptionInfoRow(
-                          'Auto-Renew',
-                          sub.autoRenewing ? 'On' : 'Off',
+                          L10n.of(context)!.autoRenew,
+                          sub.autoRenewing ? L10n.of(context)!.on : L10n.of(context)!.off,
                           Icons.repeat,
                           valueColor: sub.autoRenewing
                               ? Colors.green
@@ -782,7 +793,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Tap to manage subscription',
+                        L10n.of(context)!.tapToManageSubscription,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade500,
@@ -806,10 +817,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return _buildModernSettingCard(
       context: context,
-      title: 'Energy Pass',
+      title: L10n.of(context)!.subscriptionEnergyPass,
       subtitle: isLoading
-          ? 'Loading...'
-          : 'Unlimited AI + Double rewards',
+          ? L10n.of(context)!.loading
+          : L10n.of(context)!.unlimitedAiDoubleRewards,
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -870,9 +881,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Select which AI powers your chat',
-              style: TextStyle(
+            Text(
+              L10n.of(context)!.selectAiPowersChat,
+              style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
               ),
@@ -883,15 +894,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               context: context,
               icon: Icons.auto_awesome,
               color: const Color(0xFF6366F1),
-              title: 'Miro AI',
-              subtitle: 'Powered by Gemini • Multi-language • High accuracy',
-              cost: const Row(
+              title: L10n.of(context)!.miroAi,
+              subtitle: L10n.of(context)!.miroAiSubtitle,
+              cost: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('2 + ', style: TextStyle(fontSize: 12)),
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('/item', style: TextStyle(fontSize: 12)),
+                  const Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  Text('2 + ', style: const TextStyle(fontSize: 12)),
+                  const Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  Text('/item', style: const TextStyle(fontSize: 12)),
                 ],
               ),
               isSelected: isMiroAi,
@@ -905,9 +916,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               context: context,
               icon: Icons.psychology,
               color: Colors.green,
-              title: 'Local AI',
-              subtitle: 'On-device • English only • Basic accuracy',
-              cost: const Text('Free', style: TextStyle(fontSize: 12)),
+              title: L10n.of(context)!.localAi,
+              subtitle: L10n.of(context)!.localAiSubtitle,
+              cost: Text(L10n.of(context)!.free, style: const TextStyle(fontSize: 12)),
               isSelected: !isMiroAi,
               onTap: () {
                 ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
@@ -922,7 +933,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildCuisinePreferenceCard(BuildContext context, profile) {
     return _buildSettingCard(
       context: context,
-      title: 'Preferred Cuisine',
+      title: L10n.of(context)!.preferredCuisine,
       subtitle: CuisineOptions.getLabel(profile.cuisinePreference),
       leading: Text(
         CuisineOptions.getFlag(profile.cuisinePreference),
@@ -932,11 +943,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Widget _buildLanguageCard(BuildContext context) {
+    final currentLocale = ref.watch(localeProvider);
+    
+    String languageLabel;
+    String languageFlag;
+    
+    if (currentLocale?.languageCode == 'th') {
+      languageLabel = L10n.of(context)!.thai;
+      languageFlag = '🇹🇭';
+    } else if (currentLocale?.languageCode == 'en') {
+      languageLabel = L10n.of(context)!.english;
+      languageFlag = '🇺🇸';
+    } else {
+      // System default
+      languageLabel = L10n.of(context)!.systemDefault;
+      languageFlag = '🌐';
+    }
+    
+    return _buildModernSettingCard(
+      context: context,
+      title: L10n.of(context)!.languageTitle,
+      subtitle: languageLabel,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          languageFlag,
+          style: const TextStyle(fontSize: 20),
+        ),
+      ),
+      onTap: () => _showLanguageDialog(context),
+    );
+  }
+
   Future<void> _showCuisineDialog(BuildContext context, profile) async {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Select Your Cuisine'),
+        title: Text(L10n.of(context)!.selectYourCuisine),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -969,9 +1017,164 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _showLanguageDialog(BuildContext context) async {
+    final currentLocale = ref.read(localeProvider);
+    
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.selectLanguage),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // System Default
+            _buildLanguageOption(
+              context: ctx,
+              flag: '🌐',
+              label: L10n.of(context)!.systemDefault,
+              sublabel: L10n.of(context)!.systemDefaultSublabel,
+              isSelected: currentLocale == null,
+              onTap: () {
+                ref.read(localeProvider.notifier).state = null;
+                Navigator.pop(ctx);
+                _showLanguageChangedSnackbar(L10n.of(context)!.systemDefault);
+              },
+            ),
+            const SizedBox(height: 8),
+            // English
+            _buildLanguageOption(
+              context: ctx,
+              flag: '🇺🇸',
+              label: L10n.of(context)!.english,
+              sublabel: L10n.of(context)!.englishSublabel,
+              isSelected: currentLocale?.languageCode == 'en',
+              onTap: () {
+                ref.read(localeProvider.notifier).state = const Locale('en');
+                Navigator.pop(ctx);
+                _showLanguageChangedSnackbar(L10n.of(context)!.english);
+              },
+            ),
+            const SizedBox(height: 8),
+            // Thai
+            _buildLanguageOption(
+              context: ctx,
+              flag: '🇹🇭',
+              label: L10n.of(context)!.thai,
+              sublabel: L10n.of(context)!.thaiSublabel,
+              isSelected: currentLocale?.languageCode == 'th',
+              onTap: () {
+                ref.read(localeProvider.notifier).state = const Locale('th');
+                Navigator.pop(ctx);
+                _showLanguageChangedSnackbar(L10n.of(context)!.thai);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.of(context)!.closeBilingual),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String flag,
+    required String label,
+    required String sublabel,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary.withOpacity(0.4)
+                : Colors.grey.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Radio indicator
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            // Flag
+            Text(flag, style: const TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            // Text
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? AppColors.primary : null,
+                    ),
+                  ),
+                  Text(
+                    sublabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageChangedSnackbar(String language) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(L10n.of(context)!.languageChangedTo(language)),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -1214,32 +1417,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning, color: Colors.red),
-            SizedBox(width: 8),
-            Text('Clear all data?'),
+            const Icon(Icons.warning, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(L10n.of(context)!.clearAllDataTitle),
           ],
         ),
-        content: const Text(
-          'All data will be deleted:\n'
-          '• Food entries\n'
-          '• My Meals\n'
-          '• Ingredients\n'
-          '• Goals\n'
-          '• Personal info\n\n'
-          'This cannot be undone!',
+        content: Text(
+          '${L10n.of(context)!.clearAllDataContent}\n\n'
+          'รวมถึง: Isar DB, SharedPreferences, SecureStorage\n'
+          '(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child:
-                const Text('Delete All', style: TextStyle(color: Colors.white)),
+                Text(L10n.of(context)!.deleteAll, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1247,8 +1446,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (confirmed == true) {
       try {
+        // 1. Clear Isar DB
         await DatabaseService.isar.writeTxn(() async {
-          // Clear all collections
           await DatabaseService.foodEntries.clear();
           await DatabaseService.myMeals.clear();
           await DatabaseService.ingredients.clear();
@@ -1257,11 +1456,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           await DatabaseService.chatSessions.clear();
         });
 
+        // 2. Clear SharedPreferences (dismissed_offers, welcome_claimed, balance cache, etc.)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+
+        // 3. Clear FlutterSecureStorage (device_id cache, welcome flag, balance)
+        const storage = FlutterSecureStorage();
+        await storage.deleteAll();
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('All data cleared successfully'), duration: Duration(seconds: 2)),
+            SnackBar(content: Text(L10n.of(context)!.allDataClearedSuccess), duration: const Duration(seconds: 2)),
           );
-          // กลับไป Onboarding
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => const OnboardingScreen()),
@@ -1271,7 +1477,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red, duration: const Duration(seconds: 2)),
+            SnackBar(content: Text(L10n.of(context)!.errorOccurred(e.toString())), backgroundColor: Colors.red, duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -1284,22 +1490,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Show Tutorial'),
-        content: const Text(
-          'This will show the feature tour that highlights:\n\n'
-          '• Energy System\n'
-          '• Pull-to-Refresh Photo Scan\n'
-          '• Chat with Miro AI\n\n'
-          'You will return to the Home screen.',
-        ),
+        title: Text(L10n.of(context)!.showTutorialDialogTitle),
+        content: Text(L10n.of(context)!.showTutorialDialogContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Show Tutorial'),
+            child: Text(L10n.of(context)!.showTutorialButton),
           ),
         ],
       ),
@@ -1314,9 +1514,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tutorial reset! Go to Home screen to view it.'),
-        duration: Duration(seconds: 3),
+      SnackBar(
+        content: Text(L10n.of(context)!.tutorialResetMessage),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -1358,8 +1558,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (context.mounted) {
         _showErrorDialog(
           context,
-          'Backup Failed',
-          'Failed to create backup: ${e.toString()}',
+          L10n.of(context)!.backupFailed,
+          '${L10n.of(context)!.backupFailed}: ${e.toString()}',
         );
       }
     }
@@ -1384,8 +1584,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (context.mounted) {
           _showErrorDialog(
             context,
-            'Invalid Backup File',
-            'This file is not a valid Miro backup file.\n\n${e.toString()}',
+            L10n.of(context)!.invalidBackupFile,
+            '${L10n.of(context)!.invalidBackupFile}\n\n${e.toString()}',
           );
         }
         return;
@@ -1424,8 +1624,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         } else {
           _showErrorDialog(
             context,
-            'Restore Failed',
-            result.errorMessage ?? 'Unknown error',
+            L10n.of(context)!.restoreFailed,
+            result.errorMessage ?? L10n.of(context)!.error,
           );
         }
       }
@@ -1433,8 +1633,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (context.mounted) {
         _showErrorDialog(
           context,
-          'Error',
-          'Failed to restore backup: ${e.toString()}',
+          L10n.of(context)!.error,
+          '${L10n.of(context)!.restoreFailed}: ${e.toString()}',
         );
       }
     }
@@ -1449,39 +1649,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 12),
-            Text('Backup Created!'),
+            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            Text(L10n.of(context)!.backupCreated),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Your backup file has been created successfully.',
-              style: TextStyle(fontSize: 16),
+            Text(
+              L10n.of(context)!.backupCreatedContent,
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Row(
+            Row(
               children: [
-                Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-                SizedBox(width: 4),
+                const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
+                const SizedBox(width: 4),
                 Text(
-                  'Important:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  L10n.of(context)!.important,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
-              '• Save this file in a safe place (Google Drive, etc.)\n'
-              '• Photos are NOT included in the backup\n'
-              '• Transfer Key expires in 30 days\n'
-              '• Key can only be used once',
-              style: TextStyle(fontSize: 14, height: 1.5),
+            Text(
+              L10n.of(context)!.backupImportantNotes,
+              style: const TextStyle(fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 16),
             Container(
@@ -1518,7 +1715,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Restore Backup?'),
+        title: Text(L10n.of(context)!.restoreBackup),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1526,14 +1723,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               // Preview Info
               _buildInfoRow(
-                  'Backup from:', info.deviceInfo ?? 'Unknown device'),
+                  '${L10n.of(context)!.backupFrom} ', info.deviceInfo ?? L10n.of(context)!.error),
               _buildInfoRow(
-                'Date:',
+                '${L10n.of(context)!.date} ',
                 _formatDate(info.createdAt),
               ),
-              _buildInfoRow('Energy:', '${info.energyBalance}'),
-              _buildInfoRow('Food entries:', '${info.foodEntryCount}'),
-              _buildInfoRow('My Meals:', '${info.myMealCount}'),
+              _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
+              _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
+              _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
 
               const SizedBox(height: 16),
               const Divider(),
@@ -1550,13 +1747,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.warning, color: Colors.orange, size: 20),
-                        SizedBox(width: 8),
+                        const Icon(Icons.warning, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
                         Text(
-                          'Important',
-                          style: TextStyle(
+                          L10n.of(context)!.restoreImportant,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -1565,10 +1762,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '• Current Energy on this device will be REPLACED with Energy from backup (${info.energyBalance})\n'
-                      '• Food entries will be MERGED (not replaced)\n'
-                      '• Photos are NOT included in backup\n'
-                      '• Transfer Key will be used (cannot be reused)',
+                      L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.5,
@@ -1584,14 +1778,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
             ),
-            child: const Text('Restore'),
+            child: Text(L10n.of(context)!.restore),
           ),
         ],
       ),
@@ -1606,34 +1800,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
-            SizedBox(width: 12),
-            Text('Restore Complete!'),
+            const Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            Text(L10n.of(context)!.restoreComplete),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Your data has been restored successfully.',
-              style: TextStyle(fontSize: 16),
+            Text(
+              L10n.of(context)!.restoreCompleteContent,
+              style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow('New Energy Balance:', '${result.newEnergyBalance}'),
+            _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
             _buildInfoRow(
-                'Food Entries Imported:', '${result.foodEntriesImported}'),
-            _buildInfoRow('My Meals Imported:', '${result.myMealsImported}'),
+                '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
+            _buildInfoRow('${L10n.of(context)!.myMealsImported} ', '${result.myMealsImported}'),
             const SizedBox(height: 16),
-            const Row(
+            Row(
               children: [
-                Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
-                SizedBox(width: 4),
+                const Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
+                const SizedBox(width: 4),
                 Text(
-                  'Your app will refresh to show the restored data.',
-                  style: TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                  L10n.of(context)!.appWillRefresh,
+                  style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -1645,7 +1839,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Navigator.pop(context);
               // TODO: Refresh app state (reload providers, etc.)
             },
-            child: const Text('OK'),
+            child: Text(L10n.of(context)!.ok),
           ),
         ],
       ),
@@ -1744,8 +1938,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           ListTile(
             leading: const Icon(Icons.photo_library_outlined,
                 color: AppColors.primary),
-            title: const Text('Images per day'),
-            subtitle: Text('Scan up to $_scanImageLimit images per day'),
+            title: Text(L10n.of(context)!.imagesPerDay),
+            subtitle: Text(L10n.of(context)!.scanUpToImagesPerDay('$_scanImageLimit')),
             trailing:
                 const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             onTap: _showScanLimitDialog,
@@ -1753,8 +1947,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.refresh, color: AppColors.warning),
-            title: const Text('Reset Scan History'),
-            subtitle: const Text('Delete all scanned entries and re-scan'),
+            title: Text(L10n.of(context)!.resetScanHistory),
+            subtitle: Text(L10n.of(context)!.resetScanHistorySubtitle),
             onTap: _resetScanHistory,
           ),
         ],
@@ -1766,13 +1960,13 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Images per day'),
+        title: Text(L10n.of(context)!.imagesPerDayDialog),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Maximum images to scan per day\nScans only the selected date',
-              style: TextStyle(fontSize: 13, color: Colors.grey),
+            Text(
+              L10n.of(context)!.maxImagesPerDayDescription,
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -1789,7 +1983,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
                       setState(() => _scanImageLimit = limit);
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      _showMessage('Scan limit set to $limit images per day');
+                      _showMessage(L10n.of(context)!.scanLimitSetTo('$limit'));
                     }
                   },
                 );
@@ -1800,7 +1994,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(L10n.of(context)!.close),
           ),
         ],
       ),
@@ -1811,20 +2005,17 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Scan History?'),
-        content: const Text(
-          'All gallery-scanned food entries will be deleted.\n'
-          'Pull down on any date to re-scan images.',
-        ),
+        title: Text(L10n.of(context)!.resetScanHistoryDialog),
+        content: Text(L10n.of(context)!.resetScanHistoryContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Reset'),
+            child: Text(L10n.of(context)!.reset),
           ),
         ],
       ),
@@ -1832,7 +2023,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
 
     if (confirm == true) {
       try {
-        // ลบ food entries ที่มาจาก gallery scan
+        // ลบ food entries ที่มาจาก gallery scan (hard delete)
         final scanEntries = await DatabaseService.foodEntries
             .filter()
             .sourceEqualTo(DataSource.galleryScanned)
@@ -1844,15 +2035,14 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           await DatabaseService.foodEntries.deleteAll(ids);
         });
 
-        AppLogger.info('Deleted ${ids.length} gallery-scanned entries');
+        AppLogger.info('Deleted ${ids.length} gallery-scanned entries (hard delete)');
 
         if (!mounted) return;
-        _showMessage(
-            'Reset complete - ${ids.length} entries deleted. Pull down to re-scan.');
+        _showMessage(L10n.of(context)!.resetComplete('${ids.length}'));
       } catch (e) {
         AppLogger.error('Error resetting scan history', e);
         if (!mounted) return;
-        _showMessage('Error: $e');
+        _showMessage(L10n.of(context)!.errorOccurred(e.toString()));
       }
     }
   }
@@ -1920,8 +2110,8 @@ class _AnalyticsConsentToggleState
         SnackBar(
           content: Text(
             value
-                ? 'Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป'
-                : 'Analytics disabled - ไม่เก็บข้อมูลการใช้งาน',
+                ? L10n.of(context)!.analyticsEnabled
+                : L10n.of(context)!.analyticsDisabled,
           ),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
@@ -1954,17 +2144,17 @@ class _AnalyticsConsentToggleState
             size: 20,
           ),
         ),
-        title: const Text(
-          'Analytics Data Collection',
-          style: TextStyle(
+        title: Text(
+          L10n.of(context)!.analyticsDataCollection,
+          style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w500,
           ),
         ),
         subtitle: Text(
           _isEnabled
-              ? 'Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน'
-              : 'Disabled - ไม่เก็บข้อมูลการใช้งาน',
+              ? L10n.of(context)!.enabledSubtitle
+              : L10n.of(context)!.disabledSubtitle,
           style: TextStyle(
             fontSize: 13,
             color: isDark ? Colors.grey[400] : Colors.grey[600],

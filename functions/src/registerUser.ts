@@ -10,6 +10,8 @@
 
 import {onRequest} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
+import {getActiveSeasonalQuests} from "./energy/seasonalQuest";
+import {evaluateOffers} from "./energy/offerEngine";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -100,6 +102,41 @@ export const registerUser = onRequest(
         if (data.tier === "gold") bonusRate = 0.1;
         else if (data.tier === "diamond") bonusRate = 0.2;
 
+        // ─── Retroactive Tier Celebration Initialization ───
+        const today = new Date().toISOString().split("T")[0];
+        const currentTier = data.tier ?? "none";
+        const tierCelebration = data.tierCelebration || {};
+        const needsInit: string[] = [];
+
+        if (currentTier !== "none" && !tierCelebration[currentTier]) {
+          needsInit.push(currentTier);
+        }
+        if (!tierCelebration["starter"]) {
+          needsInit.push("starter");
+        }
+
+        let finalTierCelebration = data.tierCelebration ?? {};
+
+        if (needsInit.length > 0) {
+          console.log(`🎉 [registerUser] Retroactively initializing celebrations: ${needsInit.join(", ")}`);
+          const updates: any = {};
+          for (const tier of needsInit) {
+            updates[`tierCelebration.${tier}`] = {
+              startDate: today,
+              claimedDays: [],
+            };
+          }
+          await db.collection("users").doc(deviceId).update(updates);
+          // Build merged object for response
+          finalTierCelebration = {...tierCelebration};
+          for (const tier of needsInit) {
+            finalTierCelebration[tier] = {startDate: today, claimedDays: []};
+          }
+        }
+
+        // Fetch active seasonal quests
+        const seasonalQuests = await getActiveSeasonalQuests(deviceId);
+
         res.status(200).json({
           success: true,
           isNew: false,
@@ -108,12 +145,13 @@ export const registerUser = onRequest(
           tier: data.tier ?? "none",
           currentStreak: data.currentStreak ?? 0,
           longestStreak: data.longestStreak ?? 0,
-          freeAiUsedToday: data.freeAiUsedToday ?? false,
           challenges: data.challenges ?? {},
           milestones: data.milestones ?? {},
           totalSpent: data.totalSpent ?? 0,
           bonusRate: bonusRate,
           subscription: data.subscription ?? {},
+          tierCelebration: finalTierCelebration,
+          seasonalQuests: seasonalQuests,
         });
         return;
       }
@@ -121,7 +159,6 @@ export const registerUser = onRequest(
       // ─── สร้าง user ใหม่ ───
       const miroId = await generateUniqueMiroId();
       const now = admin.firestore.FieldValue.serverTimestamp();
-      const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
 
       // เช็คว่ามีใน energy_balances เก่าหรือไม่ (migration support)
       const oldDoc = await db.collection("energy_balances").doc(deviceId).get();
@@ -145,10 +182,6 @@ export const registerUser = onRequest(
         totalSpent: 0,
         totalPurchased: 0,
         welcomeGiftClaimed: true,
-
-        // ─── Daily Free AI ───
-        freeAiUsedToday: false,
-        freeAiLastReset: today,
 
         // ─── Streak & Tier ───
         currentStreak: 0,
@@ -183,6 +216,16 @@ export const registerUser = onRequest(
 
       console.log(`🎉 [registerUser] New user: ${miroId} (balance: ${balance})`);
 
+      // Evaluate offers for new user
+      try {
+        await evaluateOffers(deviceId, "first_app_open", {});
+      } catch (e) {
+        console.error("[registerUser] evaluateOffers error:", e);
+      }
+
+      // Fetch active seasonal quests for new users too
+      const newUserSeasonalQuests = await getActiveSeasonalQuests(deviceId);
+
       // Return response
       res.status(201).json({
         success: true,
@@ -191,7 +234,8 @@ export const registerUser = onRequest(
         balance,
         tier: "none",
         currentStreak: 0,
-        freeAiUsedToday: false,
+        tierCelebration: {},
+        seasonalQuests: newUserSeasonalQuests,
       });
     } catch (error: any) {
       console.error("❌ [registerUser] Error:", error);

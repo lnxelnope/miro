@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.tanabun.miro"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36  // Android 16 (required for sqflite_android 2.4.2+)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -32,8 +32,8 @@ android {
         applicationId = "com.tanabun.miro"
         minSdk = flutter.minSdkVersion  // Android 6.0+
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
-        versionCode = 34
-        versionName = "1.1.9"
+        versionCode = 38
+        versionName = "1.1.13"
     }
 
     signingConfigs {

@@ -4,7 +4,86 @@
 
 ---
 
-## ✅ Build 34 (v1.1.9) - Status: READY FOR PRODUCTION
+## ✅ Build 38 (v1.1.13) - Status: READY FOR PRODUCTION
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.13+38`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 38`, `versionName = "1.1.13"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.13'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning
+- [x] **CHANGELOG.md** - อัปเดตแล้ว
+
+### 🐛 Critical Bug Fixes in this version:
+- Fixed: Bonus rate offers (40% bonus, tier promo) not disappearing after purchase
+  - Root cause: `markOfferClaimed()` only checked `productId` match, but `bonus_rate` offers don't have `productId`
+  - Solution: Track `offerBonusTemplateId` and mark `claimed=true` after purchase completes
+  - Frontend: Remove offers from local state immediately after purchase (UX improvement)
+- Fixed: `getActiveOffers()` not checking `template.isActive` flag
+  - Admin-deactivated offers were still visible to users
+  - Solution: Added `isActive === false` check in `getActiveOffers()` filter
+- Cleanup: Removed legacy code in `verifyPurchase.ts` (duplicate welcome bonus trigger)
+
+### 🔧 Backend Changes:
+- Updated `verifyPurchase.ts`: Added bonus_rate offer claiming logic
+- Updated `offersV2.ts`: Added `template.isActive` check in `getActiveOffers()`
+- Updated `energy_store_screen.dart`: Immediate offer removal from local state
+
+---
+## ✅ Build 37 (v1.1.12) - Status: RELEASED
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.12+37`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 37`, `versionName = "1.1.12"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.12'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning
+- [x] **CHANGELOG.md** - อัปเดตแล้ว
+
+### ✨ New Feature in this version:
+- Enhanced Add Food (Timeline) = Mini Create Meal
+  - Main-ingredient / sub-ingredient editing with Autocomplete + AI search
+  - Quick Add (save without name if has kcal)
+  - Flexible save (name-only for Analyze All later)
+  - Auto-save to MyMeal + Ingredient DB
+
+### 🐛 Critical Bug Fix in this version:
+- Fixed: AI usage not recording energy cost in 7 code paths
+  - Analyze All / Analyze Selected / Re-analyze were free (no energy deducted)
+  - Added `UsageLimiter.recordAiUsage()` to all missing points
+
+---
+
+## ✅ Build 36 (v1.1.11) - Status: RELEASED
+
+---
+
+## ✅ Build 35 (v1.1.10) - Status: RELEASED
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Version Naming** - ตาม Semantic Versioning
+
+### 🐛 Critical Bug Fix in this version:
+- Fixed: Chat NaN error causing crashes on production devices
+  - Root cause: NaN values from database migrations in profile/food data
+  - Solution: 3-layer NaN sanitization (profile guard, food guard, JSON guard)
+  - Added `_safeDouble()` and `_sanitizeForJson()` helpers
+  - All NaN/Infinity values converted to 0 before JSON encoding
+
+---
+
+## ✅ Build 34 (v1.1.9) - Status: RELEASED
 
 ### 📋 Checklist
 
@@ -63,24 +142,33 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.9+34
+version: 1.1.13+38
 ```
 **Format:** `versionName+versionCode`
-- `1.1.9` = Version name (แสดงให้ user เห็น)
-- `34` = Build number / Version code (internal)
+- `1.1.13` = Version name (แสดงให้ user เห็น)
+- `38` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 34
-    versionName = "1.1.9"
+    versionCode = 38
+    versionName = "1.1.13"
 }
 ```
 **Format:**
 - `versionCode` = **Integer** (ไม่มี quotes)
 - `versionName` = **String** (ต้องมี quotes `""`)
 
----
+### 3. `lib/features/profile/presentation/profile_screen.dart` (บรรทัด ~248)
+```dart
+_buildModernSettingCard(
+  context: context,
+  title: L10n.of(context)!.version,
+  subtitle: '1.1.13',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  showArrow: false,
+),
+```
+**⚠️ สำคัญ:** ต้องเปลี่ยนเลขเวอร์ชันที่แสดงในหน้า Settings ด้วยทุกครั้ง!
 
 ## ⚠️ กฎสำคัญของ Google Play Store
 
@@ -101,31 +189,40 @@ defaultConfig {
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.8+33 → 1.1.9+34
-version: 1.1.9+34
+# ตัวอย่าง: จาก 1.1.13+38 → 1.1.14+39
+version: 1.1.14+39
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 34  // เพิ่มทีละ 1
-    versionName = "1.1.9"  // ตรงกับ pubspec
-}
+    versionCode = 39  // เพิ่มทีละ 1
+    versionName = "1.1.14"  // ตรงกับ pubspec
 ```
 
-### ขั้นที่ 3: ตรวจสอบ
+### ขั้นที่ 3: อัปเดต profile_screen.dart
+```dart
+// ไฟล์: lib/features/profile/presentation/profile_screen.dart
+// หาบรรทัด ~248 และแก้ subtitle
+subtitle: '1.1.13',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+```
+
+### ขั้นที่ 4: ตรวจสอบ
 ```bash
 # 1. ตรวจสอบ pubspec.yaml
 grep "version:" pubspec.yaml
 
 # 2. ตรวจสอบ build.gradle.kts
 grep -A2 "defaultConfig" android/app/build.gradle.kts | grep version
+
+# 3. ตรวจสอบ profile_screen.dart
+grep "subtitle: '1\\.1\\." lib/features/profile/presentation/profile_screen.dart
 ```
 
-### ขั้นที่ 4: Git Commit
+### ขั้นที่ 5: Git Commit
 ```bash
 git add pubspec.yaml android/app/build.gradle.kts CHANGELOG.md
-git commit -m "build: v1.1.9+34 - Smart Chat Context-Aware AI & Data Source Icons"
+git commit -m "build: v1.1.13+38 - description here"
 ```
 
 ---
@@ -134,7 +231,11 @@ git commit -m "build: v1.1.9+34 - Smart Chat Context-Aware AI & Data Source Icon
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 34 | 1.1.9 | 2026-02-20 | ✅ Current |
+| 38 | 1.1.13 | 2026-02-21 | ✅ Current |
+| 37 | 1.1.12 | 2026-02-20 | ✅ Released |
+| 36 | 1.1.11 | 2026-02-20 | ✅ Released |
+| 35 | 1.1.10 | 2026-02-20 | ✅ Released |
+| 34 | 1.1.9 | 2026-02-20 | ✅ Released |
 | 33 | 1.1.8 | 2026-02-19 | ✅ Released |
 | 32 | 1.1.7 | 2026-02-19 | ✅ Released |
 | 31 | 1.1.6 | 2026-02-18 | ✅ Released |
@@ -155,8 +256,16 @@ git commit -m "build: v1.1.9+34 - Smart Chat Context-Aware AI & Data Source Icon
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.9+34`
-- `build.gradle.kts`: `versionCode = 34`, `versionName = "1.1.9"`
+- `pubspec.yaml`: `1.1.13+38`
+- `build.gradle.kts`: `versionCode = 38`, `versionName = "1.1.13"`
+
+### ❌ Version ไม่ตรงในหน้า Settings
+**สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
+**วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~248
+```dart
+subtitle: '1.1.13',  // แก้ให้ตรงกับ versionName
+```
+**⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
 ---
 
@@ -165,6 +274,7 @@ git commit -m "build: v1.1.9+34 - Smart Chat Context-Aware AI & Data Source Icon
 ### Pre-flight Checklist:
 - [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน
 - [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า
+- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️
 - [ ] CHANGELOG.md อัปเดตแล้ว
 - [ ] Build และทดสอบ APK/AAB บนเครื่อง
 - [ ] Git commit และ push แล้ว

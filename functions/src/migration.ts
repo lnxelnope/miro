@@ -106,7 +106,6 @@ export const migrateToUsersCollection = onRequest(
           // 3. สร้าง MiRO ID ใหม่
           const miroId = await generateUniqueMiroId();
           const now = admin.firestore.FieldValue.serverTimestamp();
-          const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
 
           // 4. สร้าง user document ใหม่
           await db.collection("users").doc(deviceId).set({
@@ -122,10 +121,6 @@ export const migrateToUsersCollection = onRequest(
             totalSpent: 0,
             totalPurchased: 0,
             welcomeGiftClaimed: data.welcomeGiftClaimed || false,
-
-            // ─── Daily Free AI ───
-            freeAiUsedToday: false,
-            freeAiLastReset: today,
 
             // ─── Streak & Tier (fresh start) ───
             currentStreak: 0,

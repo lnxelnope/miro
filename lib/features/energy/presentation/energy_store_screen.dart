@@ -1,51 +1,169 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miro_hybrid/core/services/welcome_offer_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:miro_hybrid/core/services/purchase_service.dart';
+import 'package:miro_hybrid/core/services/device_id_service.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
-import 'package:miro_hybrid/features/energy/widgets/welcome_offer_progress.dart';
-import 'package:miro_hybrid/features/energy/widgets/weekly_challenge_card.dart';
-import 'package:miro_hybrid/features/energy/widgets/milestone_progress_card.dart';
-import 'package:miro_hybrid/features/energy/widgets/streak_display.dart';
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// Energy Store - Modern Design with gradient cards
 class EnergyStoreScreen extends ConsumerStatefulWidget {
-  const EnergyStoreScreen({super.key});
+  final String? highlightOfferId;
+
+  const EnergyStoreScreen({
+    super.key,
+    this.highlightOfferId,
+  });
 
   @override
   ConsumerState<EnergyStoreScreen> createState() => _EnergyStoreScreenState();
 }
 
-class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
-  WelcomeOfferStatus _offerStatus = WelcomeOfferStatus.notStarted;
+class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
+    with SingleTickerProviderStateMixin {
+  List<dynamic> _activeOffers = [];
+  bool _offersLoading = true;
+  Timer? _countdownTimer;
   Duration? _remainingTime;
-  PromotionInfo? _activePromotion;
+  DateTime? _offerExpiryTime;
+  bool _isClaimingFreeEnergy = false;
+  final Map<String, GlobalKey> _offerKeys = {};
+  String? _userLocale;
+
+  AnimationController? _highlightController;
+  Animation<double>? _highlightAnimation;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
     AnalyticsService.logStoreOpened();
+
+    if (widget.highlightOfferId != null) {
+      _highlightController = AnimationController(
+        duration: const Duration(milliseconds: 2500),
+        vsync: this,
+      );
+      _highlightAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+        CurvedAnimation(parent: _highlightController!, curve: Curves.easeOut),
+      );
+      _highlightController!.forward();
+    }
   }
 
-  Future<void> _loadData() async {
-    final status = await WelcomeOfferService.getStatus();
-    final remaining = await WelcomeOfferService.getRemainingTime();
-    final promo = await WelcomeOfferService.getActivePromotion();
-
-    if (mounted) {
-      setState(() {
-        _offerStatus = status;
-        _remainingTime = remaining;
-        _activePromotion = promo;
-      });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final locale = Localizations.localeOf(context).languageCode;
+    if (_userLocale != locale) {
+      _userLocale = locale;
+      _loadOffers();
     }
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    _highlightController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadOffers() async {
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+      final locale = _userLocale ?? 'en';
+      final response = await http.post(
+        Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/getActiveOffersEndpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'deviceId': deviceId, 'locale': locale}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final offers = data['offers'] as List<dynamic>? ?? [];
+
+        if (mounted) {
+          setState(() {
+            _activeOffers = offers;
+            _offersLoading = false;
+          });
+
+          // Start countdown for first offer with expiry
+          if (offers.isNotEmpty) {
+            final firstOffer = offers.first;
+            final remainingSeconds = firstOffer['remainingSeconds'] as int?;
+            final expiryTimestamp = firstOffer['expiry'];
+
+            if (expiryTimestamp is Map) {
+              final seconds = expiryTimestamp['_seconds'] as int?;
+              if (seconds != null) {
+                _offerExpiryTime = DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+              }
+            } else if (remainingSeconds != null && remainingSeconds > 0) {
+              _offerExpiryTime = DateTime.now().add(Duration(seconds: remainingSeconds));
+            }
+
+            if (_offerExpiryTime != null) _startCountdown();
+          }
+
+          if (widget.highlightOfferId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToOffer(widget.highlightOfferId!);
+            });
+          }
+        }
+      } else {
+        if (mounted) setState(() => _offersLoading = false);
+      }
+    } catch (e) {
+      debugPrint('[EnergyStore] Error loading offers: $e');
+      if (mounted) setState(() => _offersLoading = false);
+    }
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    if (_offerExpiryTime == null) return;
+
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) { timer.cancel(); return; }
+      final remaining = _offerExpiryTime!.difference(DateTime.now());
+      if (remaining.isNegative) {
+        timer.cancel();
+        setState(() { _remainingTime = null; _offerExpiryTime = null; });
+        _loadOffers();
+      } else {
+        setState(() => _remainingTime = remaining);
+      }
+    });
+  }
+
+  String _formatDuration(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  /// bonus rate จาก active offer ที่มี rewardType == 'bonus_rate' (เอาค่าสูงสุด)
+  double get _offerBonusRate {
+    double maxRate = 0;
+    for (final offer in _activeOffers) {
+      final rewardType = offer['rewardType'] as String?;
+      final type = offer['type'] as String?;
+      if (rewardType == 'bonus_rate' || type == 'bonus_40' || type == 'tier_promo') {
+        final metadata = offer['metadata'] as Map<String, dynamic>?;
+        final rate = (metadata?['bonusRate'] as num?)?.toDouble() ?? 0;
+        if (rate > maxRate) maxRate = rate;
+      }
+    }
+    return maxRate;
   }
 
   @override
@@ -83,7 +201,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
           ref.invalidate(currentEnergyProvider);
           ref.invalidate(energyBalanceProvider);
           await ref.read(gamificationProvider.notifier).refresh();
-          await _loadData();
+          await _loadOffers();
         },
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -99,57 +217,20 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
               const SizedBox(height: 20),
             ],
 
-            // ────── Streak & Tier Display (only for non-subscribers) ──────
-            if (!isSubscriber) ...[
-              const StreakDisplay(),
-              const SizedBox(height: 20),
-            ],
-
             // ────── Energy Pass Subscription CTA (only for non-subscribers) ──────
             if (!isSubscriber) ...[
               _buildSubscriptionCTA(),
               const SizedBox(height: 20),
             ],
 
-            // ────── Active Promotion Banner ──────
-            if (_activePromotion != null) ...[
-              _buildPromotionBanner(_activePromotion!),
-              const SizedBox(height: 20),
-            ],
-
-            // ────── Weekly Challenges & Milestones ──────
-            const WeeklyChallengeCard(),
-            const SizedBox(height: 12),
-            const MilestoneProgressCard(),
-            const SizedBox(height: 20),
-
-            // ────── Progress to unlock Welcome Offer ──────
-            if (_offerStatus == WelcomeOfferStatus.notStarted) ...[
-              const WelcomeOfferProgress(),
-              const SizedBox(height: 20),
-            ],
-
-            // ────── Welcome Offer Banner & Packages ──────
-            if (_offerStatus == WelcomeOfferStatus.active) ...[
-              _buildWelcomeOfferBanner(),
-              const SizedBox(height: 16),
-              _buildWelcomePackages(),
-              const SizedBox(height: 28),
-              Divider(height: 1, color: Colors.grey.shade300),
-              const SizedBox(height: 28),
-            ],
+            // ────── Active Offers from Backend ──────
+            ..._buildOfferCards(),
 
             // ────── Regular Packages ──────
             AppIcons.iconWithLabel(
-              _offerStatus == WelcomeOfferStatus.active
-                  ? AppIcons.money
-                  : AppIcons.energy,
-              _offerStatus == WelcomeOfferStatus.active
-                  ? 'Regular Prices'
-                  : 'Energy Packages',
-              iconColor: _offerStatus == WelcomeOfferStatus.active
-                  ? AppIcons.moneyColor
-                  : AppIcons.energyColor,
+              AppIcons.energy,
+              'Energy Packages',
+              iconColor: AppIcons.energyColor,
               iconSize: 24,
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -213,6 +294,544 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
             const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // OFFER CARDS (from backend API — same as quest bar)
+  // ───────────────────────────────────────────────────────────
+
+  List<Widget> _buildOfferCards() {
+    if (_offersLoading || _activeOffers.isEmpty) return [];
+
+    final widgets = <Widget>[];
+    for (final offer in _activeOffers) {
+      final type = offer['type'] as String? ?? '';
+      if (type == 'winback' || type == 'sub_upsell') continue;
+
+      // Use rewardType if available, otherwise infer from type (backward compat)
+      final rewardType = offer['rewardType'] as String? ?? _inferRewardType(type);
+      final offerId = offer['id'] as String? ?? '';
+
+      // Create GlobalKey for highlighting
+      if (offerId.isNotEmpty && !_offerKeys.containsKey(offerId)) {
+        _offerKeys[offerId] = GlobalKey();
+      }
+
+      Widget? card;
+      switch (rewardType) {
+        case 'special_product':
+          card = _buildFirstPurchaseCard(offer);
+          break;
+        case 'bonus_rate':
+          card = _buildBonusBanner(offer);
+          break;
+        case 'free_energy':
+          card = _buildFreeEnergyCard(offer);
+          break;
+        case 'subscription_deal':
+          // Navigate to SubscriptionScreen
+          card = _buildSubscriptionDealCard(offer);
+          break;
+        default:
+          // Fallback to old type-based logic
+          if (type == 'first_purchase') {
+            card = _buildFirstPurchaseCard(offer);
+          } else if (type == 'bonus_40' || type == 'tier_promo') {
+            card = _buildBonusBanner(offer);
+          }
+      }
+
+      if (card != null) {
+        final isHighlighted = widget.highlightOfferId == offerId && offerId.isNotEmpty;
+        final globalKey = offerId.isNotEmpty ? _offerKeys[offerId] : null;
+
+        Widget wrappedCard;
+        if (isHighlighted && _highlightAnimation != null) {
+          wrappedCard = AnimatedBuilder(
+            animation: _highlightAnimation!,
+            builder: (_, child) => Container(
+              key: globalKey,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.amber.withOpacity(_highlightAnimation!.value * 0.6),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: child,
+            ),
+            child: card,
+          );
+        } else {
+          wrappedCard = Container(
+            key: globalKey,
+            child: card,
+          );
+        }
+
+        widgets.add(wrappedCard);
+        widgets.add(const SizedBox(height: 16));
+      }
+    }
+    return widgets;
+  }
+
+  // Helper: Infer rewardType from old type (backward compat)
+  String _inferRewardType(String? offerType) {
+    switch (offerType) {
+      case 'first_purchase':
+        return 'special_product';
+      case 'bonus_40':
+      case 'tier_promo':
+        return 'bonus_rate';
+      default:
+        return 'bonus_rate';
+    }
+  }
+
+  /// First Purchase offer — $1 = 200 Energy (special card)
+  Widget _buildFirstPurchaseCard(dynamic offer) {
+    final title = offer['title'] as String? ?? 'Starter Deal';
+    final description = offer['description'] as String? ?? '';
+    final ctaText = offer['ctaText'] as String? ?? 'Buy Now';
+    final metadata = offer['metadata'] as Map<String, dynamic>?;
+    final productId = metadata?['productId'] as String? ?? 'energy_first_purchase_200';
+    final energyAmount = (metadata?['energyAmount'] as num?)?.toInt() ?? 200;
+    final price = metadata?['price'] as String? ?? '\$1.00';
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.orange.shade400, Colors.red.shade500],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _purchasePackage(productId, energyAmount),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.local_fire_department_rounded, size: 28, color: Colors.white),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'LIMITED TIME',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          price,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(AppIcons.energy, size: 16, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$energyAmount Energy',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+                if (_remainingTime != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.timer, color: Colors.white.withOpacity(0.9), size: 15),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDuration(_remainingTime!),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _purchasePackage(productId, energyAmount),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.orange.shade700,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      ctaText,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Free Energy Card (claim ได้เลย ไม่ต้องซื้อ)
+  Widget _buildFreeEnergyCard(dynamic offer) {
+    final title = offer['title'] as String? ?? 'Free Energy';
+    final description = offer['description'] as String? ?? '';
+    final ctaText = offer['ctaText'] as String? ?? 'Claim';
+    final icon = offer['icon'] as String? ?? '🎁';
+    final metadata = offer['metadata'] as Map<String, dynamic>?;
+    final amount = (metadata?['amount'] as num?)?.toInt() ?? 0;
+    final offerId = offer['id'] as String? ?? '';
+    final remainingSeconds = offer['remainingSeconds'] as int?;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.green.shade400, Colors.teal.shade600],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        icon,
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (description.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              description,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '+$amount Energy',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (remainingSeconds != null && remainingSeconds > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatDuration(Duration(seconds: remainingSeconds)),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.green.shade700,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        _isClaimingFreeEnergy ? 'Claiming...' : ctaText,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _claimFreeEnergy(String offerId) async {
+    setState(() => _isClaimingFreeEnergy = true);
+
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+      final url = Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/claimFreeEnergyEndpoint');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'deviceId': deviceId,
+          'templateId': offerId,
+        }),
+      );
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (data['success'] == true) {
+        final energyAdded = data['energyAdded'] as int? ?? 0;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ได้รับ $energyAdded Energy!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadOffers(); // Reload offer list
+        ref.invalidate(energyBalanceProvider); // Update balance display
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data['error'] as String? ?? 'ไม่สามารถ claim ได้'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[EnergyStore] Error claiming free energy: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('เกิดข้อผิดพลาด'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isClaimingFreeEnergy = false);
+      }
+    }
+  }
+
+  /// Bonus banner (40% bonus / tier promo)
+  Widget _buildBonusBanner(dynamic offer) {
+    final title = offer['title'] as String? ?? 'Bonus';
+    final description = offer['description'] as String? ?? '';
+    final metadata = offer['metadata'] as Map<String, dynamic>?;
+    final bonusRate = (metadata?['bonusRate'] as num?)?.toDouble() ?? 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade400, Colors.blue.shade400],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.local_fire_department_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (description.isNotEmpty)
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 13,
+                    ),
+                  )
+                else if (bonusRate > 0)
+                  Text(
+                    '+${(bonusRate * 100).toInt()}% Bonus on all purchases!',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 13,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (_remainingTime != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                _formatDuration(_remainingTime!),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -470,7 +1089,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Unlimited AI Analysis • ฿149/month',
+                        'Unlimited AI Analysis • from \$3.33/month',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 14,
@@ -492,144 +1111,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
     );
   }
 
-  Widget _buildWelcomeOfferBanner() {
-    final timeStr = _remainingTime != null
-        ? WelcomeOfferService.formatRemainingTime(_remainingTime!)
-        : '--';
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.red.shade400, Colors.pink.shade500],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const Icon(AppIcons.celebration, size: 48, color: Colors.white),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Welcome Offer',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const Text(
-                  '40% OFF • Limited Time',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(AppIcons.timer, size: 14, color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Expires in $timeStr',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomePackages() {
-    return Column(
-      children: [
-        _buildModernPackageCard(
-          icon: AppIcons.target,
-          iconColor: AppIcons.targetColor,
-          name: 'Starter Kick',
-          energy: 100,
-          price: 0.59,
-          priceText: '\$0.59',
-          originalPrice: '\$0.99',
-          productId: PurchaseService.energy100Welcome,
-          isWelcome: true,
-          gradient: [Colors.blue.shade300, Colors.blue.shade500],
-        ),
-        _buildModernPackageCard(
-          icon: AppIcons.subscription,
-          iconColor: AppColors.primary,
-          name: 'Value Pack',
-          energy: 550,
-          price: 2.99,
-          priceText: '\$2.99',
-          originalPrice: '\$4.99',
-          productId: PurchaseService.energy550Welcome,
-          badge: '+10%',
-          isWelcome: true,
-          gradient: [Colors.purple.shade300, Colors.purple.shade500],
-        ),
-        _buildModernPackageCard(
-          icon: AppIcons.streak,
-          iconColor: AppIcons.streakColor,
-          name: 'Power User',
-          energy: 1200,
-          price: 4.79,
-          priceText: '\$4.79',
-          originalPrice: '\$7.99',
-          productId: PurchaseService.energy1200Welcome,
-          badge: '+20%',
-          isWelcome: true,
-          isPopular: true,
-          gradient: [Colors.orange.shade400, Colors.deepOrange.shade500],
-        ),
-        _buildModernPackageCard(
-          icon: AppIcons.milestone,
-          iconColor: AppIcons.milestoneColor,
-          name: 'Ultimate Saver',
-          energy: 2000,
-          price: 5.99,
-          priceText: '\$5.99',
-          originalPrice: '\$9.99',
-          productId: PurchaseService.energy2000Welcome,
-          badge: '+50%',
-          isWelcome: true,
-          isBest: true,
-          gradient: [Colors.amber.shade400, Colors.orange.shade600],
-        ),
-      ],
-    );
-  }
-
   Widget _buildModernPackageCard({
     required IconData icon,
     required Color iconColor,
@@ -643,12 +1124,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
     String? badge,
     bool isPopular = false,
     bool isBest = false,
-    bool isWelcome = false,
   }) {
-    // Effective bonus = max(tier bonus, promotion bonus)
     final gamification = ref.watch(gamificationProvider);
     final tierRate = gamification.bonusRate;
-    final promoRate = _activePromotion?.bonusRate ?? 0;
+    final promoRate = _offerBonusRate;
     final bonusRate = tierRate > promoRate ? tierRate : promoRate;
     final isPromoBonus = promoRate > tierRate;
     final bonusEnergy = (energy * bonusRate).round();
@@ -803,33 +1282,82 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
                   ),
                 ),
 
-                // ────── Price ──────
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // ────── Price + Bonus Overlay ──────
+                Stack(
+                  clipBehavior: Clip.none,
                   children: [
-                    if (originalPrice != null) ...[
-                      Text(
-                        originalPrice,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                          decoration: TextDecoration.lineThrough,
-                          decorationThickness: 2,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (originalPrice != null) ...[
+                          Text(
+                            originalPrice,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              decoration: TextDecoration.lineThrough,
+                              decorationThickness: 2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
+                        Text(
+                          priceText,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade600,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (bonusRate > 0)
+                      Positioned(
+                        top: -50,
+                        right: -8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isPromoBonus
+                                  ? [Colors.purple.shade500, Colors.deepPurple.shade600]
+                                  : [Colors.orange.shade400, Colors.deepOrange.shade500],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (isPromoBonus ? Colors.purple : Colors.orange)
+                                    .withOpacity(0.4),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isPromoBonus
+                                    ? Icons.local_fire_department_rounded
+                                    : Icons.star_rounded,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                '+${(bonusRate * 100).toInt()}%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 2),
-                    ],
-                    Text(
-                      priceText,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: isWelcome
-                            ? Colors.red.shade600
-                            : Colors.green.shade600,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -901,96 +1429,145 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen> {
     );
   }
 
-  // ───────────────────────────────────────────────────────────
-  // ACTIONS
-  // ───────────────────────────────────────────────────────────
+  /// Subscription Deal card — navigate to SubscriptionScreen
+  Widget _buildSubscriptionDealCard(dynamic offer) {
+    final title = offer['title'] as String? ?? 'Subscription Deal';
+    final description = offer['description'] as String? ?? '';
+    final ctaText = offer['ctaText'] as String? ?? 'View Deal';
+    final icon = offer['icon'] as String? ?? '💎';
 
-  Widget _buildPromotionBanner(PromotionInfo promo) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade400, Colors.blue.shade400],
+          colors: [Colors.purple.shade400, Colors.indigo.shade600],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.purple.withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.local_fire_department_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      promo.displayName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Text(icon, style: const TextStyle(fontSize: 32)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Text(
-                      '+${(promo.bonusRate * 100).toInt()}% Bonus on all purchases!',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  promo.remainingText,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                      if (description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-              ),
-            ],
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.purple.shade700,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    ctaText,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }
+
+  void _scrollToOffer(String offerId) {
+    final key = _offerKeys[offerId];
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+        alignment: 0.3,
+      );
+    }
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // ACTIONS
+  // ───────────────────────────────────────────────────────────
 
   Future<void> _purchasePackage(String productId, int energy) async {
     final success = await PurchaseService.purchaseEnergy(productId);
     if (success) {
       ref.invalidate(currentEnergyProvider);
       ref.invalidate(energyBalanceProvider);
-      await _loadData();
+
+      // Remove used offers from local state immediately
+      // so user can't re-purchase before _loadOffers() completes
+      if (mounted) {
+        setState(() {
+          _activeOffers.removeWhere((offer) {
+            final rewardType = offer['rewardType'] as String?;
+            final type = offer['type'] as String?;
+            final metadata = offer['metadata'] as Map<String, dynamic>?;
+            final offerProductId = metadata?['productId'] as String?;
+            // Remove bonus_rate offers (one-time use per activation)
+            if (rewardType == 'bonus_rate' ||
+                type == 'bonus_40' ||
+                type == 'tier_promo') {
+              return true;
+            }
+            // Remove special_product offers if productId matches
+            if (rewardType == 'special_product' && offerProductId == productId) {
+              return true;
+            }
+            return false;
+          });
+        });
+      }
+
+      await _loadOffers();
 
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
