@@ -809,9 +809,7 @@ class L10nJa extends L10n {
   String get selectedFromMyMeal => '✅ 私の食事から選択 — 栄養データは自動入力されます';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ データベースで見つかりました - 栄養データは自動入力されます';
-  }
+  String get foundInDatabase => '✅ データベースで見つかりました - 栄養データは自動入力されます';
 
   @override
   String get saveAndAnalyze => '保存と分析';
@@ -2851,4 +2849,8 @@ class L10nJa extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

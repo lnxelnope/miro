@@ -1962,12 +1962,6 @@
   "subIngredientNameHintCreate": "Sub-ingredient name",
   "editSubIngredientHint": "Edit sub-ingredient amounts to adjust nutrition",
   "pleaseEnterSubFirst": "Please enter sub-ingredient name first",
-  "foundInDatabase": "Found \"{name}\" in database!",
-  "@foundInDatabase": {
-    "placeholders": {
-      "name": {"type": "String"}
-    }
-  },
   "aiAnalyzedEnergy": "AI analyzed \"{name}\" (-1 Energy)",
   "@aiAnalyzedEnergy": {
     "placeholders": {
@@ -1997,5 +1991,9 @@
       "amount": {"type": "String"},
       "unit": {"type": "String"}
     }
+  },
+  "chatContentTooLongError": "List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.",
+  "@chatContentTooLongError": {
+    "description": "Error message when user sends too many food items in chat at once (HTTP 422/413)"
   }
 }

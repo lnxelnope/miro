@@ -830,9 +830,8 @@ class L10nPt extends L10n {
       '✅ Selecionado em Minha Refeição - dados nutricionais preenchidos automaticamente';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ Encontrado no banco de dados – dados nutricionais preenchidos automaticamente';
-  }
+  String get foundInDatabase =>
+      '✅ Encontrado no banco de dados – dados nutricionais preenchidos automaticamente';
 
   @override
   String get saveAndAnalyze => 'Salvar e analisar';
@@ -2950,4 +2949,8 @@ class L10nPt extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

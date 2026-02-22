@@ -826,9 +826,8 @@ class L10nVi extends L10n {
       '✅ Được chọn từ Bữa ăn của tôi - dữ liệu dinh dưỡng được tự động điền';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ Có trong cơ sở dữ liệu — dữ liệu dinh dưỡng được tự động điền';
-  }
+  String get foundInDatabase =>
+      '✅ Có trong cơ sở dữ liệu — dữ liệu dinh dưỡng được tự động điền';
 
   @override
   String get saveAndAnalyze => 'Lưu & Phân tích';
@@ -2939,4 +2938,8 @@ class L10nVi extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

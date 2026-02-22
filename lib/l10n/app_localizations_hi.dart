@@ -831,9 +831,7 @@ class L10nHi extends L10n {
       '✅ मेरा भोजन से चयनित - पोषण डेटा स्वतः भरा हुआ';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ डेटाबेस में मिला - पोषण डेटा स्वतः भरा हुआ';
-  }
+  String get foundInDatabase => '✅ डेटाबेस में मिला - पोषण डेटा स्वतः भरा हुआ';
 
   @override
   String get saveAndAnalyze => 'सहेजें और विश्लेषण करें';
@@ -2925,4 +2923,8 @@ class L10nHi extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

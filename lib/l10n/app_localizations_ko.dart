@@ -808,9 +808,7 @@ class L10nKo extends L10n {
   String get selectedFromMyMeal => '✅ 내 식사에서 선택 — 영양 데이터 자동 입력';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ 데이터베이스에서 발견 — 영양 데이터가 자동으로 채워짐';
-  }
+  String get foundInDatabase => '✅ 데이터베이스에서 발견 — 영양 데이터가 자동으로 채워짐';
 
   @override
   String get saveAndAnalyze => '저장 및 분석';
@@ -2856,4 +2854,8 @@ class L10nKo extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

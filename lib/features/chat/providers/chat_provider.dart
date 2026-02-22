@@ -171,11 +171,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       });
 
       state = [...state, assistantMessage];
-    } on ChatContentTooLongException catch (e) {
+    } on ChatContentTooLongException catch (_) {
+      // Use English fallback (l10n will be applied by UI layer if context available)
+      const fallbackMessage = 'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
+      
       final errorMessage = ChatMessage()
         ..sessionId = sessionId
         ..role = MessageRole.assistant
-        ..content = '📝 $e'
+        ..content = '📝 $fallbackMessage'
         ..detectedIntent = 'error';
 
       await DatabaseService.isar.writeTxn(() async {

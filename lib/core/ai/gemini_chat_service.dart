@@ -180,7 +180,8 @@ class GeminiChatService {
         throw Exception(
             'Energy depleted. Please purchase more Energy from the store.');
       } else if (response.statusCode == 422 || response.statusCode == 413) {
-        throw ChatContentTooLongException();
+        // Content too long - will be translated by caller based on context
+        throw ChatContentTooLongException('CONTENT_TOO_LONG');
       } else {
         throw Exception('Failed to analyze chat: ${response.statusCode}');
       }
@@ -252,7 +253,8 @@ class GeminiChatService {
         throw Exception(
             'Energy depleted. Please purchase more Energy from the store.');
       } else if (response.statusCode == 422 || response.statusCode == 413) {
-        throw ChatContentTooLongException();
+        // Content too long
+        throw ChatContentTooLongException('CONTENT_TOO_LONG');
       } else {
         throw Exception(
             'Failed to get menu suggestions: ${response.statusCode}');
@@ -265,8 +267,10 @@ class GeminiChatService {
 
 /// Thrown when chat content is too long for the AI to process (422/413).
 class ChatContentTooLongException implements Exception {
+  final String message;
+  
+  ChatContentTooLongException(this.message);
+  
   @override
-  String toString() =>
-      'รายการยาวเกินไป ช่วยแบ่งส่งทีละ 2-3 รายการได้ไหมครับ 🙏\n\n'
-      'Energy ไม่ถูกหักนะครับ';
+  String toString() => message;
 }

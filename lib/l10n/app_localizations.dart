@@ -1573,8 +1573,8 @@ abstract class L10n {
   /// No description provided for @foundInDatabase.
   ///
   /// In en, this message translates to:
-  /// **'Found \"{name}\" in database!'**
-  String foundInDatabase(String name);
+  /// **'✅ Found in database — nutrition data auto-filled'**
+  String get foundInDatabase;
 
   /// No description provided for @saveAndAnalyze.
   ///
@@ -5119,6 +5119,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Base: {calories} kcal / {amount} {unit}'**
   String baseNutritionInfo(String calories, String amount, String unit);
+
+  /// Error message when user sends too many food items in chat at once (HTTP 422/413)
+  ///
+  /// In en, this message translates to:
+  /// **'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.'**
+  String get chatContentTooLongError;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

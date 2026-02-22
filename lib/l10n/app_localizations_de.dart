@@ -838,9 +838,8 @@ class L10nDe extends L10n {
       '✅ Aus „Meine Mahlzeit“ ausgewählt – Nährwertdaten werden automatisch ausgefüllt';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ In der Datenbank gefunden – Nährwertdaten werden automatisch ausgefüllt';
-  }
+  String get foundInDatabase =>
+      '✅ In der Datenbank gefunden – Nährwertdaten werden automatisch ausgefüllt';
 
   @override
   String get saveAndAnalyze => 'Speichern und analysieren';
@@ -2968,4 +2967,8 @@ class L10nDe extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }

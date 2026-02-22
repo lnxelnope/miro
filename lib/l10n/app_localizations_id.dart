@@ -827,9 +827,8 @@ class L10nId extends L10n {
       '✅ Dipilih dari Makanan Saya - data nutrisi terisi secara otomatis';
 
   @override
-  String foundInDatabase(String name) {
-    return '✅ Ditemukan di database — data nutrisi terisi secara otomatis';
-  }
+  String get foundInDatabase =>
+      '✅ Ditemukan di database — data nutrisi terisi secara otomatis';
 
   @override
   String get saveAndAnalyze => 'Simpan & Analisis';
@@ -2933,4 +2932,8 @@ class L10nId extends L10n {
   String baseNutritionInfo(String calories, String amount, String unit) {
     return 'Base: $calories kcal / $amount $unit';
   }
+
+  @override
+  String get chatContentTooLongError =>
+      'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
 }
