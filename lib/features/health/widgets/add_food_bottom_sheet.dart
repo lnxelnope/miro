@@ -2168,6 +2168,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             ? result.nutrition.fat / result.servingSize 
             : result.nutrition.fat
         ..ingredientsJson = ingredientsJsonStr
+        ..searchMode = _searchMode
         ..source = DataSource.aiAnalyzed;
 
       widget.onSave(entry);
@@ -2294,6 +2295,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       ..baseFat = servingSize > 0 ? fat / servingSize : fat
       ..myMealId = _selectedMyMealId
       ..ingredientsJson = ingredientsJsonStr
+      ..searchMode = _searchMode
       ..source = _filledFromDb ? DataSource.database : DataSource.manual;
 
     widget.onSave(entry);
