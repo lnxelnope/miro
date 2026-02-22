@@ -198,12 +198,13 @@ class EnergyService {
           'tier': data['tier']?.toString() ?? 'none',
           'currentStreak': (data['currentStreak'] as num?)?.toInt() ?? 0,
           'longestStreak': (data['longestStreak'] as num?)?.toInt() ?? 0,
-          'freeAiUsedToday': data['freeAiUsedToday'] ?? false,
           'challenges': data['challenges'] ?? {},
           'milestones': data['milestones'] ?? {},
           'totalSpent': (data['totalSpent'] as num?)?.toInt() ?? 0,
           'bonusRate': (data['bonusRate'] as num?)?.toDouble() ?? 0.0,
           'subscription': data['subscription'] ?? {},
+          'tierCelebration': data['tierCelebration'] ?? {},
+          'seasonalQuests': data['seasonalQuests'] ?? [],
         };
       } else {
         throw Exception('Server returned ${response.statusCode}');
@@ -258,12 +259,13 @@ class EnergyService {
           'tier': data['tier']?.toString() ?? 'none',
           'currentStreak': (data['currentStreak'] as num?)?.toInt() ?? 0,
           'longestStreak': (data['longestStreak'] as num?)?.toInt() ?? 0,
-          'freeAiUsedToday': data['freeAiUsedToday'] ?? false,
           'challenges': data['challenges'] ?? {},
           'milestones': data['milestones'] ?? {},
           'totalSpent': (data['totalSpent'] as num?)?.toInt() ?? 0,
           'bonusRate': (data['bonusRate'] as num?)?.toDouble() ?? 0.0,
           'subscription': data['subscription'] ?? {},
+          'tierCelebration': data['tierCelebration'] ?? {},
+          'seasonalQuests': data['seasonalQuests'] ?? [],
         };
       }
 
@@ -392,6 +394,37 @@ class EnergyService {
   }
 
   // ───────────────────────────────────────────────────────────
+  // 3B. FIRST FREE ANALYSIS (once per user)
+  // ───────────────────────────────────────────────────────────
+
+  static const String _keyFirstFreeAnalysisUsed = 'first_free_analysis_used';
+
+  /// Check if the user still has their first free analysis available
+  Future<bool> isFirstFreeAnalysisAvailable() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyFirstFreeAnalysisUsed) != true;
+  }
+
+  /// Grant bonus energy to cover the first analysis, then mark as used.
+  /// Returns true if granted, false if already used.
+  Future<bool> grantFirstFreeAnalysis(int itemCount) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_keyFirstFreeAnalysisUsed) == true) {
+      return false;
+    }
+
+    await addEnergy(
+      itemCount,
+      type: 'first_free_analysis',
+      description: 'First analysis bonus: $itemCount Energy 🎁',
+    );
+
+    await prefs.setBool(_keyFirstFreeAnalysisUsed, true);
+    debugPrint('[EnergyService] 🎁 First free analysis granted: +$itemCount Energy');
+    return true;
+  }
+
+  // ───────────────────────────────────────────────────────────
   // 4. TRANSACTION HISTORY
   // ───────────────────────────────────────────────────────────
 
@@ -511,6 +544,47 @@ class EnergyService {
     final decoded = EnergyTokenService.decodeToken(newToken);
     if (decoded != null && decoded['balance'] != null) {
       await _updateBalance(decoded['balance'] as int);
+    }
+  }
+
+  /// V3: Claim Daily Energy (Manual) — Static helper
+  /// เรียก endpoint claimDailyEnergy เพื่อ claim daily reward
+  /// Returns: { success, energyClaimed, newBalance, newStreak, tierUpgraded, ... }
+  static Future<Map<String, dynamic>> claimDailyEnergy() async {
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+      const url =
+          'https://us-central1-miro-d6856.cloudfunctions.net/claimDailyEnergy';
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'deviceId': deviceId}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        
+        // Update local balance (static helper)
+        if (data['newBalance'] != null) {
+          final newBalance = (data['newBalance'] as num).toInt();
+          await _storage.write(
+            key: _keyBalance,
+            value: newBalance.toString(),
+          );
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt(_keyBalance, newBalance);
+          debugPrint('[EnergyService] ✅ Daily claim balance updated: $newBalance');
+        }
+
+        return data;
+      } else {
+        final errorData = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(errorData['error'] ?? 'Failed to claim daily energy');
+      }
+    } catch (e) {
+      debugPrint('[EnergyService] ❌ claimDailyEnergy error: $e');
+      rethrow;
     }
   }
 

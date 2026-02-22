@@ -3,6 +3,8 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/profile_provider.dart';
 
 // kcal ต่อ 1 กรัม ของแต่ละ macro
@@ -174,9 +176,9 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     // Can only lock if less than 2 are locked
     if (_lockedCount >= 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Can only lock 2 macros at once'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(L10n.of(context)!.canOnlyLockTwoMacros),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -329,9 +331,9 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
     if (_mealLockedCount >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Can only lock 3 meals; the 4th auto-calculates'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(L10n.of(context)!.canOnlyLockThreeMeals),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
@@ -399,68 +401,66 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health Goals'),
+        title: Text(L10n.of(context)!.healthGoalsTitle),
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) => Center(child: Text('${L10n.of(context)!.error}: $e')),
         data: (profile) {
           _initFromProfile(profile);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingLg,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ===== Info card =====
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppSpacing.paddingLg,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.md,
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.primary),
-                      SizedBox(width: 12),
+                      const Icon(Icons.info_outline, color: AppColors.primary),
+                      SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          'Set your daily calorie goal, macros, and per-meal budgets.\n'
-                          'Lock to auto-calculate: 2 macros or 3 meals.',
-                          style:
-                              TextStyle(color: AppColors.primary, fontSize: 13),
+                          L10n.of(context)!.healthGoalsInfo,
+                          style: const TextStyle(color: AppColors.primary, fontSize: 13),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.xxl),
 
                 // ===== Calorie Goal =====
                 _buildCalorieSection(),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.xxl),
 
                 // ===== Macro Editors =====
                 _buildMacroEditor(
-                  label: 'Protein',
+                  label: L10n.of(context)!.proteinLabel,
                   icon: '🥩',
                   macroKey: 'protein',
                   controller: _proteinController,
                   color: AppColors.protein,
                   kcalPerGram: _kCalPerGramProtein,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppSpacing.md),
                 _buildMacroEditor(
-                  label: 'Carbs',
+                  label: L10n.of(context)!.carbsLabel,
                   icon: '🍚',
                   macroKey: 'carbs',
                   controller: _carbController,
                   color: AppColors.carbs,
                   kcalPerGram: _kCalPerGramCarbs,
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppSpacing.md),
                 _buildMacroEditor(
-                  label: 'Fat',
+                  label: L10n.of(context)!.fatLabel,
                   icon: '🧈',
                   macroKey: 'fat',
                   controller: _fatController,
@@ -468,15 +468,15 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   kcalPerGram: _kCalPerGramFat,
                 ),
 
-                const SizedBox(height: 28),
+                SizedBox(height: AppSpacing.xxxl),
 
                 // ===== Meal Calorie Budget =====
                 _buildMealBudgetSection(),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.xxl),
 
                 // ===== Suggestion Threshold =====
                 _buildSuggestionThresholdSection(),
-                const SizedBox(height: 32),
+                SizedBox(height: AppSpacing.xxxl),
 
                 // ===== Save Button =====
                 SizedBox(
@@ -486,9 +486,9 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                     ),
                     child: _isLoading
@@ -498,12 +498,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Save',
-                            style: TextStyle(
+                        : Text(L10n.of(context)!.save,
+                            style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.lg),
               ],
             ),
           );
@@ -521,7 +521,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       children: [
         AppIcons.iconWithLabel(
           AppIcons.calories,
-          'Daily Calorie Goal',
+          L10n.of(context)!.dailyCalorieGoal,
           iconColor: AppIcons.caloriesColor,
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -535,13 +535,13 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             suffixText: 'kcal',
-            suffixStyle: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            suffixStyle: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            border: OutlineInputBorder(borderRadius: AppRadius.md),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.md,
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+            contentPadding: AppSpacing.verticalLg,
           ),
         ),
       ],
@@ -567,12 +567,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     final isAutoCalculated = !isLocked && _lockedCount == 2;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.paddingMd,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.md,
         border: Border.all(
-          color: isLocked ? color.withOpacity(0.6) : color.withOpacity(0.3),
+          color: isLocked ? color.withValues(alpha: 0.6) : color.withValues(alpha: 0.3),
           width: isLocked ? 2 : 1,
         ),
       ),
@@ -601,11 +601,11 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
+                          color: color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(AppSpacing.xs), // Keep 4px for small badge
                         ),
                         child: Text(
-                          'auto',
+                          L10n.of(context)!.autoBadge,
                           style: TextStyle(
                             fontSize: 10,
                             color: color,
@@ -617,8 +617,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   ],
                 ),
                 Text(
-                  '${kcalPerGram.toInt()} kcal/g • ${kcal.round()} kcal',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  L10n.of(context)!.kcalPerGram(kcalPerGram.toInt(), kcal.round()),
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -627,18 +627,18 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           // Lock button
           InkWell(
             onTap: () => _toggleLock(macroKey),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.sm,
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(
                 isLocked ? Icons.lock : Icons.lock_open,
                 size: 20,
-                color: isLocked ? color : Colors.grey[400],
+                color: isLocked ? color : AppColors.textTertiary,
               ),
             ),
           ),
 
-          const SizedBox(width: 8),
+          SizedBox(width: AppSpacing.sm),
 
           // Gram input
           SizedBox(
@@ -652,22 +652,22 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isAutoCalculated ? Colors.grey[500] : color,
+                color: isAutoCalculated ? AppColors.textTertiary : color,
               ),
               decoration: InputDecoration(
                 suffixText: 'g',
                 suffixStyle: TextStyle(
                   fontSize: 12,
-                  color: isAutoCalculated ? Colors.grey[500] : Colors.grey[600],
+                  color: isAutoCalculated ? AppColors.textTertiary : AppColors.textSecondary,
                 ),
                 border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    OutlineInputBorder(borderRadius: AppRadius.sm),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.sm,
                   borderSide: BorderSide(color: color, width: 2),
                 ),
                 contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
               ),
             ),
           ),
@@ -694,19 +694,19 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       children: [
         AppIcons.iconWithLabel(
           AppIcons.calories,
-          'Meal Calorie Budget',
+          L10n.of(context)!.mealCalorieBudget,
           iconColor: AppIcons.caloriesColor,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: AppSpacing.paddingMd,
           decoration: BoxDecoration(
             color: isBalanced
-                ? AppColors.success.withOpacity(0.08)
-                : AppColors.warning.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(10),
+                ? AppColors.success.withValues(alpha: 0.08)
+                : AppColors.warning.withValues(alpha: 0.08),
+            borderRadius: AppRadius.md,
           ),
           child: Row(
             children: [
@@ -715,12 +715,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                 size: 18,
                 color: isBalanced ? AppColors.success : AppColors.warning,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   isBalanced
-                      ? 'Total ${totalBudget.toInt()} kcal = Goal ${calGoal.toInt()} kcal'
-                      : 'Total ${totalBudget.toInt()} / ${calGoal.toInt()} kcal  (${diff > 0 ? '+' : ''}${diff.toInt()} remaining)',
+                      ? L10n.of(context)!.mealBudgetBalanced(totalBudget.toInt(), calGoal.toInt())
+                      : L10n.of(context)!.mealBudgetRemaining(totalBudget.toInt(), calGoal.toInt(), diff.toInt()),
                   style: TextStyle(
                     fontSize: 12,
                     color: isBalanced ? AppColors.success : AppColors.warning,
@@ -731,41 +731,41 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: AppSpacing.xs),
         Text(
-          'Lock 3 meals to auto-calculate the 4th',
-          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+          L10n.of(context)!.lockMealsHint,
+          style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppSpacing.md),
         _buildMealBudgetRow(
-          label: 'Breakfast',
+          label: L10n.of(context)!.breakfastLabel,
           mealKey: 'breakfast',
           controller: _breakfastController,
-          color: const Color(0xFFFB923C), // orange-400
+          color: AppColors.warning, // orange-400
           icon: Icons.wb_sunny_rounded,
         ),
-        const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
         _buildMealBudgetRow(
-          label: 'Lunch',
+          label: L10n.of(context)!.lunchLabel,
           mealKey: 'lunch',
           controller: _lunchController,
-          color: const Color(0xFFFBBF24), // amber-400
+          color: AppColors.warning, // amber-400
           icon: Icons.wb_cloudy_rounded,
         ),
-        const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
         _buildMealBudgetRow(
-          label: 'Dinner',
+          label: L10n.of(context)!.dinnerLabel,
           mealKey: 'dinner',
           controller: _dinnerController,
-          color: const Color(0xFF818CF8), // indigo-400
+          color: AppColors.ai, // indigo-400
           icon: Icons.nightlight_round,
         ),
-        const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
         _buildMealBudgetRow(
-          label: 'Snack',
+          label: L10n.of(context)!.snackLabel,
           mealKey: 'snack',
           controller: _snackController,
-          color: const Color(0xFF34D399), // emerald-400
+          color: AppColors.success, // emerald-400
           icon: Icons.cookie_rounded,
         ),
       ],
@@ -785,19 +785,19 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     final pct = _calories > 0 ? (kcal / _calories * 100) : 0;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.paddingMd,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.06),
+        borderRadius: AppRadius.md,
         border: Border.all(
-          color: isLocked ? color.withOpacity(0.5) : color.withOpacity(0.2),
+          color: isLocked ? color.withValues(alpha: 0.5) : color.withValues(alpha: 0.2),
           width: isLocked ? 2 : 1,
         ),
       ),
       child: Row(
         children: [
-          Icon(icon, color: color.withOpacity(0.8), size: 22),
-          const SizedBox(width: 10),
+          Icon(icon, color: color.withValues(alpha: 0.8), size: 22),
+          SizedBox(width: AppSpacing.md), // 10 -> 12 closest
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -817,11 +817,11 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
+                          color: color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(AppSpacing.xs), // Keep 4px for small badge
                         ),
                         child: Text(
-                          'auto',
+                          L10n.of(context)!.autoBadge,
                           style: TextStyle(
                             fontSize: 10,
                             color: color,
@@ -833,25 +833,25 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   ],
                 ),
                 Text(
-                  '${pct.toStringAsFixed(0)}% of daily goal',
-                  style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                  L10n.of(context)!.percentOfDailyGoal(pct.toStringAsFixed(0)),
+                  style: TextStyle(fontSize: 10, color: AppColors.textTertiary),
                 ),
               ],
             ),
           ),
           InkWell(
             onTap: () => _toggleMealLock(mealKey),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.sm,
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(
                 isLocked ? Icons.lock : Icons.lock_open,
                 size: 20,
-                color: isLocked ? color : Colors.grey[400],
+                color: isLocked ? color : AppColors.textTertiary,
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: AppSpacing.sm),
           SizedBox(
             width: 80,
             child: TextField(
@@ -863,20 +863,20 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isAutoCalc ? Colors.grey[500] : color,
+                color: isAutoCalc ? AppColors.textTertiary : color,
               ),
               decoration: InputDecoration(
                 suffixText: 'kcal',
                 suffixStyle: TextStyle(
                   fontSize: 9,
-                  color: isAutoCalc ? Colors.grey[400] : Colors.grey[500],
+                    color: isAutoCalc ? AppColors.textTertiary : AppColors.textSecondary,
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(borderRadius: AppRadius.sm),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.sm,
                   borderSide: BorderSide(color: color, width: 2),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                contentPadding: EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
               ),
             ),
           ),
@@ -896,25 +896,25 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       children: [
         AppIcons.iconWithLabel(
           AppIcons.calories,
-          'Smart Suggestion Range',
+          L10n.of(context)!.smartSuggestionRange,
           iconColor: AppColors.primary,
           fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
         // Explanation card
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppColors.primary.withOpacity(0.06),
-                AppColors.health.withOpacity(0.04),
+                AppColors.primary.withValues(alpha: 0.06),
+                AppColors.health.withValues(alpha: 0.04),
               ],
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.md,
             border: Border.all(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
             ),
           ),
           child: Column(
@@ -923,12 +923,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               Row(
                 children: [
                   Icon(Icons.auto_awesome_rounded,
-                      size: 18, color: AppColors.primary.withOpacity(0.7)),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                      size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
+                  SizedBox(width: AppSpacing.sm),
+                  Expanded(
                     child: Text(
-                      'How does Smart Suggestion work?',
-                      style: TextStyle(
+                      L10n.of(context)!.smartSuggestionHow,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                         color: AppColors.primary,
@@ -939,57 +939,56 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'We suggest foods from your My Meals, ingredients, and '
-                'yesterday\'s meals that fit your per-meal budget.\n\n'
-                'This threshold controls how flexible the suggestions are. '
-                'For example, if your lunch budget is 700 kcal and threshold '
-                'is ${threshold.toInt()} kcal, we\'ll suggest foods between '
-                '${(700 - threshold).toInt()}–${(700 + threshold).toInt()} kcal.',
+                L10n.of(context)!.smartSuggestionDesc(
+                  threshold.toInt(),
+                  (700 - threshold).toInt(),
+                  (700 + threshold).toInt(),
+                ),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: AppColors.textSecondary,
                   height: 1.5,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: AppSpacing.md),
         // Threshold input
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: AppSpacing.paddingMd,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.primary.withValues(alpha: 0.05),
+            borderRadius: AppRadius.md,
             border: Border.all(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
             children: [
               Icon(Icons.tune_rounded,
-                  color: AppColors.primary.withOpacity(0.7), size: 22),
+                  color: AppColors.primary.withValues(alpha: 0.7), size: 22),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Suggestion Threshold',
-                      style: TextStyle(
+                    Text(
+                      L10n.of(context)!.suggestionThreshold,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
                         fontSize: 14,
                       ),
                     ),
                     Text(
-                      'Allow foods ± ${threshold.toInt()} kcal from meal budget',
-                      style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                      L10n.of(context)!.suggestionThresholdDesc(threshold.toInt()),
+                      style: TextStyle(fontSize: 10, color: AppColors.textTertiary),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: AppSpacing.sm),
               SizedBox(
                 width: 80,
                 child: TextField(
@@ -1007,17 +1006,17 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     suffixText: 'kcal',
                     suffixStyle: TextStyle(
                       fontSize: 9,
-                      color: Colors.grey[500],
+                      color: AppColors.textSecondary,
                     ),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: AppRadius.sm),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: AppRadius.sm,
                       borderSide:
                           const BorderSide(color: AppColors.primary, width: 2),
                     ),
                     contentPadding:
-                        const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                        EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
                   ),
                 ),
               ),
@@ -1051,10 +1050,10 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Goals saved successfully!'),
+          SnackBar(
+            content: Text(L10n.of(context)!.goalsSavedSuccess),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
         Navigator.pop(context);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/subscription_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 /// Subscriber Badge Widget
 /// 
@@ -52,10 +53,10 @@ class SubscriberBadge extends ConsumerWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.primary,
-            AppColors.primary.withOpacity(0.7),
+            AppColors.primary.withValues(alpha: 0.7),
           ],
         ),
-        borderRadius: BorderRadius.circular(100),
+        borderRadius: AppRadius.pill,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

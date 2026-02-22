@@ -1,163 +1,117 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/services/energy_service.dart';
+import '../../../core/services/ad_service.dart';
 import '../../../core/database/database_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../energy/providers/energy_provider.dart';
 import '../presentation/energy_store_screen.dart';
-import 'welcome_offer_unlocked_dialog.dart';
 
 /// Dialog shown when Energy runs out
-/// 
-/// **New Feature:** First time empty → Grant 50 Energy bonus + unlock Welcome Offer (40% OFF - 24h)
+///
+/// Returns true if the user watched a rewarded ad successfully,
+/// so the caller can retry the operation without spending energy.
 class NoEnergyDialog extends ConsumerStatefulWidget {
-  const NoEnergyDialog({super.key});
+  final VoidCallback? onAdWatched;
+
+  const NoEnergyDialog({super.key, this.onAdWatched});
 
   @override
   ConsumerState<NoEnergyDialog> createState() => _NoEnergyDialogState();
-  
-  /// Show Dialog
-  static Future<void> show(BuildContext context) {
-    return showDialog(
+
+  /// Show the dialog. Returns true if user watched a rewarded ad.
+  static Future<bool> show(BuildContext context, {VoidCallback? onAdWatched}) async {
+    final result = await showDialog<bool>(
       context: context,
-      builder: (_) => const NoEnergyDialog(),
+      builder: (_) => NoEnergyDialog(onAdWatched: onAdWatched),
     );
+    return result ?? false;
   }
 }
 
 class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
-  bool _isChecking = true;
-  bool _receivedBonus = false;
+  final AdService _adService = AdService();
+  bool _isLoadingAd = false;
+  int _remainingAds = 3;
 
   @override
   void initState() {
     super.initState();
-    _checkFirstTimeBonus();
+    _initAd();
   }
 
-  Future<void> _checkFirstTimeBonus() async {
-    final energyService = EnergyService(DatabaseService.isar);
-    
-    // Check if this is the first time Energy ran out
-    final receivedBonus = await energyService.checkAndHandleFirstEnergyEmpty();
-    
-    setState(() {
-      _isChecking = false;
-      _receivedBonus = receivedBonus;
-    });
+  Future<void> _initAd() async {
+    await _adService.initialize();
+    if (mounted) {
+      setState(() => _remainingAds = _adService.remainingAds);
+    }
+  }
 
-    if (receivedBonus) {
-      // Wait a moment then close this dialog
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      if (mounted) {
-        // Refresh energy balance
-        ref.invalidate(energyBalanceProvider);
-        
-        // Close dialog
-        Navigator.pop(context);
-        
-        // Show Welcome Offer Unlocked Dialog
-        await WelcomeOfferUnlockedDialog.show(context);
+  Future<void> _handleWatchAd() async {
+    if (_isLoadingAd || !_adService.canWatchAd) return;
+    setState(() => _isLoadingAd = true);
+
+    try {
+      final reward = await _adService.showRewardedAd();
+
+      if (reward > 0 && mounted) {
+        // Return true so the caller knows it can retry
+        Navigator.pop(context, true);
+        widget.onAdWatched?.call();
+      } else if (mounted) {
+        final l10n = L10n.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.questBarAdNotReady),
+            backgroundColor: AppColors.warning,
+          ),
+        );
       }
+    } finally {
+      if (mounted) setState(() => _isLoadingAd = false);
     }
   }
 
   @override
+  void dispose() {
+    _adService.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (_isChecking) {
-      // Show loading while checking
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(color: AppIcons.energyColor),
-            const SizedBox(height: 16),
-            const Text('Checking...'),
-          ],
-        ),
-      );
-    }
-
-    if (_receivedBonus) {
-      // Show bonus message
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(AppIcons.celebration, size: 32, color: Colors.purple),
-            const SizedBox(width: 12),
-            const Text('🎉 Special Bonus!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'You received:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(AppIcons.energy, size: 24, color: AppIcons.energyColor),
-                const SizedBox(width: 8),
-                const Text(
-                  '50 Energy FREE!',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(AppIcons.discount, size: 24, color: Colors.orange),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    '40% OFF Energy (24h)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Normal case (not first time) - show original dialog
-    // Normal case (not first time) - show original dialog
+    final l10n = L10n.of(context)!;
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
       title: Row(
         children: [
-          Icon(AppIcons.energy, size: 32, color: AppIcons.energyColor),
-          const SizedBox(width: 12),
-          const Text('Out of Energy'),
+          const Icon(AppIcons.energy, size: 32, color: AppIcons.energyColor),
+          SizedBox(width: AppSpacing.md),
+          Text(l10n.noEnergyTitle),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'You need 1 Energy to analyze food with AI',
-            style: TextStyle(fontSize: 16),
+          Text(
+            l10n.noEnergyContent,
+            style: const TextStyle(fontSize: 16),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
           Row(
             children: [
-              Icon(AppIcons.tips, size: 16, color: AppIcons.tipsColor),
-              const SizedBox(width: 8),
+              const Icon(AppIcons.tips, size: 16, color: AppIcons.tipsColor),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'You can still log food manually (without AI) for free',
+                  l10n.noEnergyTip,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -168,22 +122,37 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Later'),
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l10n.noEnergyLater),
         ),
+        if (_adService.canWatchAd)
+          TextButton.icon(
+            onPressed: _isLoadingAd ? null : _handleWatchAd,
+            icon: _isLoadingAd
+                ? SizedBox(
+                    width: AppSpacing.lg,
+                    height: AppSpacing.lg,
+                    child: const CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.play_circle_outline, color: AppColors.info),
+            label: Text(
+              l10n.noEnergyWatchAd(_remainingAds),
+              style: const TextStyle(color: AppColors.info),
+            ),
+          ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop(context, false);
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const EnergyStoreScreen()),
             );
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            backgroundColor: AppColors.success,
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
           ),
-          child: const Text('Buy Energy', style: TextStyle(color: Colors.white)),
+          child: Text(l10n.noEnergyBuyEnergy, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

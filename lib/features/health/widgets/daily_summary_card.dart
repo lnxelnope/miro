@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../providers/health_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
@@ -34,10 +35,10 @@ class DailySummaryCard extends ConsumerWidget {
         padding: const EdgeInsets.all(20), // เปลี่ยนจาก 16 → 20
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor, // เปลี่ยนจาก gradient → สีขาว/เทา
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.lg,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06), // เปลี่ยน shadow
+              color: Colors.black.withValues(alpha: 0.06), // เปลี่ยน shadow
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -119,7 +120,7 @@ class DailySummaryCard extends ConsumerWidget {
                                   child: CircularProgressIndicator(
                                     value: percent,
                                     strokeWidth: 8,
-                                    backgroundColor: Colors.grey.shade200,
+                                    backgroundColor: AppColors.divider,
                                     valueColor: const AlwaysStoppedAnimation(
                                         AppColors.primary),
                                   ),
@@ -136,16 +137,16 @@ class DailySummaryCard extends ConsumerWidget {
                                     ),
                                     Text(
                                       '/ ${goal.toInt()}',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontSize: 11,
-                                        color: Colors.grey.shade600,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                     const Text(
                                       'kcal',
                                       style: TextStyle(
                                         fontSize: 10,
-                                        color: Colors.grey,
+                                        color: AppColors.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -207,8 +208,8 @@ class DailySummaryCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: AppRadius.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -245,9 +246,9 @@ class DailySummaryCard extends ConsumerWidget {
           ),
           Text(
             '/ ${goal.toInt()}g',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
             ),
           ),
         ],

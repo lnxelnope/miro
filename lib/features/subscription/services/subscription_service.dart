@@ -21,21 +21,15 @@ class SubscriptionService {
   static const String _verifySubscriptionUrl =
       'https://us-central1-miro-d6856.cloudfunctions.net/verifySubscription';
 
-  // Product IDs
-  static const String kEnergyPassMonthlyId = 'energy_pass_monthly';
+  // Product ID (single subscription product with multiple base plans)
+  static const String kSubscriptionProductId = 'miro_normal_subscription';
 
   /// Initialize the service
   Future<void> initialize() async {
     debugPrint('🔧 [SubscriptionService] Initializing...');
 
     // Android-specific initialization
-    if (Platform.isAndroid) {
-      final InAppPurchaseAndroidPlatformAddition androidAddition =
-          _inAppPurchase
-              .getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
-      // enablePendingPurchases() is deprecated and no longer needed
-      // The library handles this automatically
-    }
+    // Android: enablePendingPurchases() deprecated — handled automatically by BL5+
 
     // Listen to purchase updates
     final Stream<List<PurchaseDetails>> purchaseUpdated =
@@ -61,7 +55,7 @@ class SubscriptionService {
     debugPrint('🔍 [SubscriptionService] Fetching products...');
 
     final Set<String> productIds = {
-      kEnergyPassMonthlyId,
+      kSubscriptionProductId,
     };
 
     final ProductDetailsResponse response =
@@ -83,15 +77,51 @@ class SubscriptionService {
     return response.productDetails;
   }
 
-  /// Purchase a subscription
-  Future<bool> purchaseSubscription(ProductDetails product) async {
-    debugPrint('💰 [SubscriptionService] Purchasing: ${product.id}');
-
-    final PurchaseParam purchaseParam = PurchaseParam(
-      productDetails: product,
-    );
+  /// Purchase a subscription — รองรับ Base Plan selection
+  ///
+  /// [product]     — ProductDetails จาก queryProductDetails
+  /// [basePlanId]  — Base Plan ที่ต้องการ เช่น 'energy-pass-monthly'
+  ///                 ถ้าไม่ระบุ → ใช้ base plan แรกที่เจอ
+  Future<bool> purchaseSubscription(
+    ProductDetails product, {
+    String? basePlanId,
+  }) async {
+    debugPrint('💰 [SubscriptionService] Purchasing: ${product.id} basePlan: $basePlanId');
 
     try {
+      PurchaseParam purchaseParam;
+
+      if (Platform.isAndroid) {
+        // Google Play Billing: ต้องใช้ GooglePlayPurchaseParam พร้อม offerToken
+        final androidDetails = product as GooglePlayProductDetails;
+        final offerDetails = androidDetails.productDetails.subscriptionOfferDetails;
+
+        if (offerDetails == null || offerDetails.isEmpty) {
+          debugPrint('⚠️ [SubscriptionService] No offer details found');
+          return false;
+        }
+
+        // หา offer ที่ตรงกับ basePlanId ที่ต้องการ
+        // ถ้าไม่ระบุ basePlanId → ใช้ offer แรก
+        final targetOffer = basePlanId != null
+            ? offerDetails.firstWhere(
+                (o) => o.basePlanId == basePlanId,
+                orElse: () => offerDetails.first,
+              )
+            : offerDetails.first;
+
+        debugPrint(
+          '💳 [SubscriptionService] Using offerIdToken for basePlan: ${targetOffer.basePlanId}',
+        );
+
+        purchaseParam = GooglePlayPurchaseParam(
+          productDetails: product,
+          offerToken: targetOffer.offerIdToken,
+        );
+      } else {
+        purchaseParam = PurchaseParam(productDetails: product);
+      }
+
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
@@ -102,6 +132,31 @@ class SubscriptionService {
       debugPrint('❌ [SubscriptionService] Purchase error: $e');
       return false;
     }
+  }
+
+  /// ดึง offer details สำหรับ base plan ที่ระบุ
+  /// ใช้สำหรับแสดงราคาจริงจาก Google Play
+  static Map<String, String> extractBasePlanPrices(ProductDetails product) {
+    final prices = <String, String>{};
+    if (!Platform.isAndroid) return prices;
+
+    try {
+      final androidDetails = product as GooglePlayProductDetails;
+      final offerDetails = androidDetails.productDetails.subscriptionOfferDetails;
+      if (offerDetails == null) return prices;
+
+      for (final offer in offerDetails) {
+        // pricingPhases เป็น List<PricingPhaseWrapper> โดยตรง
+        if (offer.pricingPhases.isNotEmpty) {
+          // ใช้ phase สุดท้าย = ราคาปกติ (หลังจบ trial/intro)
+          final phase = offer.pricingPhases.last;
+          prices[offer.basePlanId] = phase.formattedPrice;
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ [SubscriptionService] extractBasePlanPrices error: $e');
+    }
+    return prices;
   }
 
   /// Restore purchases

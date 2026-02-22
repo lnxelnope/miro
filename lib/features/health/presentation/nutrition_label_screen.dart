@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
@@ -43,7 +44,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('📋', style: TextStyle(fontSize: 64)),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
           const Text(
             'Scan a nutrition label',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -55,7 +56,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: AppSpacing.xxxl),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -67,21 +68,21 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                      EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
+                      shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.md),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: AppSpacing.md),
               OutlinedButton.icon(
                 onPressed: _pickFromGallery,
                 icon: const Icon(Icons.photo_library),
                 label: const Text('From Gallery'),
                 style: OutlinedButton.styleFrom(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                      EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
+                      shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.md),
                 ),
               ),
             ],
@@ -97,14 +98,14 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
         // Image preview
         Expanded(
           child: Container(
-            margin: const EdgeInsets.all(16),
+            margin: EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.lg,
               border:
-                  Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
+                  Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.lg,
               child: Image.file(
                 _capturedImage!,
                 fit: BoxFit.contain,
@@ -115,12 +116,12 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
 
         // Actions
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppSpacing.paddingLg,
           child: _isAnalyzing
               ? const Column(
                   children: [
                     CircularProgressIndicator(),
-                    SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     Text('🧬 ANALYZING NUTRITION LABEL...'),
                   ],
                 )
@@ -133,15 +134,15 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                         icon: const Icon(Icons.auto_awesome),
                         label: const Text('AI Analysis'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.purple,
+                          backgroundColor: AppColors.premium,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                              borderRadius: AppRadius.md),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
                         Expanded(
@@ -150,9 +151,9 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             icon: const Icon(Icons.camera_alt, size: 18),
                             label: const Text('Retake'),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                  borderRadius: AppRadius.md),
                             ),
                           ),
                         ),
@@ -163,9 +164,9 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             icon: const Icon(Icons.close, size: 18),
                             label: const Text('Cancel'),
                             style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
+                                  borderRadius: AppRadius.md),
                             ),
                           ),
                         ),
@@ -227,7 +228,12 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
     final hasEnergy = await GeminiService.hasEnergy();
     if (!hasEnergy) {
       if (!context.mounted) return;
-      await NoEnergyDialog.show(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -340,7 +346,12 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
 
       // ตรวจสอบว่าเป็น Energy error หรือไม่
       if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('❌ $e'), duration: const Duration(seconds: 2)),

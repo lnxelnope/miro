@@ -65,24 +65,21 @@ class ScanController {
         continue;
       }
 
-      // ⭐ เช็คว่ารูปนี้ถูกสแกนไปแล้วหรือยัง (เช็คจาก imagePath)
-      // รวมถึงรูปที่ถูกลบออกจาก MIRO แล้ว (isDeleted = true)
+      // ⭐ เช็คว่ารูปนี้เคยถูกสแกนมาก่อนหรือไม่ (ไม่ว่าจะลบแล้วหรือยัง)
+      // ถ้าเคยสแกน → skip เสมอ ป้องกันรูปที่ผู้ใช้ลบแล้วกลับมาหลัง refresh
       final existingEntry = await DatabaseService.foodEntries
           .filter()
           .imagePathEqualTo(file.path)
           .findFirst();
 
       if (existingEntry != null) {
-        if (existingEntry.isDeleted) {
-          AppLogger.info(
-              'Image was scanned before but user deleted it - skipping (ID: ${existingEntry.id})');
-        } else {
-          AppLogger.info(
-              'Image already scanned - skipping (ID: ${existingEntry.id})');
-        }
+        AppLogger.info(
+            'Image already scanned - skipping (ID: ${existingEntry.id}, deleted: ${existingEntry.isDeleted}, path: ${file.path})');
         skippedDuplicate++;
         continue;
       }
+      
+      AppLogger.info('Image not in database - processing (path: ${file.path})');
 
       final result = await _visionProcessor.processImage(file);
       if (result == null) {

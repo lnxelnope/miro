@@ -1,51 +1,100 @@
 /// Subscription Plan Model
-/// 
-/// Represents available subscription plans
+///
+/// Google Play structure:
+///   Product ID: miro_normal_subscription
+///   Base Plans: energy-pass-weekly, energy-pass-monthly, energy-pass-yearly
+///   Offers: first-month-free, winback-3usd
 class SubscriptionPlan {
-  final String id;
+  final String productId;
+  final String basePlanId;
   final String name;
   final String description;
   final String price;
   final String period;
   final List<String> benefits;
   final bool isPopular;
-  final String? trialPeriod;
+  final String? savingsText;
 
   const SubscriptionPlan({
-    required this.id,
+    required this.productId,
+    required this.basePlanId,
     required this.name,
     required this.description,
     required this.price,
     required this.period,
     required this.benefits,
     this.isPopular = false,
-    this.trialPeriod,
+    this.savingsText,
   });
 
-  /// Energy Pass Monthly Plan
+  /// Google Play subscription product ID (single product with multiple base plans)
+  static const String kProductId = 'miro_normal_subscription';
+
+  /// Base Plan IDs (hyphens required by Google Play)
+  static const String kWeeklyBasePlan = 'energy-pass-weekly';
+  static const String kMonthlyBasePlan = 'energy-pass-monthly';
+  static const String kYearlyBasePlan = 'energy-pass-yearly';
+
+  /// Offer IDs
+  static const String kFreeTrialOffer = 'first-month-free';
+  static const String kWinbackOffer = 'winback-3usd';
+
+  static SubscriptionPlan energyPassWeekly() {
+    return const SubscriptionPlan(
+      productId: kProductId,
+      basePlanId: kWeeklyBasePlan,
+      name: 'Energy Pass Weekly',
+      description: 'Weekly subscription',
+      price: '\$1.99',
+      period: 'week',
+      benefits: [
+        'Unlimited AI Analysis',
+        'Exclusive Badge',
+        'Priority Support',
+      ],
+    );
+  }
+
   static SubscriptionPlan energyPassMonthly() {
     return const SubscriptionPlan(
-      id: 'energy_pass_monthly',
+      productId: kProductId,
+      basePlanId: kMonthlyBasePlan,
       name: 'Energy Pass',
       description: 'Premium subscription with unlimited features',
-      price: '฿149',
+      price: '\$4.99',
       period: 'month',
       benefits: [
         'Unlimited AI Analysis',
-        'Double Streak Rewards',
         'Exclusive Badge',
         'Priority Support',
       ],
       isPopular: true,
-      trialPeriod: null, // No trial for now
+    );
+  }
+
+  static SubscriptionPlan energyPassYearly() {
+    return const SubscriptionPlan(
+      productId: kProductId,
+      basePlanId: kYearlyBasePlan,
+      name: 'Energy Pass Yearly',
+      description: 'Best value — save 62%',
+      price: '\$39.99',
+      period: 'year',
+      benefits: [
+        'Unlimited AI Analysis',
+        'Exclusive Badge',
+        'Priority Support',
+      ],
+      savingsText: 'Save 62% — \$3.33/month',
     );
   }
 
   /// Get all available plans
   static List<SubscriptionPlan> availablePlans() {
     return [
+      energyPassWeekly(),
       energyPassMonthly(),
-      // Add more plans here if needed (e.g., yearly)
+      energyPassYearly(),
     ];
   }
 
@@ -54,14 +103,14 @@ class SubscriptionPlan {
 
   /// Get full price text
   String get fullPriceText {
-    if (trialPeriod != null) {
-      return '$displayPrice after $trialPeriod trial';
+    if (savingsText != null) {
+      return '$displayPrice ($savingsText)';
     }
     return displayPrice;
   }
 
   @override
   String toString() {
-    return 'SubscriptionPlan(id: $id, name: $name, price: $displayPrice)';
+    return 'SubscriptionPlan(basePlan: $basePlanId, price: $displayPrice)';
   }
 }

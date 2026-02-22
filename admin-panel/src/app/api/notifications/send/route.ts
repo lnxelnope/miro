@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkAuth } from '@/lib/auth';
-import { db, adminApp } from '@/lib/firebase-admin';
+import { db, getAdminApp } from '@/lib/firebase-admin';
 import * as admin from 'firebase-admin';
 import { getMessaging } from 'firebase-admin/messaging';
 
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < messages.length; i += batchSize) {
       const batch = messages.slice(i, i + batchSize);
       try {
-        const messaging = getMessaging(adminApp);
+        const messaging = getMessaging(getAdminApp());
         const result = await messaging.sendEach(batch);
         sent += result.successCount;
         failed += result.failureCount;

@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/gamification_provider.dart';
+import '../providers/energy_provider.dart';
 
 class WeeklyChallengeCard extends ConsumerStatefulWidget {
   final bool compact;
@@ -45,9 +46,12 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
       );
 
       if (response.statusCode == 200) {
-        ref.read(gamificationProvider.notifier).refresh();
+        final data = jsonDecode(response.body);
+        await ref.read(gamificationProvider.notifier).refresh();
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+
         if (mounted) {
-          final data = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -70,7 +74,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
           final l10n = L10n.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(error['error'] ?? l10n.errorFailed),
+              content: Text(error['error']?.toString() ?? l10n.errorFailed),
               backgroundColor: AppColors.error,
             ),
           );
@@ -78,6 +82,14 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
       }
     } catch (e) {
       debugPrint('[WeeklyChallenge] Claim error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.errorFailed),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

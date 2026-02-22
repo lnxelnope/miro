@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 class DateNavigationBar extends StatelessWidget {
   final DateTime selectedDate;
@@ -22,7 +24,7 @@ class DateNavigationBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -73,14 +75,14 @@ class DateNavigationBar extends StatelessWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade100,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.success.withValues(alpha: 0.15),
+                        borderRadius: AppRadius.md,
                       ),
-                      child: Text(
+                      child: const Text(
                         'Today',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.green.shade800,
+                          color: AppColors.success,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

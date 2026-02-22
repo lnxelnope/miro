@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../providers/quick_add_provider.dart';
 import '../providers/health_provider.dart';
@@ -80,7 +81,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -95,12 +96,12 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
           // Header (แตะเพื่อย่อ/ขยาย)
           InkWell(
             onTap: _toggleExpand,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.sm,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  const Icon(Icons.bolt, size: 18, color: Colors.amber),
+                  const Icon(Icons.bolt, size: 18, color: AppColors.warning),
                   const SizedBox(width: 6),
                   Text(
                     'Quick Add',
@@ -115,7 +116,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.health.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: AppRadius.md,
                     ),
                     child: Text(
                       '$totalCount',
@@ -219,14 +220,14 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
   Widget _buildRepeatDayChip(
       BuildContext context, WidgetRef ref, RepeatDayInfo repeatDay) {
     return ActionChip(
-      avatar: Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
+      avatar: const Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
       label: Text(
         'Same as Yesterday (${repeatDay.totalCalories.toInt()} kcal)',
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
       ),
-      backgroundColor: Colors.purple.withOpacity(0.08),
-      side: BorderSide(color: Colors.purple.withOpacity(0.3)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: AppColors.premium.withValues(alpha: 0.08),
+      side: BorderSide(color: AppColors.premium.withValues(alpha: 0.3)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
       onPressed: () => _repeatDay(context, repeatDay),
     );
   }
@@ -240,9 +241,9 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
         '${item.name} (${item.calories.toInt()})',
         style: const TextStyle(fontSize: 12),
       ),
-      backgroundColor: AppColors.health.withOpacity(0.08),
-      side: BorderSide(color: AppColors.health.withOpacity(0.2)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: AppColors.health.withValues(alpha: 0.08),
+      side: BorderSide(color: AppColors.health.withValues(alpha: 0.2)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
       deleteIcon: const Icon(Icons.close, size: 16),
       onDeleted: () => _deleteQuickAddItem(context, ref, item),
       onPressed: () => _quickAdd(context, item),
@@ -270,14 +271,14 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     }
 
     return ActionChip(
-      avatar: Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
+      avatar: const Icon(AppIcons.repeat, size: 16, color: AppIcons.repeatColor),
       label: Text(
         '$label (${option.totalCalories.toInt()} kcal)',
         style: const TextStyle(fontSize: 12),
       ),
-      backgroundColor: Colors.blue.withOpacity(0.08),
-      side: BorderSide(color: Colors.blue.withOpacity(0.2)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: AppColors.info.withValues(alpha: 0.08),
+      side: BorderSide(color: AppColors.info.withValues(alpha: 0.2)),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
       onPressed: () => _repeatMeal(context, option),
     );
   }
@@ -336,7 +337,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
         content: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(AppIcons.energy, size: 16, color: AppIcons.energyColor),
+            const Icon(AppIcons.energy, size: 16, color: AppIcons.energyColor),
             const SizedBox(width: 4),
             Text('Saved "${item.name}" ${item.calories.toInt()} kcal'),
           ],
@@ -389,7 +390,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(AppIcons.repeat, size: 20, color: AppIcons.repeatColor),
+            const Icon(AppIcons.repeat, size: 20, color: AppIcons.repeatColor),
             const SizedBox(width: 4),
             Text(label),
           ],
@@ -506,7 +507,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
             child: const Text('Remove'),
@@ -543,12 +544,12 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
+        title: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(AppIcons.repeat, size: 20, color: AppIcons.repeatColor),
-            const SizedBox(width: 4),
-            const Text('Same as Yesterday'),
+            SizedBox(width: 4),
+            Text('Same as Yesterday'),
           ],
         ),
         content: Column(
@@ -574,7 +575,7 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
+              backgroundColor: AppColors.premium,
               foregroundColor: Colors.white,
             ),
             child: const Text('Copy All'),

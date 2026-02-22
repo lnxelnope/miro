@@ -5,11 +5,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
@@ -94,13 +95,13 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withOpacity(0.9),
+                    Colors.black.withValues(alpha: 0.9),
                     Colors.transparent,
                   ],
                 ),
@@ -110,11 +111,11 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                 children: [
                   if (_detectedBarcode != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.success.withValues(alpha: 0.2),
+                        borderRadius: AppRadius.xl,
                         border: Border.all(color: AppColors.success),
                       ),
                       child: Row(
@@ -122,7 +123,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         children: [
                           const Icon(Icons.check_circle,
                               color: AppColors.success, size: 20),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppSpacing.sm),
                           Text(
                             'Barcode: $_detectedBarcode',
                             style: const TextStyle(
@@ -132,13 +133,13 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                   ],
                   if (_isProcessing)
                     const Column(
                       children: [
                         CircularProgressIndicator(color: Colors.white),
-                        SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           '📱 READING BARCODE DATA...',
                           style: TextStyle(color: Colors.white),
@@ -150,12 +151,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       'Point camera at product barcode',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     const Text(
                       'Including the nutrition label improves accuracy',
                       style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: AppSpacing.lg),
                     // ปุ่มถ่ายฉลากแทน
                     OutlinedButton.icon(
                       onPressed: () => _switchToNutritionLabel(),
@@ -165,7 +166,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white54),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                            borderRadius: AppRadius.md),
                       ),
                     ),
                   ],
@@ -190,7 +191,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             // Dark overlay with transparent scan area
             ColorFiltered(
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
                 BlendMode.srcOut,
               ),
               child: Stack(
@@ -208,8 +209,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       width: scanAreaSize,
                       height: scanAreaSize,
                       decoration: BoxDecoration(
-                        color: Colors.red, // สีอะไรก็ได้ จะถูก srcOut
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.error, // สีอะไรก็ได้ จะถูก srcOut
+                        borderRadius: AppRadius.lg,
                       ),
                     ),
                   ),
@@ -332,7 +333,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       // ตรวจสอบว่าเป็น Energy error หรือไม่
       if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),

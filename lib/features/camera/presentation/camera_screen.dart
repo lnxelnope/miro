@@ -4,6 +4,9 @@ import 'package:camera/camera.dart';
 import 'package:miro_hybrid/core/services/image_picker_service.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
+import 'package:miro_hybrid/l10n/app_localizations.dart';
+
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -63,7 +66,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error initializing camera: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to initialize camera'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToInitialize), duration: const Duration(seconds: 2)),
         );
         Navigator.of(context).pop();
       }
@@ -107,7 +110,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error taking picture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to capture photo'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToCapture), duration: const Duration(seconds: 2)),
         );
       }
     } finally {
@@ -138,7 +141,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error picking from gallery: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to pick image from gallery'), duration: Duration(seconds: 2)),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToPickFromGallery), duration: const Duration(seconds: 2)),
         );
         setState(() {
           _isProcessing = false;
@@ -208,10 +211,10 @@ class _CameraScreenState extends State<CameraScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.4),
+                      Colors.black.withValues(alpha: 0.4),
                       Colors.transparent,
                       Colors.transparent,
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                     ],
                     stops: const [0.0, 0.15, 0.75, 1.0],
                   ),
@@ -224,40 +227,24 @@ class _CameraScreenState extends State<CameraScreen>
           SafeArea(
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Close
-                  _buildTopButton(
-                    icon: Icons.close,
-                    onTap: () => Navigator.of(context).pop(),
+                  EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+              child: Center(
+                child: Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs + 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: AppRadius.xl,
                   ),
-
-                  // Title
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Take a photo of your food',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  child: Text(
+                    L10n.of(context)!.cameraTakePhotoOfFood,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-
-                  // Flash
-                  _buildTopButton(
-                    icon: _flashOn ? Icons.flash_on : Icons.flash_off,
-                    onTap: _toggleFlash,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -275,14 +262,23 @@ class _CameraScreenState extends State<CameraScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Flash Button
+                    _buildBottomButton(
+                      icon: _flashOn ? Icons.flash_on : Icons.flash_off,
+                      onTap: _toggleFlash,
+                    ),
+
                     // Gallery Button
                     _buildGalleryButton(),
 
                     // Capture Button
                     _buildCaptureButton(),
 
-                    // Placeholder for alignment
-                    const SizedBox(width: 56),
+                    // Close Button
+                    _buildBottomButton(
+                      icon: Icons.close,
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
                   ],
                 ),
               ),
@@ -294,15 +290,15 @@ class _CameraScreenState extends State<CameraScreen>
             Positioned.fill(
               child: Container(
                 color: Colors.black54,
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: 16),
+                      const CircularProgressIndicator(color: Colors.white),
+                      SizedBox(height: AppSpacing.lg),
                       Text(
-                        'Processing...',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        L10n.of(context)!.cameraProcessing,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ],
                   ),
@@ -314,16 +310,17 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildTopButton(
+  Widget _buildBottomButton(
       {required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.15),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
         ),
         child: Icon(icon, color: Colors.white, size: 22),
       ),
@@ -363,7 +360,7 @@ class _CameraScreenState extends State<CameraScreen>
         height: 56,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: AppRadius.lg,
           border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
         ),
         child: const Icon(

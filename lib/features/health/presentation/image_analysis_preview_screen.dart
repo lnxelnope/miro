@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +7,15 @@ import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
+import 'package:miro_hybrid/core/ai/gemini_service.dart';
+import 'package:miro_hybrid/core/services/usage_limiter.dart';
+import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
+import 'package:miro_hybrid/features/health/widgets/gemini_analysis_sheet.dart';
+import 'package:miro_hybrid/features/energy/widgets/no_energy_dialog.dart';
+import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
+import 'package:miro_hybrid/features/health/providers/my_meal_provider.dart';
 import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
@@ -35,7 +43,9 @@ class _ImageAnalysisPreviewScreenState
   late TextEditingController _quantityController;
   late String _selectedUnit;
   FoodSearchMode _searchMode = FoodSearchMode.normal;
+  late MealType _selectedMealType;
   String? _permanentImagePath;
+  bool _isAnalyzing = false;
 
   @override
   void initState() {
@@ -47,6 +57,7 @@ class _ImageAnalysisPreviewScreenState
       text: (widget.initialQuantity ?? 1.0).toString(),
     );
     _selectedUnit = widget.initialUnit ?? 'serving';
+    _selectedMealType = _guessMealType();
     _copyImageToPermanentPath();
   }
 
@@ -75,7 +86,8 @@ class _ImageAnalysisPreviewScreenState
   }
 
   Future<void> _saveAndAnalyze() async {
-    // Validate inputs
+    if (_isAnalyzing) return;
+
     final foodName = _foodNameController.text.trim();
     final quantityText = _quantityController.text.trim();
 
@@ -91,12 +103,23 @@ class _ImageAnalysisPreviewScreenState
       quantity = parsed;
     }
 
-    // Create unanalyzed FoodEntry
+    // Check energy before starting
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy && mounted) {
+      await NoEnergyDialog.show(context);
+      return;
+    }
+    if (!mounted) return;
+
+    final effectiveName = foodName.isEmpty ? 'food' : foodName;
+    final imagePath = _permanentImagePath ?? widget.imageFile.path;
+
+    // Save entry to database first
     final entry = FoodEntry()
-      ..foodName = foodName.isEmpty ? 'food' : foodName
-      ..mealType = _guessMealType()
+      ..foodName = effectiveName
+      ..mealType = _selectedMealType
       ..timestamp = DateTime.now()
-      ..imagePath = _permanentImagePath ?? widget.imageFile.path
+      ..imagePath = imagePath
       ..servingSize = quantity
       ..servingUnit = _selectedUnit
       ..calories = 0
@@ -104,33 +127,186 @@ class _ImageAnalysisPreviewScreenState
       ..carbs = 0
       ..fat = 0
       ..source = DataSource.galleryScanned
-      ..isVerified = false;
+      ..isVerified = false
+      ..searchMode = _searchMode;
 
-    // Save to database
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);
 
     if (!mounted) return;
 
-    // Refresh providers
-    final today = dateOnly(DateTime.now());
-    ref.invalidate(healthTimelineProvider(today));
-    ref.invalidate(foodEntriesByDateProvider(today));
-    ref.invalidate(todayCaloriesProvider);
-    ref.invalidate(todayMacrosProvider);
+    setState(() => _isAnalyzing = true);
 
-    // Show success message
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('✅ Saved — use "Analyze All" when ready'),
-        backgroundColor: AppColors.success,
-        duration: Duration(seconds: 2),
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'PROCESSING IMAGE DATA...',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Processing advanced nutrition analysis',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
 
-    // Navigate back to dashboard
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    try {
+      final result = await GeminiService.analyzeFoodImage(
+        File(imagePath),
+        foodName: effectiveName != 'food' ? effectiveName : null,
+        quantity: quantity > 0 ? quantity : null,
+        unit: _selectedUnit,
+        searchMode: _searchMode,
+      );
+
+      if (result != null) {
+        await UsageLimiter.recordAiUsage();
+
+        if (!mounted) return;
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+
+        Navigator.pop(context); // close loading dialog
+
+        if (!mounted) return;
+
+        await showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => GeminiAnalysisSheet(
+            analysisResult: result,
+            onConfirm: (confirmedData) async {
+              String? ingredientsJsonStr;
+              if (confirmedData.ingredientsDetail != null &&
+                  confirmedData.ingredientsDetail!.isNotEmpty) {
+                ingredientsJsonStr = jsonEncode(confirmedData.ingredientsDetail);
+              }
+
+              FoodSearchMode? updatedSearchMode;
+              if (result.foodType != null) {
+                updatedSearchMode = result.foodType == 'product'
+                    ? FoodSearchMode.product
+                    : FoodSearchMode.normal;
+              }
+
+              await notifier.updateFromGeminiConfirmed(
+                entry.id,
+                foodName: confirmedData.foodName,
+                foodNameEn: confirmedData.foodNameEn,
+                calories: confirmedData.calories,
+                protein: confirmedData.protein,
+                carbs: confirmedData.carbs,
+                fat: confirmedData.fat,
+                baseCalories: confirmedData.baseCalories,
+                baseProtein: confirmedData.baseProtein,
+                baseCarbs: confirmedData.baseCarbs,
+                baseFat: confirmedData.baseFat,
+                servingSize: confirmedData.servingSize,
+                servingUnit: confirmedData.servingUnit,
+                servingGrams: confirmedData.servingGrams,
+                confidence: confirmedData.confidence,
+                fiber: confirmedData.fiber,
+                sugar: confirmedData.sugar,
+                sodium: confirmedData.sodium,
+                notes: confirmedData.notes,
+                ingredientsJson: ingredientsJsonStr,
+              );
+
+              if (updatedSearchMode != null) {
+                final updatedEntry = await DatabaseService.foodEntries.get(entry.id);
+                if (updatedEntry != null) {
+                  updatedEntry.searchMode = updatedSearchMode;
+                  await DatabaseService.isar.writeTxn(() async {
+                    await DatabaseService.foodEntries.put(updatedEntry);
+                  });
+                }
+              }
+
+              if (confirmedData.ingredientsDetail != null &&
+                  confirmedData.ingredientsDetail!.isNotEmpty) {
+                try {
+                  await notifier.saveIngredientsAndMeal(
+                    mealName: confirmedData.foodName,
+                    mealNameEn: confirmedData.foodNameEn,
+                    servingDescription:
+                        '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                    imagePath: imagePath,
+                    ingredientsData: confirmedData.ingredientsDetail!,
+                  );
+                  if (!mounted) return;
+                  ref.invalidate(allMyMealsProvider);
+                  ref.invalidate(allIngredientsProvider);
+                } catch (e) {
+                  AppLogger.warn('Could not auto-save meal: $e');
+                }
+              }
+
+              if (!mounted) return;
+              final today = dateOnly(DateTime.now());
+              ref.invalidate(healthTimelineProvider(today));
+              ref.invalidate(foodEntriesByDateProvider(today));
+              ref.invalidate(todayCaloriesProvider);
+              ref.invalidate(todayMacrosProvider);
+
+              if (!mounted) return;
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+          ),
+        );
+
+        // User cancelled the analysis sheet — still go back
+        if (mounted) {
+          final today = dateOnly(DateTime.now());
+          ref.invalidate(healthTimelineProvider(today));
+          ref.invalidate(foodEntriesByDateProvider(today));
+          ref.invalidate(todayCaloriesProvider);
+          ref.invalidate(todayMacrosProvider);
+        }
+      } else {
+        if (!mounted) return;
+        Navigator.pop(context); // close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Analysis failed — saved as pending entry'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (e) {
+      AppLogger.error('[SaveAndAnalyze] Error: $e');
+      if (!mounted) return;
+      Navigator.pop(context); // close loading dialog
+
+      if (e.toString().contains('Insufficient energy')) {
+        await NoEnergyDialog.show(context);
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')}'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } finally {
+      if (mounted) setState(() => _isAnalyzing = false);
+    }
   }
 
   MealType _guessMealType() {
@@ -147,7 +323,7 @@ class _ImageAnalysisPreviewScreenState
 
     final entry = FoodEntry()
       ..foodName = foodName.isEmpty ? 'food' : foodName
-      ..mealType = _guessMealType()
+      ..mealType = _selectedMealType
       ..timestamp = DateTime.now()
       ..imagePath = _permanentImagePath ?? widget.imageFile.path
       ..servingSize = quantity
@@ -240,14 +416,6 @@ class _ImageAnalysisPreviewScreenState
 
                   const SizedBox(height: 16),
 
-                  // Search Mode Toggle
-                  SearchModeSelector(
-                    selectedMode: _searchMode,
-                    onChanged: (mode) => setState(() => _searchMode = mode),
-                  ),
-
-                  const SizedBox(height: 16),
-
                   // Quantity and Unit Row
                   Text(
                     'Quantity',
@@ -258,7 +426,6 @@ class _ImageAnalysisPreviewScreenState
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      // Quantity Input
                       Expanded(
                         flex: 2,
                         child: TextField(
@@ -278,10 +445,7 @@ class _ImageAnalysisPreviewScreenState
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
-                      // Unit Dropdown
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
@@ -308,31 +472,82 @@ class _ImageAnalysisPreviewScreenState
                     ],
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // Helper Text
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          color: Colors.blue[700],
-                          size: 24,
+                  // Meal Type (below quantity)
+                  Text(
+                    'Meal Type',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: MealType.values.map((type) {
+                      final isSelected = _selectedMealType == type;
+                      return ChoiceChip(
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(type.icon, size: 16, color: type.iconColor),
+                            const SizedBox(width: 6),
+                            Text(type.displayName),
+                          ],
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedMealType = type);
+                        },
+                        selectedColor: AppColors.health.withValues(alpha: 0.2),
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Search Mode (compact)
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                      dense: true,
+                      title: Row(
+                        children: [
+                          Icon(Icons.tune_rounded, size: 14, color: Colors.grey[500]),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Search Mode: ${_searchMode.name}',
+                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: SearchModeSelector(
+                            selectedMode: _searchMode,
+                            onChanged: (mode) => setState(() => _searchMode = mode),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
+
+                  // Helper Text (compact)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(Icons.lightbulb_outline, size: 14, color: Colors.grey[500]),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Entering the food name and quantity is optional, but providing them will improve AI analysis accuracy.',
+                            'Providing food name & quantity improves AI accuracy.',
                             style: TextStyle(
-                              color: Colors.blue[900],
-                              fontSize: 14,
-                              height: 1.4,
+                              color: Colors.grey[600],
+                              fontSize: 11,
                             ),
                           ),
                         ),
@@ -340,18 +555,27 @@ class _ImageAnalysisPreviewScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
                   // Save & Analyze Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton.icon(
-                      onPressed: _saveAndAnalyze,
-                      icon: const Icon(Icons.save_rounded, size: 24),
-                      label: const Text(
-                        'Save & Analyze',
-                        style: TextStyle(
+                      onPressed: _isAnalyzing ? null : _saveAndAnalyze,
+                      icon: _isAnalyzing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.auto_awesome_rounded, size: 24),
+                      label: Text(
+                        _isAnalyzing ? 'Analyzing...' : 'Save & Analyze',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -374,7 +598,7 @@ class _ImageAnalysisPreviewScreenState
                     width: double.infinity,
                     height: 48,
                     child: OutlinedButton.icon(
-                      onPressed: _saveToDiary,
+                      onPressed: _isAnalyzing ? null : _saveToDiary,
                       icon: const Icon(Icons.bookmark_add_outlined, size: 20),
                       label: const Text(
                         'Save without analysis',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/features/health/models/time_period_summary.dart';
+import '../../../core/theme/app_colors.dart';
 
 class TimePeriodCards extends StatelessWidget {
   final List<TimePeriodSummary> summaries;
@@ -42,9 +43,9 @@ class TimePeriodCards extends StatelessWidget {
         ),
         subtitle: Text(
           '${summary.days} days tracked',
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
-            color: Colors.grey[600],
+            color: AppColors.textSecondary,
           ),
         ),
         children: [
@@ -98,7 +99,7 @@ class TimePeriodCards extends StatelessWidget {
     String unit,
     bool isSurplus,
   ) {
-    final color = isSurplus ? Colors.red : Colors.green;
+    final color = isSurplus ? AppColors.error : AppColors.success;
     final icon = isSurplus ? Icons.arrow_upward : Icons.arrow_downward;
     final totalText = totalDiff >= 0
         ? '+${totalDiff.toStringAsFixed(0)}'
@@ -145,7 +146,7 @@ class TimePeriodCards extends StatelessWidget {
                   'Avg/day: $avgText $unit',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],

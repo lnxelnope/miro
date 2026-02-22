@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 
 /// Displays a single micronutrient value in a row
 class MicronutrientRow extends StatelessWidget {
@@ -26,8 +28,8 @@ class MicronutrientRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (color ?? Colors.grey).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: (color ?? Colors.grey).withValues(alpha: 0.1),
+              borderRadius: AppRadius.sm,
             ),
             child: Icon(
               icon,
@@ -50,7 +52,7 @@ class MicronutrientRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: color ?? Colors.grey[700],
+              color: color ?? AppColors.textSecondary,
             ),
           ),
         ],

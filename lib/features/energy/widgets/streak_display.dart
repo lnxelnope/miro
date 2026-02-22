@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
+import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 import 'package:miro_hybrid/features/energy/presentation/tier_benefits_screen.dart';
 
@@ -14,7 +16,7 @@ class StreakDisplay extends ConsumerWidget {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -24,7 +26,7 @@ class StreakDisplay extends ConsumerWidget {
             // Header with info button
             Row(
               children: [
-                Icon(AppIcons.streak, size: 28, color: AppIcons.streakColor),
+                const Icon(AppIcons.streak, size: 28, color: AppIcons.streakColor),
                 const SizedBox(width: 8),
                 Text(
                   '${gamification.currentStreak} days',
@@ -46,7 +48,7 @@ class StreakDisplay extends ConsumerWidget {
                   },
                   icon: Icon(
                     Icons.info_outline,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textSecondary,
                     size: 20,
                   ),
                   tooltip: 'View Tier Benefits',
@@ -66,14 +68,14 @@ class StreakDisplay extends ConsumerWidget {
                   ),
                 );
               },
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.md,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: gamification.tierColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: gamification.tierColor.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.md,
                   border: Border.all(
-                    color: gamification.tierColor.withOpacity(0.3),
+                    color: gamification.tierColor.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -98,7 +100,7 @@ class StreakDisplay extends ConsumerWidget {
                     Icon(
                       Icons.chevron_right,
                       size: 18,
-                      color: gamification.tierColor.withOpacity(0.5),
+                      color: gamification.tierColor.withValues(alpha: 0.5),
                     ),
                   ],
                 ),
@@ -110,7 +112,7 @@ class StreakDisplay extends ConsumerWidget {
               Text(
                 '${gamification.daysToNextTier} days until next tier',
                 style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: AppColors.textSecondary,
                   fontSize: 14,
                 ),
               ),
@@ -122,13 +124,13 @@ class StreakDisplay extends ConsumerWidget {
                   Icon(
                     Icons.shield_outlined,
                     size: 16,
-                    color: Colors.blue.shade600,
+                    color: AppColors.info,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     'Grace period: ${gamification.graceDays} day(s)',
-                    style: TextStyle(
-                      color: Colors.blue.shade600,
+                    style: const TextStyle(
+                      color: AppColors.info,
                       fontSize: 12,
                     ),
                   ),

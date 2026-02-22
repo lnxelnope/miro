@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/services/consent_service.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
+import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Dialog requesting user consent for Firebase Analytics
@@ -48,7 +50,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
 
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
       ),
       title: Row(
         children: [
@@ -57,7 +59,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
             color: theme.colorScheme.primary,
             size: 28,
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppSpacing.md),
           const Expanded(
             child: Text(
               'Usage Data',
@@ -79,36 +81,36 @@ class AnalyticsConsentDialog extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: isDark ? Colors.white : Colors.grey[900],
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
             _buildInfoRow(
               icon: Icons.check_circle_outline,
               text: 'What we collect: Feature usage, screens viewed',
               isDark: isDark,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             _buildInfoRow(
               icon: Icons.block,
               text: 'Not collected: Food data, photos, health info',
               isDark: isDark,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             _buildInfoRow(
               icon: Icons.shield_outlined,
               text: 'Data is aggregated and anonymous',
               isDark: isDark,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.lg),
             Text(
               'You can change this anytime in Profile → Settings',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md),
             InkWell(
               onTap: _openPrivacyPolicy,
               child: Text(
@@ -130,7 +132,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
             'Decline',
             style: TextStyle(
               fontSize: 15,
-              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ),
         ),
@@ -139,7 +141,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: theme.colorScheme.primary,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
           ),
           child: const Text(
             'Accept',
@@ -161,15 +163,15 @@ class AnalyticsConsentDialog extends StatelessWidget {
         Icon(
           icon,
           size: 20,
-          color: isDark ? Colors.green[300] : Colors.green[700],
+          color: AppColors.success,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: 14,
-              color: isDark ? Colors.grey[300] : Colors.grey[800],
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textPrimary,
             ),
           ),
         ),

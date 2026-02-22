@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../providers/fulfill_calorie_provider.dart';
 
 int _safe(double v) => (v.isNaN || v.isInfinite) ? 0 : v.toInt();
@@ -53,10 +54,10 @@ class GhostMealSuggestion extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: (isDark ? Colors.white : Colors.green).withOpacity(0.04),
-        borderRadius: BorderRadius.circular(12),
+        color: (isDark ? Colors.white : AppColors.success).withValues(alpha: 0.04),
+        borderRadius: AppRadius.md,
         border: Border.all(
-          color: (isDark ? Colors.white24 : Colors.green).withOpacity(0.12),
+          color: (isDark ? Colors.white24 : AppColors.success).withValues(alpha: 0.12),
           width: 1,
         ),
       ),
@@ -66,12 +67,12 @@ class GhostMealSuggestion extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.success.withValues(alpha: 0.08),
+              borderRadius: AppRadius.md,
             ),
             child: Icon(
               Icons.check_circle_outline_rounded,
-              color: Colors.green.withOpacity(0.5),
+              color: AppColors.success.withValues(alpha: 0.5),
               size: 20,
             ),
           ),
@@ -85,8 +86,8 @@ class GhostMealSuggestion extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: (isDark ? Colors.white : Colors.green.shade700)
-                        .withOpacity(0.6),
+                    color: (isDark ? Colors.white : AppColors.success)
+                        .withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -95,7 +96,7 @@ class GhostMealSuggestion extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     color: (isDark ? Colors.white : AppColors.textSecondary)
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                   ),
                 ),
               ],
@@ -115,10 +116,10 @@ class GhostMealSuggestion extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : AppColors.primary).withOpacity(0.04),
-          borderRadius: BorderRadius.circular(12),
+          color: (isDark ? Colors.white : AppColors.primary).withValues(alpha: 0.04),
+          borderRadius: AppRadius.md,
           border: Border.all(
-            color: (isDark ? Colors.white24 : AppColors.primary).withOpacity(0.12),
+            color: (isDark ? Colors.white24 : AppColors.primary).withValues(alpha: 0.12),
             width: 1,
           ),
         ),
@@ -128,12 +129,12 @@ class GhostMealSuggestion extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: AppRadius.md,
               ),
               child: Icon(
                 Icons.auto_awesome_rounded,
-                color: AppColors.primary.withOpacity(0.4),
+                color: AppColors.primary.withValues(alpha: 0.4),
                 size: 20,
               ),
             ),
@@ -148,7 +149,7 @@ class GhostMealSuggestion extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: (isDark ? Colors.white : AppColors.textPrimary)
-                          .withOpacity(0.45),
+                          .withValues(alpha: 0.45),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -157,7 +158,7 @@ class GhostMealSuggestion extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       color: (isDark ? Colors.white : AppColors.textSecondary)
-                          .withOpacity(0.4),
+                          .withValues(alpha: 0.4),
                     ),
                   ),
                 ],
@@ -166,7 +167,7 @@ class GhostMealSuggestion extends StatelessWidget {
             Icon(
               Icons.add_circle_outline_rounded,
               size: 20,
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -184,10 +185,10 @@ class GhostMealSuggestion extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : AppColors.health).withOpacity(0.04),
-          borderRadius: BorderRadius.circular(12),
+          color: (isDark ? Colors.white : AppColors.health).withValues(alpha: 0.04),
+          borderRadius: AppRadius.md,
           border: Border.all(
-            color: (isDark ? Colors.white24 : AppColors.health).withOpacity(0.12),
+            color: (isDark ? Colors.white24 : AppColors.health).withValues(alpha: 0.12),
             width: 1,
           ),
         ),
@@ -197,12 +198,12 @@ class GhostMealSuggestion extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.health.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.health.withValues(alpha: 0.08),
+                borderRadius: AppRadius.md,
               ),
               child: Icon(
                 Icons.local_fire_department_rounded,
-                color: AppColors.health.withOpacity(0.4),
+                color: AppColors.health.withValues(alpha: 0.4),
                 size: 20,
               ),
             ),
@@ -217,7 +218,7 @@ class GhostMealSuggestion extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: (isDark ? Colors.white : AppColors.textPrimary)
-                          .withOpacity(0.45),
+                          .withValues(alpha: 0.45),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -228,7 +229,7 @@ class GhostMealSuggestion extends StatelessWidget {
             Icon(
               Icons.add_circle_outline_rounded,
               size: 20,
-              color: AppColors.primary.withOpacity(0.3),
+              color: AppColors.primary.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -239,7 +240,7 @@ class GhostMealSuggestion extends StatelessWidget {
   /// Main suggestion card with food name, calories, and macros
   Widget _buildSuggestionCard(BuildContext context, FoodSuggestion food) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseOpacity = 0.45;
+    const baseOpacity = 0.45;
 
     return GestureDetector(
       onTap: () {
@@ -252,10 +253,10 @@ class GhostMealSuggestion extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : AppColors.primary).withOpacity(0.03),
-          borderRadius: BorderRadius.circular(12),
+          color: (isDark ? Colors.white : AppColors.primary).withValues(alpha: 0.03),
+          borderRadius: AppRadius.md,
           border: Border.all(
-            color: (isDark ? Colors.white24 : AppColors.primary).withOpacity(0.10),
+            color: (isDark ? Colors.white24 : AppColors.primary).withValues(alpha: 0.10),
             width: 1,
           ),
         ),
@@ -269,13 +270,13 @@ class GhostMealSuggestion extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppColors.health.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.health.withValues(alpha: 0.06),
+                    borderRadius: AppRadius.md,
                   ),
                   child: Icon(
                     food.isMeal ? Icons.restaurant_menu : Icons.egg_alt_rounded,
-                    color: (food.isMeal ? AppColors.health : Colors.orange)
-                        .withOpacity(baseOpacity),
+                    color: (food.isMeal ? AppColors.health : AppColors.warning)
+                        .withValues(alpha: baseOpacity),
                     size: 18,
                   ),
                 ),
@@ -291,7 +292,7 @@ class GhostMealSuggestion extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                           fontSize: 13,
                           color: (isDark ? Colors.white : AppColors.textPrimary)
-                              .withOpacity(baseOpacity),
+                              .withValues(alpha: baseOpacity),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -319,7 +320,7 @@ class GhostMealSuggestion extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                         color: (isDark ? Colors.white : AppColors.textPrimary)
-                            .withOpacity(baseOpacity),
+                            .withValues(alpha: baseOpacity),
                       ),
                     ),
                     Text(
@@ -327,7 +328,7 @@ class GhostMealSuggestion extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 10,
                         color: (isDark ? Colors.white : AppColors.textSecondary)
-                            .withOpacity(baseOpacity * 0.8),
+                            .withValues(alpha: baseOpacity * 0.8),
                       ),
                     ),
                   ],
@@ -346,7 +347,7 @@ class GhostMealSuggestion extends StatelessWidget {
                       : Icons.local_fire_department_rounded,
                   size: 11,
                   color: (isDark ? Colors.white : AppColors.health)
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                 ),
                 const SizedBox(width: 3),
                 Text(
@@ -358,9 +359,9 @@ class GhostMealSuggestion extends StatelessWidget {
                     color: (isDark
                             ? Colors.white
                             : suggestion.cappedByDaily
-                                ? Colors.orange.shade700
+                                ? AppColors.warning
                                 : AppColors.textSecondary)
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -387,10 +388,10 @@ class GhostMealSuggestion extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: (isDark ? Colors.white : AppColors.primary).withOpacity(0.02),
-          borderRadius: BorderRadius.circular(10),
+          color: (isDark ? Colors.white : AppColors.primary).withValues(alpha: 0.02),
+          borderRadius: AppRadius.md,
           border: Border.all(
-            color: (isDark ? Colors.white24 : AppColors.primary).withOpacity(0.06),
+            color: (isDark ? Colors.white24 : AppColors.primary).withValues(alpha: 0.06),
             width: 1,
           ),
         ),
@@ -399,8 +400,8 @@ class GhostMealSuggestion extends StatelessWidget {
             Icon(
               food.isMeal ? Icons.restaurant_menu : Icons.egg_alt_rounded,
               size: 15,
-              color: (food.isMeal ? AppColors.health : Colors.orange)
-                  .withOpacity(opacity),
+              color: (food.isMeal ? AppColors.health : AppColors.warning)
+                  .withValues(alpha: opacity),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -410,7 +411,7 @@ class GhostMealSuggestion extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: (isDark ? Colors.white : AppColors.textPrimary)
-                      .withOpacity(opacity),
+                      .withValues(alpha: opacity),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -422,7 +423,7 @@ class GhostMealSuggestion extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: (isDark ? Colors.white : AppColors.textPrimary)
-                    .withOpacity(opacity),
+                    .withValues(alpha: opacity),
               ),
             ),
             const SizedBox(width: 6),
@@ -445,7 +446,7 @@ class GhostMealSuggestion extends StatelessWidget {
           width: 5,
           height: 5,
           decoration: BoxDecoration(
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             shape: BoxShape.circle,
           ),
         ),
@@ -454,7 +455,7 @@ class GhostMealSuggestion extends StatelessWidget {
           '$label ${_safe(value)}g',
           style: TextStyle(
             fontSize: 10,
-            color: color.withOpacity(opacity),
+            color: color.withValues(alpha: opacity),
             fontWeight: FontWeight.w500,
           ),
         ),

@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../models/subscription_plan.dart';
+import '../services/subscription_service.dart';
 import '../providers/subscription_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Subscription Screen
 /// 
@@ -20,6 +23,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   List<ProductDetails> _products = [];
   String? _error;
   bool _isPurchasing = false;
+
+  // V3: ราคาจริงจาก Google Play ต่อ base plan
+  Map<String, String> _basePlanPrices = {};
 
   @override
   void initState() {
@@ -40,15 +46,20 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       final available = await service.isAvailable();
       if (!available) {
         setState(() {
-          _error = 'In-app purchases not available';
+          _error = L10n.of(context)!.subscriptionInAppPurchasesNotAvailable;
           _isLoadingProducts = false;
         });
         return;
       }
 
       final products = await service.getProducts();
+      // V3: ดึงราคาจริงของแต่ละ base plan
+      final prices = products.isNotEmpty
+          ? SubscriptionService.extractBasePlanPrices(products.first)
+          : <String, String>{};
       setState(() {
         _products = products;
+        _basePlanPrices = prices;
         _isLoadingProducts = false;
       });
     } catch (e) {
@@ -59,19 +70,19 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     }
   }
 
-  Future<void> _handlePurchase(ProductDetails product) async {
+  Future<void> _handlePurchase(ProductDetails product, {String? basePlanId}) async {
     setState(() => _isPurchasing = true);
 
     try {
       final service = ref.read(subscriptionServiceProvider);
-      final success = await service.purchaseSubscription(product);
+      final success = await service.purchaseSubscription(product, basePlanId: basePlanId);
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to initiate purchase'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(L10n.of(context)!.subscriptionFailedToInitiatePurchase),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -79,8 +90,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+            content: Text(L10n.of(context)!.subscriptionError(e.toString())),
+            backgroundColor: AppColors.error,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -99,7 +110,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Energy Pass'),
+        title: Text(L10n.of(context)!.subscriptionEnergyPass),
         centerTitle: true,
       ),
       body: _isLoadingProducts
@@ -115,27 +126,27 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Widget _buildError() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+            SizedBox(height: AppSpacing.lg),
             Text(
-              'Failed to load subscription',
+              L10n.of(context)!.subscriptionFailedToLoad,
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
-              _error ?? 'Unknown error',
+              _error ?? L10n.of(context)!.subscriptionUnknownError,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _loadProducts,
-              child: const Text('Retry'),
+              child: Text(L10n.of(context)!.subscriptionRetry),
             ),
           ],
         ),
@@ -151,30 +162,30 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         children: [
           // Active Badge
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   AppColors.primary,
-                  AppColors.primary.withOpacity(0.7),
+                  AppColors.primary.withValues(alpha: 0.7),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.lg,
             ),
             child: Column(
               children: [
                 const Icon(Icons.verified, size: 64, color: Colors.white),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Energy Pass Active',
+                  L10n.of(context)!.subscriptionEnergyPassActive,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
                 Text(
-                  'You have unlimited access',
+                  L10n.of(context)!.subscriptionUnlimitedAccess,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.white70,
                       ),
@@ -188,27 +199,27 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           // Subscription Details
           _buildInfoCard(
             icon: Icons.calendar_today,
-            title: 'Status',
+            title: L10n.of(context)!.subscriptionStatus,
             value: subscription.status.displayText,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.access_time,
-            title: 'Renews',
+            title: L10n.of(context)!.subscriptionRenews,
             value: subscription.formattedExpiryDate,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.payment,
-            title: 'Price',
-            value: '฿149/month',
+            title: L10n.of(context)!.subscriptionPrice,
+            value: '\$4.99/month',
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: AppSpacing.xxxl),
 
           // Benefits
           Text(
-            'Your Benefits',
+            L10n.of(context)!.subscriptionYourBenefits,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -218,7 +229,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 (benefit) => _buildBenefitItem(benefit),
               ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: AppSpacing.xxxl),
 
           // Manage Button
           OutlinedButton(
@@ -226,7 +237,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               // Open Google Play subscription management
               // TODO: Implement
             },
-            child: const Text('Manage Subscription'),
+            child: Text(L10n.of(context)!.subscriptionManageSubscription),
           ),
         ],
       ),
@@ -234,55 +245,47 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   Widget _buildSubscriptionPlans() {
-    final plan = SubscriptionPlan.energyPassMonthly();
+    // V3: แสดง 3 plans (Weekly, Monthly, Yearly)
+    final plans = SubscriptionPlan.availablePlans();
     
-    // Find matching product or use first available
-    ProductDetails? product;
-    try {
-      product = _products.firstWhere((p) => p.id == plan.id);
-    } catch (e) {
-      // If not found, use first product if available
-      product = _products.isNotEmpty ? _products.first : null;
-    }
+    // Map plans to products (ใช้ productId เดียว: miro_normal_subscription)
+    // แต่ต้อง query base plans จาก Google Play Billing Library
+    // ตอนนี้ใช้ placeholder — จะต้อง query base plans แยกต่างหาก
     
-    // If no product available, show error
-    if (product == null) {
+    if (_products.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            const Text('No subscription product available'),
-            const SizedBox(height: 16),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+            SizedBox(height: AppSpacing.lg),
+            Text(L10n.of(context)!.subscriptionNoProductAvailable),
+            SizedBox(height: AppSpacing.lg),
             ElevatedButton(
               onPressed: _loadProducts,
-              child: const Text('Retry'),
+              child: Text(L10n.of(context)!.subscriptionRetry),
             ),
           ],
         ),
       );
     }
 
-    // At this point, product is guaranteed to be non-null
-    final productDetails = product;
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Hero Image
+          // Header
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: EdgeInsets.all(AppSpacing.xxxl),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.primary.withOpacity(0.05),
+                  AppColors.primary.withValues(alpha: 0.1),
+                  AppColors.primary.withValues(alpha: 0.05),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.lg,
             ),
             child: Column(
               children: [
@@ -291,18 +294,18 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   size: 80,
                   color: AppColors.primary,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.lg),
                 Text(
-                  plan.name,
+                  'Energy Pass',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: AppSpacing.sm),
                 Text(
-                  plan.description,
+                  'Unlimited AI Analysis',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                       ),
                   textAlign: TextAlign.center,
                 ),
@@ -310,101 +313,142 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: AppSpacing.xxxl),
 
-          // Benefits
+          // V3: แสดง 3 Plans
+          ...plans.map((plan) => _buildPlanCard(plan)),
+
+          const SizedBox(height: 24),
+
+          // Benefits (ใช้จาก monthly plan)
           Text(
-            'What You Get',
+            L10n.of(context)!.subscriptionWhatYouGet,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 16),
-          ...plan.benefits.map((benefit) => _buildBenefitItem(benefit)),
-
-          const SizedBox(height: 32),
-
-          // Price Card
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
-                width: 2,
+          ...plans.firstWhere((p) => p.isPopular).benefits.map(
+                (benefit) => _buildBenefitItem(benefit),
               ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  productDetails.price,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'per month',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isPurchasing
-                        ? null
-                        : () => _handlePurchase(productDetails),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isPurchasing
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Subscribe Now',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Cancel anytime',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
-                ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Terms
           Text(
-            'Your subscription will renew automatically. '
-            'You can cancel anytime from Google Play.',
+            L10n.of(context)!.subscriptionAutoRenewTerms,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
+                  color: AppColors.textSecondary,
                 ),
             textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanCard(SubscriptionPlan plan) {
+    final product = _products.isNotEmpty ? _products.first : null;
+    // ใช้ราคาจริงจาก Google Play ถ้ามี ไม่งั้นใช้ fallback จาก model
+    final realPrice = _basePlanPrices[plan.basePlanId];
+    final displayPrice = realPrice != null
+        ? '$realPrice / ${plan.period}'
+        : plan.displayPrice;
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: plan.isPopular ? AppColors.primary.withValues(alpha: 0.05) : AppColors.background,
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: plan.isPopular
+              ? AppColors.primary.withValues(alpha: 0.5)
+              : AppColors.divider,
+          width: plan.isPopular ? 3 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                plan.name,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (plan.isPopular)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: AppRadius.sm,
+                  ),
+                  child: const Text(
+                    'BEST VALUE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            displayPrice,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          if (plan.savingsText != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              plan.savingsText!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: _isPurchasing || product == null
+                  ? null
+                  : () => _handlePurchase(product, basePlanId: plan.basePlanId),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: plan.isPopular ? AppColors.primary : AppColors.textPrimary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.md,
+                ),
+              ),
+              child: _isPurchasing
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      plan.isPopular
+                          ? L10n.of(context)!.subscriptionSubscribeNow
+                          : 'Subscribe',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
@@ -419,8 +463,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surfaceVariant,
+        borderRadius: AppRadius.md,
       ),
       child: Row(
         children: [
@@ -433,7 +477,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
+                        color: AppColors.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 4),

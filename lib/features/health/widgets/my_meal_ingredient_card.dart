@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../models/my_meal_ingredient.dart';
 
 /// Widget สำหรับแสดง MyMealIngredient พร้อมรองรับ nested structure
@@ -31,8 +32,8 @@ class MyMealIngredientCard extends StatelessWidget {
               height: 50, // adjust ตามขนาด card
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(1),
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(1),
               ),
             ),
 
@@ -42,12 +43,12 @@ class MyMealIngredientCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: depth == 0
-                    ? Colors.white // ROOT: สีขาว
-                    : Colors.grey[50] ?? Colors.grey.shade50, // SUB: สีเทาอ่อน
-                borderRadius: BorderRadius.circular(12),
+                    ? Colors.white
+                    : AppColors.surfaceVariant,
+                borderRadius: AppRadius.md,
                 border: Border.all(
                   color:
-                      depth == 0 ? Colors.grey.shade200 : Colors.grey.shade100,
+                      depth == 0 ? AppColors.divider : AppColors.surfaceVariant,
                 ),
               ),
               child: Column(
@@ -83,7 +84,7 @@ class MyMealIngredientCard extends StatelessWidget {
                         '${ingredient.calories.toInt()} kcal',
                         style: TextStyle(
                           fontSize: depth == 0 ? 14 : 12,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -96,17 +97,17 @@ class MyMealIngredientCard extends StatelessWidget {
                         const SizedBox(width: 16), // indent สำหรับ sub
                       Text(
                         '${ingredient.amount.toStringAsFixed(0)} ${ingredient.unit}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'P:${ingredient.protein.toInt()}  C:${ingredient.carbs.toInt()}  F:${ingredient.fat.toInt()}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade500,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -125,7 +126,7 @@ class MyMealIngredientCard extends StatelessWidget {
                               detail!,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: AppColors.textSecondary,
                                 fontStyle: FontStyle.italic,
                               ),
                               maxLines: 2,

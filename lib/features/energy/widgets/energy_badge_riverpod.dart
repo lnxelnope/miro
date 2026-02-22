@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/features/energy/presentation/energy_store_screen.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
@@ -33,17 +35,17 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
 
     Color accentColor;
     if (isError) {
-      accentColor = Colors.grey;
+      accentColor = AppColors.textSecondary;
     } else if (isSubscriber) {
-      accentColor = const Color(0xFF7C3AED);
+      accentColor = AppColors.premium;
     } else if (balance < 10) {
-      accentColor = const Color(0xFFEF4444);
+      accentColor = AppColors.error;
     } else if (balance < 30) {
-      accentColor = const Color(0xFFF59E0B);
+      accentColor = AppColors.warning;
     } else if (balance < 100) {
-      accentColor = const Color(0xFF10B981);
+      accentColor = AppColors.finance;
     } else {
-      accentColor = const Color(0xFF06B6D4);
+      accentColor = AppColors.energyHigh;
     }
 
     final displayText = isError
@@ -63,10 +65,10 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: accentColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(14),
+          color: accentColor.withValues(alpha: 0.1),
+          borderRadius: AppRadius.lg,
           border: isSubscriber
-              ? Border.all(color: accentColor.withOpacity(0.3), width: 1)
+              ? Border.all(color: accentColor.withValues(alpha: 0.3), width: 1)
               : null,
         ),
         child: Row(
@@ -105,20 +107,20 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.textSecondary.withValues(alpha: 0.08),
+        borderRadius: AppRadius.lg,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.bolt_rounded, size: 18, color: Colors.grey.shade400),
+          const Icon(Icons.bolt_rounded, size: 18, color: AppColors.textTertiary),
           const SizedBox(width: 3),
           SizedBox(
             width: 12,
             height: 12,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
-              color: Colors.grey.shade400,
+              color: AppColors.textTertiary,
             ),
           ),
         ],

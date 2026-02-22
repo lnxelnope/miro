@@ -1,3 +1,25 @@
+ไอเดียใหม่
+
+Miro: Your Intake Oracle
+Precise Insight. Zero Effort.
+🔒 100% Private & On-Device
+No Login. No Cloud. Your data never leaves your device. Total privacy by design.
+
+⚡ One-Tap Batch Analysis
+Snap throughout the day and let our AI track everything in just 10 seconds. Stop logging, start living.
+
+💬 Conversational Logging
+Just talk or type to your AI Oracle. Log your entire day’s intake in a single natural sentence.
+
+🍜 Cuisine-Specific Precision
+True ingredient-level accuracy that understands cultural nuances, from Thai street food to fine dining.
+
+⚖️ Pro-Grade Granularity
+For those who take every calorie seriously. Fine-tune and adjust details at the sub-ingredient level with ease.
+
+จบไอเดียผู้สร้าง
+
+
 # MiRO — Marketing Features Summary
 ## Feature Documentation for Marketing Team (Video / Presentation / Sales Material)
 

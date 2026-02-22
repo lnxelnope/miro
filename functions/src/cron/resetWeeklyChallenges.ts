@@ -73,8 +73,8 @@ export const resetWeeklyChallenges = onSchedule(
           if (storedWeekStart !== weekStart) {
             writeBatch.update(doc.ref, {
               "challenges.weekly": {
-                logMeals: 0,
-                useAi: 0,
+                aiCount: 0,
+                referFriends: 0,
                 claimedRewards: [],
                 weekStartDate: weekStart,
               },

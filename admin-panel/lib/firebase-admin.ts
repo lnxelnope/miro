@@ -35,3 +35,12 @@ if (!getApps().length) {
 
 export const db = getFirestore();
 export const adminApp = getApps()[0];
+
+// Export lazy-initialized admin app (for messaging, etc.)
+export const getAdminApp = () => {
+  const apps = getApps();
+  if (!apps.length) {
+    throw new Error('Firebase Admin app not initialized');
+  }
+  return apps[0];
+};

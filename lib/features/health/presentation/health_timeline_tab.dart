@@ -5,9 +5,13 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../features/energy/widgets/quest_bar.dart';
 import '../../../features/energy/providers/energy_provider.dart';
+import '../../../features/energy/providers/gamification_provider.dart';
+import '../../../core/models/gamification_state.dart';
 import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
@@ -22,6 +26,9 @@ import '../widgets/add_food_bottom_sheet.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
+import 'package:isar/isar.dart';
+import '../models/my_meal.dart';
+import '../providers/my_meal_provider.dart';
 class HealthTimelineTab extends ConsumerStatefulWidget {
   const HealthTimelineTab({super.key});
 
@@ -34,6 +41,41 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   
   // Scanning state
   bool _isScanning = false;
+
+  /// Extract ingredient names and user-specified amounts from a FoodEntry's ingredientsJson.
+  static ({List<String>? names, List<Map<String, dynamic>>? userIngredients}) _extractIngredientsFromJson(FoodEntry entry) {
+    if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
+      return (names: null, userIngredients: null);
+    }
+    try {
+      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
+      final names = decoded
+          .map((item) => item['name'] as String?)
+          .where((name) => name != null && name.isNotEmpty)
+          .cast<String>()
+          .toList();
+
+      final userIngredients = decoded
+          .where((item) =>
+              item['name'] != null &&
+              item['amount'] != null &&
+              (item['amount'] as num) > 0)
+          .map((item) => <String, dynamic>{
+                'name': item['name'] as String,
+                'amount': (item['amount'] as num).toDouble(),
+                'unit': item['unit'] as String? ?? 'g',
+              })
+          .toList();
+
+      return (
+        names: names.isNotEmpty ? names : null,
+        userIngredients: userIngredients.isNotEmpty ? userIngredients : null,
+      );
+    } catch (err) {
+      AppLogger.warn('[_extractIngredientsFromJson] Failed to parse ingredientsJson for ${entry.foodName}: $err');
+      return (names: null, userIngredients: null);
+    }
+  }
 
   // Analyze All state
   bool _isAnalyzing = false;
@@ -69,6 +111,11 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           // Daily Summary Card
           SliverToBoxAdapter(
             child: DailySummaryCard(selectedDate: _selectedDate),
+          ),
+
+          // Quest Bar (v3: Offers, Streak, Challenges, Milestones, Referral)
+          const SliverToBoxAdapter(
+            child: QuestBar(),
           ),
 
           // Analyze All Info Bar (moved here - between summary and date selector)
@@ -121,7 +168,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   MealSection(
                     mealType: MealType.breakfast,
                     foods: foodEntries
@@ -172,9 +219,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   ),
                   if (timelineAsync.hasError)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                       child: Text(
-                        'Error loading: ${timelineAsync.error}',
+                        L10n.of(context)!.errorLoading(timelineAsync.error.toString()),
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.error),
                       ),
@@ -185,8 +232,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           ),
 
           // Bottom padding
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
+          SliverToBoxAdapter(
+            child: SizedBox(height: AppSpacing.xxxxl * 2.5),
           ),
         ],
       ),
@@ -198,7 +245,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final isToday = _isToday(_selectedDate);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -213,12 +260,12 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           GestureDetector(
             onTap: _pickDate,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: isToday
                     ? AppColors.primary.withValues(alpha: 0.1)
                     : AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: AppRadius.xl,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -226,8 +273,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(AppIcons.calendar, size: 16, color: AppIcons.calendarColor),
-                      const SizedBox(width: 4),
+                      const Icon(AppIcons.calendar, size: 16, color: AppIcons.calendarColor),
+                      SizedBox(width: AppSpacing.xs),
                       Text(
                         isToday ? "Today" : dateFormat.format(_selectedDate),
                         style: TextStyle(
@@ -237,7 +284,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                       ),
                     ],
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: AppSpacing.xs),
                   Icon(
                     Icons.arrow_drop_down,
                     color:
@@ -280,7 +327,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Found $count new images on ${DateFormat('d MMM yyyy').format(_selectedDate)}'),
+            content: Text(L10n.of(context)!.scanFoundNewImages(count, DateFormat('d MMM yyyy').format(_selectedDate))),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -288,7 +335,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('No new images found on ${DateFormat('d MMM yyyy').format(_selectedDate)}'),
+            content: Text(L10n.of(context)!.scanNoNewImages(DateFormat('d MMM yyyy').format(_selectedDate))),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -312,41 +359,41 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             final remaining = countSnapshot.data ?? 3;
 
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(16),
+              margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              padding: AppSpacing.paddingLg,
               decoration: BoxDecoration(
-                color: Colors.purple.shade50,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.purple.shade200, width: 1.5),
+                color: AppColors.premiumLight,
+                borderRadius: AppRadius.lg,
+                border: Border.all(color: AppColors.premium.withValues(alpha: 0.3), width: 1.5),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: AppSpacing.paddingSm,
                     decoration: BoxDecoration(
-                      color: Colors.purple.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.premium.withValues(alpha: 0.1),
+                      borderRadius: AppRadius.sm,
                     ),
                     child: const Icon(Icons.auto_awesome,
-                        color: Colors.purple, size: 24),
+                        color: AppColors.premium, size: 24),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AI Analysis: $remaining/${UsageLimiter.freeAiCallsPerDay} remaining today',
+                          L10n.of(context)!.aiAnalysisRemaining(remaining, UsageLimiter.freeAiCallsPerDay),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.purple,
+                            color: AppColors.premium,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        const Text(
-                          'Upgrade to Pro for unlimited use',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          L10n.of(context)!.upgradeToProUnlimited,
+                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -354,16 +401,16 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   ElevatedButton(
                     onPressed: () => PurchaseService.buyPro(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
+                      backgroundColor: AppColors.premium,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: AppRadius.xl,
                       ),
                     ),
                     child:
-                        const Text('Upgrade', style: TextStyle(fontSize: 13)),
+                        Text(L10n.of(context)!.upgrade, style: const TextStyle(fontSize: 13)),
                   ),
                 ],
               ),
@@ -494,19 +541,19 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: Text('Do you want to delete "${entry.foodName}"?'),
+        title: Text(L10n.of(context)!.confirmDelete),
+        content: Text(L10n.of(context)!.confirmDeleteMessage(entry.foodName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+              foregroundColor: AppColors.error,
             ),
-            child: const Text('Delete'),
+            child: Text(L10n.of(context)!.delete),
           ),
         ],
       ),
@@ -524,17 +571,17 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Entry deleted successfully'),
+          SnackBar(
+            content: Text(L10n.of(context)!.entryDeletedSuccess),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       } catch (e) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e'),
+            content: Text(L10n.of(context)!.entryDeleteError(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -544,18 +591,33 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
   // ===== Analyze All Batch Processing with Auto-Continue Queue =====
   
+  static const int _batchSize = 5;
+
   Future<void> _startBatchAnalysis(List<FoodEntry> initialEntries) async {
-    // Check energy first - use energy provider
+    final requiredEnergy = initialEntries.length;
+
+    // First free analysis: grant bonus energy to cover the cost (once per user)
+    final energyService = GeminiService.energyService;
+    if (energyService != null) {
+      final isFirstFree = await energyService.isFirstFreeAnalysisAvailable();
+      if (isFirstFree) {
+        await energyService.grantFirstFreeAnalysis(requiredEnergy);
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+      }
+    }
+
+    // Check energy
     final energyAsync = ref.read(energyBalanceProvider);
     final currentBalance = energyAsync.valueOrNull ?? 0;
     
-    final requiredEnergy = initialEntries.length;
-    
     if (currentBalance < requiredEnergy) {
       if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (context) => const NoEnergyDialog(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -577,95 +639,145 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     while (entriesToProcess.isNotEmpty && !_cancelRequested) {
       int batchSuccessCount = 0;
 
-      for (int i = 0; i < entriesToProcess.length; i++) {
-        if (_cancelRequested) {
-          break;
+      // Split into text-only (batchable) and image entries (one-by-one)
+      final textEntries = entriesToProcess
+          .where((e) => e.imagePath == null || e.imagePath!.isEmpty)
+          .toList();
+      final imageEntries = entriesToProcess
+          .where((e) => e.imagePath != null && e.imagePath!.isNotEmpty)
+          .toList();
+
+      // ── Process text entries in batches of 5 ──
+      for (int chunkStart = 0; chunkStart < textEntries.length; chunkStart += _batchSize) {
+        if (_cancelRequested) break;
+
+        final chunkEnd = (chunkStart + _batchSize).clamp(0, textEntries.length);
+        final chunk = textEntries.sublist(chunkStart, chunkEnd);
+
+        setState(() {
+          _analyzeCurrent = totalSuccessCount + batchSuccessCount + _failedIds.length + 1;
+          _currentItemName = L10n.of(context)!.batchAnalyzeItems(chunk.length);
+        });
+
+        AppLogger.info('[BatchAnalyze] Sending batch of ${chunk.length} text items');
+
+        try {
+          final batchItems = chunk.map((e) {
+            final extracted = _extractIngredientsFromJson(e);
+            return (
+              name: e.foodName,
+              servingSize: e.servingSize as double?,
+              servingUnit: e.servingUnit as String?,
+              searchMode: e.searchMode,
+              ingredientNames: extracted.names,
+              userIngredients: extracted.userIngredients,
+            );
+          }).toList();
+
+          final results = await GeminiService.analyzeFoodBatch(batchItems);
+
+          for (int i = 0; i < chunk.length; i++) {
+            final entry = chunk[i];
+            var result = i < results.length ? results[i] : null;
+
+            if (result != null && result.confidence > 0) {
+              // Post-process: enforce user-specified amounts
+              final userIngs = batchItems[i].userIngredients;
+              if (userIngs != null && userIngs.isNotEmpty) {
+                result = GeminiService.enforceUserIngredientAmounts(result, userIngs);
+              }
+              _applyResultToEntry(entry, result);
+              await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+              await _autoSaveToDatabase(entry, result);
+              await UsageLimiter.recordAiUsage();
+              batchSuccessCount++;
+            } else {
+              _failedIds.add(entry.id);
+            }
+          }
+        } catch (e, stackTrace) {
+          AppLogger.error('[BatchAnalyze] Batch failed, falling back to individual', stackTrace);
+          // Fallback: try each item individually
+          for (final entry in chunk) {
+            if (_cancelRequested) break;
+            try {
+              setState(() {
+                _analyzeCurrent = totalSuccessCount + batchSuccessCount + _failedIds.length + 1;
+                _currentItemName = entry.foodName;
+              });
+              
+              final extracted = _extractIngredientsFromJson(entry);
+              
+              var result = await GeminiService.analyzeFoodByName(
+                entry.foodName,
+                servingSize: entry.servingSize,
+                servingUnit: entry.servingUnit,
+                searchMode: entry.searchMode,
+                ingredientNames: extracted.names,
+                userIngredients: extracted.userIngredients,
+              );
+              if (result != null) {
+                // Post-process: enforce user-specified amounts
+                if (extracted.userIngredients != null && extracted.userIngredients!.isNotEmpty) {
+                  result = GeminiService.enforceUserIngredientAmounts(result, extracted.userIngredients!);
+                }
+                _applyResultToEntry(entry, result);
+                await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+                await _autoSaveToDatabase(entry, result);
+                await UsageLimiter.recordAiUsage();
+                batchSuccessCount++;
+              } else {
+                _failedIds.add(entry.id);
+              }
+            } catch (e2) {
+              AppLogger.error('[BatchAnalyze] Individual fallback failed "${entry.foodName}"', e2);
+              _failedIds.add(entry.id);
+            }
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
         }
 
-        final entry = entriesToProcess[i];
-        
+        if (chunkStart + _batchSize < textEntries.length) {
+          await Future.delayed(const Duration(milliseconds: 500));
+        }
+      }
+
+      // ── Process image entries one-by-one (cannot batch images) ──
+      for (int i = 0; i < imageEntries.length; i++) {
+        if (_cancelRequested) break;
+
+        final entry = imageEntries[i];
+
         setState(() {
           _analyzeCurrent = totalSuccessCount + batchSuccessCount + _failedIds.length + 1;
           _currentItemName = entry.foodName;
         });
 
         try {
-          FoodAnalysisResult? result;
-          
-          // Analyze by image or by name
-          if (entry.imagePath != null && entry.imagePath!.isNotEmpty) {
-            AppLogger.info('[BatchAnalyze] Analyzing image: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
-            result = await GeminiService.analyzeFoodImage(
-              File(entry.imagePath!),
-              foodName: entry.foodName,
-              quantity: entry.servingSize,
-              unit: entry.servingUnit,
-              searchMode: entry.searchMode,
-            );
-          } else {
-            AppLogger.info('[BatchAnalyze] Analyzing text: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
-            result = await GeminiService.analyzeFoodByName(
-              entry.foodName,
-              servingSize: entry.servingSize,
-              servingUnit: entry.servingUnit,
-              searchMode: entry.searchMode,
-            );
-          }
+          AppLogger.info('[BatchAnalyze] Analyzing image: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit})');
+          final result = await GeminiService.analyzeFoodImage(
+            File(entry.imagePath!),
+            foodName: entry.foodName,
+            quantity: entry.servingSize,
+            unit: entry.servingUnit,
+            searchMode: entry.searchMode,
+          );
 
           if (result != null) {
-            // Update entry with analysis results
-            entry.foodName = result.foodName;
-            entry.foodNameEn = result.foodNameEn;
-            entry.calories = result.nutrition.calories;
-            entry.protein = result.nutrition.protein;
-            entry.carbs = result.nutrition.carbs;
-            entry.fat = result.nutrition.fat;
-            entry.fiber = result.nutrition.fiber;
-            entry.sugar = result.nutrition.sugar;
-            entry.sodium = result.nutrition.sodium;
-            
-            // Update searchMode based on AI response
-            if (result.foodType != null) {
-              if (result.foodType == 'product') {
-                entry.searchMode = FoodSearchMode.product;
-              } else {
-                entry.searchMode = FoodSearchMode.normal;
-              }
-            }
-            
-            // Calculate base values from serving size
-            final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-            entry.baseCalories = result.nutrition.calories / serving;
-            entry.baseProtein = result.nutrition.protein / serving;
-            entry.baseCarbs = result.nutrition.carbs / serving;
-            entry.baseFat = result.nutrition.fat / serving;
-            entry.servingSize = result.servingSize;
-            entry.servingUnit = result.servingUnit;
-            entry.servingGrams = result.servingGrams?.toDouble();
-            entry.source = DataSource.aiAnalyzed;
-            entry.isVerified = true;
-            entry.aiConfidence = result.confidence;
-            
-            // Save ingredients if available
-            if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
-              entry.ingredientsJson = jsonEncode(
-                result.ingredientsDetail!.map((item) => item.toJson()).toList(),
-              );
-            }
-
-            // Save to database
+            _applyResultToEntry(entry, result);
             await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+            await _autoSaveToDatabase(entry, result);
+            await UsageLimiter.recordAiUsage();
             batchSuccessCount++;
           } else {
             _failedIds.add(entry.id);
           }
         } catch (e, stackTrace) {
-          AppLogger.error('[BatchAnalyze] ❌ FAILED "${entry.foodName}" — $e', stackTrace);
+          AppLogger.error('[BatchAnalyze] Image failed "${entry.foodName}" — $e', stackTrace);
           _failedIds.add(entry.id);
         }
 
-        // Rate limit protection
-        if (i < entriesToProcess.length - 1) {
+        if (i < imageEntries.length - 1) {
           await Future.delayed(const Duration(milliseconds: 300));
         }
       }
@@ -688,13 +800,10 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             .toList();
 
         if (entriesToProcess.isNotEmpty) {
-          // Update progress bar to show new total
           setState(() {
             _analyzeTotal += entriesToProcess.length;
           });
           AppLogger.info('[BatchAnalyze] Found ${entriesToProcess.length} new unanalyzed entries — continuing...');
-          
-          // Small delay before continuing
           await Future.delayed(const Duration(milliseconds: 500));
         }
       } catch (e) {
@@ -712,12 +821,88 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     
     final failedCount = _failedIds.length;
     final message = _cancelRequested
-        ? 'ยกเลิกแล้ว - วิเคราะห์สำเร็จ $totalSuccessCount รายการ'
+        ? L10n.of(context)!.analyzeCancelled(totalSuccessCount)
         : failedCount == 0
-            ? '✅ วิเคราะห์สำเร็จ $totalSuccessCount รายการ'
-            : '⚠️ วิเคราะห์สำเร็จ $totalSuccessCount/${_analyzeTotal} รายการ ($failedCount ล้มเหลว)';
+            ? L10n.of(context)!.analyzeSuccessAll(totalSuccessCount)
+            : L10n.of(context)!.analyzeSuccessPartial(totalSuccessCount, _analyzeTotal, failedCount);
     
     _showMessage(message);
+  }
+
+  /// Apply AI analysis result to a FoodEntry
+  void _applyResultToEntry(FoodEntry entry, FoodAnalysisResult result) {
+    entry.foodName = result.foodName;
+    entry.foodNameEn = result.foodNameEn;
+    entry.calories = result.nutrition.calories;
+    entry.protein = result.nutrition.protein;
+    entry.carbs = result.nutrition.carbs;
+    entry.fat = result.nutrition.fat;
+    entry.fiber = result.nutrition.fiber;
+    entry.sugar = result.nutrition.sugar;
+    entry.sodium = result.nutrition.sodium;
+
+    // Keep user's original searchMode choice — don't override from AI response
+
+    final serving = result.servingSize > 0 ? result.servingSize : 1.0;
+    entry.baseCalories = result.nutrition.calories / serving;
+    entry.baseProtein = result.nutrition.protein / serving;
+    entry.baseCarbs = result.nutrition.carbs / serving;
+    entry.baseFat = result.nutrition.fat / serving;
+    entry.servingSize = result.servingSize;
+    entry.servingUnit = result.servingUnit;
+    entry.servingGrams = result.servingGrams?.toDouble();
+    entry.source = DataSource.aiAnalyzed;
+    entry.isVerified = true;
+    entry.aiConfidence = result.confidence;
+
+    if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
+      entry.ingredientsJson = jsonEncode(
+        result.ingredientsDetail!.map((item) => item.toJson()).toList(),
+      );
+    }
+  }
+
+  /// Auto-save analyzed result to MyMeal + Ingredient database
+  Future<void> _autoSaveToDatabase(
+      FoodEntry entry, FoodAnalysisResult result) async {
+    if (result.ingredientsDetail == null ||
+        result.ingredientsDetail!.isEmpty) return;
+
+    try {
+      // Get unique name if duplicate
+      final all = await DatabaseService.myMeals.where().findAll();
+      final uniqueName = _getUniqueMealName(result.foodName, all);
+
+      final ingredientsData =
+          result.ingredientsDetail!.map((e) => e.toJson()).toList();
+
+      await ref.read(foodEntriesNotifierProvider.notifier).saveIngredientsAndMeal(
+        mealName: uniqueName,
+        mealNameEn: result.foodNameEn,
+        servingDescription:
+            '${result.servingSize} ${result.servingUnit}',
+        imagePath: entry.imagePath,
+        ingredientsData: ingredientsData,
+      );
+
+      ref.invalidate(allMyMealsProvider);
+      ref.invalidate(allIngredientsProvider);
+      AppLogger.info(
+          '[AutoSave] Saved "$uniqueName" → MyMeal + ${ingredientsData.length} ingredients');
+    } catch (e) {
+      AppLogger.warn('[AutoSave] Failed for "${result.foodName}": $e');
+    }
+  }
+
+  String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
+    final names = allMeals.map((m) => m.name).toSet();
+    if (!names.contains(baseName)) return baseName;
+    
+    int counter = 2;
+    while (names.contains('$baseName ($counter)')) {
+      counter++;
+    }
+    return '$baseName ($counter)';
   }
 
   void _showMessage(String message) {
@@ -743,21 +928,60 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final energyCost = unanalyzed.length;
     final chipBg = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.black.withOpacity(0.05);
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.black.withValues(alpha: 0.05);
     final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
     final hasData = allEntries.isNotEmpty;
+
+    // Unclaimed energy chip (แสดงชิดขวาใน info bar ทุก state)
+    final gamification = ref.watch(gamificationProvider);
+    final unclaimed = _countUnclaimedEnergy(gamification);
+
+    Widget unclaimedChip() {
+      if (unclaimed <= 0) return const SizedBox.shrink();
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.12),
+          borderRadius: AppRadius.sm,
+          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(AppIcons.energy, size: 13, color: AppColors.success),
+            SizedBox(width: AppSpacing.xs / 1.33),
+            Text(
+              '+$unclaimed',
+              style: const TextStyle(
+                fontSize: 12, fontWeight: FontWeight.bold,
+                color: AppColors.success,
+              ),
+            ),
+            SizedBox(width: AppSpacing.xs),
+            Text(
+              'unclaim',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.success.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     // Analyzing state — show progress bar
     if (_isAnalyzing) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.md,
           border: Border.all(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
           ),
         ),
         child: Column(
@@ -765,17 +989,21 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           children: [
             Row(
               children: [
+                if (unclaimed > 0) ...[
+                  unclaimedChip(),
+                  SizedBox(width: AppSpacing.sm),
+                ],
                 SizedBox(
-                  width: 16, height: 16,
-                  child: CircularProgressIndicator(
+                  width: AppSpacing.lg, height: AppSpacing.lg,
+                  child: const CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation(AppColors.primary),
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: AppSpacing.xl / 2),
                 Expanded(
                   child: Text(
-                    '$_currentItemName  ($_analyzeCurrent/$_analyzeTotal)',
+                    L10n.of(context)!.analyzeProgress(_currentItemName, _analyzeCurrent, _analyzeTotal),
                     style: TextStyle(fontSize: 13, color: textColor),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -783,18 +1011,18 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                 ),
                 GestureDetector(
                   onTap: () => setState(() => _cancelRequested = true),
-                  child: Icon(Icons.close_rounded, size: 18, color: AppColors.error),
+                  child: const Icon(Icons.close_rounded, size: 18, color: AppColors.error),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: AppSpacing.xs + 2),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: _analyzeTotal > 0 ? _analyzeCurrent / _analyzeTotal : 0,
                 minHeight: 4,
-                backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation(AppColors.primary),
+                backgroundColor: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
+                valueColor: const AlwaysStoppedAnimation(AppColors.primary),
               ),
             ),
           ],
@@ -805,26 +1033,29 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     // Empty state — show pull to refresh hint
     if (!hasData) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.md),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.md,
           border: Border.all(
             color: isDark ? AppColors.dividerDark : AppColors.divider,
           ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            if (unclaimed > 0) ...[
+              unclaimedChip(),
+              SizedBox(width: AppSpacing.sm),
+            ],
             Icon(
               Icons.arrow_downward_rounded,
               size: 18,
               color: textColor,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
             Text(
-              'Pull to scan your meal',
+              L10n.of(context)!.pullToScanMeal,
               style: TextStyle(
                 fontSize: 13,
                 color: textColor,
@@ -838,24 +1069,30 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
     // Has data - show info chips and buttons
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: AppRadius.md,
         border: Border.all(
           color: isDark ? AppColors.dividerDark : AppColors.divider,
         ),
       ),
       child: Row(
         children: [
+          // Unclaimed energy (ชิดซ้าย)
+          if (unclaimed > 0) ...[
+            unclaimedChip(),
+            SizedBox(width: AppSpacing.sm),
+          ],
+
           // Image count
           if (imageCount > 0) ...[
             _infoChip(
               AppIcons.camera, imageCount.toString(),
               AppIcons.cameraColor, chipBg, textColor,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
           ],
           // Text-only count
           if (textCount > 0) ...[
@@ -863,15 +1100,15 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               Icons.restaurant_menu_rounded, textCount.toString(),
               AppIcons.mealColor, chipBg, textColor,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
           ],
           // Database count
           if (dbCount > 0) ...[
             _infoChip(
-              Icons.menu_book_rounded, dbCount.toString(),
-              AppColors.success, chipBg, textColor,
+              Icons.storage_rounded, dbCount.toString(),
+              AppColors.ai, chipBg, textColor,
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
           ],
 
           const Spacer(),
@@ -880,44 +1117,44 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           GestureDetector(
             onTap: _scanForFood,
             child: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(AppSpacing.xs + 2),
               decoration: BoxDecoration(
                 color: chipBg,
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: AppRadius.sm,
               ),
-              child: Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
+              child: const Icon(Icons.refresh_rounded, size: 16, color: AppColors.primary),
             ),
           ),
 
           // Analyze button (only if there are unanalyzed entries)
           if (energyCost > 0) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
             GestureDetector(
               onTap: () => _startBatchAnalysis(unanalyzed),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.sm,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(AppIcons.ai, size: 14, color: Colors.white),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'Analyze All',
-                      style: TextStyle(
+                    const Icon(AppIcons.ai, size: 14, color: Colors.white),
+                    SizedBox(width: AppSpacing.xs + 1),
+                    Text(
+                      L10n.of(context)!.analyzeAll,
+                      style: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    Icon(AppIcons.energy, size: 13, color: AppIcons.energyColor),
-                    const SizedBox(width: 2),
+                    SizedBox(width: AppSpacing.xs + 1),
+                    const Icon(AppIcons.energy, size: 13, color: AppIcons.energyColor),
+                    SizedBox(width: AppSpacing.xxs),
                     Text(
                       '$energyCost',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12, fontWeight: FontWeight.w600,
                         color: AppIcons.energyColor,
                       ),
@@ -927,9 +1164,49 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               ),
             ),
           ],
+
         ],
       ),
     );
+  }
+
+  /// คำนวณ unclaimed energy จาก daily challenges + milestones
+  int _countUnclaimedEnergy(GamificationState gamification) {
+    int unclaimed = 0;
+    final dailyClaimed = gamification.dailyClaimedRewards;
+    final dailyAi = gamification.dailyAiCount;
+
+    // dailyAi1: ใช้ AI 1 ครั้ง → claimable
+    if (dailyAi >= 1 && !dailyClaimed.contains('dailyAi1')) {
+      final tierBonus = {'starter': 0, 'bronze': 0, 'silver': 1, 'gold': 2, 'diamond': 3};
+      unclaimed += 1 + (tierBonus[gamification.tier] ?? 0);
+    }
+    // dailyAi10: ใช้ AI 10 ครั้ง → claimable
+    if (dailyAi >= 10 && !dailyClaimed.contains('dailyAi10')) {
+      unclaimed += 2;
+    }
+
+    // Weekly challenges
+    final weeklyClaimed = gamification.weeklyClaimedRewards;
+    final weeklyAi = gamification.weeklyAiCount;
+    if (weeklyAi >= 20 && !weeklyClaimed.contains('weeklyAi20')) unclaimed += 3;
+    if (weeklyAi >= 40 && !weeklyClaimed.contains('weeklyAi40')) unclaimed += 4;
+    if (weeklyAi >= 60 && !weeklyClaimed.contains('weeklyAi60')) unclaimed += 5;
+
+    // Referral (10 levels, +5E each, level 10 = +25E)
+    final referFriends = gamification.referFriendsProgress;
+    const referralRewards = [5, 5, 5, 5, 5, 5, 5, 5, 5, 25];
+    for (int i = 0; i < referralRewards.length; i++) {
+      final claimKey = 'referFriends_${i + 1}';
+      if (weeklyClaimed.contains(claimKey)) continue;
+      if (referFriends >= (i + 1)) {
+        unclaimed += referralRewards[i];
+      } else {
+        break;
+      }
+    }
+
+    return unclaimed;
   }
 
   Widget _infoChip(
@@ -937,16 +1214,16 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     Color iconColor, Color bgColor, Color textColor,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: AppRadius.sm,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: iconColor),
-          const SizedBox(width: 4),
+          SizedBox(width: AppSpacing.xs),
           Text(
             count,
             style: TextStyle(

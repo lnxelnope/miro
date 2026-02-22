@@ -24,7 +24,7 @@ const db = admin.firestore();
 const GOOGLE_SERVICE_ACCOUNT = defineSecret("GOOGLE_SERVICE_ACCOUNT_JSON");
 const PACKAGE_NAME = "com.tanabun.miro";
 
-const SUBSCRIPTION_PRODUCT_ID = "energy_pass_monthly";
+const SUBSCRIPTION_PRODUCT_ID = "miro_normal_subscription";
 
 export const verifySubscription = onRequest(
   {

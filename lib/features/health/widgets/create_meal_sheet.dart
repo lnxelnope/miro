@@ -1559,7 +1559,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(L10n.of(context)!.foundInDatabase(subName)),
+                content: Text(L10n.of(context)!.foundInDatabaseSub(subName)),
                 backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2)),
           );

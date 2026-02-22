@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../models/chat_message.dart';
 
@@ -16,7 +17,7 @@ class MessageBubble extends StatelessWidget {
     final isUser = message.role == MessageRole.user;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -27,29 +28,29 @@ class MessageBubble extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: AppRadius.md,
               ),
-              child: Center(
+              child: const Center(
                 child: Icon(AppIcons.ai, size: 18, color: AppIcons.aiColor),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
-                color: isUser ? AppColors.primary : Colors.grey.shade100,
+                color: isUser ? AppColors.primary : AppColors.surfaceVariant,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isUser ? 18 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 18),
+                  topLeft: const Radius.circular(AppRadius.lgValue + 2),
+                  topRight: const Radius.circular(AppRadius.lgValue + 2),
+                  bottomLeft: Radius.circular(isUser ? AppRadius.lgValue + 2 : AppRadius.smValue),
+                  bottomRight: Radius.circular(isUser ? AppRadius.smValue : AppRadius.lgValue + 2),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -58,7 +59,7 @@ class MessageBubble extends StatelessWidget {
               child: Text(
                 message.content,
                 style: TextStyle(
-                  color: isUser ? Colors.white : Colors.grey.shade800,
+                  color: isUser ? Colors.white : AppColors.textPrimary,
                   fontSize: 15,
                   height: 1.4,
                 ),
@@ -66,13 +67,13 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: AppSpacing.sm),
             Container(
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primary.withValues(alpha: 0.15),
+                borderRadius: AppRadius.md,
               ),
               child: const Icon(
                 Icons.person_rounded,

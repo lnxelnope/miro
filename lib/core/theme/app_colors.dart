@@ -54,4 +54,22 @@ class AppColors {
   static const Color energyLow = Color(0xFFF59E0B); // Amber-500 (< 30)
   static const Color energyMedium = Color(0xFF10B981); // Emerald-500 (< 100)
   static const Color energyHigh = Color(0xFF06B6D4); // Cyan-500 (≥ 100)
+
+  // AI / Gemini Analysis
+  static const Color ai = Color(0xFF6366F1); // Indigo-500
+  static const Color aiLight = Color(0xFFE0E7FF); // Indigo-100
+  static const Color aiDark = Color(0xFF4F46E5); // Indigo-600
+
+  // Premium / Subscription
+  static const Color premium = Color(0xFF7C3AED); // Purple-600
+  static const Color premiumLight = Color(0xFFEDE9FE); // Purple-100
+  static const Color premiumDark = Color(0xFF6D28D9); // Purple-700
+
+  // Skeleton / Shimmer Loading
+  static const Color shimmer = Color(0xFFE5E7EB); // Gray-200
+  static const Color shimmerDark = Color(0xFF374151); // Gray-700
+
+  // Overlay
+  static const Color overlay = Color(0x80000000); // Black 50%
+  static const Color overlayLight = Color(0x1A000000); // Black 10%
 }

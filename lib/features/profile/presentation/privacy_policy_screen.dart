@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -8,17 +10,17 @@ class PrivacyPolicyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Privacy Policy'),
+        title: Text(L10n.of(context)!.privacyPolicyTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.paddingLg,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            const SizedBox(height: 24),
+            _buildHeader(context),
+            SizedBox(height: AppSpacing.xxl),
             _buildSection(
-              'Information We Collect',
+              L10n.of(context)!.privacyPolicySectionInformationWeCollect,
               [
                 'MiRO stores the following data locally on your device (Offline-first):',
                 '',
@@ -33,7 +35,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Data Storage',
+              L10n.of(context)!.privacyPolicySectionDataStorage,
               [
                 '• All food data and personal information stored locally on your device (Local database)',
                 '• Energy balance synchronized with Firebase Firestore for cross-device persistence',
@@ -42,7 +44,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Data Transmission to Third Parties',
+              L10n.of(context)!.privacyPolicySectionDataTransmission,
               [
                 'In-App Purchase',
                 '',
@@ -74,7 +76,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Required Permissions',
+              L10n.of(context)!.privacyPolicySectionRequiredPermissions,
               [
                 'MiRO requests the following permissions:',
                 '',
@@ -84,7 +86,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Security',
+              L10n.of(context)!.privacyPolicySectionSecurity,
               [
                 '• Energy transactions secured via Firebase with device authentication',
                 '• Local data stored in encrypted Local Database (Isar)',
@@ -95,7 +97,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'User Rights',
+              L10n.of(context)!.privacyPolicySectionUserRights,
               [
                 '• Delete all local data anytime',
                 '• Uninstall the app to remove all local data',
@@ -104,7 +106,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Data Retention',
+              L10n.of(context)!.privacyPolicySectionDataRetention,
               [
                 '• Local food data: Retained until you delete it or uninstall the app',
                 '• Energy balance: Retained indefinitely (linked to your device)',
@@ -112,19 +114,19 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Children\'s Privacy',
+              L10n.of(context)!.privacyPolicySectionChildrenPrivacy,
               [
                 'MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
               ],
             ),
             _buildSection(
-              'Changes to This Policy',
+              L10n.of(context)!.privacyPolicySectionChangesToPolicy,
               [
                 'We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.',
               ],
             ),
             _buildSection(
-              'Data Collection Consent',
+              L10n.of(context)!.privacyPolicySectionDataCollectionConsent,
               [
                 'Analytics Opt-In/Opt-Out',
                 '',
@@ -150,7 +152,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'PDPA Compliance (Thailand Personal Data Protection Act)',
+              L10n.of(context)!.privacyPolicySectionPDPACompliance,
               [
                 'Your Rights',
                 '',
@@ -182,64 +184,64 @@ class PrivacyPolicyScreen extends StatelessWidget {
               ],
             ),
             _buildSection(
-              'Contact Us',
+              L10n.of(context)!.privacyPolicySectionContactUs,
               [
                 'If you have questions about this Privacy Policy, please contact us through Google Play Store.',
               ],
             ),
             const SizedBox(height: 16),
             Text(
-              'Effective Date: February 18, 2026\nLast Updated: February 18, 2026',
+              L10n.of(context)!.privacyPolicyEffectiveDate,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Privacy Policy',
-          style: TextStyle(
+        Text(
+          L10n.of(context)!.privacyPolicyTitle,
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          'MiRO — My Intake Record Oracle',
+          L10n.of(context)!.privacyPolicySubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: Colors.grey.shade700,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.green.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.green.shade200),
+            color: AppColors.success.withValues(alpha: 0.1),
+            borderRadius: AppRadius.sm,
+            border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
-              Icon(Icons.privacy_tip, color: Colors.green.shade700, size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.privacy_tip, color: AppColors.success, size: 20),
+              SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  'Your food data stays on your device. Energy balance synced securely via Firebase.',
+                  L10n.of(context)!.privacyPolicyHeaderNote,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.green.shade900,
+                    color: AppColors.success,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -274,13 +276,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
               line,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade800,
+                color: AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
           );
         }),
-        const SizedBox(height: 20),
+        SizedBox(height: AppSpacing.xl),
       ],
     );
   }

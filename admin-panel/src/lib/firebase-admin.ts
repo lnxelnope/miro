@@ -93,3 +93,13 @@ export const db: ReturnType<typeof getFirestore> = new Proxy(
 );
 
 export const adminApp = getApps().length > 0 ? getApps()[0] : null;
+
+// Export lazy-initialized admin app (for messaging, etc.)
+export const getAdminApp = () => {
+  ensureInitialized();
+  const apps = getApps();
+  if (!apps.length) {
+    throw new Error('Firebase Admin app not initialized');
+  }
+  return apps[0];
+};

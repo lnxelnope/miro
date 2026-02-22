@@ -71,5 +71,9 @@
             android:name="com.google.android.play.billingclient.version"
             android:value="6.0.1"
             tools:replace="android:value" />
+        <!-- AdMob App ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-6145254112451474~9703380291"/>
     </application>
 </manifest>

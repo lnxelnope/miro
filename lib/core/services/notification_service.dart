@@ -1,6 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'device_id_service.dart';
 import '../utils/logger.dart';
 
@@ -8,10 +8,13 @@ import '../utils/logger.dart';
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static bool _initialized = false;
+  static Function(RemoteMessage)? _onNotificationTapCallback;
 
   /// Initialize notification service
   /// เรียกตอน app startup ใน main.dart
-  static Future<void> initialize() async {
+  /// [onNotificationTap] callback สำหรับ navigate เมื่อกด notification
+  static Future<void> initialize({Function(RemoteMessage)? onNotificationTap}) async {
+    _onNotificationTapCallback = onNotificationTap;
     if (_initialized) {
       AppLogger.info('🔔 NotificationService already initialized');
       return;
@@ -61,7 +64,9 @@ class NotificationService {
         final initialMessage = await _messaging.getInitialMessage();
         if (initialMessage != null) {
           AppLogger.info('📬 App opened from notification');
-          _handleNotificationTap(initialMessage);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleNotificationTap(initialMessage);
+          });
         }
 
         _initialized = true;
@@ -94,10 +99,18 @@ class NotificationService {
   /// Handle notification tap
   static void _handleNotificationTap(RemoteMessage message) {
     final data = message.data;
+    final action = data['action'] as String?;
     final type = data['type'] as String?;
 
-    AppLogger.info('🔔 Handling notification tap: type=$type');
+    AppLogger.info('🔔 Handling notification tap: action=$action, type=$type');
 
+    // Call callback if provided (for navigation)
+    if (_onNotificationTapCallback != null) {
+      _onNotificationTapCallback!(message);
+      return;
+    }
+
+    // Fallback: legacy handling
     // TODO: Navigate to appropriate screen based on notification type
     // Example:
     // if (type == 'streak_reminder') {

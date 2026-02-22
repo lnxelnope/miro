@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../models/my_meal_ingredient.dart';
 
 /// Expandable card สำหรับแสดง ingredient พร้อม sub-ingredients
@@ -98,15 +99,15 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
         margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: widget.depth == 0 ? Colors.white : Colors.grey[50],
-          borderRadius: BorderRadius.circular(8),
+          color: widget.depth == 0 ? Colors.white : AppColors.surfaceVariant,
+          borderRadius: AppRadius.sm,
           border: Border.all(
-            color: widget.depth == 0 ? Colors.grey[300]! : Colors.grey[200]!,
+            color: widget.depth == 0 ? AppColors.divider : AppColors.divider,
           ),
           boxShadow: widget.depth == 0
               ? [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 4,
                       offset: const Offset(0, 2))
                 ]
@@ -124,7 +125,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                   child: Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -136,7 +137,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                 height: 40,
                 margin: const EdgeInsets.only(right: 8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: AppColors.divider,
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -164,7 +165,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                     '${widget.ingredient.amount.toStringAsFixed(0)} ${widget.ingredient.unit}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: AppColors.textSecondary,
                     ),
                   ),
 
@@ -175,9 +176,9 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         widget.ingredient.detail!,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
-                          color: Colors.grey[500],
+                          color: AppColors.textSecondary,
                           fontStyle: FontStyle.italic,
                         ),
                         maxLines: 2,
@@ -199,7 +200,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                     fontWeight: FontWeight.bold,
                     color: widget.depth == 0
                         ? AppColors.health
-                        : Colors.orange[400],
+                        : AppColors.warning.withValues(alpha: 0.7),
                   ),
                 ),
 
@@ -207,9 +208,9 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                 if (hasChildren)
                   Text(
                     '${widget.children.length} items',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 10,
-                      color: Colors.grey[500],
+                      color: AppColors.textSecondary,
                     ),
                   ),
               ],
@@ -219,7 +220,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
             if (widget.isEditable && widget.onDelete != null)
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 20),
-                color: Colors.red[400],
+                color: AppColors.error.withValues(alpha: 0.7),
                 onPressed: widget.onDelete,
               ),
           ],
@@ -233,9 +234,9 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
       margin: const EdgeInsets.only(left: 24, top: 2, right: 8, bottom: 2),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey[300]!),
+        color: AppColors.surfaceVariant,
+        borderRadius: AppRadius.sm,
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
@@ -245,7 +246,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
             height: 30,
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[400],
+              color: AppColors.textTertiary,
               borderRadius: BorderRadius.circular(1),
             ),
           ),
@@ -265,9 +266,9 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                 const SizedBox(height: 2),
                 Text(
                   '${child.amount.toStringAsFixed(0)} ${child.unit}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
-                    color: Colors.grey[600],
+                    color: AppColors.textSecondary,
                   ),
                 ),
                 if (child.detail != null && child.detail!.isNotEmpty)
@@ -277,7 +278,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                       child.detail!,
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.grey[500],
+                        color: AppColors.textSecondary,
                         fontStyle: FontStyle.italic,
                       ),
                       maxLines: 1,
@@ -293,7 +294,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+              color: AppColors.textSecondary,
             ),
           ),
         ],

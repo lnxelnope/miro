@@ -11,7 +11,6 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import '../utils/logger.dart';
 import 'usage_limiter.dart';
 import 'energy_service.dart';
-import 'welcome_offer_service.dart';
 import 'device_id_service.dart';
 
 /// จัดการ Google Play In-App Purchase
@@ -29,11 +28,8 @@ class PurchaseService {
   static const String energy1200 = 'energy_1200'; // $7.99
   static const String energy2000 = 'energy_2000'; // $9.99
 
-  /// Welcome offer packages (40% OFF — 24h only)
-  static const String energy100Welcome = 'energy_100_welcome'; // $0.59
-  static const String energy550Welcome = 'energy_550_welcome'; // $2.99
-  static const String energy1200Welcome = 'energy_1200_welcome'; // $4.79
-  static const String energy2000Welcome = 'energy_2000_welcome'; // $5.99
+  /// Offer-specific packages (managed by backend offersV2)
+  static const String energyFirstPurchase200 = 'energy_first_purchase_200'; // $1.00
 
   /// Map: Product ID → Energy amount
   static const Map<String, int> energyAmounts = {
@@ -41,10 +37,7 @@ class PurchaseService {
     energy550: 550,
     energy1200: 1200,
     energy2000: 2000,
-    energy100Welcome: 100,
-    energy550Welcome: 550,
-    energy1200Welcome: 1200,
-    energy2000Welcome: 2000,
+    energyFirstPurchase200: 200,
   };
 
   /// Approximate THB prices for analytics (actual prices from Google Play)
@@ -54,10 +47,7 @@ class PurchaseService {
       'energy_550': 179.0,
       'energy_1200': 289.0,
       'energy_2000': 359.0,
-      'energy_100_welcome': 19.0,
-      'energy_550_welcome': 109.0,
-      'energy_1200_welcome': 169.0,
-      'energy_2000_welcome': 219.0,
+      'energy_first_purchase_200': 35.0,
     };
     return prices[productId] ?? 0.0;
   }
@@ -262,14 +252,6 @@ class PurchaseService {
 
             debugPrint(
                 '[PurchaseService] 💎 Server-verified: +$energyAdded → Balance: $newBalance');
-
-            // ถ้าเป็น welcome offer → mark as claimed
-            if (productId.contains('welcome')) {
-              final hasClaimed = await WelcomeOfferService.hasClaimed();
-              if (!hasClaimed) {
-                await WelcomeOfferService.markClaimed(productId);
-              }
-            }
 
             // Analytics: standard purchase event (Google Ads conversion)
             AnalyticsService.logEnergyPurchase(
@@ -599,8 +581,8 @@ class PurchaseService {
   // SUBSCRIPTION HANDLING (Phase 5)
   // ───────────────────────────────────────────────────────────
 
-  /// Product ID สำหรับ subscription
-  static const String subscriptionProductId = 'energy_pass_monthly';
+  /// Product ID สำหรับ subscription (single product, multiple base plans)
+  static const String subscriptionProductId = 'miro_normal_subscription';
 
   /// Handle Subscription purchase
   static Future<void> _handleSubscriptionPurchase(PurchaseDetails purchase) async {

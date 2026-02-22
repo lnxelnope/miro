@@ -107,21 +107,21 @@ export const generateTransferKey = onCall(
       // 2. ตรวจสอบ Rate Limit
       await checkRateLimit(deviceId);
 
-      // 3. ดึง Energy Balance ปัจจุบัน
-      const energyDoc = await admin
+      // 3. ดึง Energy Balance ปัจจุบัน (จาก users collection)
+      const userDoc = await admin
         .firestore()
-        .collection("energy_balances")
+        .collection("users")
         .doc(deviceId)
         .get();
 
-      if (!energyDoc.exists) {
+      if (!userDoc.exists) {
         throw new HttpsError(
           "not-found",
-          "Device not found in energy collection"
+          "User not found"
         );
       }
 
-      const energyBalance = energyDoc.data()?.balance || 0;
+      const energyBalance = userDoc.data()?.balance || 0;
 
       // 4. Expire key เก่าที่ยัง active
       await expirePreviousActiveKeys(deviceId);
@@ -285,15 +285,15 @@ export const redeemTransferKey = onCall(
       const sourceBalance = sourceUserData.balance || 0;
       const sourceMiroId = sourceUserData.miroId;
 
-      // 7. ดึง Energy Balance ปัจจุบันของเครื่องใหม่ (สำหรับ logging)
-      const newEnergyDoc = await admin
+      // 7. ดึง Energy Balance ปัจจุบันของเครื่องใหม่ (จาก users collection)
+      const newUserDoc = await admin
         .firestore()
-        .collection("energy_balances")
+        .collection("users")
         .doc(newDeviceId)
         .get();
 
-      const previousBalance = newEnergyDoc.exists ?
-        newEnergyDoc.data()?.balance || 0 :
+      const previousBalance = newUserDoc.exists ?
+        newUserDoc.data()?.balance || 0 :
         0;
 
       // 8. Atomic Transaction: โอน Energy + MiRO ID
@@ -335,8 +335,6 @@ export const redeemTransferKey = onCall(
             totalSpent: sourceUserData.totalSpent || 0,
             totalPurchased: sourceUserData.totalPurchased || 0,
             welcomeGiftClaimed: true,
-            freeAiUsedToday: false,
-            freeAiLastReset: new Date().toISOString().split("T")[0],
             currentStreak: sourceUserData.currentStreak || 0,
             longestStreak: sourceUserData.longestStreak || 0,
             lastCheckInDate: sourceUserData.lastCheckInDate || null,

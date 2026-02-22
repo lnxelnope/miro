@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../models/my_meal.dart';
 import '../models/food_entry.dart';
@@ -79,7 +80,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -125,13 +126,13 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                       helperText:
                           'Original ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
                       helperStyle: TextStyle(
-                          fontSize: 11, color: Colors.purple.shade300),
+                          fontSize: 11, color: AppColors.premium.withValues(alpha: 0.5)),
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: AppRadius.md),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                         borderSide:
-                            const BorderSide(color: Colors.purple, width: 2),
+                            const BorderSide(color: AppColors.premium, width: 2),
                       ),
                     ),
                   ),
@@ -143,9 +144,9 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                     padding: const EdgeInsets.symmetric(
                         vertical: 18, horizontal: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
+                    color: AppColors.surfaceVariant,
+                    borderRadius: AppRadius.md,
+                    border: Border.all(color: AppColors.divider),
                     ),
                     child: Text(
                       widget.meal.parsedServingUnit,
@@ -163,12 +164,12 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.health.withOpacity(0.1),
-                    AppColors.health.withOpacity(0.05),
+                    AppColors.health.withValues(alpha: 0.1),
+                    AppColors.health.withValues(alpha: 0.05),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.health.withOpacity(0.3)),
+                borderRadius: AppRadius.lg,
+                border: Border.all(color: AppColors.health.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -176,7 +177,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(AppIcons.calories, size: 32, color: AppIcons.caloriesColor),
+                      const Icon(AppIcons.calories, size: 32, color: AppIcons.caloriesColor),
                       const SizedBox(width: 12),
                       Text(
                         '${_calories.toInt()}',
@@ -230,7 +231,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   onSelected: (s) {
                     if (s) setState(() => _selectedMealType = type);
                   },
-                  selectedColor: AppColors.health.withOpacity(0.2),
+                  selectedColor: AppColors.health.withValues(alpha: 0.2),
                 );
               }).toList(),
             ),
@@ -246,7 +247,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                      borderRadius: AppRadius.md),
                 ),
                 child: const Text('Save',
                     style:
@@ -263,8 +264,8 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: AppRadius.md,
       ),
       child: Column(
         children: [

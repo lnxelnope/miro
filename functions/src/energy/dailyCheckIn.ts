@@ -10,12 +10,13 @@
 
 import {onRequest} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import {getABTestConfig} from "../abTesting/getABGroup";
 import {
   getTierUpgradeReward,
   activateTierUpgradePromotion,
   activateWelcomeBackPromotion,
 } from "./promotions";
+import {sendTierUpNotification} from "../notifications/pushTriggers";
+import {evaluateOffers} from "./offerEngine";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -87,10 +88,10 @@ function daysBetween(dateStr1: string, dateStr2: string): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function getTodayString(timezoneOffset?: number): string {
+function getTodayString(_timezoneOffset?: number): string {
   const now = new Date();
-  const offset = timezoneOffset ?? 420;
-  const localTime = new Date(now.getTime() + offset * 60 * 1000);
+  // SECURITY: บังคับ UTC+7 server-side เสมอ ป้องกัน timezone manipulation
+  const localTime = new Date(now.getTime() + 420 * 60 * 1000);
   return localTime.toISOString().split("T")[0];
 }
 
@@ -111,8 +112,6 @@ export interface CheckInResult {
   newBalance?: number;
   alreadyCheckedIn: boolean;
   showWelcomeBackOffer: boolean;
-  randomBonus: number;
-  gotRandomBonus: boolean;
 }
 
 /**
@@ -156,8 +155,6 @@ export async function processCheckIn(
         newBalance: balance,
         alreadyCheckedIn: true,
         showWelcomeBackOffer: false,
-        randomBonus: 0,
-        gotRandomBonus: false,
       };
     }
 
@@ -245,23 +242,10 @@ export async function processCheckIn(
     const dailyEnergy = DAILY_ENERGY_REWARD[effectiveTier] || 1;
     console.log(`⚡ [Check-in] Daily: +${dailyEnergy} Energy (${effectiveTier})`);
 
-    // ─── Random Daily Bonus ───
-    let randomBonus = 0;
-    let gotRandomBonus = false;
-
-    const chance = await getABTestConfig(deviceId, "randomBonus.chance", 0.05);
-    const minR = await getABTestConfig(deviceId, "randomBonus.minReward", 5);
-    const maxR = await getABTestConfig(deviceId, "randomBonus.maxReward", 10);
-
-    const roll = Math.random();
-    if (roll < chance) {
-      randomBonus = Math.floor(Math.random() * (maxR - minR + 1) + minR);
-      gotRandomBonus = true;
-      console.log(`🎲 [Check-in] Random bonus! +${randomBonus}`);
-    }
+    // ─── V3: ลบ Random Daily Bonus ออกแล้ว ───
 
     // ─── Update user document ───
-    const totalBonus = dailyEnergy + randomBonus + tierRewardEnergy;
+    const totalBonus = dailyEnergy + tierRewardEnergy;
     const updates: Record<string, any> = {
       currentStreak: newStreak,
       longestStreak,
@@ -281,17 +265,18 @@ export async function processCheckIn(
       if (tierRewardEnergy > 0) {
         updates[`promotions.tierRewardClaimed.${newTier}`] = true;
       }
+      // ─── Tier Celebration: Initialize 7-day celebration for new tier ───
+      console.log(`🎉 [TierCelebration] Initializing ${newTier} celebration for ${deviceId}`);
+      updates[`tierCelebration.${newTier}`] = {
+        startDate: today,
+        claimedDays: [],
+      };
     }
 
     if (tierDemoted) {
       if (newTier === "gold") updates.bonusRate = 0.10;
       else if (newTier === "diamond") updates.bonusRate = 0.20;
       else updates.bonusRate = 0;
-    }
-
-    if (gotRandomBonus) {
-      updates.lastRandomBonus = today;
-      updates.randomBonusCount = (user.randomBonusCount || 0) + 1;
     }
 
     transaction.update(userRef, updates);
@@ -318,20 +303,6 @@ export async function processCheckIn(
       },
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-
-    if (gotRandomBonus && randomBonus > 0) {
-      const txRef2 = db.collection("transactions").doc();
-      transaction.set(txRef2, {
-        deviceId,
-        miroId: user.miroId || "unknown",
-        type: "random_bonus",
-        amount: randomBonus,
-        balanceAfter: balance + totalBonus,
-        description: `Lucky! Random bonus: +${randomBonus} Energy`,
-        metadata: {roll, chance},
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
 
     // Log tier reward transaction
     if (tierRewardEnergy > 0) {
@@ -360,13 +331,11 @@ export async function processCheckIn(
       dailyEnergy,
       energyBonus: dailyEnergy,
       tierRewardEnergy,
-      promotionBonusRate: 0, // will be set after transaction
-      randomBonus,
-      gotRandomBonus,
-      showWelcomeBackOffer,
-      newBalance: balance + totalBonus,
-      alreadyCheckedIn: false,
-    };
+        promotionBonusRate: 0, // will be set after transaction
+        showWelcomeBackOffer,
+        newBalance: balance + totalBonus,
+        alreadyCheckedIn: false,
+      };
   });
 
   // ─── Post-transaction: Activate promotions (outside transaction) ───
@@ -378,6 +347,23 @@ export async function processCheckIn(
       }
     } catch (error) {
       console.error("[Check-in] Failed to activate tier promo:", error);
+    }
+
+    // V3: ส่ง push notification เมื่อ tier upgrade
+    try {
+      await sendTierUpNotification(deviceId, result.newTier, result.tierRewardEnergy);
+    } catch (error) {
+      console.error("[Check-in] Failed to send tier up notification:", error);
+    }
+
+    // NEW: Evaluate offers for tier_up event
+    try {
+      await evaluateOffers(deviceId, "tier_up", {
+        newTier: result.newTier,
+        previousTier: result.previousTier,
+      });
+    } catch (e) {
+      console.error("[dailyCheckIn] evaluateOffers error:", e);
     }
   }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Tier Benefits Screen
 /// 
@@ -11,39 +13,40 @@ class TierBenefitsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: const Text(
-          'Tier Benefits',
-          style: TextStyle(fontWeight: FontWeight.w600),
+        title: Text(
+          L10n.of(context)!.tierBenefitsTitle,
+          style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(AppSpacing.xl),
         children: [
           // Header Card
-          _buildHeaderCard(),
-          const SizedBox(height: 24),
+          _buildHeaderCard(context),
+          SizedBox(height: AppSpacing.xxl),
 
           // How it works
-          _buildHowItWorksCard(),
-          const SizedBox(height: 24),
+          _buildHowItWorksCard(context),
+          SizedBox(height: AppSpacing.xxl),
 
           // Tier List
           Text(
-            'All Tiers',
+            L10n.of(context)!.tierBenefitsAllTiers,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
 
           _buildTierCard(
+            context: context,
             tier: 'Starter',
             icon: AppIcons.tierStarter,
             color: AppIcons.tierStarterColor,
@@ -53,9 +56,10 @@ class TierBenefitsScreen extends StatelessWidget {
             gracePeriod: '0 days',
             isStarting: true,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
+            context: context,
             tier: 'Bronze',
             icon: AppIcons.tierBronze,
             color: AppColors.tierBronze,
@@ -64,9 +68,10 @@ class TierBenefitsScreen extends StatelessWidget {
             purchaseBonus: '0%',
             gracePeriod: '0 days',
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
+            context: context,
             tier: 'Silver',
             icon: AppIcons.tierSilver,
             color: AppColors.tierSilver,
@@ -75,9 +80,10 @@ class TierBenefitsScreen extends StatelessWidget {
             purchaseBonus: '0%',
             gracePeriod: '1 day',
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
+            context: context,
             tier: 'Gold',
             icon: AppIcons.tierGold,
             color: AppColors.tierGold,
@@ -87,9 +93,10 @@ class TierBenefitsScreen extends StatelessWidget {
             gracePeriod: '1 day',
             isRecommended: true,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
+            context: context,
             tier: 'Diamond',
             icon: AppIcons.tierDiamond,
             color: AppColors.tierDiamond,
@@ -100,29 +107,29 @@ class TierBenefitsScreen extends StatelessWidget {
             isPremium: true,
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: AppSpacing.xxl),
 
           // Tips Card
-          _buildTipsCard(),
-          const SizedBox(height: 20),
+          _buildTipsCard(context),
+          SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -134,10 +141,10 @@ class TierBenefitsScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: AppRadius.md,
                 ),
                 child: const Icon(
                   Icons.emoji_events,
@@ -145,11 +152,11 @@ class TierBenefitsScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 16),
-              const Expanded(
+              SizedBox(width: AppSpacing.lg),
+              Expanded(
                 child: Text(
-                  'Unlock Rewards\nwith Daily Streaks',
-                  style: TextStyle(
+                  L10n.of(context)!.tierBenefitsUnlockRewards,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -159,11 +166,11 @@ class TierBenefitsScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
           Text(
-            'Keep your streak alive to unlock higher tiers and earn amazing benefits!',
+            L10n.of(context)!.tierBenefitsKeepStreakDescription,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 15,
               height: 1.4,
             ),
@@ -173,15 +180,15 @@ class TierBenefitsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHowItWorksCard() {
+  Widget _buildHowItWorksCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -192,38 +199,41 @@ class TierBenefitsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.primary, size: 24),
-              const SizedBox(width: 8),
-              const Text(
-                'How It Works',
-                style: TextStyle(
+              const Icon(Icons.info_outline, color: AppColors.primary, size: 24),
+              SizedBox(width: AppSpacing.sm),
+              Text(
+                L10n.of(context)!.tierBenefitsHowItWorks,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AppSpacing.lg),
           _buildBenefitExplanation(
+            context: context,
             icon: Icons.calendar_today,
-            color: Colors.blue,
-            title: 'Daily Energy Reward',
-            description: 'Use AI at least once per day to earn bonus energy. Higher tiers = more daily energy!',
+            color: AppColors.info,
+            title: L10n.of(context)!.tierBenefitsDailyEnergyReward,
+            description: L10n.of(context)!.tierBenefitsDailyEnergyDescription,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildBenefitExplanation(
+            context: context,
             icon: Icons.shopping_bag,
-            color: Colors.orange,
-            title: 'Purchase Bonus',
-            description: 'Gold & Diamond tiers get extra energy on every purchase (10-20% more!)',
+            color: AppColors.warning,
+            title: L10n.of(context)!.tierBenefitsPurchaseBonus,
+            description: L10n.of(context)!.tierBenefitsPurchaseBonusDescription,
             highlight: true,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildBenefitExplanation(
+            context: context,
             icon: Icons.shield,
-            color: Colors.green,
-            title: 'Grace Period',
-            description: 'Miss a day without losing your streak. Silver+ tiers get protection!',
+            color: AppColors.success,
+            title: L10n.of(context)!.tierBenefitsGracePeriod,
+            description: L10n.of(context)!.tierBenefitsGracePeriodDescription,
           ),
         ],
       ),
@@ -231,6 +241,7 @@ class TierBenefitsScreen extends StatelessWidget {
   }
 
   Widget _buildBenefitExplanation({
+    required BuildContext context,
     required IconData icon,
     required Color color,
     required String title,
@@ -238,26 +249,26 @@ class TierBenefitsScreen extends StatelessWidget {
     bool highlight = false,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: highlight ? Colors.orange.shade50 : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: highlight
-            ? Border.all(color: Colors.orange.shade200, width: 1)
+        color: highlight ? AppColors.warning.withValues(alpha: 0.1) : AppColors.background,
+          borderRadius: AppRadius.md,
+          border: highlight
+            ? Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1)
             : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: AppRadius.sm,
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,19 +283,19 @@ class TierBenefitsScreen extends StatelessWidget {
                       ),
                     ),
                     if (highlight) ...[
-                      const SizedBox(width: 8),
+                      SizedBox(width: AppSpacing.sm),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs + AppSpacing.xxs,
+                          vertical: AppSpacing.xxs,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange,
-                          borderRadius: BorderRadius.circular(10),
+                          color: AppColors.warning,
+                          borderRadius: BorderRadius.circular(AppSpacing.xs + 6),
                         ),
-                        child: const Text(
-                          'NEW',
-                          style: TextStyle(
+                        child: Text(
+                          L10n.of(context)!.tierBenefitsNew,
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -294,12 +305,12 @@ class TierBenefitsScreen extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: AppSpacing.xs),
                 Text(
                   description,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textSecondary,
                     height: 1.3,
                   ),
                 ),
@@ -312,6 +323,7 @@ class TierBenefitsScreen extends StatelessWidget {
   }
 
   Widget _buildTierCard({
+    required BuildContext context,
     required String tier,
     required IconData icon,
     required Color color,
@@ -326,18 +338,18 @@ class TierBenefitsScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         border: Border.all(
           color: isPremium
-              ? color.withOpacity(0.5)
+              ? color.withValues(alpha: 0.5)
               : isRecommended
-                  ? Colors.orange.withOpacity(0.5)
-                  : Colors.grey.shade200,
+                  ? AppColors.warning.withValues(alpha: 0.5)
+                  : AppColors.divider,
           width: isPremium || isRecommended ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -347,24 +359,24 @@ class TierBenefitsScreen extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.vertical(
+                top: AppRadius.lg.topLeft,
               ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(AppSpacing.xs + 6),
                   ),
                   child: Icon(icon, size: 28, color: color),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,19 +392,19 @@ class TierBenefitsScreen extends StatelessWidget {
                             ),
                           ),
                           if (isRecommended) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.orange,
-                                borderRadius: BorderRadius.circular(10),
+                                color: AppColors.warning,
+                                borderRadius: BorderRadius.circular(AppSpacing.xs + 6),
                               ),
-                              child: const Text(
-                                'POPULAR',
-                                style: TextStyle(
+                              child: Text(
+                                L10n.of(context)!.tierBenefitsPopular,
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -401,7 +413,7 @@ class TierBenefitsScreen extends StatelessWidget {
                             ),
                           ],
                           if (isPremium) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -411,14 +423,14 @@ class TierBenefitsScreen extends StatelessWidget {
                                 gradient: LinearGradient(
                                   colors: [
                                     color,
-                                    color.withOpacity(0.7),
+                                    color.withValues(alpha: 0.7),
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(AppSpacing.xs + 6),
                               ),
-                              child: const Text(
-                                'BEST',
-                                style: TextStyle(
+                              child: Text(
+                                L10n.of(context)!.tierBenefitsBest,
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -428,12 +440,12 @@ class TierBenefitsScreen extends StatelessWidget {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: AppSpacing.xs),
                       Text(
                         streakRequired,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -444,28 +456,31 @@ class TierBenefitsScreen extends StatelessWidget {
           ),
           // Benefits
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 _buildBenefitRow(
+                  context: context,
                   icon: AppIcons.streak,
                   iconColor: AppIcons.streakColor,
-                  label: 'Daily Check-in',
+                  label: L10n.of(context)!.tierBenefitsDailyCheckIn,
                   value: checkInBonus,
                 ),
                 const Divider(height: 20),
                 _buildBenefitRow(
+                  context: context,
                   icon: Icons.shopping_bag,
-                  iconColor: Colors.orange,
-                  label: 'Purchase Bonus',
+                  iconColor: AppColors.warning,
+                  label: L10n.of(context)!.tierBenefitsPurchaseBonus,
                   value: purchaseBonus,
                   highlight: purchaseBonus != '0%',
                 ),
                 const Divider(height: 20),
                 _buildBenefitRow(
+                  context: context,
                   icon: Icons.shield,
-                  iconColor: Colors.green,
-                  label: 'Grace Period',
+                  iconColor: AppColors.success,
+                  label: L10n.of(context)!.tierBenefitsGracePeriod,
                   value: gracePeriod,
                 ),
               ],
@@ -477,6 +492,7 @@ class TierBenefitsScreen extends StatelessWidget {
   }
 
   Widget _buildBenefitRow({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String label,
@@ -486,23 +502,23 @@ class TierBenefitsScreen extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 20, color: iconColor),
-        const SizedBox(width: 12),
+        SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             label,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade700,
+              color: AppColors.textSecondary,
             ),
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
           decoration: BoxDecoration(
-            color: highlight ? Colors.orange.shade50 : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
+            color: highlight ? AppColors.warning.withValues(alpha: 0.1) : AppColors.surfaceVariant,
+            borderRadius: AppRadius.md,
             border: highlight
-                ? Border.all(color: Colors.orange.shade200, width: 1)
+                ? Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1)
                 : null,
           ),
           child: Text(
@@ -510,7 +526,7 @@ class TierBenefitsScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: highlight ? Colors.orange.shade700 : Colors.grey.shade800,
+              color: highlight ? AppColors.warning : AppColors.textPrimary,
             ),
           ),
         ),
@@ -518,71 +534,72 @@ class TierBenefitsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTipsCard() {
+  Widget _buildTipsCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.amber.shade100, Colors.orange.shade100],
+          colors: [AppColors.warning.withValues(alpha: 0.3), AppColors.warning.withValues(alpha: 0.3)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.shade200, width: 1),
+        borderRadius: AppRadius.lg,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb, color: Colors.orange.shade700, size: 24),
-              const SizedBox(width: 8),
+              Icon(Icons.lightbulb, color: AppColors.warning, size: 24),
+              SizedBox(width: AppSpacing.sm),
               Text(
-                'Pro Tips',
+                L10n.of(context)!.tierBenefitsProTips,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade900,
+                  color: AppColors.warning,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          _buildTipRow('Use AI daily to earn free energy and build your streak'),
-          const SizedBox(height: 8),
-          _buildTipRow('Diamond tier earns +4 Energy per day — that\'s 120/month!'),
-          const SizedBox(height: 8),
+          SizedBox(height: AppSpacing.md),
+          _buildTipRow(context, L10n.of(context)!.tierBenefitsTip1),
+          SizedBox(height: AppSpacing.sm),
+          _buildTipRow(context, L10n.of(context)!.tierBenefitsTip2),
+          SizedBox(height: AppSpacing.sm),
           _buildTipRow(
-            'Purchase Bonus applies to ALL energy packages!',
+            context,
+            L10n.of(context)!.tierBenefitsTip3,
             highlight: true,
           ),
-          const SizedBox(height: 8),
-          _buildTipRow('Grace period protects your streak if you miss a day'),
+          SizedBox(height: AppSpacing.sm),
+          _buildTipRow(context, L10n.of(context)!.tierBenefitsTip4),
         ],
       ),
     );
   }
 
-  Widget _buildTipRow(String text, {bool highlight = false}) {
+  Widget _buildTipRow(BuildContext context, String text, {bool highlight = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 5),
+          margin: EdgeInsets.only(top: AppSpacing.xs + AppSpacing.xxs),
           width: 6,
           height: 6,
           decoration: BoxDecoration(
-            color: highlight ? Colors.orange.shade700 : Colors.orange.shade600,
+            color: highlight ? AppColors.warning : AppColors.warning,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 10),
+        SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
         Expanded(
           child: Text(
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade800,
+              color: AppColors.textPrimary,
               height: 1.4,
               fontWeight: highlight ? FontWeight.w600 : FontWeight.normal,
             ),

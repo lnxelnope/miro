@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../chat/presentation/chat_screen.dart';
 
 class MagicButton extends ConsumerStatefulWidget {
@@ -21,8 +22,8 @@ class _MagicButtonState extends ConsumerState<MagicButton> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 48.0,
-      height: 48.0,
+      width: AppSpacing.xxxxl + 8,
+      height: AppSpacing.xxxxl + 8,
       child: FloatingActionButton(
         heroTag: 'chat_fab',
         onPressed: () => _openChatScreen(context),

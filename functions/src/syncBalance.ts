@@ -10,6 +10,7 @@
 
 import {onRequest} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
+import {getActiveSeasonalQuests} from "./energy/seasonalQuest";
 
 // Initialize Firebase Admin (ถ้ายังไม่ได้ init ใน analyzeFood.ts)
 if (!admin.apps.length) {
@@ -72,6 +73,44 @@ export const syncBalance = onRequest(
 
       console.log(`✅ [syncBalance] Existing user ${deviceId}: ${serverBalance}`);
 
+      // คำนวณ canClaimToday (UTC+7 Thailand)
+      const nowUtc7 = new Date(Date.now() + 7 * 60 * 60 * 1000);
+      const todayStr = nowUtc7.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+
+      // ─── Retroactive Tier Celebration Initialization ───
+      // Check if user has tier but missing tierCelebration for that tier
+      // (handles admin panel tier changes or existing users)
+      const currentTier = userData.tier ?? "none";
+      const tierCelebration = userData.tierCelebration || {};
+      const needsInit: string[] = [];
+
+      if (currentTier !== "none" && !tierCelebration[currentTier]) {
+        needsInit.push(currentTier);
+      }
+
+      // Also check starter if not initialized
+      if (!tierCelebration["starter"]) {
+        needsInit.push("starter");
+      }
+
+      if (needsInit.length > 0) {
+        console.log(`🎉 [syncBalance] Retroactively initializing celebrations: ${needsInit.join(", ")}`);
+        const updates: any = {};
+        for (const tier of needsInit) {
+          updates[`tierCelebration.${tier}`] = {
+            startDate: todayStr,
+            claimedDays: [],
+          };
+        }
+        await db.collection("users").doc(deviceId).update(updates);
+        // Re-fetch updated data
+        const updatedDoc = await db.collection("users").doc(deviceId).get();
+        Object.assign(userData, updatedDoc.data());
+      }
+
+      // Fetch active seasonal quests
+      const seasonalQuests = await getActiveSeasonalQuests(deviceId);
+
       res.status(200).json({
         success: true,
         balance: serverBalance,
@@ -79,12 +118,13 @@ export const syncBalance = onRequest(
         tier: userData.tier ?? "none",
         currentStreak: userData.currentStreak ?? 0,
         longestStreak: userData.longestStreak ?? 0,
-        freeAiUsedToday: userData.freeAiUsedToday ?? false,
         challenges: userData.challenges ?? {},
         milestones: userData.milestones ?? {},
         totalSpent: userData.totalSpent ?? 0,
         bonusRate: bonusRate,
         subscription: userData.subscription ?? {},
+        tierCelebration: userData.tierCelebration ?? {},
+        seasonalQuests: seasonalQuests,
         action: "synced",
       });
     } catch (error: any) {

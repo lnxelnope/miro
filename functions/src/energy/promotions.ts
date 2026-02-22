@@ -20,17 +20,18 @@ const db = admin.firestore();
 // ─── Configuration ───
 const PROMO_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-const WELCOME_OFFER_THRESHOLD = 10; // total energy spent to trigger
-const WELCOME_OFFER_FREE_ENERGY = 50;
-const WELCOME_OFFER_BONUS_RATE = 0.40; // 40%
+// Welcome Offer เดิม (ให้ +50E ฟรี) ถูกเปลี่ยนเป็น $1 = 200E deal แทน
+// checkWelcomeOfferPromotion ยังคงมีไว้เพื่อ trigger $1 deal flag เท่านั้น (ไม่ให้ energy ฟรี)
+const WELCOME_OFFER_THRESHOLD = 10; // total energy spent to trigger $1 deal
 
-const TIER_UPGRADE_BONUS_RATE = 0.20; // 20%
+const TIER_UPGRADE_BONUS_RATE = 0.20; // 20% bonus หลัง tier upgrade
 
+// ✅ V3: อัปเดต Tier Upgrade Rewards ตาม spec ใหม่
 const TIER_UPGRADE_REWARDS: Record<string, number> = {
-  bronze: 3,
-  silver: 5,
-  gold: 10,
-  diamond: 15,
+  bronze: 5,
+  silver: 10,
+  gold: 15,
+  diamond: 25,
 };
 
 const WELCOME_BACK_BONUS_RATE = 0.40; // 40%
@@ -46,7 +47,10 @@ export interface PromotionResult {
 }
 
 /**
- * Check and activate Welcome Offer when user first spends 10 energy.
+ * Check Milestone #1 (10E spent) → trigger $1 = 200E Starter Deal offer flag.
+ * ❌ ไม่ให้ energy ฟรีอีกต่อไป (ลบ +50E Welcome Offer ออกแล้ว)
+ * ✅ แค่ set flag ให้ Frontend แสดง $1 deal (4 ชั่วโมง)
+ *
  * Called after each energy deduction in analyzeFood.
  */
 export async function checkWelcomeOfferPromotion(
@@ -60,45 +64,29 @@ export async function checkWelcomeOfferPromotion(
   if (!userDoc.exists) return null;
 
   const user = userDoc.data()!;
-  const promotions = user.promotions || {};
+  const offers = user.offers || {};
 
-  // 1-time only
-  if (promotions.welcomeOfferClaimed) return null;
+  // 1-time only — ถ้า claim แล้วไม่ trigger ซ้ำ
+  if (offers.firstPurchaseClaimed || offers.firstPurchaseAvailable) return null;
 
-  const expiresAt = new Date(Date.now() + PROMO_DURATION_MS);
+  const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000); // 4 hours
 
   await userRef.update({
-    "promotions.welcomeOfferClaimed": true,
-    "promotions.welcomeOfferAt": admin.firestore.FieldValue.serverTimestamp(),
-    promotionBonusRate: WELCOME_OFFER_BONUS_RATE,
-    promotionExpiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
-    promotionType: "welcome_offer",
-    balance: (user.balance || 0) + WELCOME_OFFER_FREE_ENERGY,
-    totalEarned: (user.totalEarned || 0) + WELCOME_OFFER_FREE_ENERGY,
-  });
-
-  // Log transaction for free energy
-  await db.collection("transactions").add({
-    deviceId,
-    miroId: user.miroId || "unknown",
-    type: "welcome_offer_bonus",
-    amount: WELCOME_OFFER_FREE_ENERGY,
-    balanceAfter: (user.balance || 0) + WELCOME_OFFER_FREE_ENERGY,
-    description: `Welcome Offer! +${WELCOME_OFFER_FREE_ENERGY} Energy FREE`,
-    metadata: {promotionType: "welcome_offer"},
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    "offers.firstPurchaseAvailable": true,
+    "offers.firstPurchaseExpiry": admin.firestore.Timestamp.fromDate(expiresAt),
+    "offers.firstPurchaseClaimed": false,
   });
 
   console.log(
-    `🎁 [Promotion] Welcome Offer activated for ${deviceId}: ` +
-    `+${WELCOME_OFFER_FREE_ENERGY} free + ${WELCOME_OFFER_BONUS_RATE * 100}% bonus (24h)`
+    `💰 [Promotion] $1 Starter Deal triggered for ${deviceId}: ` +
+    `available for 4 hours (expires ${expiresAt.toISOString()})`
   );
 
   return {
     activated: true,
-    type: "welcome_offer",
-    bonusRate: WELCOME_OFFER_BONUS_RATE,
-    freeEnergy: WELCOME_OFFER_FREE_ENERGY,
+    type: "first_purchase_offer",
+    bonusRate: 0,
+    freeEnergy: 0,
     expiresAt,
   };
 }

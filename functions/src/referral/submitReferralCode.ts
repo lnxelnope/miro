@@ -19,11 +19,11 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const REFERRAL_CONFIG = {
-  refereeBonus: 5, // Energy ที่ referee ได้ทันที
-  referrerReward: 15, // Energy ที่ referrer ได้เมื่อ referee ใช้ AI 3 ครั้ง
-  requiredAiUsage: 3, // จำนวนครั้งที่ referee ต้องใช้ AI
+  refereeBonus: 20, // V3.1: Energy ที่ referee ได้ทันที (5E -> 20E)
+  referrerReward: 15, // Legacy (not used in V3.1)
+  requiredAiUsage: 3, // Legacy (not used in V3.1)
   expiryDays: 7, // จำนวนวันที่ referee ต้องใช้ AI ครบ (นับจาก register)
-  maxPerMonth: 2, // จำนวน referral ที่ referrer ได้ต่อเดือน
+  maxPerMonth: 100, // V3.1: เพิ่มจาก 2 -> 100 (unlimited for weekly quest)
 };
 
 export const submitReferralCode = onRequest(
@@ -133,7 +133,7 @@ export const submitReferralCode = onRequest(
         return;
       }
 
-      // 9. ให้ referee +5 Energy bonus ทันที
+      // 9. ให้ referee +20 Energy bonus ทันที
       const refereeBonus = REFERRAL_CONFIG.refereeBonus;
       const expiresAt = admin.firestore.Timestamp.fromDate(
         new Date(Date.now() + REFERRAL_CONFIG.expiryDays * 24 * 60 * 60 * 1000)
@@ -150,6 +150,7 @@ export const submitReferralCode = onRequest(
           "totalEarned": (referee.totalEarned || 0) + refereeBonus,
           "referrals.referredBy": referralCode,
           "referrals.referredByDeviceId": referrerDeviceId,
+          "referredBy": referrerDeviceId,
           "lastUpdated": admin.firestore.FieldValue.serverTimestamp(),
         });
 

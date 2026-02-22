@@ -32,12 +32,13 @@ export {registerUser} from "./registerUser";
 
 // Streak & Tier API
 export {claimDailyCheckIn, processCheckIn} from "./energy/dailyCheckIn";
+export {claimDailyEnergy} from "./energy/claimDailyEnergy";
 
 // Challenge API
 export {completeChallenge} from "./energy/challenge";
 
-// Milestone API
-export {claimMilestone} from "./energy/milestone";
+// Milestone API (V1 removed — replaced by milestoneV2 auto-claim in analyzeFood)
+// export {claimMilestone} from "./energy/milestone"; // SECURITY: ลบออกป้องกัน double-dip กับ V2
 
 // Cron Jobs
 export {resetWeeklyChallenges} from "./cron/resetWeeklyChallenges";
@@ -60,7 +61,23 @@ export {getFraudAlerts, reviewFraudAlert} from "./admin/fraud";
 
 // Referral API
 export {submitReferralCode} from "./referral/submitReferralCode";
+export {checkReferralProgressEndpoint} from "./referral/checkReferralProgress";
 
 // Subscription API
 export {verifySubscription} from "./subscription/verifySubscription";
 export {handleRTDN} from "./subscription/handleRTDN";
+export {winbackScheduler} from "./subscription/winbackScheduler";
+
+// ─── V3: Energy Marketing ───────────────────────────────────
+
+// Milestone V3 (10 steps)
+export {getMilestoneProgress, claimMilestoneRewardsEndpoint} from "./energy/milestoneV2";
+
+// Offers V3
+export {getActiveOffersEndpoint, dismissOfferEndpoint, claimFreeEnergyEndpoint} from "./energy/offersV2";
+
+// Rewarded Ads SSV
+export {verifyRewardedAd, claimAdReward, getAdStatus} from "./energy/rewardedAd";
+
+// Push Notification Triggers
+export {checkOfferExpiry, streakReminder} from "./notifications/pushTriggers";

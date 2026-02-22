@@ -8,8 +8,6 @@ import '../services/energy_service.dart';
 import '../services/device_id_service.dart';
 import '../services/usage_limiter.dart';
 import '../services/purchase_service.dart';
-import '../services/welcome_offer_service.dart';
-import '../../features/energy/widgets/welcome_offer_unlocked_dialog.dart';
 import '../../features/energy/providers/gamification_provider.dart';
 import '../../features/energy/presentation/energy_store_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -96,33 +94,10 @@ class GeminiService {
     final showWelcomeBackOffer = data['showWelcomeBackOffer'] == true;
     final tierRewardEnergy = data['tierRewardEnergy'] as int? ?? 0;
     final promotionBonusRate = data['promotionBonusRate'] as double? ?? 0;
-    final welcomeOfferPromo = data['welcomeOfferPromo'] == true;
-    final welcomeOfferFreeEnergy = data['welcomeOfferFreeEnergy'] as int? ?? 0;
-    final welcomeOfferBonusRate = data['welcomeOfferBonusRate'] as double? ?? 0;
-
-    if (dailyEnergy <= 0 && !tierDemoted && !tierUpgraded && !welcomeOfferPromo) return;
+    if (dailyEnergy <= 0 && !tierDemoted && !tierUpgraded) return;
 
     final hasPromoOffer = showWelcomeBackOffer ||
-        (tierUpgraded && promotionBonusRate > 0) ||
-        welcomeOfferPromo;
-
-    // Save active promotion for Energy Store banner
-    if (hasPromoOffer) {
-      final promoRate = welcomeOfferPromo
-          ? welcomeOfferBonusRate
-          : showWelcomeBackOffer
-              ? 0.4
-              : promotionBonusRate;
-      final promoType = welcomeOfferPromo
-          ? 'welcome_offer'
-          : showWelcomeBackOffer
-              ? 'welcome_back'
-              : 'tier_upgrade_$tier';
-      WelcomeOfferService.saveActivePromotion(
-        bonusRate: promoRate,
-        type: promoType,
-      );
-    }
+        (tierUpgraded && promotionBonusRate > 0);
 
     final tierName = _tierDisplayName(tier);
     final greeting = _getDailyGreeting();
@@ -148,9 +123,7 @@ class GeminiService {
                       ? Colors.purple.shade50
                       : tierDemoted
                           ? Colors.orange.shade50
-                          : welcomeOfferPromo
-                              ? Colors.blue.shade50
-                              : Colors.amber.shade50,
+                          : Colors.amber.shade50,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -158,17 +131,13 @@ class GeminiService {
                       ? Icons.emoji_events_rounded
                       : tierDemoted
                           ? Icons.trending_down_rounded
-                          : welcomeOfferPromo
-                              ? Icons.card_giftcard_rounded
-                              : Icons.wb_sunny_rounded,
+                          : Icons.wb_sunny_rounded,
                   size: 40,
                   color: tierUpgraded
                       ? Colors.purple.shade600
                       : tierDemoted
                           ? Colors.orange.shade600
-                          : welcomeOfferPromo
-                              ? Colors.blue.shade600
-                              : Colors.amber.shade600,
+                          : Colors.amber.shade600,
                 ),
               ),
               const SizedBox(height: 16),
@@ -179,9 +148,7 @@ class GeminiService {
                     ? 'Congratulations!'
                     : tierDemoted
                         ? 'Welcome Back!'
-                        : welcomeOfferPromo
-                            ? 'Special Offer!'
-                            : greeting,
+                        : greeting,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -250,7 +217,7 @@ class GeminiService {
               ],
 
               // ─── Normal Streak Info ───
-              if (!tierUpgraded && !tierDemoted && !welcomeOfferPromo) ...[
+              if (!tierUpgraded && !tierDemoted) ...[
                 Text(
                   'Streak: $currentStreak days ($tierName)',
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
@@ -286,52 +253,8 @@ class GeminiService {
                 ),
               ],
 
-              // ─── Welcome Offer (first 10 energy spent) ───
-              if (welcomeOfferPromo) ...[
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade50, Colors.purple.shade50],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Column(
-                    children: [
-                      if (welcomeOfferFreeEnergy > 0) ...[
-                        Text(
-                          '+$welcomeOfferFreeEnergy Energy FREE!',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                      ],
-                      Text(
-                        '+${(welcomeOfferBonusRate * 100).toInt()}% Bonus on purchases',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '24 hours only!',
-                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-
               // ─── Tier Upgrade Promo (20% bonus) ───
-              if (tierUpgraded && promotionBonusRate > 0 && !welcomeOfferPromo) ...[
+              if (tierUpgraded && promotionBonusRate > 0) ...[
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
@@ -364,7 +287,7 @@ class GeminiService {
               ],
 
               // ─── Welcome Back Offer (40% bonus) ───
-              if (showWelcomeBackOffer && !welcomeOfferPromo) ...[
+              if (showWelcomeBackOffer) ...[
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
@@ -628,6 +551,7 @@ class GeminiService {
     String? imageBase64,
     required String description,
     EnergyService? energyService,
+    int? itemCount,
   }) async {
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
@@ -660,8 +584,9 @@ class GeminiService {
           'type': type,
           'prompt': prompt,
           'deviceId': deviceId,
-          'timezoneOffset': timezoneOffset, // ← ใหม่!
+          'timezoneOffset': timezoneOffset,
           if (imageBase64 != null) 'imageBase64': imageBase64,
+          if (itemCount != null) 'itemCount': itemCount,
         }),
       );
 
@@ -713,14 +638,7 @@ class GeminiService {
 
       final result = json.decode(response.body);
 
-      // ────── 5. Handle Free AI และ Streak ──────
-      final wasFreeAi = result['wasFreeAi'] == true;
-      
-      if (wasFreeAi) {
-        AppLogger.info('[AI] ✅ Free AI used today!');
-      }
-
-      // ────── 6. อัพเดท Energy Balance และ Gamification ──────
+      // ────── 5. อัพเดท Energy Balance และ Gamification ──────
       // ✅ PHASE 1: รับ balance จาก response แล้ว sync
       if (result['balance'] != null) {
         final newBalance = result['balance'] as int;
@@ -824,28 +742,6 @@ class GeminiService {
         }
       }
 
-      // ────── 7. Track AI Usage & Start Welcome Offer Timer (after 10 uses) ──────
-      try {
-        final timerStarted =
-            await WelcomeOfferService.incrementUsageAndCheckTimer();
-        if (timerStarted) {
-          debugPrint(
-              '[GeminiService] 🎉 Welcome Offer unlocked! (10 AI uses reached)');
-
-          // แสดง dialog แจ้งเตือน (ถ้ามี context)
-          if (_globalContext != null && _globalContext!.mounted) {
-            // รอ 500ms เพื่อให้ current dialog/sheet ปิดก่อน
-            await Future.delayed(const Duration(milliseconds: 500));
-            if (_globalContext != null && _globalContext!.mounted) {
-              await WelcomeOfferUnlockedDialog.show(_globalContext!);
-            }
-          }
-        }
-      } catch (e) {
-        // Silent fail
-        debugPrint('[GeminiService] Welcome offer error: $e');
-      }
-
       return parsedResult;
     } catch (e) {
       print('❌ Gemini Backend Error: $e');
@@ -862,6 +758,7 @@ class GeminiService {
     double? quantity,
     String? unit,
     FoodSearchMode searchMode = FoodSearchMode.normal,
+    List<Map<String, dynamic>>? userIngredients,
   }) async {
     AppLogger.info(
         'Starting image analysis: ${imageFile.path} (mode: ${searchMode.name})');
@@ -885,7 +782,7 @@ class GeminiService {
       // Choose prompt based on search mode
       String prompt = searchMode == FoodSearchMode.product
           ? _getProductImageAnalysisPrompt()
-          : _getImageAnalysisPrompt();
+          : _getImageAnalysisPrompt(userIngredients: userIngredients);
 
       // Add optional user-provided information to prompt
       if (foodName != null && foodName.isNotEmpty) {
@@ -908,11 +805,19 @@ class GeminiService {
         energyService: service,
       );
 
+      FoodAnalysisResult? finalResult;
       if (result != null) {
-        return FoodAnalysisResult.fromJson(result);
+        finalResult = FoodAnalysisResult.fromJson(result);
+      } else {
+        throw Exception('No result from AI analysis');
       }
 
-      throw Exception('No result from AI analysis');
+      // Post-process: enforce user-specified amounts (ถ้ามี)
+      if (userIngredients != null && userIngredients.isNotEmpty) {
+        finalResult = enforceUserIngredientAmounts(finalResult, userIngredients);
+      }
+
+      return finalResult;
     } catch (e) {
       AppLogger.error('❌ Backend analysis error', e);
       rethrow;
@@ -1134,12 +1039,18 @@ Return ONLY valid JSON.''';
   /// Used when user logs food via chat or manual and wants AI to estimate nutrition
   /// [servingSize] and [servingUnit] are user-specified amounts (if provided)
   /// [searchMode] tells AI whether to treat as regular food or packaged product
+  /// [ingredientNames] optional list of ingredient names for custom meals
+  /// [userIngredients] optional list of user-specified ingredients with exact amounts
+  ///   Each map contains: {'name': String, 'amount': double, 'unit': String}
+  ///   When provided, Gemini will use these EXACT amounts and only fill in nutrition values
   static Future<FoodAnalysisResult?> analyzeFoodByName(
     String foodName, {
     double? servingSize,
     String? servingUnit,
     EnergyService? energyService,
     FoodSearchMode searchMode = FoodSearchMode.normal,
+    List<String>? ingredientNames,
+    List<Map<String, dynamic>>? userIngredients,
   }) async {
     AppLogger.info(
         'Analyzing food from name: "$foodName" (${servingSize ?? "?"} ${servingUnit ?? "?"}) mode: ${searchMode.name}');
@@ -1159,11 +1070,14 @@ Return ONLY valid JSON.''';
               foodName,
               servingSize: servingSize,
               servingUnit: servingUnit,
+              ingredientNames: ingredientNames,
             )
           : _getTextAnalysisPrompt(
               foodName,
               servingSize: servingSize,
               servingUnit: servingUnit,
+              ingredientNames: ingredientNames,
+              userIngredients: userIngredients,
             );
 
       final result = await _callBackend(
@@ -1184,11 +1098,123 @@ Return ONLY valid JSON.''';
     }
   }
 
+  /// Batch analyze multiple text-only food entries in a single API call.
+  /// Max 5 items per batch. Returns list matching input order.
+  static Future<List<FoodAnalysisResult>> analyzeFoodBatch(
+    List<({String name, double? servingSize, String? servingUnit, FoodSearchMode searchMode, List<String>? ingredientNames, List<Map<String, dynamic>>? userIngredients})> items, {
+    EnergyService? energyService,
+  }) async {
+    if (items.isEmpty) return [];
+    assert(items.length <= 5, 'Batch size must not exceed 5');
+
+    AppLogger.info('[BatchAnalyze] Batch analyzing ${items.length} items');
+
+    final service = energyService ?? _staticEnergyService;
+    if (service == null) {
+      throw Exception('EnergyService not initialized. Please restart the app.');
+    }
+
+    try {
+      final prompt = _getBatchTextAnalysisPrompt(items);
+
+      final result = await _callBackend(
+        type: 'batch_text',
+        prompt: prompt,
+        description: 'Batch food analysis (${items.length} items)',
+        energyService: service,
+        itemCount: items.length,
+      );
+
+      if (result == null) {
+        throw Exception('No result from batch AI analysis');
+      }
+
+      // Response is { "items": [ ... ] }
+      final itemsList = result['items'] as List<dynamic>?;
+      if (itemsList == null || itemsList.isEmpty) {
+        throw Exception('Empty items in batch response');
+      }
+
+      final results = <FoodAnalysisResult>[];
+      for (int i = 0; i < itemsList.length; i++) {
+        try {
+          final item = itemsList[i] as Map<String, dynamic>;
+          results.add(FoodAnalysisResult.fromJson(item));
+        } catch (e) {
+          AppLogger.warn('[BatchAnalyze] Failed to parse item $i: $e');
+          // Add a null-equivalent result so caller can handle per-item failures
+          results.add(FoodAnalysisResult(
+            foodName: i < items.length ? items[i].name : 'Unknown',
+            confidence: 0,
+            servingSize: 1,
+            servingUnit: 'serving',
+            nutrition: NutritionData(calories: 0, protein: 0, carbs: 0, fat: 0),
+          ));
+        }
+      }
+
+      // If Gemini returned fewer items than requested, pad with failures
+      while (results.length < items.length) {
+        final idx = results.length;
+        results.add(FoodAnalysisResult(
+          foodName: items[idx].name,
+          confidence: 0,
+          servingSize: 1,
+          servingUnit: 'serving',
+          nutrition: NutritionData(calories: 0, protein: 0, carbs: 0, fat: 0),
+        ));
+      }
+
+      AppLogger.info('[BatchAnalyze] ✅ Parsed ${results.length} results');
+      return results;
+    } catch (e) {
+      AppLogger.error('❌ Batch analysis error', e);
+      rethrow;
+    }
+  }
+
   // ───────────────────────────────────────────────────────────
   // PROMPT HELPERS (สำหรับ Backend)
   // ───────────────────────────────────────────────────────────
 
-  static String _getImageAnalysisPrompt() {
+  static String _getImageAnalysisPrompt({List<Map<String, dynamic>>? userIngredients}) {
+    // Build ingredients hint if user provided ingredients
+    String ingredientsHint = '';
+    if (userIngredients != null && userIngredients.isNotEmpty) {
+      final lines = userIngredients.map((ing) {
+        final name = ing['name'] ?? 'Unknown';
+        final rawAmount = ing['amount'];
+        final hasAmount = rawAmount is num && rawAmount > 0;
+        final amount = hasAmount ? rawAmount : 1;
+        final unit = hasAmount ? (ing['unit'] ?? 'g') : 'serving';
+        return '  - $name: $amount $unit';
+      }).join('\n');
+      ingredientsHint = '''
+
+═══════════════════════════════════════════════════════════════════
+USER-SPECIFIED INGREDIENTS WITH EXACT AMOUNTS (CRITICAL):
+═══════════════════════════════════════════════════════════════════
+The user has specified EXACT ingredients and amounts they know are in this food.
+These amounts are MORE ACCURATE than visual estimation because the user measured them.
+
+$lines
+
+MANDATORY RULES for user-specified ingredients:
+1. You MUST use EXACTLY these amounts — do NOT change them
+2. Calculate nutrition values (calories, protein, carbs, fat) for these EXACT amounts
+3. Keep the ingredient names similar (you may add cooking state description)
+4. You MUST actively discover HIDDEN ingredients not listed above:
+   - Seasonings (fish sauce, soy sauce, MSG, sugar, salt, pepper)
+   - Cooking oils/fats used in preparation
+   - Marinades, pastes, or sauce bases
+   - Small garnishes (cilantro, lime, chili flakes)
+   - Binding agents (flour, starch, egg wash)
+5. Added hidden ingredients should have amounts proportional to the dish
+6. The total nutrition = sum of user's ingredients + discovered hidden ingredients
+═══════════════════════════════════════════════════════════════════
+''';
+    }
+
     // Build cuisine bias instruction
     final cuisineBias = _cuisinePreference != 'international'
         ? '''
@@ -1207,7 +1233,7 @@ you MUST bias your identification toward $_cuisinePreference cuisine FIRST.
 
     return '''You are a Food Scientist and Nutrition Expert specializing in deconstructing dishes into precise ingredients.
 Your job is to "dissect" every visible food item in the image with professional-level specificity.
-$cuisineBias
+$cuisineBias$ingredientsHint
 STEP-BY-STEP ANALYSIS (you MUST follow this order):
 
 Step 1 — IDENTIFY COOKING STATE:
@@ -1513,6 +1539,8 @@ Respond in JSON format:
   "notes": "Source: nutrition label / known product database. Per [portion specified]. Full container: [size]."
 }
 
+IMPORTANT: The user has confirmed this is a PACKAGED PRODUCT. You MUST ALWAYS set "food_type": "product" in your response. Do NOT change it to "food" under any circumstances.
+
 Return ONLY valid JSON, no markdown or explanations.''';
   }
 
@@ -1532,7 +1560,7 @@ Return ONLY valid JSON, no markdown or explanations.''';
   }
 
   static String _getTextAnalysisPrompt(String foodName,
-      {double? servingSize, String? servingUnit}) {
+      {double? servingSize, String? servingUnit, List<String>? ingredientNames, List<Map<String, dynamic>>? userIngredients}) {
     final hasUserServing = servingSize != null &&
         servingSize > 0 &&
         servingUnit != null &&
@@ -1547,11 +1575,52 @@ Return ONLY valid JSON, no markdown or explanations.''';
         ? 'The user\'s cuisine preference is "$_cuisinePreference". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a $_cuisinePreference dish with typical $_cuisinePreference ingredients and cooking methods.\n'
         : '';
 
+    // Build user ingredients hint (with amounts if available, names-only as fallback)
+    String ingredientsHint = '';
+    final hasUserIngredients = userIngredients != null && userIngredients.isNotEmpty;
+    if (hasUserIngredients) {
+      final lines = userIngredients.map((ing) {
+        final name = ing['name'] ?? 'Unknown';
+        final rawAmount = ing['amount'];
+        final hasAmount = rawAmount is num && rawAmount > 0;
+        final amount = hasAmount ? rawAmount : 1;
+        final unit = hasAmount ? (ing['unit'] ?? 'g') : 'serving';
+        return '  - $name: $amount $unit';
+      }).join('\n');
+      ingredientsHint = '''
+
+═══════════════════════════════════════════════════════════════════
+USER-SPECIFIED INGREDIENTS WITH EXACT AMOUNTS (CRITICAL):
+═══════════════════════════════════════════════════════════════════
+The user has specified EXACT ingredients and amounts they actually used/consumed.
+These amounts are MORE ACCURATE than any estimate because the user measured them.
+
+$lines
+
+MANDATORY RULES for user-specified ingredients:
+1. You MUST use EXACTLY these amounts — do NOT change them
+2. Calculate nutrition values (calories, protein, carbs, fat) for these EXACT amounts
+3. Keep the ingredient names similar (you may add cooking state description)
+4. You MUST actively discover HIDDEN ingredients the user likely forgot:
+   - Cooking oils/fats (type & amount based on cooking method)
+   - Seasonings (fish sauce, soy sauce, MSG, sugar, salt, pepper)
+   - Marinades, pastes, or sauce bases
+   - Small garnishes (cilantro, lime, chili)
+   - Binding agents (flour, starch, egg wash)
+   Mark discovered hidden ingredients with detail: "hidden - estimated"
+5. Added ingredients should have amounts proportional to the user's specified amounts
+6. The total nutrition = sum of user's ingredients + any added hidden ingredients
+═══════════════════════════════════════════════════════════════════
+''';
+    } else if (ingredientNames != null && ingredientNames.isNotEmpty) {
+      ingredientsHint = '\nUSER SPECIFIED INGREDIENTS: ${ingredientNames.join(", ")}\nUse these ingredients as the base for your analysis.\n';
+    }
+
     return '''
 You are a Food Scientist. Deconstruct this food into precise ingredients with professional-level specificity.
 $cuisineBias
 Food to analyze: "$foodName"
-User-specified amount: $servingDesc
+User-specified amount: $servingDesc$ingredientsHint
 
 CRITICAL — AMOUNT RULE:
 The user wants nutrition data for EXACTLY $servingDesc of "$foodName".
@@ -1683,7 +1752,7 @@ IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant di
   /// Prompt for analyzing PACKAGED PRODUCTS by name (text only)
   /// Uses known nutrition facts data for well-known products
   static String _getProductTextAnalysisPrompt(String productName,
-      {double? servingSize, String? servingUnit}) {
+      {double? servingSize, String? servingUnit, List<String>? ingredientNames}) {
     final hasUserServing = servingSize != null &&
         servingSize > 0 &&
         servingUnit != null &&
@@ -1694,12 +1763,16 @@ IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant di
     final servingSizeJson = hasUserServing ? servingSize : 1;
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 
+    final ingredientsHint = ingredientNames != null && ingredientNames.isNotEmpty
+        ? '\nUSER SPECIFIED INGREDIENTS: ${ingredientNames.join(", ")}\nUse these ingredients as the base for your analysis.\n'
+        : '';
+
     return '''You are a Packaged Food & Nutrition Label Expert.
 
 The user wants nutrition data for a PACKAGED PRODUCT or BRANDED FOOD ITEM.
 
 Product: "$productName"
-Portion: $servingDesc
+Portion: $servingDesc$ingredientsHint
 
 YOUR TASK:
 1. Identify the product (brand, variant, flavor, SIZE)
@@ -1782,6 +1855,227 @@ Respond in JSON only:
 }
 
 Return ONLY valid JSON.''';
+  }
+
+  /// Build prompt for batch text analysis (up to 5 items)
+  static String _getBatchTextAnalysisPrompt(
+    List<({String name, double? servingSize, String? servingUnit, FoodSearchMode searchMode, List<String>? ingredientNames, List<Map<String, dynamic>>? userIngredients})> items,
+  ) {
+    final cuisineBias = _cuisinePreference != 'international'
+        ? 'The user\'s cuisine preference is "$_cuisinePreference". If a food name is ambiguous, interpret it as a $_cuisinePreference dish.\n'
+        : '';
+
+    final itemsListStr = StringBuffer();
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
+      final hasServing = item.servingSize != null && item.servingSize! > 0 && item.servingUnit != null;
+      final servingDesc = hasServing
+          ? '${item.servingSize} ${_unitForAi(item.servingUnit)}'
+          : '1 standard serving';
+      final modeHint = item.searchMode == FoodSearchMode.product ? ' [PRODUCT]' : '';
+
+      // Prefer userIngredients (with amounts) over ingredientNames (names only)
+      String ingredientsHint = '';
+      if (item.userIngredients != null && item.userIngredients!.isNotEmpty) {
+        final details = item.userIngredients!.map((ing) {
+          return '${ing['name']}: ${ing['amount']} ${ing['unit'] ?? 'g'}';
+        }).join(', ');
+        ingredientsHint = ' [USER INGREDIENTS (use exact amounts): $details]';
+      } else if (item.ingredientNames != null && item.ingredientNames!.isNotEmpty) {
+        ingredientsHint = ' [INGREDIENTS: ${item.ingredientNames!.join(", ")}]';
+      }
+      itemsListStr.writeln('  ${i + 1}. "${item.name}" — $servingDesc$modeHint$ingredientsHint');
+    }
+
+    return '''
+You are a Food Scientist. Analyze ALL ${items.length} food items below and return nutrition + ingredients for each.
+$cuisineBias
+FOOD ITEMS TO ANALYZE:
+$itemsListStr
+For EACH item, follow this analysis:
+
+Step 1 — IDENTIFY COOKING STATE: Determine cooking method (stir-fried, deep-fried, grilled, steamed, boiled, raw, etc.).
+Step 2 — INGREDIENT SPECIFICITY: Use specific descriptive names, never generic.
+Step 3 — HIDDEN SEASONINGS: Include cooking oil, sauces, sugar, sodium seasonings as separate ingredients.
+Step 4 — CROSS-REFERENCE: Reference known recipes/databases for accurate estimation.
+
+INGREDIENT HIERARCHY RULES (CRITICAL):
+- "ingredients_detail" at ROOT level only — these get COUNTED for total calories
+- Each ROOT ingredient MAY have "sub_ingredients" (INFORMATIONAL ONLY)
+- sum(ROOT.calories) MUST equal nutrition.calories
+- NEVER put both a composite AND its raw materials at ROOT level
+
+NAMING & UNIT RULES:
+- food_name: Keep in ORIGINAL language as provided
+- food_name_en: MUST ALWAYS be in English
+- ingredient names: MUST be in English with cooking state
+- serving_unit: Use "plate", "bowl", "cup", "piece", "serving", etc. NOT "g" or "ml" for dishes
+- Valid serving_unit values: g, kg, mg, oz, lbs, ml, l, fl oz, cup, tbsp, tsp, serving, piece, slice, plate, bowl, cup_c, glass, egg, ball, fruit, skewer, whole, sheet, pair, bunch, leaf, stick, scoop, handful, pack, bag, wrap, box, can, bottle, bar
+- Items marked [PRODUCT] are packaged products — reference nutrition labels and known databases
+
+USER-SPECIFIED INGREDIENTS RULE:
+Items marked [USER INGREDIENTS] have exact amounts specified by the user (they measured/weighed the food).
+For these items: use the EXACT amounts provided, calculate nutrition for those amounts, and you may ADD hidden ingredients (oil, seasonings) but NEVER change the user's specified amounts.
+
+CRITICAL: Return ALL ${items.length} items in the "items" array. Do not skip any.
+Calculate nutrition for EXACTLY the serving size specified per item.
+
+Return ONLY valid JSON:
+{
+  "items": [
+    {
+      "food_name": "Original name (any language)",
+      "food_name_en": "English name",
+      "food_type": "food",
+      "confidence": 0.85,
+      "serving_size": 1.0,
+      "serving_unit": "plate",
+      "serving_grams": 350,
+      "nutrition": {
+        "calories": 0,
+        "protein": 0,
+        "carbs": 0,
+        "fat": 0,
+        "fiber": 0,
+        "sugar": 0,
+        "sodium": 0
+      },
+      "ingredients_detail": [
+        {
+          "name": "Ingredient with Cooking State",
+          "name_en": "Ingredient with Cooking State",
+          "detail": "Preparation notes",
+          "amount": 100,
+          "unit": "g",
+          "calories": 0,
+          "protein": 0,
+          "carbs": 0,
+          "fat": 0
+        }
+      ]
+    }
+  ]
+}
+
+Return ONLY valid JSON, no markdown.''';
+  }
+
+  /// Post-process analysis result to enforce user-specified ingredient amounts.
+  /// If Gemini returned different amounts for user-specified ingredients,
+  /// scale the nutrition proportionally to match the user's amounts.
+  static FoodAnalysisResult enforceUserIngredientAmounts(
+    FoodAnalysisResult result,
+    List<Map<String, dynamic>> userIngredients,
+  ) {
+    if (result.ingredientsDetail == null || result.ingredientsDetail!.isEmpty) {
+      return result;
+    }
+
+    bool anyAdjusted = false;
+    final adjustedIngredients = <IngredientDetail>[];
+
+    for (final aiIngredient in result.ingredientsDetail!) {
+      final aiNameLower = aiIngredient.name.toLowerCase();
+      final aiNameEnLower = (aiIngredient.nameEn ?? '').toLowerCase();
+
+      // Find matching user ingredient (bidirectional contains match)
+      Map<String, dynamic>? matchedUser;
+      for (final userIng in userIngredients) {
+        final userName = (userIng['name'] as String? ?? '').toLowerCase();
+        final userAmount = (userIng['amount'] as num?)?.toDouble() ?? 0;
+        if (userName.isEmpty || userAmount <= 0) continue;
+
+        if (aiNameLower.contains(userName) ||
+            aiNameEnLower.contains(userName) ||
+            userName.contains(aiNameLower) ||
+            userName.contains(aiNameEnLower)) {
+          matchedUser = userIng;
+          break;
+        }
+      }
+
+      if (matchedUser != null) {
+        final userAmount = (matchedUser['amount'] as num).toDouble();
+        final userUnit = matchedUser['unit'] as String? ?? 'g';
+        final aiUnit = aiIngredient.unit;
+
+        // Only scale if units are compatible and amounts differ
+        if (userUnit == aiUnit && aiIngredient.amount > 0 && userAmount != aiIngredient.amount) {
+          final ratio = userAmount / aiIngredient.amount;
+          anyAdjusted = true;
+          AppLogger.info(
+            '[PostProcess] Adjusting "${aiIngredient.name}": '
+            '${aiIngredient.amount}$aiUnit → ${userAmount}$userUnit (ratio: ${ratio.toStringAsFixed(2)})',
+          );
+
+          adjustedIngredients.add(IngredientDetail(
+            name: aiIngredient.name,
+            nameEn: aiIngredient.nameEn,
+            detail: aiIngredient.detail,
+            amount: userAmount,
+            unit: userUnit,
+            calories: aiIngredient.calories * ratio,
+            protein: aiIngredient.protein * ratio,
+            carbs: aiIngredient.carbs * ratio,
+            fat: aiIngredient.fat * ratio,
+            subIngredients: aiIngredient.subIngredients?.map((sub) => IngredientDetail(
+              name: sub.name,
+              nameEn: sub.nameEn,
+              detail: sub.detail,
+              amount: sub.amount * ratio,
+              unit: sub.unit,
+              calories: sub.calories * ratio,
+              protein: sub.protein * ratio,
+              carbs: sub.carbs * ratio,
+              fat: sub.fat * ratio,
+            )).toList(),
+          ));
+        } else {
+          adjustedIngredients.add(aiIngredient);
+        }
+      } else {
+        // Not a user-specified ingredient (e.g., AI-added oil/seasoning) — keep as-is
+        adjustedIngredients.add(aiIngredient);
+      }
+    }
+
+    if (!anyAdjusted) return result;
+
+    // Recalculate total nutrition from adjusted ingredients
+    double totalCal = 0, totalPro = 0, totalCarb = 0, totalFat = 0;
+    for (final ing in adjustedIngredients) {
+      totalCal += ing.calories;
+      totalPro += ing.protein;
+      totalCarb += ing.carbs;
+      totalFat += ing.fat;
+    }
+
+    AppLogger.info(
+      '[PostProcess] Recalculated totals: ${totalCal.toStringAsFixed(0)} kcal '
+      '(was ${result.nutrition.calories.toStringAsFixed(0)} kcal)',
+    );
+
+    return FoodAnalysisResult(
+      foodName: result.foodName,
+      foodNameEn: result.foodNameEn,
+      foodType: result.foodType,
+      confidence: result.confidence,
+      servingSize: result.servingSize,
+      servingUnit: result.servingUnit,
+      servingGrams: result.servingGrams,
+      nutrition: NutritionData(
+        calories: totalCal,
+        protein: totalPro,
+        carbs: totalCarb,
+        fat: totalFat,
+        fiber: result.nutrition.fiber,
+        sugar: result.nutrition.sugar,
+        sodium: result.nutrition.sodium,
+      ),
+      ingredients: result.ingredients,
+      ingredientsDetail: adjustedIngredients,
+      notes: result.notes,
+    );
   }
 }
 

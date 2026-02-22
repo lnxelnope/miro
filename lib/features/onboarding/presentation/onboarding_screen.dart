@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/cuisine_options.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../../core/database/database_service.dart';
@@ -41,7 +43,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           children: [
             // Page Indicator
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.paddingLg,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(3, (i) => _buildDot(i)),
@@ -70,12 +72,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildDot(int index) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      margin: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       width: _currentPage == index ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
-        color: _currentPage == index ? AppColors.primary : Colors.grey.shade300,
-        borderRadius: BorderRadius.circular(4),
+        color: _currentPage == index ? AppColors.primary : AppColors.divider,
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
     );
   }
@@ -84,14 +86,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildPage1Welcome() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.lg),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 24),
+          SizedBox(height: AppSpacing.xxl),
           // Logo
           ClipRRect(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: AppRadius.xl,
             child: Image.asset(
               'assets/icon/logo.png',
               width: 100,
@@ -99,7 +101,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: AppSpacing.xxl),
           RichText(
             textAlign: TextAlign.center,
             text: const TextSpan(
@@ -125,61 +127,61 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           Text(
-            'Track calories effortlessly\nwith AI-powered analysis',
+            L10n.of(context)!.onboardingWelcomeSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: AppSpacing.xxxxl),
 
           // Feature Pills
           _buildFeaturePill(
             icon: AppIcons.camera,
             iconColor: AppIcons.cameraColor,
-            title: 'Snap',
-            subtitle: 'AI analyzes instantly',
+            title: L10n.of(context)!.onboardingSnap,
+            subtitle: L10n.of(context)!.onboardingSnapDesc,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
             icon: Icons.chat_rounded,
             iconColor: AppIcons.aiColor,
-            title: 'Type',
-            subtitle: 'Log in seconds',
+            title: L10n.of(context)!.onboardingType,
+            subtitle: L10n.of(context)!.onboardingTypeDesc,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
             icon: AppIcons.edit,
             iconColor: AppIcons.editColor,
-            title: 'Edit',
-            subtitle: 'Fine-tune accuracy',
+            title: L10n.of(context)!.onboardingEdit,
+            subtitle: L10n.of(context)!.onboardingEditDesc,
           ),
 
-          const SizedBox(height: 40),
+          SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
-          const SizedBox(height: 20),
+          SizedBox(height: AppSpacing.xl),
 
           // Inline Disclaimer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.amber.shade50,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.warning.withValues(alpha: 0.1),
+              borderRadius: AppRadius.sm,
             ),
             child: Row(
               children: [
-                Icon(AppIcons.info, size: 20, color: AppIcons.infoColor),
-                const SizedBox(width: 8),
+                const Icon(AppIcons.info, size: 20, color: AppIcons.infoColor),
+                SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'AI-estimated data. Not medical advice.',
+                    L10n.of(context)!.onboardingDisclaimer,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade700,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -199,12 +201,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: AppRadius.lg,
         border: Border.all(
-          color: AppColors.primary.withOpacity(0.15),
+          color: AppColors.primary.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
@@ -227,7 +229,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     text: subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -248,12 +250,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          const Row(
+          Row(
             children: [
-              Icon(AppIcons.meal, size: 32, color: AppIcons.mealColor),
-              SizedBox(width: 12),
+              const Icon(AppIcons.meal, size: 32, color: AppIcons.mealColor),
+              const SizedBox(width: 12),
               Text(
-                'Quick Setup',
+                L10n.of(context)!.onboardingQuickSetup,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
@@ -264,24 +266,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Help AI understand your food better',
+            L10n.of(context)!.onboardingHelpAiUnderstand,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 32),
 
           // Cuisine Preference
-          const Text(
-            'Your typical cuisine:',
+          Text(
+            L10n.of(context)!.onboardingYourTypicalCuisine,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -295,14 +297,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   style: const TextStyle(fontSize: 13),
                 ),
                 selected: isSelected,
-                selectedColor: AppColors.primary.withOpacity(0.2),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
                 onSelected: (selected) {
                   if (selected) {
                     setState(() => _selectedCuisine = option['key']!);
                   }
                 },
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: AppRadius.xl,
                   side: BorderSide(
                     color:
                         isSelected ? AppColors.primary : Colors.grey.shade300,
@@ -314,39 +316,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 32),
 
           // Calorie Goal (Optional)
-          const Text(
-            'Daily calorie goal (optional):',
+          Text(
+            L10n.of(context)!.onboardingDailyCalorieGoal,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           TextField(
             controller: _calorieGoalController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: AppRadius.md,
               ),
-              suffixText: 'kcal/day',
-              hintText: '2000',
+              suffixText: L10n.of(context)!.onboardingKcalPerDay,
+              hintText: L10n.of(context)!.onboardingCalorieGoalHint,
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: AppColors.surfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'You can change this anytime in Profile settings',
+            L10n.of(context)!.onboardingCanChangeAnytime,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade500,
+                  color: AppColors.textTertiary,
               fontStyle: FontStyle.italic,
             ),
           ),
 
-          const SizedBox(height: 40),
+          SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
         ],
       ),
@@ -361,28 +363,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
-          Icon(AppIcons.celebration, size: 96, color: AppIcons.celebrationColor),
-          const SizedBox(height: 24),
-          const Text(
-            'You\'re All Set!',
+          SizedBox(height: AppSpacing.xxxxl),
+          const Icon(AppIcons.celebration, size: 96, color: AppIcons.celebrationColor),
+          SizedBox(height: AppSpacing.xxl),
+          Text(
+            L10n.of(context)!.onboardingYoureAllSet,
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md),
           Text(
-            'Start tracking your meals today.\nSnap a photo or type what you ate.',
+            L10n.of(context)!.onboardingStartTracking,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: Colors.grey.shade600,
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
-          const SizedBox(height: 40),
+          SizedBox(height: AppSpacing.xxxxl),
 
           // Welcome Gift Card
           Container(
@@ -390,18 +392,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.green.shade50,
-                  Colors.teal.shade50,
+                  AppColors.success.withValues(alpha: 0.1),
+                  AppColors.primary.withValues(alpha: 0.1),
                 ],
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: AppRadius.xl,
               border: Border.all(
-                color: Colors.green.shade300,
+                color: AppColors.success,
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.green.withOpacity(0.1),
+                  color: AppColors.success.withValues(alpha: 0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -411,23 +413,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               children: [
                 AppIcons.iconWithLabel(
                   AppIcons.gift,
-                  'Welcome Gift',
+                  L10n.of(context)!.onboardingWelcomeGift,
                   iconColor: AppIcons.giftColor,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  '10 FREE Energy',
+                Text(
+                  L10n.of(context)!.onboardingFreeEnergy,
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Colors.green,
+                    color: AppColors.success,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  '= 10 AI analyses to get started',
+                Text(
+                  L10n.of(context)!.onboardingFreeEnergyDesc,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -436,12 +438,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Each analysis costs 1 Energy\n'
-                  'The more you use, the more you earn!',
+                  L10n.of(context)!.onboardingEnergyCost,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: AppColors.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -449,7 +450,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
-          const SizedBox(height: 40),
+          SizedBox(height: AppSpacing.xxxxl),
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -458,12 +459,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.lg,
                 ),
                 elevation: 2,
               ),
-              child: const Text(
-                'Start Tracking! →',
+              child: Text(
+                L10n.of(context)!.onboardingStartTrackingButton,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -474,10 +475,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No credit card • No hidden fees',
+            L10n.of(context)!.onboardingNoCreditCard,
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey.shade500,
+                  color: AppColors.textTertiary,
             ),
           ),
         ],
@@ -503,11 +504,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.md,
           ),
         ),
-        child: const Text(
-          'Next →',
+        child: Text(
+          L10n.of(context)!.onboardingNext,
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,

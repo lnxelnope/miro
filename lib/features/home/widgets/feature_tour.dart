@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,14 +80,14 @@ class FeatureTour {
           align: ContentAlign.bottom,
           builder: (context, controller) {
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.all(20),
+              margin: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.lg,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -98,18 +100,18 @@ class FeatureTour {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: AppSpacing.paddingSm,
                         decoration: BoxDecoration(
-                          color: Colors.amber.withOpacity(0.2),
+                          color: AppColors.warning.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.bolt,
-                          color: Colors.amber,
+                          color: AppColors.warning,
                           size: 24,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: AppIcons.iconWithLabel(
                           AppIcons.energy,
@@ -121,7 +123,7 @@ class FeatureTour {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.lg),
                   const Text(
                     'This is your Energy. Each analysis costs 1 Energy.\n\n'
                     'You have 10 free Energy to get started!\n'
@@ -129,14 +131,14 @@ class FeatureTour {
                     'Tap here to visit the Energy Store.',
                     style: TextStyle(fontSize: 14, height: 1.5),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.lg),
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.info.withValues(alpha: 0.1),
+                      borderRadius: AppRadius.sm,
                       border: Border.all(
-                        color: Colors.blue.withOpacity(0.3),
+                        color: AppColors.info.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -144,30 +146,30 @@ class FeatureTour {
                         Icon(
                           Icons.info_outline,
                           size: 20,
-                          color: Colors.blue.shade700,
+                          color: AppColors.info,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             'Auto-dismiss in 5 seconds or tap anywhere',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue.shade700,
+                              color: AppColors.info,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.lg),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => controller.skip(),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                          vertical: AppSpacing.xl / 2,
                         ),
                       ),
                       child: const Text(

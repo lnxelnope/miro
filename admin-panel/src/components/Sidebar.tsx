@@ -11,6 +11,11 @@ import {
   Send,
   CreditCard,
   Rocket,
+  BarChart3,
+  FlaskConical,
+  UsersRound,
+  FileText,
+  Gift,
   LogOut 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,8 +23,14 @@ import { Button } from '@/components/ui/button';
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: Users, label: 'Users', href: '/users' },
+  { icon: Gift, label: 'Offers', href: '/offers' },
+  { icon: FlaskConical, label: 'Test Scenarios', href: '/test-scenarios' },
+  { icon: UsersRound, label: 'Bulk Management', href: '/bulk-management' },
+  { icon: FileText, label: 'Audit Logs', href: '/audit-logs' },
   { icon: Settings, label: 'Config', href: '/config' },
   { icon: CreditCard, label: 'Subscriptions', href: '/subscriptions' },
+  { icon: BarChart3, label: 'Promotion Analytics', href: '/analytics/promotions' },
+  { icon: Send, label: 'Push Campaign', href: '/campaigns/push' },
   { icon: AlertTriangle, label: 'Fraud Alerts', href: '/fraud' },
   { icon: Send, label: 'Notifications', href: '/notifications' },
   { icon: Rocket, label: 'Growth Plan', href: '/roadmap' },
@@ -45,7 +56,7 @@ export function Sidebar() {
       </div>
 
       {/* Menu */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -63,7 +74,7 @@ export function Sidebar() {
               `}
             >
               <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <span className="whitespace-nowrap">{item.label}</span>
             </Link>
           );
         })}

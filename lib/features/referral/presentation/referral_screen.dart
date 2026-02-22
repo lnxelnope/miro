@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/referral_service.dart';
-import '../../../core/services/device_id_service.dart';
-import '../../../core/services/energy_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../energy/providers/gamification_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ReferralScreen extends ConsumerStatefulWidget {
   const ReferralScreen({super.key});
@@ -30,7 +30,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
   Future<void> _submitReferralCode() async {
     if (_referralCodeController.text.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Please enter a referral code';
+        _errorMessage = L10n.of(context)!.referralPleaseEnterCode;
       });
       return;
     }
@@ -48,7 +48,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
 
       if (mounted) {
         setState(() {
-          _successMessage = result['message'] ?? 'Referral code accepted!';
+          _successMessage = result['message'] ?? L10n.of(context)!.referralCodeAccepted;
           _referralCodeController.clear();
         });
 
@@ -61,11 +61,11 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(AppIcons.celebration, size: 18, color: Colors.white),
-                const SizedBox(width: 8),
-                Text('+${result['bonusEnergy']} Energy!'),
+                SizedBox(width: AppSpacing.sm),
+                Text(L10n.of(context)!.referralEnergyBonus(result['bonusEnergy'] as int)),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -89,10 +89,10 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
     await Clipboard.setData(ClipboardData(text: miroId));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Referral code copied to clipboard!'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(L10n.of(context)!.referralCodeCopied),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -107,7 +107,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
       appBar: AppBar(
         title: AppIcons.iconWithLabel(
           Icons.people_rounded,
-          'Invite Friends',
+          L10n.of(context)!.referralInviteFriends,
           iconColor: AppColors.primary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -117,7 +117,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -125,33 +125,33 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Your Referral Code',
-                      style: TextStyle(
+                    Text(
+                      L10n.of(context)!.referralYourReferralCode,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppSpacing.paddingLg,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
+                        color: AppColors.surfaceVariant,
+                        borderRadius: AppRadius.md,
+                        border: Border.all(color: AppColors.divider),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              miroId.isEmpty ? 'Loading...' : miroId,
+                              miroId.isEmpty ? L10n.of(context)!.referralLoading : miroId,
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -164,17 +164,17 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                             onPressed: miroId.isEmpty
                                 ? null
                                 : () => _copyReferralCode(miroId),
-                            tooltip: 'Copy',
+                            tooltip: L10n.of(context)!.referralCopy,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Share this code with friends! When they use AI 3 times, you both get rewards!',
-                      style: TextStyle(
+                    SizedBox(height: AppSpacing.md),
+                    Text(
+                      L10n.of(context)!.referralShareCodeDescription,
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -182,54 +182,54 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl),
 
             // Enter Referral Code Section
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Enter Referral Code',
-                      style: TextStyle(
+                    Text(
+                      L10n.of(context)!.referralEnterReferralCode,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _referralCodeController,
                       decoration: InputDecoration(
-                        hintText: 'MIRO-XXXX-XXXX-XXXX',
+                        hintText: L10n.of(context)!.referralCodeHint,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: AppRadius.md,
                         ),
                         prefixIcon: const Icon(Icons.person_add),
                       ),
                       textCapitalization: TextCapitalization.characters,
                     ),
                     if (_errorMessage != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Text(
                         _errorMessage!,
                         style: const TextStyle(
-                          color: Colors.red,
+                          color: AppColors.error,
                           fontSize: 12,
                         ),
                       ),
                     ],
                     if (_successMessage != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Text(
                         _successMessage!,
                         style: const TextStyle(
-                          color: Colors.green,
+                          color: AppColors.success,
                           fontSize: 12,
                         ),
                       ),
@@ -242,9 +242,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: AppRadius.md,
                           ),
                         ),
                         child: _isSubmitting
@@ -257,9 +257,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                                       AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
                               )
-                            : const Text(
-                                'Submit Code',
-                                style: TextStyle(
+                            : Text(
+                                L10n.of(context)!.referralSubmitCode,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -271,22 +271,22 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl),
 
             // How It Works
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'How It Works',
-                      style: TextStyle(
+                    Text(
+                      L10n.of(context)!.referralHowItWorks,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
@@ -294,26 +294,26 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                     const SizedBox(height: 16),
                     _buildStep(
                       '1',
-                      'Share your referral code',
-                      'Copy and share your MiRO ID with friends',
+                      L10n.of(context)!.referralStep1Title,
+                      L10n.of(context)!.referralStep1Description,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '2',
-                      'Friend enters your code',
-                      'They get +5 Energy immediately',
+                      L10n.of(context)!.referralStep2Title,
+                      L10n.of(context)!.referralStep2Description,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '3',
-                      'Friend uses AI 3 times',
-                      'When they complete 3 AI analyses',
+                      L10n.of(context)!.referralStep3Title,
+                      L10n.of(context)!.referralStep3Description,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '4',
-                      'You get rewarded!',
-                      'You receive +15 Energy!',
+                      L10n.of(context)!.referralStep4Title,
+                      L10n.of(context)!.referralStep4Description,
                     ),
                   ],
                 ),
@@ -363,7 +363,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 description,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ],

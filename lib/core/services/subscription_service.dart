@@ -14,7 +14,7 @@ final subscriptionServiceProvider = Provider((ref) {
 class SubscriptionService {
   final InAppPurchase _iap = InAppPurchase.instance;
 
-  static const String productId = 'energy_pass_monthly';
+  static const String productId = 'miro_normal_subscription';
   static const String _baseUrl =
       'https://us-central1-miro-d6856.cloudfunctions.net';
 

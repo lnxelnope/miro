@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_icons.dart';
 import '../constants/enums.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_tokens.dart';
 
 /// Compact toggle pills for selecting Food vs Product search mode.
 /// Place on analysis screens before the "Analyze with AI" button.
@@ -27,7 +27,7 @@ class SearchModeSelector extends StatelessWidget {
           isSelected: selectedMode == FoodSearchMode.normal,
           isDark: isDark,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: AppSpacing.sm),
         _buildPill(
           context,
           mode: FoodSearchMode.product,
@@ -56,10 +56,10 @@ class SearchModeSelector extends StatelessWidget {
       onTap: () => onChanged(mode),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.xl,
           border: isSelected
               ? null
               : Border.all(
@@ -69,8 +69,8 @@ class SearchModeSelector extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-              Icon(mode.icon, size: 18, color: isSelected ? Colors.white : Colors.grey.shade700),
-            const SizedBox(width: 6),
+              Icon(mode.icon, size: 18, color: isSelected ? Colors.white : AppColors.textSecondary),
+            SizedBox(width: AppSpacing.xs + 2),
             Text(
               mode.displayName,
               style: TextStyle(

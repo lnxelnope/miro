@@ -767,10 +767,11 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       );
 
       if (response.statusCode == 200) {
-        ref.read(gamificationProvider.notifier).refresh();
+        final data = jsonDecode(response.body);
+        await ref.read(gamificationProvider.notifier).refresh();
         ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
         if (mounted) {
-          final data = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('+${data['reward']}E!'),
@@ -784,7 +785,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(error['error'] ?? L10n.of(context)!.errorFailed),
+              content: Text(error['error']?.toString() ?? L10n.of(context)!.errorFailed),
               backgroundColor: AppColors.error,
             ),
           );
@@ -792,6 +793,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       }
     } catch (e) {
       debugPrint('[QuestBar] Seasonal claim error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.errorFailed),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isClaimingSeasonal = false);
@@ -1307,17 +1316,43 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       );
 
       if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        await ref.read(gamificationProvider.notifier).refresh();
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+
         if (mounted) {
+          final reward = data['reward'] ?? 0;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(L10n.of(context)!.questBarClaimed)),
+            SnackBar(
+              content: Text('+${reward}E ${L10n.of(context)!.questBarClaimed}'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
           );
-          ref.read(gamificationProvider.notifier).refresh();
         }
       } else {
         debugPrint('[QuestBar] Claim failed: ${response.body}');
+        if (mounted) {
+          final error = jsonDecode(response.body);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error['error']?.toString() ?? L10n.of(context)!.errorFailed),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       debugPrint('[QuestBar] Claim error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.errorFailed),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _claimingChallenges.remove(challengeType));
@@ -1563,6 +1598,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         // Refresh state
         await ref.read(gamificationProvider.notifier).refresh();
         ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
 
         if (mounted) {
           final l10n = L10n.of(context)!;

@@ -2,251 +2,337 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../../../core/services/device_id_service.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/device_id_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/gamification_provider.dart';
+import '../providers/energy_provider.dart';
+
+const String _cloudFunctionsUrl = 'https://us-central1-miro-d6856.cloudfunctions.net';
 
 class MilestoneProgressCard extends ConsumerStatefulWidget {
-  const MilestoneProgressCard({super.key});
+  final bool compact;
+
+  const MilestoneProgressCard({super.key, this.compact = false});
 
   @override
   ConsumerState<MilestoneProgressCard> createState() => _MilestoneProgressCardState();
 }
 
 class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
-  bool _isLoading = false;
+  bool _isClaiming = false;
 
-  Future<void> _claimMilestone(String milestoneType) async {
-    if (_isLoading) return;
+  static const List<Map<String, dynamic>> _milestones = [
+    {'threshold': 10, 'reward': 10, 'label': 'milestone_10'},
+    {'threshold': 25, 'reward': 5, 'label': 'milestone_25'},
+    {'threshold': 50, 'reward': 7, 'label': 'milestone_50'},
+    {'threshold': 100, 'reward': 10, 'label': 'milestone_100'},
+    {'threshold': 250, 'reward': 15, 'label': 'milestone_250'},
+    {'threshold': 500, 'reward': 20, 'label': 'milestone_500'},
+    {'threshold': 1000, 'reward': 30, 'label': 'milestone_1000'},
+    {'threshold': 2500, 'reward': 50, 'label': 'milestone_2500'},
+    {'threshold': 5000, 'reward': 65, 'label': 'milestone_5000'},
+    {'threshold': 10000, 'reward': 100, 'label': 'milestone_10000'},
+  ];
 
-    setState(() => _isLoading = true);
+  Future<void> _claimMilestones() async {
+    if (_isClaiming) return;
+
+    setState(() => _isClaiming = true);
 
     try {
       final deviceId = await DeviceIdService.getDeviceId();
-      const url =
-          'https://us-central1-miro-d6856.cloudfunctions.net/claimMilestone';
-
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse('$_cloudFunctionsUrl/claimMilestoneRewardsEndpoint'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'deviceId': deviceId,
-          'milestoneType': milestoneType,
-        }),
+        body: json.encode({'deviceId': deviceId}),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        // Refresh gamification state
-        ref.read(gamificationProvider.notifier).refresh();
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          final totalReward = data['totalReward'] as int;
+          
+          // Refresh state
+          await ref.read(gamificationProvider.notifier).refresh();
+          ref.invalidate(energyBalanceProvider);
+          ref.invalidate(currentEnergyProvider);
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(AppIcons.celebration, size: 18, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text('+${data['energyReward']} Energy!'),
-                ],
+          if (mounted) {
+            final l10n = L10n.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.milestoneClaimedEnergy(totalReward)),
+                backgroundColor: AppColors.success,
               ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
+            );
+          }
+        } else {
+          if (mounted) {
+            final l10n = L10n.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.milestoneNoMilestonesToClaim),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+          }
         }
       } else {
-        final error = jsonDecode(response.body);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error['error'] ?? 'Failed to claim milestone'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
+        throw Exception('Failed to claim: ${response.statusCode}');
       }
     } catch (e) {
+      debugPrint('Error claiming milestones: $e');
       if (mounted) {
+        final l10n = L10n.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
+            content: Text(l10n.errorGeneric('$e')),
+            backgroundColor: AppColors.error,
           ),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isClaiming = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final gamification = ref.watch(gamificationProvider);
-    
     final totalSpent = gamification.totalSpent;
-    final spent500Claimed = gamification.spent500Claimed;
-    final spent1000Claimed = gamification.spent1000Claimed;
+    final nextIndex = gamification.nextMilestoneIndex;
+
+    // Progressive Reveal: แสดง milestone ถัดไป + ล็อคตัวถัดจากนั้น
+    final currentMilestone =
+        nextIndex < _milestones.length ? _milestones[nextIndex] : null;
+    final lockedMilestone =
+        nextIndex + 1 < _milestones.length ? _milestones[nextIndex + 1] : null;
+
+    // ถ้า claim ครบทุก milestone
+    if (currentMilestone == null) {
+      return widget.compact
+          ? _buildAllComplete(context)
+          : Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.lg),
+              child: Padding(
+                padding: AppSpacing.paddingLg,
+                child: _buildAllComplete(context),
+              ),
+            );
+    }
+
+    final threshold = currentMilestone['threshold'] as int;
+    final reward = currentMilestone['reward'] as int;
+    final progress = (totalSpent / threshold).clamp(0.0, 1.0);
+    final canClaim = totalSpent >= threshold;
+
+    final l10n = L10n.of(context)!;
+    if (widget.compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildMilestoneRow(
+            title: l10n.milestoneUseEnergyComplete(threshold),
+            progress: totalSpent,
+            target: threshold,
+            reward: reward,
+            progressPercent: progress,
+            canClaim: canClaim,
+          ),
+          if (lockedMilestone != null) ...[
+            SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
+                SizedBox(width: AppSpacing.xs),
+                Text(
+                  l10n.milestoneNext(lockedMilestone['threshold'] as int),
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ],
+        ],
+      );
+    }
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.paddingLg,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppIcons.iconWithLabel(
               AppIcons.milestone,
-              'Milestones',
+              l10n.milestoneTitle,
               iconColor: AppIcons.milestoneColor,
               iconSize: 24,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 16),
-            // 500 Energy milestone
-            _buildMilestoneItem(
-              title: '500 Energy spent',
+            SizedBox(height: AppSpacing.lg),
+            _buildMilestoneRow(
+              title: l10n.milestoneUseEnergyComplete(threshold),
               progress: totalSpent,
-              target: 500,
-              reward: 15,
-              isClaimed: spent500Claimed,
-              onClaim: () => _claimMilestone('spent500'),
+              target: threshold,
+              reward: reward,
+              progressPercent: progress,
+              canClaim: canClaim,
             ),
-            const SizedBox(height: 16),
-            // 1000 Energy milestone
-            _buildMilestoneItem(
-              title: '1000 Energy spent',
-              progress: totalSpent,
-              target: 1000,
-              reward: 30,
-              isClaimed: spent1000Claimed,
-              onClaim: () => _claimMilestone('spent1000'),
-            ),
+            if (lockedMilestone != null) ...[
+              SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
+                  SizedBox(width: AppSpacing.xs),
+                  Text(
+                    l10n.milestoneNext(lockedMilestone['threshold'] as int),
+                    style:
+                        TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMilestoneItem({
+  Widget _buildMilestoneRow({
     required String title,
     required int progress,
     required int target,
     required int reward,
-    required bool isClaimed,
-    required VoidCallback onClaim,
+    required double progressPercent,
+    required bool canClaim,
   }) {
     final isComplete = progress >= target;
-    final progressPercent = (progress / target).clamp(0.0, 1.0);
+    final color = canClaim ? AppColors.warning : (isComplete ? AppColors.success : AppColors.warning);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '+$reward ',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.orange.shade700,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
+            Icon(AppIcons.milestone, size: 20, color: color),
+            SizedBox(width: AppSpacing.sm),
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progressPercent,
-                  minHeight: 8,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    isComplete ? Colors.green : Colors.orange,
+              child: RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  children: [
+                    TextSpan(text: title),
+                    TextSpan(
+                      text: ' (+$reward',
+                      style: TextStyle(
+                        color: isComplete ? AppColors.success : AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    WidgetSpan(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                        child: Icon(
+                          AppIcons.energy,
+                          size: 12,
+                          color: isComplete ? AppColors.success : AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    TextSpan(
+                      text: ')',
+                      style: TextStyle(
+                        color: isComplete ? AppColors.success : AppColors.textSecondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (canClaim && !_isClaiming)
+              GestureDetector(
+                onTap: _claimMilestones,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppColors.warning, AppColors.warning],
+                    ),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '+$reward',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: AppSpacing.xxs),
+                      const Icon(AppIcons.energy, size: 12, color: Colors.white),
+                    ],
                   ),
                 ),
+              )
+            else if (_isClaiming)
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              Text(
+                '[$progress/$target]',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '${(progressPercent * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          '[$progress/$target]',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
+        SizedBox(height: AppSpacing.xs),
+        ClipRRect(
+          borderRadius: AppRadius.sm,
+          child: LinearProgressIndicator(
+            value: progressPercent,
+            minHeight: 6,
+            backgroundColor: AppColors.divider,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isComplete ? AppColors.success : AppColors.warning,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        // Claim button
-        if (isComplete && !isClaimed)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : onClaim,
-              icon: const Icon(Icons.star, size: 18),
-              label: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Claim +$reward '),
-                  const Icon(AppIcons.energy, size: 16, color: Colors.white),
-                ],
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          )
-        else if (isClaimed)
-          Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 18),
-              const SizedBox(width: 4),
-              Text(
-                'Claimed!',
-                style: TextStyle(
-                  color: Colors.green.shade700,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+      ],
+    );
+  }
+
+  Widget _buildAllComplete(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    return Row(
+      children: [
+        Icon(Icons.check_circle, color: AppColors.success, size: 20),
+        SizedBox(width: AppSpacing.sm),
+        Text(
+          l10n.milestoneAllComplete,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.success,
           ),
+        ),
       ],
     );
   }

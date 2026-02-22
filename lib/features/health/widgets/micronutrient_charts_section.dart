@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../models/micronutrient_stats.dart';
 import '../providers/micronutrient_stats_provider.dart';
 
@@ -59,8 +60,10 @@ class _MicronutrientChartsSectionState
                         ),
                       ),
                       Icon(
-                        _isExpanded ? Icons.expand_less : Icons.expand_more,
-                        color: Colors.grey[600],
+                        _isExpanded
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),
@@ -79,65 +82,65 @@ class _MicronutrientChartsSectionState
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
+                        color: AppColors.info.withValues(alpha: 0.1),
+                        borderRadius: AppRadius.sm,
+                      ),
+                      child: Row(
+                        children: [
+                            const Icon(
                               Icons.info_outline,
                               size: 20,
-                              color: Colors.blue.shade700,
+                              color: AppColors.info,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Showing average daily intake. No goals set for micronutrients.',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
-                                  color: Colors.blue.shade700,
+                                  color: AppColors.info,
                                 ),
                               ),
                             ),
                           ],
                         ),
                       ),
-
+                      
                       const SizedBox(height: 24),
 
                       // Individual micronutrient charts
                       if (stats.fiber != null)
                         _buildMicronutrientCard(
                           stats.fiber!,
-                          Colors.green,
+                          AppColors.success,
                           Icons.grass,
                         ),
-
+                      
                       if (stats.sugar != null)
                         _buildMicronutrientCard(
                           stats.sugar!,
                           Colors.pink,
                           Icons.cake,
                         ),
-
+                      
                       if (stats.sodium != null)
                         _buildMicronutrientCard(
                           stats.sodium!,
-                          Colors.orange,
+                          AppColors.warning,
                           Icons.water_drop,
                         ),
-
+                      
                       if (stats.cholesterol != null)
                         _buildMicronutrientCard(
                           stats.cholesterol!,
-                          Colors.red,
+                          AppColors.error,
                           Icons.favorite,
                         ),
-
+                      
                       if (stats.saturatedFat != null)
                         _buildMicronutrientCard(
                           stats.saturatedFat!,
-                          Colors.purple,
+                          AppColors.premium,
                           Icons.opacity,
                         ),
                     ],
@@ -170,9 +173,9 @@ class _MicronutrientChartsSectionState
       margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: AppRadius.md,
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,8 +186,8 @@ class _MicronutrientChartsSectionState
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
                 ),
                 child: Icon(icon, color: color, size: 24),
               ),
@@ -200,9 +203,9 @@ class _MicronutrientChartsSectionState
               ),
             ],
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Average values
           Row(
             children: [
@@ -234,9 +237,9 @@ class _MicronutrientChartsSectionState
               ),
             ],
           ),
-
+          
           const SizedBox(height: 16),
-
+          
           // Chart (last 30 days)
           if (stats.dailyValues.isNotEmpty) ...[
             const Text(
@@ -267,16 +270,16 @@ class _MicronutrientChartsSectionState
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        borderRadius: AppRadius.sm,
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 4),
@@ -290,9 +293,9 @@ class _MicronutrientChartsSectionState
           ),
           Text(
             unit,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 11,
-              color: Colors.grey[600],
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -313,9 +316,7 @@ class _MicronutrientChartsSectionState
         .map((entry) => FlSpot(entry.key.toDouble(), entry.value.value))
         .toList();
 
-    final maxY =
-        stats.dailyValues.map((e) => e.value).reduce((a, b) => a > b ? a : b) *
-            1.2;
+    final maxY = stats.dailyValues.map((e) => e.value).reduce((a, b) => a > b ? a : b) * 1.2;
 
     return LineChart(
       LineChartData(
@@ -325,7 +326,7 @@ class _MicronutrientChartsSectionState
           horizontalInterval: maxY > 0 ? maxY / 5 : 10,
           getDrawingHorizontalLine: (value) {
             return FlLine(
-              color: Colors.grey.withOpacity(0.2),
+              color: AppColors.textSecondary.withValues(alpha: 0.2),
               strokeWidth: 1,
             );
           },
@@ -338,9 +339,7 @@ class _MicronutrientChartsSectionState
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: stats.dailyValues.length > 10
-                  ? stats.dailyValues.length / 5
-                  : 1,
+              interval: stats.dailyValues.length > 10 ? stats.dailyValues.length / 5 : 1,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
                 if (index >= 0 && index < stats.dailyValues.length) {
@@ -385,7 +384,7 @@ class _MicronutrientChartsSectionState
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: color.withOpacity(0.15),
+              color: color.withValues(alpha: 0.15),
             ),
           ),
         ],

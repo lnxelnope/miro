@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/ai/gemini_chat_service.dart';
 import '../providers/chat_provider.dart';
 import '../models/chat_message.dart';
 import '../models/chat_ai_mode.dart';
+import '../services/greeting_service.dart';
 import '../widgets/message_bubble.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/models/food_entry.dart';
@@ -24,7 +27,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   bool _isComposing = false;
-  bool _showQuickActions = false; // Collapsible quick actions
+  bool _showQuickActions = false;
+  bool _greetingSent = false;
 
   @override
   void initState() {
@@ -33,19 +37,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       setState(() {
         _isComposing = _controller.text.trim().isNotEmpty;
       });
-    });
-
-    // Listen for AI mode changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.listen<ChatAiMode>(
-        chatAiModeProvider,
-        (previous, next) {
-          if (previous == ChatAiMode.local && next == ChatAiMode.miroAi) {
-            // Switched to Miro AI → Show greeting
-            _showMiroAiGreeting();
-          }
-        },
-      );
     });
   }
 
@@ -73,6 +64,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messages = ref.watch(chatNotifierProvider);
     final isLoading = ref.watch(chatLoadingProvider);
 
+    // Listen for AI mode changes (moved from initState)
+    ref.listen<ChatAiMode>(
+      chatAiModeProvider,
+      (previous, next) {
+        if (previous == ChatAiMode.local && next == ChatAiMode.miroAi) {
+          // Switched to Miro AI → Show greeting
+          _showMiroAiGreeting();
+        }
+      },
+    );
+
+    // Auto-send greeting when chat opens with empty messages
+    if (messages.isEmpty && !_greetingSent && !isLoading) {
+      _greetingSent = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _sendAutoGreeting();
+      });
+    }
+
+    // Reset flag when session changes (messages become empty again)
+    if (messages.isNotEmpty) {
+      _greetingSent = true;
+    }
+
     // Scroll to bottom when new message
     if (messages.isNotEmpty) {
       _scrollToBottom();
@@ -96,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ? _buildWelcomeScreen()
               : ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   itemCount: messages.length + (isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (isLoading && index == messages.length) {
@@ -120,21 +135,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200, width: 0.5),
+          bottom: BorderSide(color: AppColors.divider, width: 0.5),
         ),
       ),
       child: Row(
         children: [
           _buildToolbarButton(
             icon: Icons.history_rounded,
-            tooltip: 'History',
+            tooltip: L10n.of(context)!.chatHistory,
             onPressed: () => _showChatHistory(context),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: AppSpacing.sm),
           _buildToolbarButton(
             icon: Icons.add_comment_outlined,
-            tooltip: 'New chat',
+            tooltip: L10n.of(context)!.newChat,
             onPressed: () {
+              _greetingSent = false;
               ref.read(chatNotifierProvider.notifier).startNewSession();
             },
           ),
@@ -143,19 +159,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             icon: _showQuickActions
                 ? Icons.keyboard_arrow_up_rounded
                 : Icons.apps_rounded,
-            tooltip: 'Quick Actions',
+            tooltip: L10n.of(context)!.quickActions,
             onPressed: () {
               setState(() {
                 _showQuickActions = !_showQuickActions;
               });
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: AppSpacing.sm),
           _buildToolbarButton(
             icon: Icons.delete_outline_rounded,
-            tooltip: 'Clear',
+            tooltip: L10n.of(context)!.clear,
             onPressed: () => _showClearConfirmation(),
-            color: Colors.red.shade400,
+            color: AppColors.error,
           ),
         ],
       ),
@@ -175,12 +191,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: AppRadius.md,
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: btnColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: btnColor.withValues(alpha: 0.08),
+              borderRadius: AppRadius.md,
             ),
             child: Icon(icon, size: 20, color: btnColor),
           ),
@@ -192,7 +208,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildWelcomeScreen() {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(28),
+        padding: EdgeInsets.all(AppSpacing.xxl + AppSpacing.xs),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -203,8 +219,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.15),
-                    Colors.purple.withOpacity(0.1),
+                    AppColors.primary.withValues(alpha: 0.15),
+                    AppColors.premium.withValues(alpha: 0.1),
                   ],
                 ),
                 shape: BoxShape.circle,
@@ -213,33 +229,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: Icon(AppIcons.ai, size: 40, color: AppIcons.aiColor),
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'Hello! I\'m Miro',
+            SizedBox(height: AppSpacing.xl),
+            Text(
+              L10n.of(context)!.helloImMiro,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
-              'Tell me what you ate today!',
+              L10n.of(context)!.tellMeWhatYouAteToday,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey.shade600,
+                color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 28),
+            SizedBox(height: AppSpacing.xxl + AppSpacing.xs),
 
             // Example cards
             _buildExampleCard(AppIcons.breakfast, AppIcons.breakfastColor, 'Breakfast', 'scrambled eggs with toast'),
-            const SizedBox(height: 10),
+            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.lunch, AppIcons.lunchColor, 'Lunch', 'chicken caesar salad'),
-            const SizedBox(height: 10),
+            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.dinner, AppIcons.dinnerColor, 'Dinner', 'grilled salmon with rice'),
-            const SizedBox(height: 10),
+            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.snack, AppIcons.snackColor, 'Snack', 'apple and peanut butter'),
           ],
         ),
@@ -249,13 +265,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildExampleCard(IconData icon, Color iconColor, String meal, String food) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+            borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -264,7 +280,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Row(
         children: [
           Icon(icon, size: 28, color: iconColor),
-          const SizedBox(width: 12),
+          SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,7 +298,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   food,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey.shade700,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -316,33 +332,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _buildActionChip(
         icon: AppIcons.meal,
         iconColor: AppIcons.mealColor,
-        label: 'Menu',
+        label: L10n.of(context)!.menuLabel,
         action: () => _requestMenuSuggestion(),
-        energyCost: 2,
+        energyCost: 1,
       ),
-      const SizedBox(width: 8),
+      SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
-        label: 'Weekly',
+        label: L10n.of(context)!.weeklyLabel,
         action: () => _showWeeklySummary(),
         energyCost: 0,
       ),
-      const SizedBox(width: 8),
+      SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
-        label: 'Monthly',
+        label: L10n.of(context)!.monthlyLabel,
         action: () => _showMonthlySummary(),
         energyCost: 0,
       ),
-      const SizedBox(width: 8),
+      SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.tips,
         iconColor: AppIcons.tipsColor,
-        label: 'Tips',
-        action: () => _sendQuickMessage('Give me tips for healthy eating'),
-        energyCost: 2,
+        label: L10n.of(context)!.tipsLabel,
+        action: () => _sendQuickMessage(L10n.of(context)!.giveMeTipsForHealthyEating),
+        energyCost: 1,
       ),
     ];
   }
@@ -353,15 +369,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _buildActionChip(
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
-        label: 'Summary',
-        action: () => _sendQuickMessage('How many calories today?'),
+        label: L10n.of(context)!.summaryLabel,
+        action: () => _sendQuickMessage(L10n.of(context)!.howManyCaloriesToday),
         energyCost: 0,
       ),
-      const SizedBox(width: 8),
+      SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: Icons.help_outline_rounded,
-        iconColor: Colors.grey.shade700,
-        label: 'Help',
+        iconColor: AppColors.textSecondary,
+        label: L10n.of(context)!.helpLabel,
         action: () => _showLocalAiHelp(),
         energyCost: 0,
       ),
@@ -390,24 +406,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: isPremium
-              ? AppColors.primary.withOpacity(0.08)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.surfaceVariant,
+          borderRadius: AppRadius.xl,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: iconColor),
-            const SizedBox(width: 6),
+            SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isPremium ? AppColors.primary : Colors.grey.shade700,
+                color: isPremium ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
           ],
@@ -464,7 +480,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       // Build summary message
       final buffer = StringBuffer();
       buffer.writeln(
-          '📊 Weekly Summary (${_formatDate(startOfWeek)} - ${_formatDate(endOfWeek)})');
+          L10n.of(context)!.weeklySummaryTitle(_formatDate(startOfWeek), _formatDate(endOfWeek)));
       buffer.writeln();
 
       // List each day
@@ -482,32 +498,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
           final diff = calories - targetCalories;
           final diffText = diff > 0
-              ? '${diff.toStringAsFixed(0)} over target'
-              : '${(-diff).toStringAsFixed(0)} under target';
+              ? L10n.of(context)!.overTarget(diff.toStringAsFixed(0))
+              : L10n.of(context)!.underTarget((-diff).toStringAsFixed(0));
           final emoji = diff > 0 ? '⚠️' : '✅';
 
           buffer.writeln(
-              '📅 ${_getDayName(date)}: ${calories.toStringAsFixed(0)} kcal $emoji ($diffText)');
+              L10n.of(context)!.daySummary(_getDayName(date), calories.toStringAsFixed(0), emoji, diffText));
         }
       }
 
       if (daysWithData == 0) {
-        buffer.writeln('No food logged this week yet.');
+        buffer.writeln(L10n.of(context)!.noFoodLoggedThisWeek);
       } else {
         buffer.writeln();
         final average = totalCalories / daysWithData;
         final weekDiff = totalCalories - (targetCalories * daysWithData);
 
-        buffer.writeln('🔥 Average: ${average.toStringAsFixed(0)} kcal/day');
-        buffer.writeln(
-            '🎯 Target: ${targetCalories.toStringAsFixed(0)} kcal/day');
+        buffer.writeln(L10n.of(context)!.averageKcalPerDay(average.toStringAsFixed(0)));
+        buffer.writeln(L10n.of(context)!.targetKcalPerDay(targetCalories.toStringAsFixed(0)));
 
         if (weekDiff > 0) {
-          buffer.writeln(
-              '📈 Result: ${weekDiff.toStringAsFixed(0)} kcal over target');
+          buffer.writeln(L10n.of(context)!.resultOverTarget(weekDiff.toStringAsFixed(0)));
         } else {
-          buffer.writeln(
-              '📈 Result: ${(-weekDiff).toStringAsFixed(0)} kcal under target — Great job! 💪');
+          buffer.writeln(L10n.of(context)!.resultUnderTarget((-weekDiff).toStringAsFixed(0)));
         }
       }
 
@@ -522,7 +535,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final errorMsg = ChatMessage()
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
-        ..content = '❌ Failed to load weekly summary: ${e.toString()}';
+        ..content = L10n.of(context)!.failedToLoadWeeklySummary(e.toString());
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -571,22 +584,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
       // Build summary message
       final buffer = StringBuffer();
-      buffer.writeln('📊 Monthly Summary (${_getMonthName(now)} ${now.year})');
+      buffer.writeln(L10n.of(context)!.monthlySummaryTitle(_getMonthName(now), now.year));
       buffer.writeln();
-      buffer.writeln('📅 Total Days: $daysInMonth');
-      buffer.writeln(
-          '🔥 Total Consumed: ${totalCalories.toStringAsFixed(0)} kcal');
-      buffer.writeln('🎯 Target Total: ${targetTotal.toStringAsFixed(0)} kcal');
-      buffer.writeln('📈 Average: ${average.toStringAsFixed(0)} kcal/day');
+      buffer.writeln(L10n.of(context)!.totalDays(daysInMonth));
+      buffer.writeln(L10n.of(context)!.totalConsumed(totalCalories.toStringAsFixed(0)));
+      buffer.writeln(L10n.of(context)!.targetTotal(targetTotal.toStringAsFixed(0)));
+      buffer.writeln(L10n.of(context)!.averageKcalPerDayShort(average.toStringAsFixed(0)));
       buffer.writeln();
 
       final diff = totalCalories - targetTotal;
       if (diff > 0) {
-        buffer.writeln(
-            '⚠️ ${diff.toStringAsFixed(0)} kcal over target this month');
+        buffer.writeln(L10n.of(context)!.overTargetThisMonth(diff.toStringAsFixed(0)));
       } else {
-        buffer.writeln(
-            '✅ ${(-diff).toStringAsFixed(0)} kcal under target — Excellent! 💪');
+        buffer.writeln(L10n.of(context)!.underTargetThisMonth((-diff).toStringAsFixed(0)));
       }
 
       // Add message to chat
@@ -600,7 +610,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final errorMsg = ChatMessage()
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
-        ..content = '❌ Failed to load monthly summary: ${e.toString()}';
+        ..content = L10n.of(context)!.failedToLoadMonthlySummary(e.toString());
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -608,18 +618,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Show Local AI help
   Future<void> _showLocalAiHelp() async {
-    const helpText = '''
-🤖 Local AI Help
+    final helpText = '''
+${L10n.of(context)!.localAiHelpTitle}
 
-Format: [food] [amount] [unit]
+${L10n.of(context)!.localAiHelpFormat}
 
-Examples:
-• chicken 100g and rice 200g
-• pizza 2 slices
-• apple 1 piece, banana 1 piece
+${L10n.of(context)!.localAiHelpExamples}
 
-Note: English only, basic parsing
-Switch to Miro AI for better results!
+${L10n.of(context)!.localAiHelpNote}
 ''';
 
     final message = ChatMessage()
@@ -684,12 +690,12 @@ Switch to Miro AI for better results!
 
   Widget _buildInputField() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -700,48 +706,48 @@ Switch to Miro AI for better results!
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(24),
+                color: AppColors.surfaceVariant,
+                borderRadius: AppRadius.xxl,
               ),
               child: TextField(
                 controller: _controller,
                 maxLines: 3,
                 minLines: 1,
                 decoration: InputDecoration(
-                  hintText: 'Tell me what you ate...',
+                  hintText: L10n.of(context)!.tellMeWhatYouAte,
                   hintStyle: TextStyle(
-                    color: Colors.grey.shade400,
+                    color: AppColors.textTertiary,
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xl,
+                    vertical: AppSpacing.md,
                   ),
                 ),
                 onSubmitted: (_) => _sendCurrentMessage(),
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
           // Send button — animated circle
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: _isComposing ? AppColors.primary : Colors.grey.shade200,
+              color: _isComposing ? AppColors.primary : AppColors.divider,
               shape: BoxShape.circle,
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: _isComposing ? _sendCurrentMessage : null,
-                borderRadius: BorderRadius.circular(21),
+                borderRadius: AppRadius.xl,
                 child: Center(
                   child: Icon(
                     Icons.arrow_upward_rounded,
-                    color: _isComposing ? Colors.white : Colors.grey.shade400,
+                    color: _isComposing ? Colors.white : AppColors.textTertiary,
                     size: 22,
                   ),
                 ),
@@ -766,34 +772,34 @@ Switch to Miro AI for better results!
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Row(
         children: [
           Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Center(
               child: Icon(AppIcons.ai, size: 18, color: AppIcons.aiColor),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: AppSpacing.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(18),
+              color: AppColors.surfaceVariant,
+              borderRadius: AppRadius.lg,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDot(0),
-                const SizedBox(width: 5),
+                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 _buildDot(1),
-                const SizedBox(width: 5),
+                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 _buildDot(2),
               ],
             ),
@@ -812,7 +818,7 @@ Switch to Miro AI for better results!
           width: 7,
           height: 7,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.2 + (value * 0.5)),
+            color: AppColors.primary.withValues(alpha: 0.2 + (value * 0.5)),
             shape: BoxShape.circle,
           ),
         );
@@ -824,37 +830,37 @@ Switch to Miro AI for better results!
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: AppRadius.md,
               ),
               child: Icon(Icons.delete_outline_rounded,
-                  color: Colors.red.shade400, size: 20),
+                  color: AppColors.error, size: 20),
             ),
-            const SizedBox(width: 12),
-            const Text('Clear history?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            SizedBox(width: AppSpacing.md),
+            Text(L10n.of(context)!.clearHistoryTitle,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           ],
         ),
-        content: Text('All messages in this session will be deleted.',
-            style: TextStyle(color: Colors.grey.shade600)),
+        content: Text(L10n.of(context)!.clearHistoryMessage,
+            style: TextStyle(color: AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: AppRadius.md),
             ),
             child:
-                Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -862,14 +868,14 @@ Switch to Miro AI for better results!
               Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: AppRadius.md),
               elevation: 0,
             ),
-            child: const Text('Clear'),
+            child: Text(L10n.of(context)!.clear),
           ),
         ],
       ),
@@ -889,7 +895,7 @@ Switch to Miro AI for better results!
         builder: (sheetCtx, scrollController) => Container(
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
           ),
           child: Column(
             children: [
@@ -899,7 +905,7 @@ Switch to Miro AI for better results!
                 height: 4,
                 margin: const EdgeInsets.only(top: 12, bottom: 8),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: AppColors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -911,17 +917,17 @@ Switch to Miro AI for better results!
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        borderRadius: AppRadius.md,
                       ),
                       child: const Icon(Icons.history_rounded,
                           color: AppColors.primary, size: 20),
                     ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      'Chat History',
+                    SizedBox(width: AppSpacing.md),
+                    Text(
+                      L10n.of(context)!.chatHistoryTitle,
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -936,21 +942,21 @@ Switch to Miro AI for better results!
                             .startNewSession();
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.xl,
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.add_rounded,
+                            const Icon(Icons.add_rounded,
                                 size: 16, color: AppColors.primary),
-                            SizedBox(width: 4),
+                            SizedBox(width: AppSpacing.xs),
                             Text(
-                              'New',
-                              style: TextStyle(
+                              L10n.of(context)!.newLabel,
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
@@ -964,7 +970,7 @@ Switch to Miro AI for better results!
                 ),
               ),
 
-              Divider(height: 1, color: Colors.grey.shade200),
+              Divider(height: 1, color: AppColors.divider),
 
               // Sessions list
               Expanded(
@@ -983,12 +989,12 @@ Switch to Miro AI for better results!
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.chat_bubble_outline,
-                                    size: 56, color: Colors.grey.shade300),
-                                const SizedBox(height: 16),
+                                    size: 56, color: AppColors.textTertiary),
+                                SizedBox(height: AppSpacing.lg),
                                 Text(
-                                  'No chat history yet',
+                                  L10n.of(context)!.noChatHistoryYet,
                                   style: TextStyle(
-                                      color: Colors.grey.shade500,
+                                      color: AppColors.textTertiary,
                                       fontSize: 15),
                                 ),
                               ],
@@ -1030,14 +1036,14 @@ Switch to Miro AI for better results!
     final timeFormat = DateFormat('HH:mm');
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.primary.withOpacity(0.06)
-            : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(14),
+            ? AppColors.primary.withValues(alpha: 0.06)
+            : AppColors.background,
+            borderRadius: AppRadius.lg,
         border: isActive
-            ? Border.all(color: AppColors.primary.withOpacity(0.2), width: 1)
+            ? Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1)
             : null,
       ),
       child: Material(
@@ -1049,9 +1055,9 @@ Switch to Miro AI for better results!
                 .read(chatNotifierProvider.notifier)
                 .loadSession(session.sessionId!);
           },
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: AppRadius.lg,
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(AppSpacing.md + AppSpacing.xxs),
             child: Row(
               children: [
                 Container(
@@ -1059,17 +1065,17 @@ Switch to Miro AI for better results!
                   height: 40,
                   decoration: BoxDecoration(
                     color: isActive
-                        ? AppColors.primary.withOpacity(0.15)
-                        : Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : AppColors.divider,
+                    borderRadius: AppRadius.md,
                   ),
                   child: Icon(
                     Icons.chat_rounded,
-                    color: isActive ? AppColors.primary : Colors.grey.shade500,
+                    color: isActive ? AppColors.primary : AppColors.textSecondary,
                     size: 20,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1091,14 +1097,14 @@ Switch to Miro AI for better results!
                           ),
                           if (isActive)
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xxs),
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: AppRadius.sm,
                               ),
-                              child: const Text(
-                                'Active',
+                              child: Text(
+                                L10n.of(context)!.active,
                                 style: TextStyle(
                                     fontSize: 9,
                                     color: Colors.white,
@@ -1107,20 +1113,20 @@ Switch to Miro AI for better results!
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: AppSpacing.xs),
                       Text(
                         '${dateFormat.format(session.updatedAt)} ${timeFormat.format(session.updatedAt)}',
                         style: TextStyle(
-                            fontSize: 12, color: Colors.grey.shade500),
+                            fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () => _confirmDeleteSession(context, session),
                   child: Icon(Icons.delete_outline_rounded,
-                      size: 18, color: Colors.grey.shade400),
+                      size: 18, color: AppColors.textTertiary),
                 ),
               ],
             ),
@@ -1134,39 +1140,39 @@ Switch to Miro AI for better results!
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: AppRadius.md,
               ),
               child: Icon(Icons.delete_outline_rounded,
-                  color: Colors.red.shade400, size: 20),
+                  color: AppColors.error, size: 20),
             ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text('Delete chat?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Text(L10n.of(context)!.deleteChatTitle,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             ),
           ],
         ),
-        content: Text('Delete "${session.title}"?',
-            style: TextStyle(color: Colors.grey.shade600)),
+        content: Text(L10n.of(context)!.deleteChatMessage(session.title),
+            style: TextStyle(color: AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: AppRadius.md),
             ),
             child:
-                Text('Cancel', style: TextStyle(color: Colors.grey.shade600)),
+                Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1176,14 +1182,14 @@ Switch to Miro AI for better results!
                   .deleteSession(session.sessionId!);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: AppRadius.md),
               elevation: 0,
             ),
-            child: const Text('Delete'),
+            child: Text(L10n.of(context)!.delete),
           ),
         ],
       ),
@@ -1195,17 +1201,17 @@ Switch to Miro AI for better results!
     final chatAiMode = ref.watch(chatAiModeProvider);
     final isMiroAi = chatAiMode == ChatAiMode.miroAi;
     final modeColor =
-        isMiroAi ? const Color(0xFF6366F1) : const Color(0xFF10B981);
+        isMiroAi ? AppColors.ai : AppColors.success;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
             decoration: BoxDecoration(
-              color: modeColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20),
+              color: modeColor.withValues(alpha: 0.08),
+              borderRadius: AppRadius.xl,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1215,7 +1221,7 @@ Switch to Miro AI for better results!
                   size: 14,
                   color: modeColor,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 Text(
                   chatAiMode.displayName,
                   style: TextStyle(
@@ -1224,33 +1230,36 @@ Switch to Miro AI for better results!
                     color: modeColor,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isMiroAi
-                        ? Colors.amber.shade600
-                        : const Color(0xFF10B981),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isMiroAi) ...[
-                        Icon(AppIcons.energy, size: 10, color: Colors.white),
-                        const Text('2+', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
-                      ] else
-                        const Text('Free', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// Auto-send a random greeting message when chat is opened for the first time
+  Future<void> _sendAutoGreeting() async {
+    try {
+      if (!mounted) return;
+
+      final greeting = await GreetingService.generateGreeting(
+        context: context,
+        ref: ref,
+      );
+
+      if (!mounted) return;
+
+      final greetingMsg = ChatMessage()
+        ..sessionId = ref.read(currentSessionIdProvider)
+        ..role = MessageRole.assistant
+        ..content = greeting;
+
+      await ref.read(chatNotifierProvider.notifier).addMessage(greetingMsg);
+    } catch (e) {
+      // Silent fail — greeting is not critical
+      debugPrint('Auto greeting failed: $e');
+    }
   }
 
   /// Show smart greeting when switching to Miro AI
@@ -1279,16 +1288,11 @@ Switch to Miro AI for better results!
       // Build greeting message
       String greeting;
       if (todayCalories == 0) {
-        greeting = '🤖 Hi! No food logged yet today.\n'
-            '   Target: ${targetCalories.toStringAsFixed(0)} kcal — Ready to start logging? 🍽️';
+        greeting = L10n.of(context)!.hiNoFoodLogged(targetCalories.toStringAsFixed(0));
       } else if (remaining > 0) {
-        greeting =
-            '🤖 Hi! You have ${remaining.toStringAsFixed(0)} kcal left for today.\n'
-            '   Ready to log your meals? 😊';
+        greeting = L10n.of(context)!.hiKcalLeft(remaining.toStringAsFixed(0));
       } else {
-        greeting =
-            '🤖 Hi! You\'ve consumed ${todayCalories.toStringAsFixed(0)} kcal today.\n'
-            '   ${(-remaining).toStringAsFixed(0)} kcal over target — Let\'s keep tracking! 💪';
+        greeting = L10n.of(context)!.hiOverTarget(todayCalories.toStringAsFixed(0), (-remaining).toStringAsFixed(0));
       }
 
       // Add greeting message
@@ -1303,7 +1307,7 @@ Switch to Miro AI for better results!
       final fallbackMsg = ChatMessage()
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
-        ..content = '🤖 Hi! Ready to log your meals? 😊';
+        ..content = L10n.of(context)!.hiReadyToLog;
 
       await ref.read(chatNotifierProvider.notifier).addMessage(fallbackMsg);
     }
@@ -1320,7 +1324,7 @@ Switch to Miro AI for better results!
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
         ..content =
-            '❌ Not enough Energy (minimum 2⚡ required). Please purchase more from the store.';
+            L10n.of(context)!.notEnoughEnergy;
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
       return;
@@ -1330,7 +1334,7 @@ Switch to Miro AI for better results!
     final loadingMsg = ChatMessage()
       ..sessionId = ref.read(currentSessionIdProvider)
       ..role = MessageRole.assistant
-      ..content = '🤖 Thinking of great meal ideas for you...';
+      ..content = L10n.of(context)!.thinkingMealIdeas;
 
     await ref.read(chatNotifierProvider.notifier).addMessage(loadingMsg);
 
@@ -1360,13 +1364,13 @@ Switch to Miro AI for better results!
       }
 
       // Build context string
-      String context = 'Recent meals: ';
+      String contextString = L10n.of(context)!.recentMeals;
       if (recentEntries.isEmpty) {
-        context += 'No recent food logged.';
+        contextString += L10n.of(context)!.noRecentFood;
       } else {
         final foodNames =
             recentEntries.map((e) => e.foodName).take(10).join(', ');
-        context += foodNames;
+        contextString += foodNames;
       }
 
       // Get today's remaining calories
@@ -1380,12 +1384,11 @@ Switch to Miro AI for better results!
       final targetCalories = profile?.calorieGoal ?? 2000;
       final remaining = targetCalories - todayCalories;
 
-      context +=
-          '. Remaining calories today: ${remaining.toStringAsFixed(0)} kcal.';
+      contextString += L10n.of(context)!.remainingCaloriesToday(remaining.toStringAsFixed(0));
 
       // Call AI with profile context
       final response = await GeminiChatService.getMenuSuggestions(
-        recentFoodContext: context,
+        recentFoodContext: contextString,
         energyService: energyService,
         userProfile: profile,
       );
@@ -1403,7 +1406,7 @@ Switch to Miro AI for better results!
       final errorMsg = ChatMessage()
         ..sessionId = ref.read(currentSessionIdProvider)
         ..role = MessageRole.assistant
-        ..content = '❌ Failed to get menu suggestions: ${e.toString()}';
+        ..content = L10n.of(context)!.failedToGetMenuSuggestions(e.toString());
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -1422,7 +1425,7 @@ Switch to Miro AI for better results!
 
     // Build message
     final buffer = StringBuffer();
-    buffer.writeln('🤖 Based on your food log, here are 3 meal suggestions:\n');
+    buffer.writeln(L10n.of(context)!.mealSuggestionsTitle);
 
     int index = 1;
     for (final suggestion in suggestions) {
@@ -1433,15 +1436,14 @@ Switch to Miro AI for better results!
       final carbs = suggestion['carbs'] as num;
       final fat = suggestion['fat'] as num;
 
-      buffer.writeln(
-          '$index. $emoji $name (~${calories.toStringAsFixed(0)} kcal)');
-      buffer.writeln('   P: ${protein}g | C: ${carbs}g | F: ${fat}g');
+      buffer.writeln(L10n.of(context)!.mealSuggestionItem(index, emoji, name, calories.toStringAsFixed(0)));
+      buffer.writeln(L10n.of(context)!.mealSuggestionMacros(protein.toStringAsFixed(1), carbs.toStringAsFixed(1), fat.toStringAsFixed(1)));
       if (index < suggestions.length) buffer.writeln();
       index++;
     }
 
-    buffer.writeln('\nPick one and I\'ll log it for you! 😊');
-    buffer.writeln('\n⚡ -2 Energy');
+    buffer.writeln(L10n.of(context)!.pickOneAndLog);
+    buffer.writeln(L10n.of(context)!.energyCost(2));
 
     // Add message
     final message = ChatMessage()

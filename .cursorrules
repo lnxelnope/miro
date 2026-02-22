@@ -13,7 +13,6 @@
 - เมื่อผู้ใช้พิมพ์ชื่ออาหาร → ค้นจากลำดับ:
   1. **My Meals** (เมนูของฉัน) → `allMyMealsProvider`
   2. **Ingredients** (วัตถุดิบส่วนตัว) → `allIngredientsProvider`
-  3. **Thai Food Database** (ฐานข้อมูลไทย) → `ThaiFoodDatabase.search()`
 - ใช้ `Autocomplete` widget พร้อม fuzzy search (contains)
 - ถ้าไม่พบ → ให้ผู้ใช้กรอกเอง → บันทึกแล้วไปกด Gemini ภายหลัง
 
@@ -85,6 +84,47 @@
   - **ข้ามประเภท** (เช่น g → piece): ไม่แปลง — keep ปริมาณเดิม
 - ใช้ `UnitConverter.convertServing()` เพื่อ handle ทั้ง 2 กรณี
 - **Dropdown order**: Weight (บน) → Volume → Count → Package (ล่าง)
+
+---
+
+## 🌐 Centralized Strings (i18n / Localization)
+
+### ห้าม Hardcode Strings ใน Widget
+- **ทุก user-facing string** ต้องใช้ `L10n.of(context)!.keyName` เท่านั้น
+- **ห้าม** เขียน `Text('ข้อความ')` หรือ `Text('Message')` ตรงๆ ในโค้ด
+- **ห้าม** เขียน `'Cancel'`, `'OK'`, `'Error'` ฯลฯ hardcode — ใช้ key จาก ARB file
+
+### วิธีเพิ่ม String ใหม่
+1. เพิ่ม key ใน `lib/l10n/app_en.arb` (English)
+2. เพิ่ม key เดียวกันใน `lib/l10n/app_th.arb` (Thai)
+3. รัน `flutter gen-l10n` เพื่อ generate
+4. ใช้ `L10n.of(context)!.keyName` ใน Widget
+
+### String ที่มี Parameter
+```dart
+// ARB: "greeting": "Hello {name}"
+L10n.of(context)!.greeting('Miro')
+```
+
+### Provider / Service — ไม่มี Context
+- **ห้าม** ใช้ `L10n.of(context)` ใน Provider/Service (ไม่มี BuildContext)
+- **วิธีแก้:** แปลใน Widget แล้วส่ง String เข้า Provider
+```dart
+// Widget: แปลที่นี่
+final msg = L10n.of(context)!.errorMessage;
+ref.read(provider).doSomething(msg);
+```
+
+### Import
+```dart
+import '../../../l10n/app_localizations.dart';
+```
+
+### สิ่งที่ไม่ต้องแปล
+- AI prompts / system prompts
+- Debug logs / `AppLogger` messages
+- Technical identifiers (keys, IDs)
+- Version numbers
 
 ---
 

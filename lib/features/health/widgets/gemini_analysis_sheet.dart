@@ -13,6 +13,7 @@ import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
+import '../../../l10n/app_localizations.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -913,9 +914,10 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
   // ========================================================
   // Editable Ingredients Section
   // ========================================================
+  bool _ingredientsExpanded = false;
+
   Widget _buildEditableIngredientsSection() {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.green.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
@@ -924,57 +926,95 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          Row(
-            children: [
-              const Icon(Icons.science_outlined, size: 16, color: Colors.green),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'Ingredients (Editable)',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green),
-                ),
-              ),
-              // Add ingredient button
-              InkWell(
-                onTap: _addIngredient,
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 14, color: Colors.green),
-                      SizedBox(width: 2),
-                      Text('Add',
-                          style: TextStyle(
+          // Collapsible header
+          InkWell(
+            onTap: () => setState(() => _ingredientsExpanded = !_ingredientsExpanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  const Icon(Icons.science_outlined, size: 16, color: Colors.green),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ingredients (${_ingredients.length})',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green),
+                        ),
+                        if (!_ingredientsExpanded)
+                          Text(
+                            L10n.of(context)!.ingredientsTapToExpand,
+                            style: const TextStyle(
                               fontSize: 11,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600)),
-                    ],
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
+                  if (_ingredientsExpanded)
+                    InkWell(
+                      onTap: _addIngredient,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, size: 14, color: Colors.green),
+                            SizedBox(width: 2),
+                            Text('Add',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 4),
+                  AnimatedRotation(
+                    turns: _ingredientsExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.expand_more, size: 20, color: Colors.green),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-          const SizedBox(height: 10),
 
-          // Ingredient rows
-          ...List.generate(
-              _ingredients.length, (i) => _buildEditableIngredientRow(i)),
-
-          const SizedBox(height: 6),
-          const Text(
-            'Edit name/amount → Tap search icon to search from database or AI',
-            style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...List.generate(
+                      _ingredients.length, (i) => _buildEditableIngredientRow(i)),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Edit name/amount → Tap search icon to search from database or AI',
+                    style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _ingredientsExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 250),
           ),
         ],
       ),

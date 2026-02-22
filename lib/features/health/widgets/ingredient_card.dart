@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../models/ingredient.dart';
 
 class IngredientCard extends StatelessWidget {
@@ -38,8 +39,8 @@ class IngredientCard extends StatelessWidget {
               height: 50, // adjust ตามขนาด card
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(1),
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(1),
               ),
             ),
 
@@ -48,12 +49,12 @@ class IngredientCard extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
                 color: depth == 0
-                    ? Colors.white // ROOT: สีขาว
-                    : Colors.grey[50] ?? Colors.grey.shade50, // SUB: สีเทาอ่อน
-                borderRadius: BorderRadius.circular(16),
+                    ? Colors.white
+                    : AppColors.surfaceVariant,
+                borderRadius: AppRadius.lg,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -62,7 +63,7 @@ class IngredientCard extends StatelessWidget {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: AppRadius.lg,
                   onTap: onUse,
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -73,8 +74,8 @@ class IngredientCard extends StatelessWidget {
                           width: 42,
                           height: 42,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF10B981).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppColors.finance.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.md,
                           ),
                           child: const Center(
                             child: Text('🥬', style: TextStyle(fontSize: 20)),
@@ -114,10 +115,10 @@ class IngredientCard extends StatelessWidget {
                                         horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: isAi
-                                          ? const Color(0xFF8B5CF6)
-                                              .withOpacity(0.1)
-                                          : Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(6),
+                                          ? AppColors.premium
+                                              .withValues(alpha: 0.1)
+                                          : AppColors.surfaceVariant,
+                                      borderRadius: AppRadius.sm,
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -151,9 +152,9 @@ class IngredientCard extends StatelessWidget {
                                 children: [
                                   Text(
                                     '${ingredient.baseAmount.toStringAsFixed(0)} ${ingredient.baseUnit}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade500,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                   _dot(),
@@ -162,23 +163,23 @@ class IngredientCard extends StatelessWidget {
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Color(0xFFEF4444),
+                                      color: AppColors.error,
                                     ),
                                   ),
                                   _dot(),
                                   Text(
                                     'P:${ingredient.proteinPerBase.toInt()}  C:${ingredient.carbsPerBase.toInt()}  F:${ingredient.fatPerBase.toInt()}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 11,
-                                        color: Colors.grey.shade500),
+                                        color: AppColors.textSecondary),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${ingredient.usageCount} uses',
-                                style: TextStyle(
-                                    fontSize: 10, color: Colors.grey.shade400),
+                                style: const TextStyle(
+                                    fontSize: 10, color: AppColors.textTertiary),
                               ),
 
                               // NEW — แสดง detail text ถ้ามี
@@ -189,7 +190,7 @@ class IngredientCard extends StatelessWidget {
                                     detail!,
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      color: AppColors.textSecondary,
                                       fontStyle: FontStyle.italic,
                                     ),
                                     maxLines: 2,
@@ -211,8 +212,8 @@ class IngredientCard extends StatelessWidget {
                                 width: 34,
                                 height: 34,
                                 decoration: BoxDecoration(
-                                  color: AppColors.health.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: AppColors.health.withValues(alpha: 0.1),
+                                  borderRadius: AppRadius.md,
                                 ),
                                 child: const Icon(Icons.add_rounded,
                                     size: 20, color: AppColors.health),
@@ -223,10 +224,10 @@ class IngredientCard extends StatelessWidget {
                             PopupMenuButton<String>(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: Icon(Icons.more_horiz_rounded,
-                                  size: 18, color: Colors.grey.shade400),
+                              icon: const Icon(Icons.more_horiz_rounded,
+                                  size: 18, color: AppColors.textTertiary),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14)),
+                                  borderRadius: AppRadius.lg),
                               onSelected: (value) {
                                 switch (value) {
                                   case 'edit':
@@ -242,9 +243,9 @@ class IngredientCard extends StatelessWidget {
                                   value: 'edit',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.edit_outlined,
+                                      const Icon(Icons.edit_outlined,
                                           size: 18,
-                                          color: Colors.grey.shade600),
+                                          color: AppColors.textSecondary),
                                       const SizedBox(width: 10),
                                       const Text('Edit'),
                                     ],
@@ -255,11 +256,11 @@ class IngredientCard extends StatelessWidget {
                                   child: Row(
                                     children: [
                                       Icon(Icons.delete_outline_rounded,
-                                          size: 18, color: Colors.red.shade400),
+                                          size: 18, color: AppColors.error.withValues(alpha: 0.7)),
                                       const SizedBox(width: 10),
                                       Text('Delete',
                                           style: TextStyle(
-                                              color: Colors.red.shade400)),
+                                              color: AppColors.error.withValues(alpha: 0.7))),
                                     ],
                                   ),
                                 ),
@@ -286,7 +287,7 @@ class IngredientCard extends StatelessWidget {
         width: 3,
         height: 3,
         decoration: BoxDecoration(
-          color: Colors.grey.shade400,
+          color: AppColors.textTertiary,
           shape: BoxShape.circle,
         ),
       ),

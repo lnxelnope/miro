@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/features/health/models/nutrition_summary.dart';
+import '../../../core/theme/app_colors.dart';
 
 class GoalsVsActualTable extends StatelessWidget {
   final NutritionSummary summary;
@@ -36,14 +37,14 @@ class GoalsVsActualTable extends StatelessWidget {
                 3: FlexColumnWidth(1.5),
               },
               border: TableBorder.all(
-                color: Colors.grey.shade300,
+                color: AppColors.divider,
                 width: 1,
               ),
               children: [
                 // Header row
                 TableRow(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: AppColors.surfaceVariant,
                   ),
                   children: [
                     _buildHeaderCell('Nutrient'),
@@ -120,7 +121,7 @@ class GoalsVsActualTable extends StatelessWidget {
     final diffText = difference >= 0
         ? '+${difference.toStringAsFixed(0)}'
         : difference.toStringAsFixed(0);
-    final diffColor = isOver ? Colors.red : Colors.green;
+    final diffColor = isOver ? AppColors.error : AppColors.success;
 
     return TableRow(
       children: [

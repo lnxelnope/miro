@@ -12,6 +12,8 @@ import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+
 
 /// Energy Store - Modern Design with gradient cards
 class EnergyStoreScreen extends ConsumerStatefulWidget {
@@ -182,7 +184,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     final isSubscriber = gamification.isSubscriber;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -245,7 +247,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               price: 0.99,
               priceText: '\$0.99',
               productId: PurchaseService.energy100,
-              gradient: [Colors.blue.shade300, Colors.blue.shade500],
+              gradient: [AppColors.info.withValues(alpha: 0.6), AppColors.info],
             ),
 
             _buildModernPackageCard(
@@ -257,7 +259,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               priceText: '\$4.99',
               productId: PurchaseService.energy550,
               badge: '+10% bonus',
-              gradient: [Colors.purple.shade300, Colors.purple.shade500],
+              gradient: [AppColors.premium.withValues(alpha: 0.6), AppColors.premium],
             ),
 
             _buildModernPackageCard(
@@ -270,7 +272,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               productId: PurchaseService.energy1200,
               badge: 'POPULAR',
               isPopular: true,
-              gradient: [Colors.orange.shade400, Colors.deepOrange.shade500],
+              gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
 
             _buildModernPackageCard(
@@ -283,7 +285,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               productId: PurchaseService.energy2000,
               badge: 'BEST VALUE',
               isBest: true,
-              gradient: [Colors.amber.shade400, Colors.orange.shade600],
+              gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
 
             const SizedBox(height: 32),
@@ -354,10 +356,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             builder: (_, child) => Container(
               key: globalKey,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: AppRadius.xl,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.amber.withOpacity(_highlightAnimation!.value * 0.6),
+                    color: AppColors.warning.withValues(alpha: _highlightAnimation!.value * 0.6),
                     blurRadius: 16,
                     spreadRadius: 2,
                   ),
@@ -407,14 +409,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.orange.shade400, Colors.red.shade500],
+          colors: [AppColors.warning.withValues(alpha: 0.7), AppColors.error],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.4),
+            color: AppColors.warning.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -424,7 +426,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _purchasePackage(productId, energyAmount),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.xl,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -436,7 +438,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                       child: const Icon(Icons.local_fire_department_rounded, size: 28, color: Colors.white),
                     ),
@@ -449,7 +451,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: AppRadius.sm,
                             ),
                             child: const Text(
                               'LIMITED TIME',
@@ -537,10 +539,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     onPressed: () => _purchasePackage(productId, energyAmount),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: Colors.orange.shade700,
+                      foregroundColor: AppColors.warning,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                     ),
                     child: Text(
@@ -574,14 +576,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.teal.shade600],
+          colors: [AppColors.success.withValues(alpha: 0.7), AppColors.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.4),
+            color: AppColors.success.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -591,7 +593,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         color: Colors.transparent,
         child: InkWell(
           onTap: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.xl,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -603,7 +605,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                       child: Text(
                         icon,
@@ -669,10 +671,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       onPressed: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
-                        foregroundColor: Colors.green.shade700,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      foregroundColor: AppColors.success,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: AppRadius.md,
                         ),
                       ),
                       child: Text(
@@ -716,7 +718,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('ได้รับ $energyAdded Energy!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         _loadOffers(); // Reload offer list
@@ -725,16 +727,16 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(data['error'] as String? ?? 'ไม่สามารถ claim ได้'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
     } catch (e) {
       debugPrint('[EnergyStore] Error claiming free energy: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('เกิดข้อผิดพลาด'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('เกิดข้อผิดพลาด'),
+          backgroundColor: AppColors.error,
         ),
       );
     } finally {
@@ -756,14 +758,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade400, Colors.blue.shade400],
+          colors: [AppColors.premium.withValues(alpha: 0.7), AppColors.info.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.3),
+            color: AppColors.premium.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -820,7 +822,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: AppRadius.xl,
               ),
               child: Text(
                 _formatDuration(_remainingTime!),
@@ -845,14 +847,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.teal.shade600],
+          colors: [AppColors.success.withValues(alpha: 0.7), AppColors.primary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.4),
+            color: AppColors.success.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -864,7 +866,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: AppRadius.lg,
             ),
             child: const Icon(AppIcons.energy, size: 48, color: Colors.white),
           ),
@@ -909,14 +911,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+          colors: [AppColors.premium, AppColors.premiumDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C3AED).withOpacity(0.3),
+            color: AppColors.premium.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -932,7 +934,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.lg,
                   ),
                   child: const Icon(
                     Icons.diamond_rounded,
@@ -963,7 +965,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: AppRadius.sm,
                             ),
                             child: const Text(
                               'ACTIVE',
@@ -1000,7 +1002,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: AppRadius.md,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1033,14 +1035,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)],
+          colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -1057,7 +1059,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               ),
             );
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.xl,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -1066,7 +1068,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.lg,
                   ),
                   child: const Icon(
                     Icons.energy_savings_leaf,
@@ -1136,17 +1138,17 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         border: Border.all(
           color: isPopular || isBest
-              ? Colors.orange.shade400
-              : Colors.grey.shade200,
+              ? AppColors.warning.withValues(alpha: 0.7)
+              : AppColors.divider,
           width: isPopular || isBest ? 2.5 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: (isPopular || isBest ? Colors.orange : Colors.grey)
-                .withOpacity(0.1),
+            color: (isPopular || isBest ? AppColors.warning : AppColors.textSecondary)
+                .withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -1156,7 +1158,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         color: Colors.transparent,
         child: InkWell(
           onTap: () => _purchasePackage(productId, energy),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.lg,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -1167,7 +1169,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   height: 56,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: gradient),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: AppRadius.lg,
                   ),
                   alignment: Alignment.center,
                   child: Icon(icon, size: 32, color: Colors.white),
@@ -1198,11 +1200,11 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                               ),
                               decoration: BoxDecoration(
                                 color: isBest
-                                    ? Colors.orange.shade600
+                                    ? AppColors.warning
                                     : isPopular
-                                        ? Colors.deepOrange
-                                        : Colors.blue.shade600,
-                                borderRadius: BorderRadius.circular(6),
+                                        ? AppColors.warning
+                                        : AppColors.info,
+                                borderRadius: AppRadius.sm,
                               ),
                               child: Text(
                                 badge,
@@ -1228,7 +1230,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                                 : '$energy Energy',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1242,10 +1244,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.warning.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.sm,
                             border: Border.all(
-                              color: Colors.orange.shade200,
+                              color: AppColors.warning.withValues(alpha: 0.3),
                               width: 1,
                             ),
                           ),
@@ -1258,7 +1260,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                                     : gamification.tierIcon,
                                 size: 12,
                                 color: isPromoBonus
-                                    ? Colors.purple
+                                    ? AppColors.premium
                                     : gamification.tierColor,
                               ),
                               const SizedBox(width: 4),
@@ -1269,8 +1271,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isPromoBonus
-                                      ? Colors.purple.shade700
-                                      : Colors.orange.shade700,
+                                      ? AppColors.premium
+                                      : AppColors.warning,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -1294,7 +1296,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             originalPrice,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: AppColors.textSecondary,
                               decoration: TextDecoration.lineThrough,
                               decorationThickness: 2,
                             ),
@@ -1306,7 +1308,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green.shade600,
+                            color: AppColors.success,
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -1321,14 +1323,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: isPromoBonus
-                                  ? [Colors.purple.shade500, Colors.deepPurple.shade600]
-                                  : [Colors.orange.shade400, Colors.deepOrange.shade500],
+                                  ? [AppColors.premium, AppColors.premiumDark]
+                                  : [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
                             ),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: AppRadius.md,
                             boxShadow: [
                               BoxShadow(
-                                color: (isPromoBonus ? Colors.purple : Colors.orange)
-                                    .withOpacity(0.4),
+                                color: (isPromoBonus ? AppColors.premium : AppColors.warning)
+                                    .withValues(alpha: 0.4),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -1372,9 +1374,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.shade200, width: 1.5),
+        color: AppColors.info.withValues(alpha: 0.1),
+        borderRadius: AppRadius.lg,
+        border: Border.all(color: AppColors.info.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1384,10 +1386,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade100,
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.info.withValues(alpha: 0.2),
+                  borderRadius: AppRadius.md,
                 ),
-                child: Icon(AppIcons.info, size: 24, color: Colors.blue.shade700),
+                child: const Icon(AppIcons.info, size: 24, color: AppColors.info),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -1403,7 +1405,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
           _buildInfoRow(AppIcons.energy, AppIcons.energyColor, '1 Energy = 1 AI analysis'),
           _buildInfoRow(AppIcons.infinity, AppIcons.infinityColor, 'Energy never expires'),
           _buildInfoRow(AppIcons.device, AppIcons.deviceColor, 'One-time purchase, per device'),
-          _buildInfoRow(Icons.favorite_rounded, Colors.green.shade600, 'Manual logging is always free'),
+          _buildInfoRow(Icons.favorite_rounded, AppColors.success, 'Manual logging is always free'),
         ],
       ),
     );
@@ -1420,7 +1422,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             text,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade700,
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1439,14 +1441,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.purple.shade400, Colors.indigo.shade600],
+          colors: [AppColors.premium.withValues(alpha: 0.7), AppColors.ai],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
         boxShadow: [
           BoxShadow(
-            color: Colors.purple.withOpacity(0.4),
+            color: AppColors.premium.withValues(alpha: 0.4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -1461,7 +1463,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
             );
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: AppRadius.xl,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -1502,10 +1504,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Colors.purple.shade700,
+                    foregroundColor: AppColors.premium,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: AppRadius.md,
                     ),
                   ),
                   child: Text(

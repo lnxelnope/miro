@@ -6,14 +6,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/logger.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
+import 'package:isar/isar.dart';
+import '../models/my_meal.dart';
+import '../providers/my_meal_provider.dart';
+import '../../../core/database/database_service.dart';
+import '../../../core/services/usage_limiter.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
 import 'ghost_meal_suggestion.dart';
@@ -56,6 +62,42 @@ class _MealSectionState extends ConsumerState<MealSection> {
   String _currentItemName = '';
   bool _cancelAnalyze = false;
 
+  /// Extract ingredient names and user-specified amounts from a FoodEntry's ingredientsJson.
+  /// Returns both names-only list (for backward compat) and full details with amounts.
+  static ({List<String>? names, List<Map<String, dynamic>>? userIngredients}) _extractIngredientsFromJson(FoodEntry entry) {
+    if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
+      return (names: null, userIngredients: null);
+    }
+    try {
+      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
+      final names = decoded
+          .map((item) => item['name'] as String?)
+          .where((name) => name != null && name.isNotEmpty)
+          .cast<String>()
+          .toList();
+
+      final userIngredients = decoded
+          .where((item) =>
+              item['name'] != null &&
+              item['amount'] != null &&
+              (item['amount'] as num) > 0)
+          .map((item) => <String, dynamic>{
+                'name': item['name'] as String,
+                'amount': (item['amount'] as num).toDouble(),
+                'unit': item['unit'] as String? ?? 'g',
+              })
+          .toList();
+
+      return (
+        names: names.isNotEmpty ? names : null,
+        userIngredients: userIngredients.isNotEmpty ? userIngredients : null,
+      );
+    } catch (err) {
+      AppLogger.warn('[_extractIngredientsFromJson] Failed to parse ingredientsJson for ${entry.foodName}: $err');
+      return (names: null, userIngredients: null);
+    }
+  }
+
   void _exitSelectMode() {
     setState(() {
       _isSelectMode = false;
@@ -94,23 +136,23 @@ class _MealSectionState extends ConsumerState<MealSection> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
         title: Row(
           children: [
             const Icon(Icons.delete_outline_rounded,
                 color: AppColors.error, size: 24),
             const SizedBox(width: 12),
-            Text('Delete $count ${count == 1 ? 'Entry' : 'Entries'}?'),
+            Text(L10n.of(context)!.deleteEntriesTitle(count)),
           ],
         ),
         content: Text(
-          'Delete $count selected food ${count == 1 ? 'entry' : 'entries'}?',
+          L10n.of(context)!.deleteEntriesMessage(count),
           style: const TextStyle(fontSize: 15),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -118,7 +160,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete All'),
+            child: Text(L10n.of(context)!.deleteAll),
           ),
         ],
       ),
@@ -138,11 +180,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Deleted $count ${count == 1 ? 'entry' : 'entries'}'),
+          content: Text(L10n.of(context)!.deletedEntries(count)),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              RoundedRectangleBorder(borderRadius: AppRadius.md),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -188,7 +230,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Moved $count ${count == 1 ? 'entry' : 'entries'} to ${fmt.format(picked)}'),
+        content: Text(L10n.of(context)!.movedEntriesToDate(count, fmt.format(picked))),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
       ),
@@ -198,6 +240,8 @@ class _MealSectionState extends ConsumerState<MealSection> {
   // ============================================================
   // Analyze Selected Entries
   // ============================================================
+  static const int _batchSize = 5;
+
   Future<void> _analyzeSelected() async {
     if (_selectedIds.isEmpty) return;
 
@@ -210,9 +254,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).clearSnackBars();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All selected entries are already analyzed'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(L10n.of(context)!.allSelectedAlreadyAnalyzed),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -225,9 +269,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
     if (currentBalance < requiredEnergy) {
       if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (context) => const NoEnergyDialog(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -243,87 +289,140 @@ class _MealSectionState extends ConsumerState<MealSection> {
     int successCount = 0;
     final failedIds = <int>[];
 
-    for (int i = 0; i < selectedEntries.length; i++) {
+    // Split into text-only (batchable) and image entries
+    final textEntries = selectedEntries
+        .where((e) => e.imagePath == null || e.imagePath!.isEmpty)
+        .toList();
+    final imageEntries = selectedEntries
+        .where((e) => e.imagePath != null && e.imagePath!.isNotEmpty)
+        .toList();
+
+    // ── Batch process text entries (max 5 per batch) ──
+    for (int chunkStart = 0; chunkStart < textEntries.length; chunkStart += _batchSize) {
       if (_cancelAnalyze) break;
 
-      final entry = selectedEntries[i];
+      final chunkEnd = (chunkStart + _batchSize).clamp(0, textEntries.length);
+      final chunk = textEntries.sublist(chunkStart, chunkEnd);
+
       setState(() {
-        _analyzeCurrent = i + 1;
+        _analyzeCurrent = successCount + failedIds.length + 1;
+        _currentItemName = L10n.of(context)!.batchAnalyzeItems(chunk.length);
+      });
+
+      try {
+        final batchItems = chunk.map((e) {
+          final extracted = _extractIngredientsFromJson(e);
+          return (
+            name: e.foodName,
+            servingSize: e.servingSize as double?,
+            servingUnit: e.servingUnit as String?,
+            searchMode: e.searchMode,
+            ingredientNames: extracted.names,
+            userIngredients: extracted.userIngredients,
+          );
+        }).toList();
+
+        final results = await GeminiService.analyzeFoodBatch(batchItems);
+
+        for (int i = 0; i < chunk.length; i++) {
+          final entry = chunk[i];
+          var result = i < results.length ? results[i] : null;
+
+          if (result != null && result.confidence > 0) {
+            // Post-process: enforce user-specified amounts
+            final userIngs = batchItems[i].userIngredients;
+            if (userIngs != null && userIngs.isNotEmpty) {
+              result = GeminiService.enforceUserIngredientAmounts(result, userIngs);
+            }
+            _applyResultToEntry(entry, result);
+            await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+            await _autoSaveToDatabase(entry, result);
+            await UsageLimiter.recordAiUsage();
+            successCount++;
+          } else {
+            failedIds.add(entry.id);
+          }
+        }
+      } catch (e, stackTrace) {
+        AppLogger.error('[SelectAnalyze] Batch failed, falling back to individual', stackTrace);
+        for (final entry in chunk) {
+          if (_cancelAnalyze) break;
+          try {
+            setState(() {
+              _analyzeCurrent = successCount + failedIds.length + 1;
+              _currentItemName = entry.foodName;
+            });
+            
+            final extracted = _extractIngredientsFromJson(entry);
+            
+            var result = await GeminiService.analyzeFoodByName(
+              entry.foodName,
+              servingSize: entry.servingSize,
+              servingUnit: entry.servingUnit,
+              searchMode: entry.searchMode,
+              ingredientNames: extracted.names,
+              userIngredients: extracted.userIngredients,
+            );
+            if (result != null) {
+              // Post-process: enforce user-specified amounts
+              if (extracted.userIngredients != null && extracted.userIngredients!.isNotEmpty) {
+                result = GeminiService.enforceUserIngredientAmounts(result, extracted.userIngredients!);
+              }
+              _applyResultToEntry(entry, result);
+              await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+              await _autoSaveToDatabase(entry, result);
+              await UsageLimiter.recordAiUsage();
+              successCount++;
+            } else {
+              failedIds.add(entry.id);
+            }
+          } catch (e2) {
+            AppLogger.error('[SelectAnalyze] Fallback failed "${entry.foodName}"', e2);
+            failedIds.add(entry.id);
+          }
+          await Future.delayed(const Duration(milliseconds: 300));
+        }
+      }
+
+      if (chunkStart + _batchSize < textEntries.length) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+
+    // ── Image entries one-by-one ──
+    for (int i = 0; i < imageEntries.length; i++) {
+      if (_cancelAnalyze) break;
+
+      final entry = imageEntries[i];
+      setState(() {
+        _analyzeCurrent = successCount + failedIds.length + 1;
         _currentItemName = entry.foodName;
       });
 
       try {
-        FoodAnalysisResult? result;
-
-        if (entry.imagePath != null && entry.imagePath!.isNotEmpty) {
-          AppLogger.info('[SelectAnalyze] Analyzing image: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
-          result = await GeminiService.analyzeFoodImage(
-            File(entry.imagePath!),
-            foodName: entry.foodName,
-            quantity: entry.servingSize,
-            unit: entry.servingUnit,
-            searchMode: entry.searchMode,
-          );
-        } else {
-          AppLogger.info('[SelectAnalyze] Analyzing text: "${entry.foodName}" (${entry.servingSize} ${entry.servingUnit}) mode: ${entry.searchMode.name}');
-          result = await GeminiService.analyzeFoodByName(
-            entry.foodName,
-            servingSize: entry.servingSize,
-            servingUnit: entry.servingUnit,
-            searchMode: entry.searchMode,
-          );
-        }
+        final result = await GeminiService.analyzeFoodImage(
+          File(entry.imagePath!),
+          foodName: entry.foodName,
+          quantity: entry.servingSize,
+          unit: entry.servingUnit,
+          searchMode: entry.searchMode,
+        );
 
         if (result != null) {
-          entry.foodName = result.foodName;
-          entry.foodNameEn = result.foodNameEn;
-          entry.calories = result.nutrition.calories;
-          entry.protein = result.nutrition.protein;
-          entry.carbs = result.nutrition.carbs;
-          entry.fat = result.nutrition.fat;
-          entry.fiber = result.nutrition.fiber;
-          entry.sugar = result.nutrition.sugar;
-          entry.sodium = result.nutrition.sodium;
-          
-          // Update searchMode based on AI response
-          if (result.foodType != null) {
-            if (result.foodType == 'product') {
-              entry.searchMode = FoodSearchMode.product;
-            } else {
-              entry.searchMode = FoodSearchMode.normal;
-            }
-          }
-          
-          final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-          entry.baseCalories = result.nutrition.calories / serving;
-          entry.baseProtein = result.nutrition.protein / serving;
-          entry.baseCarbs = result.nutrition.carbs / serving;
-          entry.baseFat = result.nutrition.fat / serving;
-          entry.servingSize = result.servingSize;
-          entry.servingUnit = result.servingUnit;
-          entry.servingGrams = result.servingGrams?.toDouble();
-          entry.source = DataSource.aiAnalyzed;
-          entry.isVerified = true;
-          entry.aiConfidence = result.confidence;
-
-          if (result.ingredientsDetail != null &&
-              result.ingredientsDetail!.isNotEmpty) {
-            entry.ingredientsJson = jsonEncode(
-              result.ingredientsDetail!.map((item) => item.toJson()).toList(),
-            );
-          }
-
+          _applyResultToEntry(entry, result);
           await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+          await _autoSaveToDatabase(entry, result);
+          await UsageLimiter.recordAiUsage();
           successCount++;
         } else {
           failedIds.add(entry.id);
         }
       } catch (e, stackTrace) {
-        AppLogger.error('[SelectAnalyze] ❌ FAILED "${entry.foodName}" — $e', stackTrace);
+        AppLogger.error('[SelectAnalyze] Image failed "${entry.foodName}" — $e', stackTrace);
         failedIds.add(entry.id);
       }
 
-      if (i < selectedEntries.length - 1) {
+      if (i < imageEntries.length - 1) {
         await Future.delayed(const Duration(milliseconds: 300));
       }
     }
@@ -344,10 +443,10 @@ class _MealSectionState extends ConsumerState<MealSection> {
     if (!mounted) return;
     final failedCount = failedIds.length;
     final message = _cancelAnalyze
-        ? 'Cancelled — $successCount analyzed'
+        ? L10n.of(context)!.analyzeCancelledSelected(successCount)
         : failedCount == 0
-            ? 'Analyzed $successCount ${successCount == 1 ? 'entry' : 'entries'}'
-            : 'Analyzed $successCount/$_analyzeTotal ($failedCount failed)';
+            ? L10n.of(context)!.analyzedEntriesAll(successCount)
+            : L10n.of(context)!.analyzedEntriesPartial(successCount, _analyzeTotal, failedCount);
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -357,6 +456,81 @@ class _MealSectionState extends ConsumerState<MealSection> {
         duration: const Duration(seconds: 3),
       ),
     );
+  }
+
+  void _applyResultToEntry(FoodEntry entry, FoodAnalysisResult result) {
+    entry.foodName = result.foodName;
+    entry.foodNameEn = result.foodNameEn;
+    entry.calories = result.nutrition.calories;
+    entry.protein = result.nutrition.protein;
+    entry.carbs = result.nutrition.carbs;
+    entry.fat = result.nutrition.fat;
+    entry.fiber = result.nutrition.fiber;
+    entry.sugar = result.nutrition.sugar;
+    entry.sodium = result.nutrition.sodium;
+
+    // Keep user's original searchMode choice — don't override from AI response
+
+    final serving = result.servingSize > 0 ? result.servingSize : 1.0;
+    entry.baseCalories = result.nutrition.calories / serving;
+    entry.baseProtein = result.nutrition.protein / serving;
+    entry.baseCarbs = result.nutrition.carbs / serving;
+    entry.baseFat = result.nutrition.fat / serving;
+    entry.servingSize = result.servingSize;
+    entry.servingUnit = result.servingUnit;
+    entry.servingGrams = result.servingGrams?.toDouble();
+    entry.source = DataSource.aiAnalyzed;
+    entry.isVerified = true;
+    entry.aiConfidence = result.confidence;
+
+    if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
+      entry.ingredientsJson = jsonEncode(
+        result.ingredientsDetail!.map((item) => item.toJson()).toList(),
+      );
+    }
+  }
+
+  /// Auto-save analyzed result to MyMeal + Ingredient database
+  Future<void> _autoSaveToDatabase(
+      FoodEntry entry, FoodAnalysisResult result) async {
+    if (result.ingredientsDetail == null ||
+        result.ingredientsDetail!.isEmpty) return;
+
+    try {
+      // Get unique name if duplicate
+      final all = await DatabaseService.myMeals.where().findAll();
+      final uniqueName = _getUniqueMealName(result.foodName, all);
+
+      final ingredientsData =
+          result.ingredientsDetail!.map((e) => e.toJson()).toList();
+
+      await ref.read(foodEntriesNotifierProvider.notifier).saveIngredientsAndMeal(
+        mealName: uniqueName,
+        mealNameEn: result.foodNameEn,
+        servingDescription:
+            '${result.servingSize} ${result.servingUnit}',
+        imagePath: entry.imagePath,
+        ingredientsData: ingredientsData,
+      );
+
+      ref.invalidate(allMyMealsProvider);
+      ref.invalidate(allIngredientsProvider);
+      AppLogger.info(
+          '[AutoSave] Saved "$uniqueName" → MyMeal + ${ingredientsData.length} ingredients');
+    } catch (e) {
+      AppLogger.warn('[AutoSave] Failed for "${result.foodName}": $e');
+    }
+  }
+
+  String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
+    final names = allMeals.map((m) => m.name).toSet();
+    if (!names.contains(baseName)) return baseName;
+    
+    int counter = 2;
+    while (names.contains('$baseName ($counter)')) {
+      counter++;
+    }
+    return '$baseName ($counter)';
   }
 
   void _deleteSingleWithUndo(FoodEntry food) {
@@ -376,12 +550,12 @@ class _MealSectionState extends ConsumerState<MealSection> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Deleted "${food.foodName}"'),
+        content: Text(L10n.of(context)!.entryDeletedSuccess),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
         duration: const Duration(seconds: 3),
         action: SnackBarAction(
-          label: 'Undo',
+          label: L10n.of(context)!.undo,
           textColor: Colors.white,
           onPressed: () async {
             await notifier.addFoodEntry(food);
@@ -455,7 +629,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              RoundedRectangleBorder(borderRadius: AppRadius.md),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -479,7 +653,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -508,8 +682,8 @@ class _MealSectionState extends ConsumerState<MealSection> {
           else if (visibleFoods.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'No entries yet',
+                child: Text(
+                L10n.of(context)!.noEntriesYet,
                 style: TextStyle(
                   color: Theme.of(context).textTheme.bodySmall?.color,
                   fontStyle: FontStyle.italic,
@@ -551,7 +725,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
             color: AppColors.health.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.md,
           ),
           child: Text(
             budget != null && budget > 0
@@ -596,7 +770,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '$_analyzeCurrent/$_analyzeTotal  $_currentItemName',
+                  L10n.of(context)!.analyzeProgressSelected(_analyzeCurrent, _analyzeTotal, _currentItemName),
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -608,7 +782,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   foregroundColor: AppColors.error,
                 ),
-                child: const Text('Cancel', style: TextStyle(fontSize: 12)),
+                child: Text(L10n.of(context)!.cancel, style: const TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -618,7 +792,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
             child: LinearProgressIndicator(
               value: _analyzeTotal > 0 ? _analyzeCurrent / _analyzeTotal : 0,
               minHeight: 4,
-              backgroundColor: isDark ? Colors.white12 : Colors.grey.shade200,
+              backgroundColor: isDark ? Colors.white12 : AppColors.divider,
             ),
           ),
         ],
@@ -641,7 +815,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: AppRadius.md,
           ),
           child: Text(
             '${_selectedIds.length}',
@@ -660,7 +834,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
             allSelected ? Icons.deselect : Icons.select_all_rounded,
             size: 22,
           ),
-          tooltip: allSelected ? 'Deselect all' : 'Select all',
+          tooltip: allSelected ? L10n.of(context)!.deselectAll : L10n.of(context)!.selectAll,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -671,7 +845,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           onPressed: _selectedIds.isNotEmpty ? _moveSelected : null,
           icon: const Icon(Icons.calendar_month_rounded, size: 22),
           color: AppColors.primary,
-          tooltip: 'Move to date',
+          tooltip: L10n.of(context)!.moveToDate,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -709,7 +883,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
             ],
           ),
           color: AppColors.warning,
-          tooltip: 'Analyze selected',
+          tooltip: L10n.of(context)!.analyzeSelected,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -720,7 +894,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           onPressed: _selectedIds.isNotEmpty ? _deleteSelected : null,
           icon: const Icon(Icons.delete_outline_rounded, size: 22),
           color: AppColors.error,
-          tooltip: 'Delete',
+          tooltip: L10n.of(context)!.deleteTooltip,
           visualDensity: VisualDensity.compact,
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
@@ -760,18 +934,18 @@ class _MealSectionState extends ConsumerState<MealSection> {
                 AppColors.primary
               ],
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.md,
           ),
           alignment: Alignment.centerLeft,
           padding: const EdgeInsets.only(left: 20),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 22),
-              SizedBox(width: 8),
+              const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 22),
+              const SizedBox(width: 8),
               Text(
-                'Move',
-                style: TextStyle(
+                L10n.of(context)!.move,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -785,23 +959,23 @@ class _MealSectionState extends ConsumerState<MealSection> {
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
             color: AppColors.error,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.md,
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Delete',
-                style: TextStyle(
+                L10n.of(context)!.deleteTooltipAction,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
               ),
-              SizedBox(width: 8),
-              Icon(Icons.delete_outline_rounded, color: Colors.white, size: 22),
+              const SizedBox(width: 8),
+              const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 22),
             ],
           ),
         ),
@@ -843,7 +1017,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           color: isSelected
               ? AppColors.error.withValues(alpha: 0.08)
               : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.md,
           border: Border.all(
             color: isSelected
                 ? AppColors.error.withValues(alpha: 0.4)
@@ -865,7 +1039,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
                     height: 24,
                     decoration: BoxDecoration(
                       color: isSelected ? AppColors.error : Colors.transparent,
-                      borderRadius: BorderRadius.circular(7),
+                      borderRadius: AppRadius.sm,
                       border: Border.all(
                         color: isSelected
                             ? AppColors.error
@@ -883,24 +1057,46 @@ class _MealSectionState extends ConsumerState<MealSection> {
                 ),
               ),
             ] else ...[
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.health.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: food.imagePath != null &&
-                        File(food.imagePath!).existsSync()
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(food.imagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
+              Stack(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _getSourceBgColor(food),
+                      borderRadius: AppRadius.sm,
+                    ),
+                    child: food.imagePath != null &&
+                            File(food.imagePath!).existsSync()
+                        ? ClipRRect(
+                            borderRadius: AppRadius.sm,
+                            child: Image.file(
+                              File(food.imagePath!),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildSourceIcon(food),
+                            ),
+                          )
+                        : _buildSourceIcon(food),
+                  ),
+                  // Status badge overlay (only if has image)
+                  if (food.imagePath != null && File(food.imagePath!).existsSync())
+                    Positioned(
+                      bottom: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      )
-                    : _buildPlaceholderIcon(),
+                        child: Icon(
+                          _getSourceIconData(food),
+                          size: 10,
+                          color: _getSourceIconColor(food),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
             const SizedBox(width: 12),
@@ -972,11 +1168,41 @@ class _MealSectionState extends ConsumerState<MealSection> {
     );
   }
 
-  Widget _buildPlaceholderIcon() {
-    return const Center(
+  Color _getSourceBgColor(FoodEntry food) {
+    if (food.source == DataSource.database) {
+      return AppColors.ai.withValues(alpha: 0.1);
+    } else if (food.source == DataSource.aiAnalyzed && food.isVerified) {
+      return AppColors.health.withValues(alpha: 0.1);
+    } else {
+      return AppColors.warning.withValues(alpha: 0.1);
+    }
+  }
+
+  IconData _getSourceIconData(FoodEntry food) {
+    if (food.source == DataSource.database) {
+      return Icons.storage_rounded;
+    } else if (food.source == DataSource.aiAnalyzed && food.isVerified) {
+      return Icons.auto_awesome;
+    } else {
+      return Icons.edit_note_rounded;
+    }
+  }
+
+  Color _getSourceIconColor(FoodEntry food) {
+    if (food.source == DataSource.database) {
+      return AppColors.ai;
+    } else if (food.source == DataSource.aiAnalyzed && food.isVerified) {
+      return AppColors.health;
+    } else {
+      return AppColors.warning;
+    }
+  }
+
+  Widget _buildSourceIcon(FoodEntry food) {
+    return Center(
       child: Icon(
-        Icons.restaurant,
-        color: AppColors.health,
+        _getSourceIconData(food),
+        color: _getSourceIconColor(food),
         size: 20,
       ),
     );
@@ -992,8 +1218,8 @@ class _MealSectionState extends ConsumerState<MealSection> {
     final color = isActive
         ? (mode == FoodSearchMode.normal
             ? AppColors.health
-            : Colors.orange)
-        : (isDark ? Colors.white.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.3));
+            : AppColors.warning)
+        : (isDark ? Colors.white.withValues(alpha: 0.3) : AppColors.textSecondary.withValues(alpha: 0.3));
 
     return GestureDetector(
       onTap: () => _handleSearchModeToggle(context, food, mode),
@@ -1029,24 +1255,22 @@ class _MealSectionState extends ConsumerState<MealSection> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
         title: Row(
           children: [
-            Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 24),
+            const Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 24),
             const SizedBox(width: 12),
-            Text('Switch to $newModeName mode?'),
+            Text(L10n.of(context)!.switchToModeTitle(newModeName)),
           ],
         ),
         content: Text(
-          'This item was analyzed as $currentModeName.\n\n'
-          'Re-analyzing as $newModeName will use 1 Energy.\n\n'
-          'Continue?',
+          L10n.of(context)!.switchToModeMessage(currentModeName, newModeName),
           style: const TextStyle(fontSize: 15),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -1057,9 +1281,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Re-analyze'),
+                Text(L10n.of(context)!.reAnalyzeButton),
                 const SizedBox(width: 4),
-                Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
+                const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
                 const Text(' 1'),
               ],
             ),
@@ -1087,9 +1311,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
     if (currentBalance < 1) {
       if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (context) => const NoEnergyDialog(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -1100,14 +1326,14 @@ class _MealSectionState extends ConsumerState<MealSection> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text(
-              'Analyzing as ${entry.searchMode.displayName}...',
+              L10n.of(context)!.analyzingAsMode(entry.searchMode.displayName),
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
@@ -1130,12 +1356,22 @@ class _MealSectionState extends ConsumerState<MealSection> {
         );
       } else {
         AppLogger.info('[ReAnalyze] Analyzing text: "${entry.foodName}" as ${entry.searchMode.name}');
+        
+        final extracted = _extractIngredientsFromJson(entry);
+        
         result = await GeminiService.analyzeFoodByName(
           entry.foodName,
           servingSize: entry.servingSize,
           servingUnit: entry.servingUnit,
           searchMode: entry.searchMode,
+          ingredientNames: extracted.names,
+          userIngredients: extracted.userIngredients,
         );
+
+        // Post-process: enforce user-specified amounts
+        if (result != null && extracted.userIngredients != null && extracted.userIngredients!.isNotEmpty) {
+          result = GeminiService.enforceUserIngredientAmounts(result, extracted.userIngredients!);
+        }
       }
 
       if (result != null) {
@@ -1160,14 +1396,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
         entry.isVerified = true;
         entry.aiConfidence = result.confidence;
 
-        // Update searchMode based on AI response
-        if (result.foodType != null) {
-          if (result.foodType == 'product') {
-            entry.searchMode = FoodSearchMode.product;
-          } else {
-            entry.searchMode = FoodSearchMode.normal;
-          }
-        }
+        // Keep user's original searchMode choice — don't override from AI response
 
         if (result.ingredientsDetail != null &&
             result.ingredientsDetail!.isNotEmpty) {
@@ -1177,6 +1406,10 @@ class _MealSectionState extends ConsumerState<MealSection> {
         }
 
         await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+        await _autoSaveToDatabase(entry, result);
+        await UsageLimiter.recordAiUsage();
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
 
         // Refresh providers
         ref.invalidate(healthTimelineProvider(widget.selectedDate));
@@ -1189,7 +1422,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Re-analyzed as ${entry.searchMode.displayName}'),
+            content: Text(L10n.of(context)!.reAnalyzedAsMode(entry.searchMode.displayName)),
             backgroundColor: AppColors.success,
             duration: const Duration(seconds: 2),
           ),
@@ -1199,10 +1432,10 @@ class _MealSectionState extends ConsumerState<MealSection> {
         Navigator.pop(context); // Close loading dialog
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Analysis failed'),
+          SnackBar(
+            content: Text(L10n.of(context)!.analysisFailed),
             backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -1314,7 +1547,7 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -1357,9 +1590,9 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
             const SizedBox(height: 20),
 
             // Meal Type Selection
-            const Text(
-              'Change Meal Type',
-              style: TextStyle(
+            Text(
+              L10n.of(context)!.changeMealType,
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -1384,8 +1617,8 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                               ? AppColors.primary.withValues(alpha: 0.12)
                               : isDark
                                   ? Colors.white.withValues(alpha: 0.05)
-                                  : Colors.grey.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
+                                  : AppColors.textSecondary.withValues(alpha: 0.08),
+                          borderRadius: AppRadius.md,
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.primary
@@ -1437,9 +1670,9 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
             const SizedBox(height: 20),
 
             // Move to Date
-            const Text(
-              'Move to Another Date',
-              style: TextStyle(
+            Text(
+              L10n.of(context)!.moveToAnotherDate,
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
@@ -1455,8 +1688,8 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                       ? AppColors.primary.withValues(alpha: 0.08)
                       : isDark
                           ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.grey.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
+                          : AppColors.textSecondary.withValues(alpha: 0.08),
+                  borderRadius: AppRadius.md,
                   border: Border.all(
                     color: _newDate != null
                         ? AppColors.primary
@@ -1477,7 +1710,7 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                     Text(
                       _newDate != null
                           ? dateFormat.format(_newDate!)
-                          : 'Current: ${dateFormat.format(widget.currentDate)}',
+                          : L10n.of(context)!.currentDate(dateFormat.format(widget.currentDate)),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: _newDate != null
@@ -1504,11 +1737,11 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
               const SizedBox(height: 6),
               GestureDetector(
                 onTap: () => setState(() => _newDate = null),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: Text(
-                    'Cancel Date Change',
-                    style: TextStyle(
+                    L10n.of(context)!.cancelDateChange,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.error,
                       decoration: TextDecoration.underline,
@@ -1529,9 +1762,9 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: AppRadius.md),
                     ),
-                    child: const Text('Cancel'),
+                    child: Text(L10n.of(context)!.cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1550,15 +1783,15 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                           }
                         : null,
                     icon: const Icon(Icons.check_rounded, size: 20),
-                    label: const Text('Confirm'),
+                    label: Text(L10n.of(context)!.confirm),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor:
-                          isDark ? Colors.white12 : Colors.grey.shade200,
+                          isDark ? Colors.white12 : AppColors.divider,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                          borderRadius: AppRadius.md),
                     ),
                   ),
                 ),
