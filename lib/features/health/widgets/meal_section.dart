@@ -55,6 +55,10 @@ class _MealSectionState extends ConsumerState<MealSection> {
   final Set<int> _selectedIds = {};
   final Set<int> _dismissedIds = {};
 
+  // Quick edit state
+  int? _editingFoodId;
+  TextEditingController? _editNameController;
+
   // Analyze selected state
   bool _isAnalyzingSelected = false;
   int _analyzeTotal = 0;
@@ -1106,14 +1110,79 @@ class _MealSectionState extends ConsumerState<MealSection> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    food.foodName,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  if (_editingFoodId == food.id) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 32,
+                            child: TextField(
+                              controller: _editNameController,
+                              autofocus: true,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                              decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                border: OutlineInputBorder(borderRadius: AppRadius.sm),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: AppRadius.sm,
+                                  borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: AppRadius.sm,
+                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                                ),
+                              ),
+                              onSubmitted: (_) => _saveQuickEdit(food),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        SizedBox(
+                          width: 28, height: 28,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(Icons.check, size: 16, color: AppColors.success),
+                            onPressed: () => _saveQuickEdit(food),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 28, height: 28,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: Icon(Icons.close, size: 16, color: AppColors.error.withValues(alpha: 0.6)),
+                            onPressed: _cancelQuickEdit,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            food.foodName,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                        if (!_isSelectMode)
+                          GestureDetector(
+                            onTap: () => _startQuickEdit(food),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Icon(
+                                Icons.edit_outlined,
+                                size: 14,
+                                color: isDark ? Colors.white30 : AppColors.textTertiary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      // Food/Product toggle icons
                       _buildSearchModeIcon(
                         context,
                         food,
@@ -1128,7 +1197,6 @@ class _MealSectionState extends ConsumerState<MealSection> {
                         isDark,
                       ),
                       const SizedBox(width: 8),
-                      // Serving size
                       Text(
                         '${food.servingSize % 1 == 0 ? food.servingSize.toInt() : food.servingSize} ${food.servingUnit}',
                         style: TextStyle(
@@ -1166,6 +1234,49 @@ class _MealSectionState extends ConsumerState<MealSection> {
         ),
       ),
     );
+  }
+
+  void _startQuickEdit(FoodEntry food) {
+    setState(() {
+      _editingFoodId = food.id;
+      _editNameController?.dispose();
+      _editNameController = TextEditingController(text: food.foodName);
+    });
+  }
+
+  void _cancelQuickEdit() {
+    setState(() {
+      _editingFoodId = null;
+      _editNameController?.dispose();
+      _editNameController = null;
+    });
+  }
+
+  Future<void> _saveQuickEdit(FoodEntry food) async {
+    final newName = _editNameController?.text.trim() ?? '';
+    if (newName.isEmpty || newName == food.foodName) {
+      _cancelQuickEdit();
+      return;
+    }
+
+    try {
+      final entry = await DatabaseService.foodEntries.get(food.id);
+      if (entry != null) {
+        entry.foodName = newName;
+        entry.updatedAt = DateTime.now();
+        await DatabaseService.isar.writeTxn(() async {
+          await DatabaseService.foodEntries.put(entry);
+        });
+
+        final today = dateOnly(DateTime.now());
+        ref.invalidate(healthTimelineProvider(today));
+        ref.invalidate(foodEntriesByDateProvider(today));
+      }
+    } catch (e) {
+      AppLogger.warn('Quick edit failed: $e');
+    }
+
+    _cancelQuickEdit();
   }
 
   Color _getSourceBgColor(FoodEntry food) {

@@ -2270,13 +2270,26 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
             .sourceEqualTo(DataSource.galleryScanned)
             .findAll();
 
-        final ids = scanEntries.map((e) => e.id).toList();
+        // ลบ entries ที่ถูก analyze แล้ว (source เปลี่ยนเป็น aiAnalyzed) แต่มี imagePath (มาจาก gallery)
+        final analyzedFromGallery = await DatabaseService.foodEntries
+            .filter()
+            .sourceEqualTo(DataSource.aiAnalyzed)
+            .imagePathIsNotNull()
+            .imagePathIsNotEmpty()
+            .findAll();
+
+        final allEntries = [...scanEntries, ...analyzedFromGallery];
+        final ids = allEntries.map((e) => e.id).toSet().toList();
 
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.foodEntries.deleteAll(ids);
         });
 
-        AppLogger.info('Deleted ${ids.length} gallery-scanned entries (hard delete)');
+        // Reset retro scan flag เพื่อให้สแกนรูปเก่าได้อีกครั้ง
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('retro_scan_completed');
+
+        AppLogger.info('Deleted ${ids.length} scan entries (gallery+analyzed) & reset retro scan flag');
 
         if (!mounted) return;
         _showMessage(L10n.of(context)!.resetComplete('${ids.length}'));

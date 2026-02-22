@@ -107,48 +107,53 @@ const UserProfileSchema = CollectionSchema(
       name: r'lunchBudget',
       type: IsarType.double,
     ),
-    r'name': PropertySchema(
+    r'mealSuggestionsEnabled': PropertySchema(
       id: 18,
+      name: r'mealSuggestionsEnabled',
+      type: IsarType.bool,
+    ),
+    r'name': PropertySchema(
+      id: 19,
       name: r'name',
       type: IsarType.string,
     ),
     r'onboardingComplete': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'onboardingComplete',
       type: IsarType.bool,
     ),
     r'proteinGoal': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'proteinGoal',
       type: IsarType.double,
     ),
     r'snackBudget': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'snackBudget',
       type: IsarType.double,
     ),
     r'suggestionThreshold': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'suggestionThreshold',
       type: IsarType.double,
     ),
     r'targetWeight': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'targetWeight',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'waterGoal': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'waterGoal',
       type: IsarType.double,
     ),
     r'weight': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'weight',
       type: IsarType.double,
     )
@@ -231,15 +236,16 @@ void _userProfileSerialize(
   writer.writeBool(offsets[15], object.isHealthConnectConnected);
   writer.writeString(offsets[16], object.locale);
   writer.writeDouble(offsets[17], object.lunchBudget);
-  writer.writeString(offsets[18], object.name);
-  writer.writeBool(offsets[19], object.onboardingComplete);
-  writer.writeDouble(offsets[20], object.proteinGoal);
-  writer.writeDouble(offsets[21], object.snackBudget);
-  writer.writeDouble(offsets[22], object.suggestionThreshold);
-  writer.writeDouble(offsets[23], object.targetWeight);
-  writer.writeDateTime(offsets[24], object.updatedAt);
-  writer.writeDouble(offsets[25], object.waterGoal);
-  writer.writeDouble(offsets[26], object.weight);
+  writer.writeBool(offsets[18], object.mealSuggestionsEnabled);
+  writer.writeString(offsets[19], object.name);
+  writer.writeBool(offsets[20], object.onboardingComplete);
+  writer.writeDouble(offsets[21], object.proteinGoal);
+  writer.writeDouble(offsets[22], object.snackBudget);
+  writer.writeDouble(offsets[23], object.suggestionThreshold);
+  writer.writeDouble(offsets[24], object.targetWeight);
+  writer.writeDateTime(offsets[25], object.updatedAt);
+  writer.writeDouble(offsets[26], object.waterGoal);
+  writer.writeDouble(offsets[27], object.weight);
 }
 
 UserProfile _userProfileDeserialize(
@@ -268,15 +274,16 @@ UserProfile _userProfileDeserialize(
   object.isHealthConnectConnected = reader.readBool(offsets[15]);
   object.locale = reader.readStringOrNull(offsets[16]);
   object.lunchBudget = reader.readDouble(offsets[17]);
-  object.name = reader.readStringOrNull(offsets[18]);
-  object.onboardingComplete = reader.readBool(offsets[19]);
-  object.proteinGoal = reader.readDouble(offsets[20]);
-  object.snackBudget = reader.readDouble(offsets[21]);
-  object.suggestionThreshold = reader.readDouble(offsets[22]);
-  object.targetWeight = reader.readDoubleOrNull(offsets[23]);
-  object.updatedAt = reader.readDateTime(offsets[24]);
-  object.waterGoal = reader.readDouble(offsets[25]);
-  object.weight = reader.readDoubleOrNull(offsets[26]);
+  object.mealSuggestionsEnabled = reader.readBool(offsets[18]);
+  object.name = reader.readStringOrNull(offsets[19]);
+  object.onboardingComplete = reader.readBool(offsets[20]);
+  object.proteinGoal = reader.readDouble(offsets[21]);
+  object.snackBudget = reader.readDouble(offsets[22]);
+  object.suggestionThreshold = reader.readDouble(offsets[23]);
+  object.targetWeight = reader.readDoubleOrNull(offsets[24]);
+  object.updatedAt = reader.readDateTime(offsets[25]);
+  object.waterGoal = reader.readDouble(offsets[26]);
+  object.weight = reader.readDoubleOrNull(offsets[27]);
   return object;
 }
 
@@ -324,22 +331,24 @@ P _userProfileDeserializeProp<P>(
     case 17:
       return (reader.readDouble(offset)) as P;
     case 18:
-      return (reader.readStringOrNull(offset)) as P;
-    case 19:
       return (reader.readBool(offset)) as P;
+    case 19:
+      return (reader.readStringOrNull(offset)) as P;
     case 20:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 21:
       return (reader.readDouble(offset)) as P;
     case 22:
       return (reader.readDouble(offset)) as P;
     case 23:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 24:
-      return (reader.readDateTime(offset)) as P;
-    case 25:
       return (reader.readDouble(offset)) as P;
+    case 24:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 25:
+      return (reader.readDateTime(offset)) as P;
     case 26:
+      return (reader.readDouble(offset)) as P;
+    case 27:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1874,6 +1883,16 @@ extension UserProfileQueryFilter
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      mealSuggestionsEnabledEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mealSuggestionsEnabled',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> nameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2751,6 +2770,20 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByMealSuggestionsEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mealSuggestionsEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      sortByMealSuggestionsEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mealSuggestionsEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3105,6 +3138,20 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByMealSuggestionsEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mealSuggestionsEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy>
+      thenByMealSuggestionsEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'mealSuggestionsEnabled', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -3340,6 +3387,13 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct>
+      distinctByMealSuggestionsEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'mealSuggestionsEnabled');
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3515,6 +3569,13 @@ extension UserProfileQueryProperty
   QueryBuilder<UserProfile, double, QQueryOperations> lunchBudgetProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lunchBudget');
+    });
+  }
+
+  QueryBuilder<UserProfile, bool, QQueryOperations>
+      mealSuggestionsEnabledProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'mealSuggestionsEnabled');
     });
   }
 

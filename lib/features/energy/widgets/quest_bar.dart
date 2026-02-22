@@ -909,6 +909,33 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     ],
                   ),
                 ),
+                // Unclaimed energy badge
+                Builder(builder: (_) {
+                  final unclaimed = _countUnclaimedEnergy(gamification);
+                  if (unclaimed <= 0) return const SizedBox.shrink();
+                  return Container(
+                    margin: EdgeInsets.only(right: AppSpacing.sm),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.sm,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(AppIcons.energy, size: 13, color: AppColors.success),
+                        SizedBox(width: AppSpacing.xxs),
+                        Text(
+                          '+$unclaimed',
+                          style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
                 // Expand icon
                 Icon(
                   _isExpanded ? Icons.expand_less : Icons.expand_more,
@@ -1763,6 +1790,53 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         ),
       ),
     );
+  }
+
+  int _countUnclaimedEnergy(GamificationState gamification) {
+    int unclaimed = 0;
+    final dailyClaimed = gamification.dailyClaimedRewards;
+    final dailyAi = gamification.dailyAiCount;
+
+    if (dailyAi >= 1 && !dailyClaimed.contains('dailyAi1')) {
+      final tierBonus = {'starter': 0, 'bronze': 0, 'silver': 1, 'gold': 2, 'diamond': 3};
+      unclaimed += 1 + (tierBonus[gamification.tier] ?? 0);
+    }
+    if (dailyAi >= 10 && !dailyClaimed.contains('dailyAi10')) {
+      unclaimed += 2;
+    }
+
+    final weeklyClaimed = gamification.weeklyClaimedRewards;
+    final weeklyAi = gamification.weeklyAiCount;
+    if (weeklyAi >= 20 && !weeklyClaimed.contains('weeklyAi20')) unclaimed += 3;
+    if (weeklyAi >= 40 && !weeklyClaimed.contains('weeklyAi40')) unclaimed += 4;
+    if (weeklyAi >= 60 && !weeklyClaimed.contains('weeklyAi60')) unclaimed += 5;
+
+    final referFriends = gamification.referFriendsProgress;
+    const referralRewards = [5, 5, 5, 5, 5, 5, 5, 5, 5, 25];
+    for (int i = 0; i < referralRewards.length; i++) {
+      final claimKey = 'referFriends_${i + 1}';
+      if (weeklyClaimed.contains(claimKey)) continue;
+      if (referFriends >= (i + 1)) {
+        unclaimed += referralRewards[i];
+      } else {
+        break;
+      }
+    }
+
+    for (final entry in gamification.tierCelebrations.entries) {
+      final celebration = entry.value;
+      if (!celebration.isComplete && celebration.canClaimToday) {
+        unclaimed += 2;
+      }
+    }
+
+    for (final quest in gamification.seasonalQuests) {
+      if (quest.isActive && quest.canClaimToday) {
+        unclaimed += quest.rewardPerClaim;
+      }
+    }
+
+    return unclaimed;
   }
 
   /// Navigate to appropriate screen based on offer type

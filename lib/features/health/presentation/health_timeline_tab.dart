@@ -10,8 +10,6 @@ import '../../../core/ai/gemini_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/widgets/quest_bar.dart';
 import '../../../features/energy/providers/energy_provider.dart';
-import '../../../features/energy/providers/gamification_provider.dart';
-import '../../../core/models/gamification_state.dart';
 import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
@@ -26,6 +24,7 @@ import '../widgets/add_food_bottom_sheet.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
+import '../../profile/providers/profile_provider.dart';
 import 'package:isar/isar.dart';
 import '../models/my_meal.dart';
 import '../providers/my_meal_provider.dart';
@@ -96,7 +95,11 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
-    final fulfillAsync = ref.watch(fulfillCalorieProvider(_selectedDate));
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final suggestionsEnabled = profile?.mealSuggestionsEnabled ?? false;
+    final fulfillAsync = suggestionsEnabled
+        ? ref.watch(fulfillCalorieProvider(_selectedDate))
+        : const AsyncValue<FulfillCalorieState?>.data(null);
 
     return RefreshIndicator(
       onRefresh: _scanForFood,
@@ -933,45 +936,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final textColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
     final hasData = allEntries.isNotEmpty;
 
-    // Unclaimed energy chip (แสดงชิดขวาใน info bar ทุก state)
-    final gamification = ref.watch(gamificationProvider);
-    final unclaimed = _countUnclaimedEnergy(gamification);
-
-    Widget unclaimedChip() {
-      if (unclaimed <= 0) return const SizedBox.shrink();
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-        decoration: BoxDecoration(
-          color: AppColors.success.withValues(alpha: 0.12),
-          borderRadius: AppRadius.sm,
-          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(AppIcons.energy, size: 13, color: AppColors.success),
-            SizedBox(width: AppSpacing.xs / 1.33),
-            Text(
-              '+$unclaimed',
-              style: const TextStyle(
-                fontSize: 12, fontWeight: FontWeight.bold,
-                color: AppColors.success,
-              ),
-            ),
-            SizedBox(width: AppSpacing.xs),
-            Text(
-              'unclaim',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.success.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     // Analyzing state — show progress bar
     if (_isAnalyzing) {
       return Container(
@@ -989,10 +953,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           children: [
             Row(
               children: [
-                if (unclaimed > 0) ...[
-                  unclaimedChip(),
-                  SizedBox(width: AppSpacing.sm),
-                ],
                 SizedBox(
                   width: AppSpacing.lg, height: AppSpacing.lg,
                   child: const CircularProgressIndicator(
@@ -1044,10 +1004,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ),
         child: Row(
           children: [
-            if (unclaimed > 0) ...[
-              unclaimedChip(),
-              SizedBox(width: AppSpacing.sm),
-            ],
             Icon(
               Icons.arrow_downward_rounded,
               size: 18,
@@ -1080,12 +1036,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       ),
       child: Row(
         children: [
-          // Unclaimed energy (ชิดซ้าย)
-          if (unclaimed > 0) ...[
-            unclaimedChip(),
-            SizedBox(width: AppSpacing.sm),
-          ],
-
           // Image count
           if (imageCount > 0) ...[
             _infoChip(
@@ -1168,45 +1118,6 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         ],
       ),
     );
-  }
-
-  /// คำนวณ unclaimed energy จาก daily challenges + milestones
-  int _countUnclaimedEnergy(GamificationState gamification) {
-    int unclaimed = 0;
-    final dailyClaimed = gamification.dailyClaimedRewards;
-    final dailyAi = gamification.dailyAiCount;
-
-    // dailyAi1: ใช้ AI 1 ครั้ง → claimable
-    if (dailyAi >= 1 && !dailyClaimed.contains('dailyAi1')) {
-      final tierBonus = {'starter': 0, 'bronze': 0, 'silver': 1, 'gold': 2, 'diamond': 3};
-      unclaimed += 1 + (tierBonus[gamification.tier] ?? 0);
-    }
-    // dailyAi10: ใช้ AI 10 ครั้ง → claimable
-    if (dailyAi >= 10 && !dailyClaimed.contains('dailyAi10')) {
-      unclaimed += 2;
-    }
-
-    // Weekly challenges
-    final weeklyClaimed = gamification.weeklyClaimedRewards;
-    final weeklyAi = gamification.weeklyAiCount;
-    if (weeklyAi >= 20 && !weeklyClaimed.contains('weeklyAi20')) unclaimed += 3;
-    if (weeklyAi >= 40 && !weeklyClaimed.contains('weeklyAi40')) unclaimed += 4;
-    if (weeklyAi >= 60 && !weeklyClaimed.contains('weeklyAi60')) unclaimed += 5;
-
-    // Referral (10 levels, +5E each, level 10 = +25E)
-    final referFriends = gamification.referFriendsProgress;
-    const referralRewards = [5, 5, 5, 5, 5, 5, 5, 5, 5, 25];
-    for (int i = 0; i < referralRewards.length; i++) {
-      final claimKey = 'referFriends_${i + 1}';
-      if (weeklyClaimed.contains(claimKey)) continue;
-      if (referFriends >= (i + 1)) {
-        unclaimed += referralRewards[i];
-      } else {
-        break;
-      }
-    }
-
-    return unclaimed;
   }
 
   Widget _infoChip(

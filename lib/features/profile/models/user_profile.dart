@@ -25,6 +25,9 @@ class UserProfile {
   // Suggestion threshold: allow foods ± this many kcal from meal budget
   double suggestionThreshold = 100;
 
+  // Meal suggestions toggle (default off)
+  bool mealSuggestionsEnabled = false;
+
   // Settings
   bool isDarkMode = false;
   String? locale; // th, en (kept for backward compatibility, not used)

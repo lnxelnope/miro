@@ -5131,6 +5131,96 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.'**
   String get chatContentTooLongError;
+
+  /// No description provided for @analyzeFoodImageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze Food Image'**
+  String get analyzeFoodImageTitle;
+
+  /// No description provided for @foodNameImprovesAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Providing food name & quantity improves AI accuracy.'**
+  String get foodNameImprovesAccuracy;
+
+  /// No description provided for @hideDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide details'**
+  String get hideDetails;
+
+  /// No description provided for @showDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Show details'**
+  String get showDetails;
+
+  /// No description provided for @searchModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Mode'**
+  String get searchModeLabel;
+
+  /// No description provided for @saveAndAnalyzeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Analyze'**
+  String get saveAndAnalyzeButton;
+
+  /// No description provided for @saveWithoutAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Save without analysis'**
+  String get saveWithoutAnalysis;
+
+  /// No description provided for @nutritionSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition'**
+  String get nutritionSection;
+
+  /// No description provided for @nutritionSectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 if unknown'**
+  String get nutritionSectionHint;
+
+  /// No description provided for @quickEditFoodName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit name'**
+  String get quickEditFoodName;
+
+  /// No description provided for @quickEditCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get quickEditCancel;
+
+  /// No description provided for @quickEditSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get quickEditSave;
+
+  /// No description provided for @mealSuggestionsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal Suggestions'**
+  String get mealSuggestionsToggle;
+
+  /// No description provided for @mealSuggestionsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get mealSuggestionsOn;
+
+  /// No description provided for @mealSuggestionsOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get mealSuggestionsOff;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

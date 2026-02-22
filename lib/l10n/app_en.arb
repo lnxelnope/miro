@@ -1999,5 +1999,20 @@
   "chatContentTooLongError": "List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.",
   "@chatContentTooLongError": {
     "description": "Error message when user sends too many food items in chat at once (HTTP 422/413)"
-  }
+  },
+  "analyzeFoodImageTitle": "Analyze Food Image",
+  "foodNameImprovesAccuracy": "Providing food name & quantity improves AI accuracy.",
+  "hideDetails": "Hide details",
+  "showDetails": "Show details",
+  "searchModeLabel": "Search Mode",
+  "saveAndAnalyzeButton": "Save & Analyze",
+  "saveWithoutAnalysis": "Save without analysis",
+  "nutritionSection": "Nutrition",
+  "nutritionSectionHint": "Enter 0 if unknown",
+  "quickEditFoodName": "Edit name",
+  "quickEditCancel": "Cancel",
+  "quickEditSave": "Save",
+  "mealSuggestionsToggle": "Meal Suggestions",
+  "mealSuggestionsOn": "On",
+  "mealSuggestionsOff": "Off"
 }

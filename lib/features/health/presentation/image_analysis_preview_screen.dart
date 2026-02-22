@@ -17,6 +17,7 @@ import 'package:miro_hybrid/features/energy/widgets/no_energy_dialog.dart';
 import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/features/health/providers/my_meal_provider.dart';
 import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
+import 'package:miro_hybrid/l10n/app_localizations.dart';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -46,6 +47,7 @@ class _ImageAnalysisPreviewScreenState
   late MealType _selectedMealType;
   String? _permanentImagePath;
   bool _isAnalyzing = false;
+  bool _showDetails = false;
 
   @override
   void initState() {
@@ -360,12 +362,13 @@ class _ImageAnalysisPreviewScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
     return PopScope(
       canPop: true,
       child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Analyze Food Image'),
+        title: Text(l10n.analyzeFoodImageTitle),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -392,9 +395,9 @@ class _ImageAnalysisPreviewScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Food Name Input
+                  // Food Name Input (always visible)
                   Text(
-                    'Food name',
+                    l10n.foodNameLabel,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -403,7 +406,7 @@ class _ImageAnalysisPreviewScreenState
                   TextField(
                     controller: _foodNameController,
                     decoration: InputDecoration(
-                      hintText: 'e.g., Grilled chicken salad',
+                      hintText: l10n.foodNameHint,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -414,137 +417,16 @@ class _ImageAnalysisPreviewScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 16),
-
-                  // Quantity and Unit Row
-                  Text(
-                    'Quantity',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: _quantityController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: '1',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 3,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedUnit,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                          ),
-                          items: UnitConverter.allDropdownItems,
-                          onChanged: (value) {
-                            if (value != null && value.isNotEmpty) {
-                              setState(() {
-                                _selectedUnit = value;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Meal Type (below quantity)
-                  Text(
-                    'Meal Type',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: MealType.values.map((type) {
-                      final isSelected = _selectedMealType == type;
-                      return ChoiceChip(
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(type.icon, size: 16, color: type.iconColor),
-                            const SizedBox(width: 6),
-                            Text(type.displayName),
-                          ],
-                        ),
-                        selected: isSelected,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _selectedMealType = type);
-                        },
-                        selectedColor: AppColors.health.withValues(alpha: 0.2),
-                      );
-                    }).toList(),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Search Mode (compact)
-                  Theme(
-                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                    child: ExpansionTile(
-                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
-                      dense: true,
-                      title: Row(
-                        children: [
-                          Icon(Icons.tune_rounded, size: 14, color: Colors.grey[500]),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Search Mode: ${_searchMode.name}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: SearchModeSelector(
-                            selectedMode: _searchMode,
-                            onChanged: (mode) => setState(() => _searchMode = mode),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
-                  ),
-
-                  // Helper Text (compact)
+                  // Helper Text (moved under food name)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.only(top: 6, bottom: 4),
                     child: Row(
                       children: [
                         Icon(Icons.lightbulb_outline, size: 14, color: Colors.grey[500]),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            'Providing food name & quantity improves AI accuracy.',
+                            l10n.foodNameImprovesAccuracy,
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 11,
@@ -555,9 +437,158 @@ class _ImageAnalysisPreviewScreenState
                     ),
                   ),
 
+                  const SizedBox(height: 8),
+
+                  // Show/Hide details toggle
+                  GestureDetector(
+                    onTap: () => setState(() => _showDetails = !_showDetails),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _showDetails ? Icons.expand_less : Icons.expand_more,
+                          size: 20,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _showDetails ? l10n.hideDetails : l10n.showDetails,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Collapsible details section
+                  if (_showDetails) ...[
+                    const SizedBox(height: 16),
+
+                    // Quantity and Unit Row
+                    Text(
+                      l10n.quantityLabel,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: _quantityController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '1',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: DropdownButtonFormField<String>(
+                            initialValue: _selectedUnit,
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                            items: UnitConverter.allDropdownItems,
+                            onChanged: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                setState(() {
+                                  _selectedUnit = value;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Meal Type
+                    Text(
+                      l10n.mealTypeTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: MealType.values.map((type) {
+                        final isSelected = _selectedMealType == type;
+                        return ChoiceChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(type.icon, size: 16, color: type.iconColor),
+                              const SizedBox(width: 6),
+                              Text(type.displayName),
+                            ],
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) setState(() => _selectedMealType = type);
+                          },
+                          selectedColor: AppColors.health.withValues(alpha: 0.2),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Search Mode (compact)
+                    Theme(
+                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                        dense: true,
+                        title: Row(
+                          children: [
+                            Icon(Icons.tune_rounded, size: 14, color: Colors.grey[500]),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${l10n.searchModeLabel}: ${_searchMode.name}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: SearchModeSelector(
+                              selectedMode: _searchMode,
+                              onChanged: (mode) => setState(() => _searchMode = mode),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 16),
 
-                  // Save & Analyze Button
+                  // Save & Analyze Button (always visible)
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -574,7 +605,7 @@ class _ImageAnalysisPreviewScreenState
                             )
                           : const Icon(Icons.auto_awesome_rounded, size: 24),
                       label: Text(
-                        _isAnalyzing ? 'Analyzing...' : 'Save & Analyze',
+                        _isAnalyzing ? l10n.analyzingButton : l10n.saveAndAnalyzeButton,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -593,16 +624,16 @@ class _ImageAnalysisPreviewScreenState
 
                   const SizedBox(height: 12),
 
-                  // Save to Diary button (save photo as pending entry)
+                  // Save to Diary button (always visible)
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _isAnalyzing ? null : _saveToDiary,
                       icon: const Icon(Icons.bookmark_add_outlined, size: 20),
-                      label: const Text(
-                        'Save without analysis',
-                        style: TextStyle(
+                      label: Text(
+                        l10n.saveWithoutAnalysis,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),

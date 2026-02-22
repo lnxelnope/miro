@@ -2836,4 +2836,50 @@ class L10nZh extends L10n {
   @override
   String get chatContentTooLongError =>
       'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
+
+  @override
+  String get analyzeFoodImageTitle => 'Analyze Food Image';
+
+  @override
+  String get foodNameImprovesAccuracy =>
+      'Providing food name & quantity improves AI accuracy.';
+
+  @override
+  String get hideDetails => 'Hide details';
+
+  @override
+  String get showDetails => 'Show details';
+
+  @override
+  String get searchModeLabel => 'Search Mode';
+
+  @override
+  String get saveAndAnalyzeButton => 'Save & Analyze';
+
+  @override
+  String get saveWithoutAnalysis => 'Save without analysis';
+
+  @override
+  String get nutritionSection => 'Nutrition';
+
+  @override
+  String get nutritionSectionHint => 'Enter 0 if unknown';
+
+  @override
+  String get quickEditFoodName => 'Edit name';
+
+  @override
+  String get quickEditCancel => 'Cancel';
+
+  @override
+  String get quickEditSave => 'Save';
+
+  @override
+  String get mealSuggestionsToggle => 'Meal Suggestions';
+
+  @override
+  String get mealSuggestionsOn => 'On';
+
+  @override
+  String get mealSuggestionsOff => 'Off';
 }

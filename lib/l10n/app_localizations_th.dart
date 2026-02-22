@@ -2869,4 +2869,50 @@ class L10nTh extends L10n {
   @override
   String get chatContentTooLongError =>
       'รายการยาวเกินไป ช่วยแบ่งส่งทีละ 2-3 รายการได้ไหมครับ 🙏\n\nEnergy ไม่ถูกหักนะครับ';
+
+  @override
+  String get analyzeFoodImageTitle => 'วิเคราะห์รูปอาหาร';
+
+  @override
+  String get foodNameImprovesAccuracy =>
+      'ระบุชื่ออาหารและปริมาณช่วยให้ AI วิเคราะห์แม่นยำขึ้น';
+
+  @override
+  String get hideDetails => 'ซ่อนรายละเอียด';
+
+  @override
+  String get showDetails => 'แสดงรายละเอียด';
+
+  @override
+  String get searchModeLabel => 'โหมดค้นหา';
+
+  @override
+  String get saveAndAnalyzeButton => 'บันทึก & วิเคราะห์';
+
+  @override
+  String get saveWithoutAnalysis => 'บันทึกโดยไม่วิเคราะห์';
+
+  @override
+  String get nutritionSection => 'โภชนาการ';
+
+  @override
+  String get nutritionSectionHint => 'ใส่ 0 หากไม่ทราบ';
+
+  @override
+  String get quickEditFoodName => 'แก้ไขชื่อ';
+
+  @override
+  String get quickEditCancel => 'ยกเลิก';
+
+  @override
+  String get quickEditSave => 'บันทึก';
+
+  @override
+  String get mealSuggestionsToggle => 'คำแนะนำมื้ออาหาร';
+
+  @override
+  String get mealSuggestionsOn => 'เปิด';
+
+  @override
+  String get mealSuggestionsOff => 'ปิด';
 }

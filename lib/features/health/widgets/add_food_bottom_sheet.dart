@@ -187,6 +187,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   bool _filledFromDb = false;
   int? _selectedMyMealId;
   bool _isAnalyzing = false;
+  bool _nutritionExpanded = false;
 
   double _baseCalories = 0;
   double _baseProtein = 0;
@@ -919,208 +920,232 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             ),
             SizedBox(height: AppSpacing.lg),
 
-            // ===== Nutrition Fields (styled) =====
-            Container(
-              padding: AppSpacing.paddingLg,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.warning.withValues(alpha: 0.1), AppColors.warning.withValues(alpha: 0.1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            // ===== Nutrition Fields (collapsible) =====
+            GestureDetector(
+              onTap: () => setState(() => _nutritionExpanded = !_nutritionExpanded),
+              child: Container(
+                padding: AppSpacing.paddingLg,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.warning.withValues(alpha: 0.1), AppColors.warning.withValues(alpha: 0.1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: AppRadius.lg,
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1.5),
                 ),
-                borderRadius: AppRadius.lg,
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1.5),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.local_fire_department_rounded,
-                          color: AppColors.warning.withValues(alpha: 0.7), size: 20),
-                      SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
-                      Text(
-                        _filledFromDb || _hasIngredients
-                            ? L10n.of(context)!.nutritionAutoCalculated
-                            : L10n.of(context)!.nutritionEnterZero,
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.warning),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  TextField(
-                    controller: _caloriesController,
-                    keyboardType: TextInputType.number,
-                    readOnly: _filledFromDb || _hasIngredients,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.warning,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: L10n.of(context)!.caloriesLabel,
-                      labelStyle: TextStyle(
-                        color: AppColors.warning.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w600,
-                      ),
-                      suffixText: 'kcal',
-                      suffixStyle: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.warning.withValues(alpha: 0.7),
-                      ),
-                      prefixIcon: Icon(Icons.local_fire_department_rounded,
-                          color: AppColors.warning),
-                      hintText: '0',
-                      filled: true,
-                      fillColor: (_filledFromDb || _hasIngredients)
-                          ? AppColors.warning.withValues(alpha: 0.1)
-                          : Colors.white,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: AppRadius.md,
-                        borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: AppRadius.md,
-                        borderSide: BorderSide(color: AppColors.warning, width: 2),
-                      ),
-                      border: OutlineInputBorder(
-                          borderRadius: AppRadius.md),
-                    ),
-                  ),
-                  SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _proteinController,
-                          keyboardType: TextInputType.number,
-                          readOnly: _filledFromDb || _hasIngredients,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.info,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: L10n.of(context)!.proteinLabelShort,
-                            labelStyle: const TextStyle(
-                              color: AppColors.info,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                            suffixText: 'g',
-                            suffixStyle: const TextStyle(
-                              color: AppColors.info,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            filled: true,
-                            fillColor: (_filledFromDb || _hasIngredients)
-                                ? AppColors.info.withValues(alpha: 0.06)
-                                : Colors.white,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: const BorderSide(color: AppColors.info, width: 2),
-                            ),
-                            border: OutlineInputBorder(
-                                borderRadius: AppRadius.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.local_fire_department_rounded,
+                            color: AppColors.warning.withValues(alpha: 0.7), size: 20),
+                        SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            _filledFromDb || _hasIngredients
+                                ? L10n.of(context)!.nutritionAutoCalculated
+                                : L10n.of(context)!.nutritionEnterZero,
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.warning),
                           ),
                         ),
-                      ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
+                        Icon(
+                          _nutritionExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: AppColors.warning,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                    if (_nutritionExpanded) ...[
+                      SizedBox(height: AppSpacing.md),
+                      GestureDetector(
+                        onTap: () {},
                         child: TextField(
-                          controller: _carbsController,
+                          controller: _caloriesController,
                           keyboardType: TextInputType.number,
                           readOnly: _filledFromDb || _hasIngredients,
                           style: TextStyle(
-                            fontWeight: FontWeight.w700,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.warning,
                           ),
                           decoration: InputDecoration(
-                            labelText: L10n.of(context)!.carbsLabelShort,
-                            labelStyle: const TextStyle(
-                              color: AppColors.warning,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                            suffixText: 'g',
-                            suffixStyle: const TextStyle(
-                              color: AppColors.warning,
+                            labelText: L10n.of(context)!.caloriesLabel,
+                            labelStyle: TextStyle(
+                              color: AppColors.warning.withValues(alpha: 0.7),
                               fontWeight: FontWeight.w600,
                             ),
+                            suffixText: 'kcal',
+                            suffixStyle: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.warning.withValues(alpha: 0.7),
+                            ),
+                            prefixIcon: Icon(Icons.local_fire_department_rounded,
+                                color: AppColors.warning),
+                            hintText: '0',
                             filled: true,
                             fillColor: (_filledFromDb || _hasIngredients)
-                                ? AppColors.warning.withValues(alpha: 0.06)
+                                ? AppColors.warning.withValues(alpha: 0.1)
                                 : Colors.white,
                             enabledBorder: OutlineInputBorder(
                               borderRadius: AppRadius.md,
-                              borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4)),
+                              borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: AppRadius.md,
-                              borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                              borderSide: BorderSide(color: AppColors.warning, width: 2),
                             ),
                             border: OutlineInputBorder(
                                 borderRadius: AppRadius.md),
                           ),
                         ),
                       ),
-                      SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: TextField(
-                          controller: _fatController,
-                          keyboardType: TextInputType.number,
-                          readOnly: _filledFromDb || _hasIngredients,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.error,
+                      SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: TextField(
+                                controller: _proteinController,
+                                keyboardType: TextInputType.number,
+                                readOnly: _filledFromDb || _hasIngredients,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.info,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: L10n.of(context)!.proteinLabelShort,
+                                  labelStyle: const TextStyle(
+                                    color: AppColors.info,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                  suffixText: 'g',
+                                  suffixStyle: const TextStyle(
+                                    color: AppColors.info,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  filled: true,
+                                  fillColor: (_filledFromDb || _hasIngredients)
+                                      ? AppColors.info.withValues(alpha: 0.06)
+                                      : Colors.white,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: const BorderSide(color: AppColors.info, width: 2),
+                                  ),
+                                  border: OutlineInputBorder(
+                                      borderRadius: AppRadius.md),
+                                ),
+                              ),
+                            ),
                           ),
-                          decoration: InputDecoration(
-                            labelText: L10n.of(context)!.fatLabelShort,
-                            labelStyle: const TextStyle(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                          SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: TextField(
+                                controller: _carbsController,
+                                keyboardType: TextInputType.number,
+                                readOnly: _filledFromDb || _hasIngredients,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.warning,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: L10n.of(context)!.carbsLabelShort,
+                                  labelStyle: const TextStyle(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                  suffixText: 'g',
+                                  suffixStyle: const TextStyle(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  filled: true,
+                                  fillColor: (_filledFromDb || _hasIngredients)
+                                      ? AppColors.warning.withValues(alpha: 0.06)
+                                      : Colors.white,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                                  ),
+                                  border: OutlineInputBorder(
+                                      borderRadius: AppRadius.md),
+                                ),
+                              ),
                             ),
-                            suffixText: 'g',
-                            suffixStyle: const TextStyle(
-                              color: AppColors.error,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            filled: true,
-                            fillColor: (_filledFromDb || _hasIngredients)
-                                ? AppColors.error.withValues(alpha: 0.06)
-                                : Colors.white,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: const BorderSide(color: AppColors.error, width: 2),
-                            ),
-                            border: OutlineInputBorder(
-                                borderRadius: AppRadius.md),
                           ),
-                        ),
+                          SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {},
+                              child: TextField(
+                                controller: _fatController,
+                                keyboardType: TextInputType.number,
+                                readOnly: _filledFromDb || _hasIngredients,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.error,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: L10n.of(context)!.fatLabelShort,
+                                  labelStyle: const TextStyle(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                  suffixText: 'g',
+                                  suffixStyle: const TextStyle(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  filled: true,
+                                  fillColor: (_filledFromDb || _hasIngredients)
+                                      ? AppColors.error.withValues(alpha: 0.06)
+                                      : Colors.white,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: AppRadius.md,
+                                    borderSide: const BorderSide(color: AppColors.error, width: 2),
+                                  ),
+                                  border: OutlineInputBorder(
+                                      borderRadius: AppRadius.md),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                      if (_hasIngredients) ...[
+                        SizedBox(height: AppSpacing.sm),
+                        Text(
+                          '📊 ${L10n.of(context)!.calculatedFromIngredients}',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
+                        ),
+                      ],
                     ],
-                  ),
-                  if (_hasIngredients) ...[
-                    SizedBox(height: AppSpacing.sm),
-                    Text(
-                      '📊 ${L10n.of(context)!.calculatedFromIngredients}',
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary),
-                    ),
                   ],
-                ],
+                ),
               ),
             ),
             SizedBox(height: AppSpacing.lg),

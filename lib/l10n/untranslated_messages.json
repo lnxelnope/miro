@@ -88,7 +88,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "es": [
@@ -180,7 +195,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "fr": [
@@ -272,7 +302,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "hi": [
@@ -364,7 +409,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "id": [
@@ -456,7 +516,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "ja": [
@@ -548,7 +623,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "ko": [
@@ -640,7 +730,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "pt": [
@@ -732,7 +837,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "th": [
@@ -914,7 +1034,22 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ],
 
   "zh": [
@@ -1006,6 +1141,21 @@
     "couldNotAnalyzeSubIngredient",
     "ingredientSaved",
     "baseNutritionInfo",
-    "chatContentTooLongError"
+    "chatContentTooLongError",
+    "analyzeFoodImageTitle",
+    "foodNameImprovesAccuracy",
+    "hideDetails",
+    "showDetails",
+    "searchModeLabel",
+    "saveAndAnalyzeButton",
+    "saveWithoutAnalysis",
+    "nutritionSection",
+    "nutritionSectionHint",
+    "quickEditFoodName",
+    "quickEditCancel",
+    "quickEditSave",
+    "mealSuggestionsToggle",
+    "mealSuggestionsOn",
+    "mealSuggestionsOff"
   ]
 }

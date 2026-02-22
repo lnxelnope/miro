@@ -757,8 +757,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     });
 
     try {
+      final foodName = _nameController.text.trim();
+      final quantity = double.tryParse(_servingSizeController.text);
       final result = await GeminiService.analyzeFoodImage(
         widget.imageFile,
+        foodName: foodName.isNotEmpty ? foodName : null,
+        quantity: quantity != null && quantity > 0 ? quantity : null,
+        unit: _servingUnit,
         searchMode: _searchMode,
       );
 

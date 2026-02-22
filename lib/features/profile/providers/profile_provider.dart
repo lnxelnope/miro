@@ -94,6 +94,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
     double? dinnerBudget,
     double? snackBudget,
     double? suggestionThreshold,
+    bool? mealSuggestionsEnabled,
   }) async {
     final currentProfile = state.value;
     if (currentProfile == null) return;
@@ -108,6 +109,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
     if (dinnerBudget != null) currentProfile.dinnerBudget = dinnerBudget;
     if (snackBudget != null) currentProfile.snackBudget = snackBudget;
     if (suggestionThreshold != null) currentProfile.suggestionThreshold = suggestionThreshold;
+    if (mealSuggestionsEnabled != null) currentProfile.mealSuggestionsEnabled = mealSuggestionsEnabled;
 
     await updateProfile(currentProfile);
   }

@@ -47,6 +47,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
   bool _isLoading = false;
   bool _initialized = false;
+  bool _mealSuggestionsEnabled = false;
 
   @override
   void initState() {
@@ -118,6 +119,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _snackController.text = _safeMealBudget(profile.snackBudget, (calInt * 0.07).round()).toString();
 
     _thresholdController.text = _safeMealBudget(profile.suggestionThreshold, 100).toString();
+    _mealSuggestionsEnabled = profile.mealSuggestionsEnabled;
 
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
@@ -964,62 +966,91 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               color: AppColors.primary.withValues(alpha: 0.2),
             ),
           ),
-          child: Row(
+          child: Column(
             children: [
-              Icon(Icons.tune_rounded,
-                  color: AppColors.primary.withValues(alpha: 0.7), size: 22),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      L10n.of(context)!.suggestionThreshold,
+              Row(
+                children: [
+                  Icon(Icons.restaurant_menu_rounded,
+                      color: AppColors.primary.withValues(alpha: 0.7), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      L10n.of(context)!.mealSuggestionsToggle,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
                         fontSize: 14,
                       ),
                     ),
-                    Text(
-                      L10n.of(context)!.suggestionThresholdDesc(threshold.toInt()),
-                      style: TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                  ),
+                  Switch(
+                    value: _mealSuggestionsEnabled,
+                    onChanged: (v) => setState(() => _mealSuggestionsEnabled = v),
+                    activeColor: AppColors.primary,
+                  ),
+                ],
+              ),
+              if (_mealSuggestionsEnabled) ...[
+                const Divider(height: 16),
+                Row(
+                  children: [
+                    Icon(Icons.tune_rounded,
+                        color: AppColors.primary.withValues(alpha: 0.7), size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            L10n.of(context)!.suggestionThreshold,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            L10n.of(context)!.suggestionThresholdDesc(threshold.toInt()),
+                            style: TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: _thresholdController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        onChanged: (_) => setState(() {}),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                        decoration: InputDecoration(
+                          suffixText: 'kcal',
+                          suffixStyle: TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textSecondary,
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius: AppRadius.sm),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: AppRadius.sm,
+                            borderSide:
+                                const BorderSide(color: AppColors.primary, width: 2),
+                          ),
+                          contentPadding:
+                              EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(width: AppSpacing.sm),
-              SizedBox(
-                width: 80,
-                child: TextField(
-                  controller: _thresholdController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (_) => setState(() {}),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                  decoration: InputDecoration(
-                    suffixText: 'kcal',
-                    suffixStyle: TextStyle(
-                      fontSize: 9,
-                      color: AppColors.textSecondary,
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: AppRadius.sm),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: AppRadius.sm,
-                      borderSide:
-                          const BorderSide(color: AppColors.primary, width: 2),
-                    ),
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
         ),
@@ -1046,6 +1077,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
         dinnerBudget: double.tryParse(_dinnerController.text),
         snackBudget: double.tryParse(_snackController.text),
         suggestionThreshold: double.tryParse(_thresholdController.text),
+        mealSuggestionsEnabled: _mealSuggestionsEnabled,
       );
 
       if (mounted) {
