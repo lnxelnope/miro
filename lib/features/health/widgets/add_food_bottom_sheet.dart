@@ -184,6 +184,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
   String _servingUnit = 'serving';
   late MealType _selectedMealType;
+  FoodSearchMode _searchMode = FoodSearchMode.normal;
   bool _filledFromDb = false;
   int? _selectedMyMealId;
   bool _isAnalyzing = false;
@@ -557,6 +558,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         name,
         servingSize: queryAmount,
         servingUnit: row.unit,
+        searchMode: _searchMode,
       );
 
       if (result != null && mounted) {
@@ -920,6 +922,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             ),
             SizedBox(height: AppSpacing.lg),
 
+            // ===== Search Mode Toggle =====
+            _buildSearchModeToggle(),
+            SizedBox(height: AppSpacing.lg),
+
             // ===== Nutrition Fields (collapsible) =====
             GestureDetector(
               onTap: () => setState(() => _nutritionExpanded = !_nutritionExpanded),
@@ -1194,6 +1200,71 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           ],
         ),
       ),
+    );
+  }
+
+  // ============================================================
+  // Search Mode Toggle (Food / Product)
+  // ============================================================
+  Widget _buildSearchModeToggle() {
+    return Row(
+      children: FoodSearchMode.values.map((mode) {
+        final isSelected = _searchMode == mode;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: mode == FoodSearchMode.normal ? AppSpacing.xs : 0,
+              left: mode == FoodSearchMode.product ? AppSpacing.xs : 0,
+            ),
+            child: GestureDetector(
+              onTap: () => setState(() => _searchMode = mode),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: EdgeInsets.symmetric(
+                  vertical: AppSpacing.sm,
+                  horizontal: AppSpacing.md,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withValues(alpha: 0.1)
+                      : AppColors.background,
+                  borderRadius: AppRadius.md,
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.divider,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      mode.icon,
+                      size: 18,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    Text(
+                      mode.displayName,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -2007,6 +2078,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         foodName,
         servingSize: servingSize,
         servingUnit: _servingUnit,
+        searchMode: _searchMode,
         ingredientNames: ingredientNames,
         userIngredients: userIngredients,
       );

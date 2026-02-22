@@ -1161,27 +1161,59 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
           borderRadius: AppRadius.lg,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               children: [
-                // ────── Gradient Icon Container ──────
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: gradient),
-                    borderRadius: AppRadius.lg,
+                // ────── Badge at Top (if any) ──────
+                if (badge != null) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isBest
+                            ? AppColors.warning
+                            : isPopular
+                                ? AppColors.warning
+                                : AppColors.info,
+                        borderRadius: AppRadius.sm,
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: Icon(icon, size: 32, color: Colors.white),
-                ),
-                const SizedBox(width: 16),
+                  const SizedBox(height: 12),
+                ],
 
-                // ────── Info ──────
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                // ────── Main Content Row ──────
+                Row(
+                  children: [
+                    // ────── Gradient Icon Container ──────
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: gradient),
+                        borderRadius: AppRadius.lg,
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(icon, size: 32, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // ────── Info ──────
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             name,
@@ -1191,34 +1223,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                               letterSpacing: -0.3,
                             ),
                           ),
-                          if (badge != null) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isBest
-                                    ? AppColors.warning
-                                    : isPopular
-                                        ? AppColors.warning
-                                        : AppColors.info,
-                                borderRadius: AppRadius.sm,
-                              ),
-                              child: Text(
-                                badge,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -1279,87 +1283,89 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             ],
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // ────── Price + Bonus Overlay ──────
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (originalPrice != null) ...[
-                          Text(
-                            originalPrice,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              decoration: TextDecoration.lineThrough,
-                              decorationThickness: 2,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
+                          ],
                         ],
-                        Text(
-                          priceText,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.success,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                    if (bonusRate > 0)
-                      Positioned(
-                        top: -50,
-                        right: -8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isPromoBonus
-                                  ? [AppColors.premium, AppColors.premiumDark]
-                                  : [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
-                            ),
-                            borderRadius: AppRadius.md,
-                            boxShadow: [
-                              BoxShadow(
-                                color: (isPromoBonus ? AppColors.premium : AppColors.warning)
-                                    .withValues(alpha: 0.4),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                isPromoBonus
-                                    ? Icons.local_fire_department_rounded
-                                    : Icons.star_rounded,
-                                size: 12,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 2),
+
+                    // ────── Price + Bonus Overlay ──────
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            if (originalPrice != null) ...[
                               Text(
-                                '+${(bonusRate * 100).toInt()}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
+                                originalPrice,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationThickness: 2,
                                 ),
                               ),
+                              const SizedBox(height: 2),
                             ],
-                          ),
+                            Text(
+                              priceText,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.success,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        if (bonusRate > 0)
+                          Positioned(
+                            top: -50,
+                            right: -8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isPromoBonus
+                                      ? [AppColors.premium, AppColors.premiumDark]
+                                      : [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
+                                ),
+                                borderRadius: AppRadius.md,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (isPromoBonus ? AppColors.premium : AppColors.warning)
+                                        .withValues(alpha: 0.4),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isPromoBonus
+                                        ? Icons.local_fire_department_rounded
+                                        : Icons.star_rounded,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  Text(
+                                    '+${(bonusRate * 100).toInt()}%',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ],

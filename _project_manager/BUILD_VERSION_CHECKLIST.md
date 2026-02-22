@@ -4,7 +4,22 @@
 
 ---
 
-## ✅ Build 39 (v1.1.14) - Status: READY FOR PRODUCTION
+## ✅ Build 40 (v1.1.15) - Status: READY FOR PRODUCTION
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.15+40`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 40`, `versionName = "1.1.15"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.15'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning
+- [x] **CHANGELOG.md** - อัปเดตแล้ว
+
+---
+
+## ✅ Build 39 (v1.1.14) - Status: RELEASED
 
 ### 📋 Checklist
 
@@ -156,7 +171,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.14+39
+version: 1.1.15+40
 ```
 **Format:** `versionName+versionCode`
 - `1.1.14` = Version name (แสดงให้ user เห็น)
@@ -165,8 +180,8 @@ version: 1.1.14+39
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 39
-    versionName = "1.1.14"
+    versionCode = 40
+    versionName = "1.1.15"
 }
 ```
 **Format:**
@@ -178,7 +193,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.1.14',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.1.15',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -203,22 +218,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.14+39 → 1.1.15+40
-version: 1.1.15+40
+# ตัวอย่าง: จาก 1.1.15+40 → 1.1.16+41
+version: 1.1.16+41
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 40  // เพิ่มทีละ 1
-    versionName = "1.1.15"  // ตรงกับ pubspec
+    versionCode = 41  // เพิ่มทีละ 1
+    versionName = "1.1.16"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~248 และแก้ subtitle
-subtitle: '1.1.14',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.1.15',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -245,7 +260,8 @@ git commit -m "build: v1.1.13+38 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 39 | 1.1.14 | 2026-02-21 | ✅ Current |
+| 40 | 1.1.15 | 2026-02-23 | ✅ Current |
+| 39 | 1.1.14 | 2026-02-21 | ✅ Released |
 | 38 | 1.1.13 | 2026-02-21 | ✅ Released |
 | 37 | 1.1.12 | 2026-02-20 | ✅ Released |
 | 36 | 1.1.11 | 2026-02-20 | ✅ Released |
@@ -271,14 +287,14 @@ git commit -m "build: v1.1.13+38 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.14+39`
-- `build.gradle.kts`: `versionCode = 39`, `versionName = "1.1.14"`
+- `pubspec.yaml`: `1.1.15+40`
+- `build.gradle.kts`: `versionCode = 40`, `versionName = "1.1.15"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~248
 ```dart
-subtitle: '1.1.14',  // แก้ให้ตรงกับ versionName
+subtitle: '1.1.15',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
