@@ -54,4 +54,12 @@ class AppColors {
   static const Color energyLow = Color(0xFFF59E0B); // Amber-500 (< 30)
   static const Color energyMedium = Color(0xFF10B981); // Emerald-500 (< 100)
   static const Color energyHigh = Color(0xFF06B6D4); // Cyan-500 (≥ 100)
+
+  // AI
+  static const Color ai = Color(0xFF8B5CF6); // Violet-500
+
+  // Premium
+  static const Color premium = Color(0xFFF59E0B); // Amber-500
+  static const Color premiumLight = Color(0xFFFEF3C7); // Amber-100
+  static const Color premiumDark = Color(0xFFD97706); // Amber-600
 }

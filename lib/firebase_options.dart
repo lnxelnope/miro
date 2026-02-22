@@ -64,11 +64,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCW5_bd5s-JDBjZlPgnMyzjZKjvVKtnjWo',
-    appId: '1:65396857547:ios:placeholder',
+    apiKey: 'AIzaSyC-cwx5eNc1B3KHVNLeOoMRfwqLbxFN1LA',
+    appId: '1:65396857547:ios:cf4497c3d0968344a4d94e',
     messagingSenderId: '65396857547',
     projectId: 'miro-d6856',
     storageBucket: 'miro-d6856.firebasestorage.app',
-    iosBundleId: 'com.tanabun.miro',
+    iosBundleId: 'com.tanabun.miroHybrid',
   );
 }

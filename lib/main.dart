@@ -22,9 +22,7 @@ import 'features/home/presentation/home_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/onboarding/presentation/language_selection_screen.dart';
 import 'features/profile/providers/locale_provider.dart';
-import 'features/energy/presentation/energy_store_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 
 // Global navigator key for deep linking
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -32,130 +30,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    AppLogger.info('Firebase initialized successfully');
-  } catch (e) {
-    AppLogger.warn('Firebase initialization failed: $e');
-    // Continue anyway - analytics will fail silently
-  }
-
-  // Load environment variables (optional)
-  try {
-    await dotenv.load(fileName: ".env");
-    AppLogger.info('Environment loaded');
-  } catch (e) {
-    AppLogger.warn('.env file not found, using defaults');
-  }
-
-  // Initialize DateFormatting for English (default) and Thai (for food DB dates)
-  await initializeDateFormatting('en', null);
-  await initializeDateFormatting('th', null);
-  AppLogger.info('Date formatting initialized for English and Thai locales');
-
-  // Initialize Isar Database
-  await DatabaseService.initialize();
-
-  // ────── Initialize Energy System ──────
-  final energyService = EnergyService(DatabaseService.isar);
-
-  // ✅ PHASE 3: Migrate to SecureStorage
-  try {
-    await energyService.migrateToSecureStorage();
-    AppLogger.info('✅ Migrated to SecureStorage');
-  } catch (e) {
-    AppLogger.warn('⚠️ Failed to migrate to SecureStorage: $e');
-    // ไม่ block app launch
-  }
-
-  // ✅ PHASE 1: Register or sync user ตอน app startup
-  try {
-    await energyService.registerOrSync();
-    AppLogger.info('✅ User registered/synced');
-  } catch (e) {
-    AppLogger.warn('⚠️ Failed to register/sync user: $e');
-    // ไม่ block app launch
-  }
-
-  // ✅ PHASE 2: Retry pending purchases
-  try {
-    await PurchaseService.retryPendingPurchases();
-    AppLogger.info('✅ Pending purchases retried');
-  } catch (e) {
-    AppLogger.warn('⚠️ Failed to retry pending purchases: $e');
-    // ไม่ block app launch
-  }
-
-  // ตรวจสอบและมอบ Welcome Gift
-  final receivedGift = await energyService.initializeWelcomeGift();
-  if (receivedGift) {
-    AppLogger.info('🎁 Welcome Gift: 10 Energy!');
-  }
-
-  // ────── Migrate Existing Users ──────
-  // ตรวจสอบว่าเคยเป็น Pro user หรือไม่
-  final prefs = await SharedPreferences.getInstance();
-  final wasPro = prefs.getBool('was_pro_user') ?? false;
-
-  // Migrate (ถ้ายังไม่เคยได้ welcome gift)
-  await energyService.migrateFromProSystem(
-    wasProUser: wasPro,
-    isBetaTester: false, // TODO: ตรวจสอบจาก Firebase Auth ถ้ามี
-  );
-
-  // ────── Register EnergyService ──────
-  GeminiService.setEnergyService(energyService);
-  PurchaseService.setEnergyService(energyService);
-
-  AppLogger.info('Energy System initialized');
-
-  // Load food name database async (doesn't block startup)
-  LLMService.loadFoodDatabase();
-
-  // Initialize In-App Purchase
-  await PurchaseService.initialize();
-  AppLogger.info('Purchase Service initialized');
-
-  // ✅ PHASE 3: Initialize Push Notifications (FCM)
-  try {
-    await NotificationService.initialize(
-      onNotificationTap: (RemoteMessage message) {
-        final data = message.data;
-        final action = data['action'] as String?;
-        
-        if (action == 'open_offer') {
-          final offerId = data['offerId'] as String?;
-          if (offerId != null && navigatorKey.currentState != null) {
-            navigatorKey.currentState!.push(
-              MaterialPageRoute(
-                builder: (_) => EnergyStoreScreen(highlightOfferId: offerId),
-              ),
-            );
-          }
-        }
-      },
-    );
-    AppLogger.info('✅ Notification Service initialized');
-  } catch (e) {
-    AppLogger.warn('⚠️ Failed to initialize Notification Service: $e');
-  }
-
-  // ✅ Initialize Firebase Analytics (respects user consent)
-  try {
-    final hasConsent = await ConsentService.hasConsent();
-    await AnalyticsService.initialize(
-      appVersion: '1.1.5',
-      enabled: hasConsent,
-    );
-    AppLogger.info('✅ Analytics Service initialized (consent: $hasConsent)');
-  } catch (e) {
-    AppLogger.warn('⚠️ Failed to initialize Analytics: $e');
-  }
-
-  // --- Suppress overflow error stripes in debug mode ---
   if (kDebugMode) {
     FlutterError.onError = (FlutterErrorDetails details) {
       final msg = details.exception.toString();
@@ -164,11 +38,108 @@ void main() async {
     };
   }
 
+  // === จำเป็นก่อน runApp: Firebase + DB เท่านั้น ===
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    AppLogger.warn('Firebase initialization failed: $e');
+  }
+
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (_) {}
+
+  await initializeDateFormatting('en', null);
+  await initializeDateFormatting('th', null);
+  await DatabaseService.initialize();
+
+  // === แสดง UI ทันที ===
   runApp(
     const ProviderScope(
       child: MiroApp(),
     ),
   );
+
+  // === Init ที่เหลือรันใน background (ไม่ block UI) ===
+  _initServicesInBackground();
+}
+
+void _initServicesInBackground() async {
+  try {
+    final energyService = EnergyService(DatabaseService.isar);
+
+    try {
+      await energyService.migrateToSecureStorage()
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ migrateToSecureStorage: $e');
+    }
+
+    try {
+      await energyService.registerOrSync()
+          .timeout(const Duration(seconds: 10), onTimeout: () => <String, dynamic>{});
+    } catch (e) {
+      AppLogger.warn('⚠️ registerOrSync: $e');
+    }
+
+    try {
+      await PurchaseService.retryPendingPurchases()
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ retryPendingPurchases: $e');
+    }
+
+    try {
+      await energyService.initializeWelcomeGift();
+    } catch (e) {
+      AppLogger.warn('⚠️ initializeWelcomeGift: $e');
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final wasPro = prefs.getBool('was_pro_user') ?? false;
+    try {
+      await energyService.migrateFromProSystem(
+        wasProUser: wasPro,
+        isBetaTester: false,
+      ).timeout(const Duration(seconds: 5), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ migrateFromProSystem: $e');
+    }
+
+    GeminiService.setEnergyService(energyService);
+    PurchaseService.setEnergyService(energyService);
+    LLMService.loadFoodDatabase();
+
+    try {
+      await PurchaseService.initialize()
+          .timeout(const Duration(seconds: 10), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ PurchaseService.initialize: $e');
+    }
+
+    try {
+      await NotificationService.initialize()
+          .timeout(const Duration(seconds: 10), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ NotificationService: $e');
+    }
+
+    try {
+      final hasConsent = await ConsentService.hasConsent();
+      await AnalyticsService.initialize(
+        appVersion: '1.1.5',
+        enabled: hasConsent,
+      );
+    } catch (e) {
+      AppLogger.warn('⚠️ AnalyticsService: $e');
+    }
+
+    AppLogger.info('✅ All background services initialized');
+  } catch (e) {
+    AppLogger.warn('⚠️ Background init error: $e');
+  }
 }
 
 class MiroApp extends ConsumerStatefulWidget {
@@ -190,22 +161,26 @@ class _MiroAppState extends ConsumerState<MiroApp> {
   }
 
   Future<void> _initApp() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    // โหลดภาษาที่เคยเลือกไว้
-    final savedLocale = prefs.getString('selected_locale');
-    if (savedLocale != null) {
-      ref.read(localeProvider.notifier).state = Locale(savedLocale);
+      final savedLocale = prefs.getString('selected_locale');
+      if (savedLocale != null) {
+        ref.read(localeProvider.notifier).state = Locale(savedLocale);
+        _languageSelected = true;
+      } else {
+        _languageSelected = prefs.getBool('language_selected') ?? false;
+      }
+
+      final count = await DatabaseService.userProfiles.count();
+      if (count > 0) {
+        final profile = await DatabaseService.userProfiles.get(1);
+        _onboardingComplete = profile?.onboardingComplete ?? false;
+      }
+    } catch (e) {
+      debugPrint('_initApp error: $e');
       _languageSelected = true;
-    } else {
-      _languageSelected = prefs.getBool('language_selected') ?? false;
-    }
-
-    // เช็ค onboarding
-    final count = await DatabaseService.userProfiles.count();
-    if (count > 0) {
-      final profile = await DatabaseService.userProfiles.get(1);
-      _onboardingComplete = profile?.onboardingComplete ?? false;
+      _onboardingComplete = false;
     }
 
     if (mounted) setState(() => _isLoading = false);
@@ -224,7 +199,6 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       themeMode: ThemeMode.system,
       navigatorObservers: [AnalyticsService.observer],
 
-      // === Localization ===
       localizationsDelegates: const [
         L10n.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -233,7 +207,6 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       ],
       supportedLocales: L10n.supportedLocales,
       locale: locale,
-      // === จบ Localization ===
 
       home: _buildHome(),
     );
@@ -246,7 +219,6 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       );
     }
 
-    // ยังไม่เคยเลือกภาษา → แสดงหน้าเลือกภาษาก่อน
     if (!_languageSelected) {
       return LanguageSelectionScreen(
         onLanguageSelected: () {
@@ -255,12 +227,10 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       );
     }
 
-    // เคยทำ onboarding แล้ว → ไป Home
     if (_onboardingComplete) {
       return const HomeScreen();
     }
 
-    // ยังไม่เคย → ไป Onboarding
     return const OnboardingScreen();
   }
 }
