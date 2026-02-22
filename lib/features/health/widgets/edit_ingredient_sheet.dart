@@ -6,6 +6,7 @@ import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -125,7 +126,8 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20, right: 20, top: 20,
@@ -331,6 +333,7 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 

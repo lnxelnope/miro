@@ -3,6 +3,7 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../providers/profile_provider.dart';
 
 // kcal ต่อ 1 กรัม ของแต่ละ macro
@@ -407,7 +408,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
         data: (profile) {
           _initFromProfile(profile);
 
-          return SingleChildScrollView(
+          return KeyboardDoneBar(
+            child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -506,6 +508,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                 const SizedBox(height: 16),
               ],
             ),
+          ),
           );
         },
       ),

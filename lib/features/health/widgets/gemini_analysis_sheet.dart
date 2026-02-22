@@ -11,6 +11,7 @@ import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
 
@@ -672,7 +673,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: const EdgeInsets.all(16),
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
@@ -907,6 +909,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 

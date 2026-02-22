@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/food_entry.dart';
 
@@ -262,7 +263,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20,
@@ -632,6 +634,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 

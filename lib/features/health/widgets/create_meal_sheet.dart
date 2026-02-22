@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
@@ -196,7 +197,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: AppSpacing.paddingLg,
       padding: EdgeInsets.only(
         left: AppSpacing.xl,
@@ -400,6 +402,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 

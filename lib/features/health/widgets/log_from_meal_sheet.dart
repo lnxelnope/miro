@@ -4,6 +4,7 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../models/my_meal.dart';
 import '../models/food_entry.dart';
 import '../providers/my_meal_provider.dart';
@@ -69,7 +70,8 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20,
@@ -251,11 +253,12 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                 child: const Text('Save',
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
+                ),
             ),
           ],
         ),
       ),
+    ),
     );
   }
 

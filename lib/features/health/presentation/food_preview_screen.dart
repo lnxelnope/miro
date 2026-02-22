@@ -11,6 +11,7 @@ import '../../../core/utils/logger.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
@@ -192,7 +193,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: KeyboardDoneBar(
+        child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,6 +425,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             const SizedBox(height: 100),
           ],
         ),
+      ),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
@@ -767,7 +768,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       _loadIngredientsFromMyMeal();
     }
 
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       margin: AppSpacing.paddingLg,
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
@@ -1112,6 +1114,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           ],
         ),
       ),
+    ),
     );
   }
 

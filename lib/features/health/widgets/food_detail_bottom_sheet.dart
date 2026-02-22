@@ -10,6 +10,7 @@ import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/database/database_service.dart';
@@ -121,7 +122,8 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     final hasAiConfidence =
         entry.aiConfidence != null && entry.aiConfidence! > 0;
 
-    return Container(
+    return KeyboardDoneBar(
+      child: Container(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
@@ -472,6 +474,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           ),
         ],
       ),
+    ),
     );
   }
 
