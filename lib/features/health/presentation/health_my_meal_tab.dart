@@ -3,7 +3,6 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/database/database_service.dart';
 import '../providers/my_meal_provider.dart';
@@ -524,8 +523,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           final calories = ingredient.calcCalories(amount);
           final protein = ingredient.calcProtein(amount);
 
-          return KeyboardDoneBar(
-            child: Container(
+          return Container(
             margin:
                 EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
             padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -759,7 +757,6 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 ),
               ],
             ),
-          ),
           );
         },
       ),

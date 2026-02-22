@@ -11,7 +11,6 @@ import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
 
@@ -668,13 +667,26 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     });
   }
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
-    return KeyboardDoneBar(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.all(16),
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
@@ -733,6 +745,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                         color: AppColors.success),
                   ),
                 ),
+                const SizedBox(width: 8),
+                _buildCloseButton(),
               ],
             ),
             const SizedBox(height: 20),
@@ -909,7 +923,6 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           ],
         ),
       ),
-    ),
     );
   }
 

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/food_entry.dart';
 
@@ -130,6 +129,20 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     _fatController.dispose();
     _nameFocusNode.dispose();
     super.dispose();
+  }
+
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
   }
 
   void _onUnitChanged(String newUnit) {
@@ -263,8 +276,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardDoneBar(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20,
@@ -291,14 +303,21 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            const Text(
-              '🍽️ Add Food',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    '🍽️ Add Food',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -634,7 +653,6 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           ],
         ),
       ),
-    ),
     );
   }
 

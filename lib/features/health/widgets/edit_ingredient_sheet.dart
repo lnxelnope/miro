@@ -6,7 +6,6 @@ import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -124,10 +123,23 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
     super.dispose();
   }
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return KeyboardDoneBar(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20, right: 20, top: 20,
@@ -152,13 +164,20 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            AppIcons.iconWithLabel(
-              widget.isCreateMode ? Icons.add_circle : AppIcons.edit,
-              widget.isCreateMode ? 'Add Ingredient' : 'Edit Ingredient',
-              iconColor: widget.isCreateMode ? const Color(0xFF10B981) : AppIcons.editColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: AppIcons.iconWithLabel(
+                    widget.isCreateMode ? Icons.add_circle : AppIcons.edit,
+                    widget.isCreateMode ? 'Add Ingredient' : 'Edit Ingredient',
+                    iconColor: widget.isCreateMode ? const Color(0xFF10B981) : AppIcons.editColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -333,7 +352,6 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
           ],
         ),
       ),
-    ),
     );
   }
 

@@ -9,7 +9,6 @@ import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
 import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
-import 'package:miro_hybrid/core/widgets/keyboard_done_bar.dart';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -195,8 +194,7 @@ class _ImageAnalysisPreviewScreenState
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: KeyboardDoneBar(
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -401,7 +399,6 @@ class _ImageAnalysisPreviewScreenState
             ),
           ],
         ),
-      ),
       ),
     ),
     );

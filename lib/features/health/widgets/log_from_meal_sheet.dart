@@ -4,7 +4,6 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../models/my_meal.dart';
 import '../models/food_entry.dart';
 import '../providers/my_meal_provider.dart';
@@ -68,10 +67,23 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   double get _carbs => _baseCarbPerUnit * _servingSize;
   double get _fat => _baseFatPerUnit * _servingSize;
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return KeyboardDoneBar(
-      child: Container(
+    return Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
         left: 20,
@@ -99,13 +111,20 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            AppIcons.iconWithLabel(
-              AppIcons.meal,
-              widget.meal.name,
-              iconColor: AppIcons.mealColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: AppIcons.iconWithLabel(
+                    AppIcons.meal,
+                    widget.meal.name,
+                    iconColor: AppIcons.mealColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             Text(
               'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
@@ -258,7 +277,6 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
           ],
         ),
       ),
-    ),
     );
   }
 

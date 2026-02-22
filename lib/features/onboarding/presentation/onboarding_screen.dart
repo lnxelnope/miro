@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_icons.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../core/constants/cuisine_options.dart';
 import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
@@ -243,8 +242,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ============ Page 2: Cuisine + Calorie Goal ============
 
   Widget _buildPage2CuisineAndGoal() {
-    return KeyboardDoneBar(
-      child: SingleChildScrollView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -352,7 +350,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           _buildNextButton(),
         ],
       ),
-    ),
     );
   }
 

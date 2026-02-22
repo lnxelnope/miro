@@ -4,7 +4,6 @@ import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/keyboard_done_bar.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
@@ -192,13 +191,26 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     super.dispose();
   }
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
-    return KeyboardDoneBar(
-      child: Container(
+    return Container(
       margin: AppSpacing.paddingLg,
       padding: EdgeInsets.only(
         left: AppSpacing.xl,
@@ -227,12 +239,19 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               ),
             ),
             SizedBox(height: AppSpacing.lg),
-            AppIcons.iconWithLabel(
-              _isEditMode ? AppIcons.edit : AppIcons.meal,
-              _isEditMode ? L10n.of(context)!.editMealTitle : L10n.of(context)!.createNewMealTitle,
-              iconColor: _isEditMode ? AppIcons.editColor : AppIcons.mealColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Expanded(
+                  child: AppIcons.iconWithLabel(
+                    _isEditMode ? AppIcons.edit : AppIcons.meal,
+                    _isEditMode ? L10n.of(context)!.editMealTitle : L10n.of(context)!.createNewMealTitle,
+                    iconColor: _isEditMode ? AppIcons.editColor : AppIcons.mealColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             const SizedBox(height: 20),
 
@@ -402,7 +421,6 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           ],
         ),
       ),
-    ),
     );
   }
 

@@ -1,84 +1,77 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-/// Widget ที่ wrap content และแสดง "Done" bar เหนือ keyboard บน iOS
-/// เมื่อ keyboard ขึ้นมา จะมีแถบ Done ให้กดปิด keyboard ได้
-///
-/// ใช้งาน: ครอบ body ของ Scaffold หรือ Column หลักของ bottom sheet
+/// Global iOS keyboard "Done" bar — ใส่ครั้งเดียวที่ MaterialApp.builder
+/// แสดงแถบ Done ลอยเหนือ keyboard ทุกหน้า ทุก bottom sheet อัตโนมัติ
 ///
 /// ```dart
-/// KeyboardDoneBar(child: myScrollView)
+/// MaterialApp(
+///   builder: (context, child) => IOSKeyboardDoneBar(child: child!),
+/// )
 /// ```
-class KeyboardDoneBar extends StatelessWidget {
+class IOSKeyboardDoneBar extends StatelessWidget {
   final Widget child;
 
-  const KeyboardDoneBar({super.key, required this.child});
+  const IOSKeyboardDoneBar({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
     if (!Platform.isIOS) return child;
 
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isKeyboardVisible = bottomInset > 0;
+
     return Stack(
       children: [
         child,
-        _DoneBarOverlay(),
+        if (isKeyboardVisible)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: bottomInset,
+            child: const _DoneBar(),
+          ),
       ],
     );
   }
 }
 
-class _DoneBarOverlay extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    if (bottom == 0) return const SizedBox.shrink();
-
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: bottom,
-      child: _DoneBar(),
-    );
-  }
-}
-
 class _DoneBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      color: const Color(0xFFD1D3D9),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          CupertinoStyleDoneButton(
-            onTap: () => FocusScope.of(context).unfocus(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// ปุ่ม Done สไตล์ iOS ใช้แยกได้ถ้าต้องการ
-class CupertinoStyleDoneButton extends StatelessWidget {
-  final VoidCallback? onTap;
-
-  const CupertinoStyleDoneButton({super.key, this.onTap});
+  const _DoneBar();
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap ?? () => FocusScope.of(context).unfocus(),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Text(
-          'Done',
-          style: TextStyle(
-            color: Color(0xFF007AFF),
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
+    return Material(
+      elevation: 0,
+      color: Colors.transparent,
+      child: Container(
+        height: 44,
+        decoration: const BoxDecoration(
+          color: Color(0xFFD1D5DB),
+          border: Border(
+            top: BorderSide(color: Color(0xFFBBBFC4), width: 0.5),
           ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Text(
+                  'Done',
+                  style: TextStyle(
+                    color: Color(0xFF007AFF),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
