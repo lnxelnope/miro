@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "Pruebe MiRO",
+  "questBarCollapse": "Contraer",
+  "questBarExpand": "Expandir",
   "claimButtonTitle": "Reclama energía diaria",
   "claimButtonReceived": "¡Recibido +{energy}E!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "¡Hola! ¿Cómo puedo ayudarte hoy? ¡Cuéntame qué comiste!"
+  "greetingFallback": "¡Hola! ¿Cómo puedo ayudarte hoy? ¡Cuéntame qué comiste!",
+  "searchModeLabel": "Modo de búsqueda",
+  "normalFood": "Comida",
+  "normalFoodDesc": "Comida casera regular",
+  "packagedProduct": "Producto",
+  "packagedProductDesc": "Empaquetado con etiqueta nutricional",
+  "foodNameQuantityAndModeImprovesAccuracy": "Proporcionar el nombre del alimento, la cantidad y elegir si es comida o producto mejorará la precisión de la IA."
 }

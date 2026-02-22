@@ -2982,13 +2982,29 @@ class L10nFr extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'Fournir le nom de l\'aliment, la quantité et choisir s\'il s\'agit de nourriture ou de produit améliorera la précision de l\'IA.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => 'Mode de recherche';
+
+  @override
+  String get normalFood => 'Nourriture';
+
+  @override
+  String get normalFoodDesc => 'Nourriture maison régulière';
+
+  @override
+  String get packagedProduct => 'Produit';
+
+  @override
+  String get packagedProductDesc => 'Emballé avec étiquette nutritionnelle';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

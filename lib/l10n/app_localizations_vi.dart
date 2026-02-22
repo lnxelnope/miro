@@ -2954,13 +2954,29 @@ class L10nVi extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'Cung cấp tên thực phẩm, số lượng và chọn đó là thực phẩm hay sản phẩm sẽ cải thiện độ chính xác của AI.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => 'Chế độ tìm kiếm';
+
+  @override
+  String get normalFood => 'Thực phẩm';
+
+  @override
+  String get normalFoodDesc => 'Thức ăn nấu tại nhà thông thường';
+
+  @override
+  String get packagedProduct => 'Sản phẩm';
+
+  @override
+  String get packagedProductDesc => 'Đóng gói với nhãn dinh dưỡng';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

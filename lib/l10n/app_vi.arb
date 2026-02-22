@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "Hãy thử MiRO",
+  "questBarCollapse": "Thu gọn",
+  "questBarExpand": "Mở rộng",
   "claimButtonTitle": "Yêu cầu năng lượng hàng ngày",
   "claimButtonReceived": "Đã nhận được +{energy}E!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "CHÀO! Hôm nay tôi có thể giúp gì cho bạn? Hãy cho tôi biết bạn đã ăn gì!"
+  "greetingFallback": "CHÀO! Hôm nay tôi có thể giúp gì cho bạn? Hãy cho tôi biết bạn đã ăn gì!",
+  "searchModeLabel": "Chế độ tìm kiếm",
+  "normalFood": "Thực phẩm",
+  "normalFoodDesc": "Thức ăn nấu tại nhà thông thường",
+  "packagedProduct": "Sản phẩm",
+  "packagedProductDesc": "Đóng gói với nhãn dinh dưỡng",
+  "foodNameQuantityAndModeImprovesAccuracy": "Cung cấp tên thực phẩm, số lượng và chọn đó là thực phẩm hay sản phẩm sẽ cải thiện độ chính xác của AI."
 }

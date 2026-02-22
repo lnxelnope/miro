@@ -2965,13 +2965,29 @@ class L10nPt extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'Fornecer o nome do alimento, a quantidade e escolher se é comida ou produto melhorará a precisão da IA.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => 'Modo de pesquisa';
+
+  @override
+  String get normalFood => 'Comida';
+
+  @override
+  String get normalFoodDesc => 'Comida caseira regular';
+
+  @override
+  String get packagedProduct => 'Produto';
+
+  @override
+  String get packagedProductDesc => 'Embalado com etiqueta nutricional';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

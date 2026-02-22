@@ -426,7 +426,7 @@ class _ImageAnalysisPreviewScreenState
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            l10n.foodNameImprovesAccuracy,
+                            l10n.foodNameQuantityAndModeImprovesAccuracy,
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 11,
@@ -435,6 +435,21 @@ class _ImageAnalysisPreviewScreenState
                         ),
                       ],
                     ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ===== Search Mode (visible by default) =====
+                  Text(
+                    l10n.searchModeLabel,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  SearchModeSelector(
+                    selectedMode: _searchMode,
+                    onChanged: (mode) => setState(() => _searchMode = mode),
                   ),
 
                   const SizedBox(height: 8),
@@ -552,37 +567,6 @@ class _ImageAnalysisPreviewScreenState
                           selectedColor: AppColors.health.withValues(alpha: 0.2),
                         );
                       }).toList(),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Search Mode (compact)
-                    Theme(
-                      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                      child: ExpansionTile(
-                        tilePadding: const EdgeInsets.symmetric(horizontal: 8),
-                        dense: true,
-                        title: Row(
-                          children: [
-                            Icon(Icons.tune_rounded, size: 14, color: Colors.grey[500]),
-                            const SizedBox(width: 6),
-                            Text(
-                              '${l10n.searchModeLabel}: ${_searchMode.name}',
-                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: SearchModeSelector(
-                              selectedMode: _searchMode,
-                              onChanged: (mode) => setState(() => _searchMode = mode),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                      ),
                     ),
                   ],
 

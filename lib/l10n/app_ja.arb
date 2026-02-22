@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "MiRO を試してください",
+  "questBarCollapse": "折りたたむ",
+  "questBarExpand": "展開する",
   "claimButtonTitle": "毎日のエネルギーを摂取する",
   "claimButtonReceived": "+{energy}E を受け取りました!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "こんにちは！今日はどのようにお手伝いできますか?何を食べたか教えてください！"
+  "greetingFallback": "こんにちは！今日はどのようにお手伝いできますか?何を食べたか教えてください！",
+  "searchModeLabel": "検索モード",
+  "normalFood": "食べ物",
+  "normalFoodDesc": "通常の家庭料理",
+  "packagedProduct": "製品",
+  "packagedProductDesc": "栄養表示ラベル付きパッケージ",
+  "foodNameQuantityAndModeImprovesAccuracy": "食品名、数量を入力し、食べ物か製品かを選択すると、AIの精度が向上します。"
 }

@@ -2845,13 +2845,29 @@ class L10nZh extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      '提供食物名称、数量并选择是食物还是产品将提高AI准确性。';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => '搜索模式';
+
+  @override
+  String get normalFood => '食物';
+
+  @override
+  String get normalFoodDesc => '普通家常食物';
+
+  @override
+  String get packagedProduct => '产品';
+
+  @override
+  String get packagedProductDesc => '带营养标签的包装产品';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

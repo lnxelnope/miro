@@ -2870,13 +2870,29 @@ class L10nKo extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      '음식 이름, 수량을 제공하고 음식인지 제품인지 선택하면 AI 정확도가 향상됩니다.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => '검색 모드';
+
+  @override
+  String get normalFood => '음식';
+
+  @override
+  String get normalFoodDesc => '일반 가정식';
+
+  @override
+  String get packagedProduct => '제품';
+
+  @override
+  String get packagedProductDesc => '영양 표시가 있는 포장 제품';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

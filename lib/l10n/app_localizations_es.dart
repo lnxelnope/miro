@@ -2967,13 +2967,29 @@ class L10nEs extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'Proporcionar el nombre del alimento, la cantidad y elegir si es comida o producto mejorará la precisión de la IA.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => 'Modo de búsqueda';
+
+  @override
+  String get normalFood => 'Comida';
+
+  @override
+  String get normalFoodDesc => 'Comida casera regular';
+
+  @override
+  String get packagedProduct => 'Producto';
+
+  @override
+  String get packagedProductDesc => 'Empaquetado con etiqueta nutricional';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

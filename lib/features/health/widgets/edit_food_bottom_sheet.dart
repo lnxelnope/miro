@@ -144,6 +144,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   // Prevent double-tap on AI lookup
   final Set<int> _lookingUpIndices = {};
   late MealType _selectedMealType;
+  late FoodSearchMode _searchMode;
 
   late double _baseCalories, _baseProtein, _baseCarbs, _baseFat;
   late bool _hasBaseValues;
@@ -181,6 +182,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
     _servingUnit = entry.servingUnit;
     _selectedMealType = entry.mealType;
+    _searchMode = entry.searchMode;
     _timestamp = entry.timestamp;
 
     // Base values
@@ -1097,6 +1099,37 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
             _buildEditableIngredientsSection(),
             SizedBox(height: AppSpacing.lg),
 
+            // ===== Food/Product Mode Selection =====
+            const Divider(),
+            SizedBox(height: AppSpacing.sm),
+            Text(
+              L10n.of(context)!.searchModeLabel,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSearchModeOption(
+                    mode: FoodSearchMode.normal,
+                    icon: Icons.restaurant,
+                    label: L10n.of(context)!.normalFood,
+                    description: L10n.of(context)!.normalFoodDesc,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildSearchModeOption(
+                    mode: FoodSearchMode.product,
+                    icon: Icons.inventory_2,
+                    label: L10n.of(context)!.packagedProduct,
+                    description: L10n.of(context)!.packagedProductDesc,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppSpacing.lg),
+
             // Meal type
             Text(L10n.of(context)!.mealTypeTitle,
                 style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -1793,6 +1826,63 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   // ========================================================
   // Date / Time Picker
   // ========================================================
+  Widget _buildSearchModeOption({
+    required FoodSearchMode mode,
+    required IconData icon,
+    required String label,
+    required String description,
+  }) {
+    final isSelected = _searchMode == mode;
+    return GestureDetector(
+      onTap: () => setState(() => _searchMode = mode),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : AppColors.surfaceVariant,
+          borderRadius: AppRadius.md,
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.divider,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ========================================================
+  // Date / Time Picker
+  // ========================================================
   Widget _buildDateTimePicker() {
     final dateStr = DateFormat('d MMM yyyy', 'th').format(_timestamp);
     final timeStr = DateFormat('HH:mm').format(_timestamp);
@@ -1904,6 +1994,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
     widget.entry.foodName = _nameController.text.trim();
     widget.entry.mealType = _selectedMealType;
+    widget.entry.searchMode = _searchMode;
     widget.entry.servingSize = servingSize;
     widget.entry.servingUnit = _servingUnit;
     widget.entry.calories = calories;

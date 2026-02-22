@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "Coba MiRO",
+  "questBarCollapse": "Ciutkan",
+  "questBarExpand": "Perluas",
   "claimButtonTitle": "Klaim Energi Harian",
   "claimButtonReceived": "Diterima +{energy}E!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "Hai! Apa yang bisa saya bantu hari ini? Katakan padaku apa yang kamu makan!"
+  "greetingFallback": "Hai! Apa yang bisa saya bantu hari ini? Katakan padaku apa yang kamu makan!",
+  "searchModeLabel": "Mode Pencarian",
+  "normalFood": "Makanan",
+  "normalFoodDesc": "Makanan rumahan biasa",
+  "packagedProduct": "Produk",
+  "packagedProductDesc": "Kemasan dengan label nutrisi",
+  "foodNameQuantityAndModeImprovesAccuracy": "Memberikan nama makanan, jumlah, dan memilih apakah itu makanan atau produk akan meningkatkan akurasi AI."
 }

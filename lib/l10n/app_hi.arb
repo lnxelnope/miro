@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "प्रयास करें MiRO",
+  "questBarCollapse": "संक्षिप्त करें",
+  "questBarExpand": "विस्तार करें",
   "claimButtonTitle": "दैनिक ऊर्जा का दावा करें",
   "claimButtonReceived": "+{energy}E प्राप्त हुआ!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "नमस्ते! आज मैं आपकी मदद करने में कैसे सक्षम हूं? मुझे बताओ तुमने क्या खाया!"
+  "greetingFallback": "नमस्ते! आज मैं आपकी मदद करने में कैसे सक्षम हूं? मुझे बताओ तुमने क्या खाया!",
+  "searchModeLabel": "खोज मोड",
+  "normalFood": "भोजन",
+  "normalFoodDesc": "नियमित घर का पका हुआ खाना",
+  "packagedProduct": "उत्पाद",
+  "packagedProductDesc": "पोषण लेबल के साथ पैकेज्ड",
+  "foodNameQuantityAndModeImprovesAccuracy": "भोजन का नाम, मात्रा प्रदान करना और यह चुनना कि यह भोजन है या उत्पाद, AI की सटीकता में सुधार करेगा।"
 }

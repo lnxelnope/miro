@@ -370,49 +370,58 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             )),
 
         // ────── Quest Bar (Streak + Expandable) ──────
-        Container(
-          margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [AppColors.surfaceDark, AppColors.surfaceDark]
-                  : [
-                      AppColors.primary.withValues(alpha: 0.04),
-                      AppColors.primary.withValues(alpha: 0.08),
-                    ],
-            ),
-            borderRadius: AppRadius.md,
-            border: Border.all(
-              color: isDark
-                  ? AppColors.primary.withValues(alpha: 0.3)
-                  : AppColors.primary.withValues(alpha: 0.2),
-              width: 1.2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
-                blurRadius: 12,
-                offset: const Offset(0, 3),
+        GestureDetector(
+          onHorizontalDragEnd: _isExpanded
+              ? (details) {
+                  if ((details.primaryVelocity ?? 0) < -200) {
+                    setState(() => _isExpanded = false);
+                  }
+                }
+              : null,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [AppColors.surfaceDark, AppColors.surfaceDark]
+                    : [
+                        AppColors.primary.withValues(alpha: 0.04),
+                        AppColors.primary.withValues(alpha: 0.08),
+                      ],
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildStreakRow(context, gamification, isDark),
-
-              // ────── Collapsible Section ──────
-              if (_isExpanded) ...[
-                Divider(
-                  height: 1,
-                  color: isDark ? AppColors.dividerDark : AppColors.divider,
+              borderRadius: AppRadius.md,
+              border: Border.all(
+                color: isDark
+                    ? AppColors.primary.withValues(alpha: 0.3)
+                    : AppColors.primary.withValues(alpha: 0.2),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 3),
                 ),
-                _buildExpandedContent(context, isDark),
               ],
-            ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildStreakRow(context, gamification, isDark),
+
+                // ────── Collapsible Section ──────
+                if (_isExpanded) ...[
+                  Divider(
+                    height: 1,
+                    color: isDark ? AppColors.dividerDark : AppColors.divider,
+                  ),
+                  _buildExpandedContent(context, isDark),
+                ],
+              ],
+            ),
           ),
         ),
       ],

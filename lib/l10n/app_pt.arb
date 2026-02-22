@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "Tente MiRO",
+  "questBarCollapse": "Recolher",
+  "questBarExpand": "Expandir",
   "claimButtonTitle": "Reivindique energia diária",
   "claimButtonReceived": "Recebido +{energy}E!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "Oi! Como posso ajudá-lo hoje? Me conta o que você comeu!"
+  "greetingFallback": "Oi! Como posso ajudá-lo hoje? Me conta o que você comeu!",
+  "searchModeLabel": "Modo de pesquisa",
+  "normalFood": "Comida",
+  "normalFoodDesc": "Comida caseira regular",
+  "packagedProduct": "Produto",
+  "packagedProductDesc": "Embalado com etiqueta nutricional",
+  "foodNameQuantityAndModeImprovesAccuracy": "Fornecer o nome do alimento, a quantidade e escolher se é comida ou produto melhorará a precisão da IA."
 }

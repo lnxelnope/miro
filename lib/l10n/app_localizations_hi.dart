@@ -2939,13 +2939,29 @@ class L10nHi extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'भोजन का नाम, मात्रा प्रदान करना और यह चुनना कि यह भोजन है या उत्पाद, AI की सटीकता में सुधार करेगा।';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
   String get showDetails => 'Show details';
 
   @override
-  String get searchModeLabel => 'Search Mode';
+  String get searchModeLabel => 'खोज मोड';
+
+  @override
+  String get normalFood => 'भोजन';
+
+  @override
+  String get normalFoodDesc => 'नियमित घर का पका हुआ खाना';
+
+  @override
+  String get packagedProduct => 'उत्पाद';
+
+  @override
+  String get packagedProductDesc => 'पोषण लेबल के साथ पैकेज्ड';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

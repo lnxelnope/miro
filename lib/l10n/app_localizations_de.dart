@@ -2983,6 +2983,10 @@ class L10nDe extends L10n {
       'Providing food name & quantity improves AI accuracy.';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'Providing food name, quantity, and choosing if it\'s food or product will improve AI accuracy.';
+
+  @override
   String get hideDetails => 'Hide details';
 
   @override
@@ -2990,6 +2994,18 @@ class L10nDe extends L10n {
 
   @override
   String get searchModeLabel => 'Search Mode';
+
+  @override
+  String get normalFood => 'Food';
+
+  @override
+  String get normalFoodDesc => 'Regular home-cooked food';
+
+  @override
+  String get packagedProduct => 'Product';
+
+  @override
+  String get packagedProductDesc => 'Packaged with nutrition label';
 
   @override
   String get saveAndAnalyzeButton => 'Save & Analyze';

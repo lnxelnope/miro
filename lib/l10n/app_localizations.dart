@@ -5144,6 +5144,12 @@ abstract class L10n {
   /// **'Providing food name & quantity improves AI accuracy.'**
   String get foodNameImprovesAccuracy;
 
+  /// No description provided for @foodNameQuantityAndModeImprovesAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Providing food name, quantity, and choosing if it\'s food or product will improve AI accuracy.'**
+  String get foodNameQuantityAndModeImprovesAccuracy;
+
   /// No description provided for @hideDetails.
   ///
   /// In en, this message translates to:
@@ -5161,6 +5167,30 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Search Mode'**
   String get searchModeLabel;
+
+  /// No description provided for @normalFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get normalFood;
+
+  /// No description provided for @normalFoodDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular home-cooked food'**
+  String get normalFoodDesc;
+
+  /// No description provided for @packagedProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get packagedProduct;
+
+  /// No description provided for @packagedProductDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaged with nutrition label'**
+  String get packagedProductDesc;
 
   /// No description provided for @saveAndAnalyzeButton.
   ///

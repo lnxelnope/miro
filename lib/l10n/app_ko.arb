@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "MiRO을 시도해 보세요",
+  "questBarCollapse": "접기",
+  "questBarExpand": "펼치기",
   "claimButtonTitle": "일일 에너지 청구",
   "claimButtonReceived": "+{energy}E을(를) 받았습니다!",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "안녕! 오늘은 무엇을 도와드릴까요? 무엇을 먹었는지 말해 보세요!"
+  "greetingFallback": "안녕! 오늘은 무엇을 도와드릴까요? 무엇을 먹었는지 말해 보세요!",
+  "searchModeLabel": "검색 모드",
+  "normalFood": "음식",
+  "normalFoodDesc": "일반 가정식",
+  "packagedProduct": "제품",
+  "packagedProductDesc": "영양 표시가 있는 포장 제품",
+  "foodNameQuantityAndModeImprovesAccuracy": "음식 이름, 수량을 제공하고 음식인지 제품인지 선택하면 AI 정확도가 향상됩니다."
 }

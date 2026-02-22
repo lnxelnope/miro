@@ -2878,6 +2878,10 @@ class L10nTh extends L10n {
       'ระบุชื่ออาหารและปริมาณช่วยให้ AI วิเคราะห์แม่นยำขึ้น';
 
   @override
+  String get foodNameQuantityAndModeImprovesAccuracy =>
+      'ระบุชื่ออาหาร ปริมาณ และเลือกว่าเป็นอาหารหรือสินค้าจะช่วยให้ AI วิเคราะห์แม่นยำขึ้น';
+
+  @override
   String get hideDetails => 'ซ่อนรายละเอียด';
 
   @override
@@ -2885,6 +2889,18 @@ class L10nTh extends L10n {
 
   @override
   String get searchModeLabel => 'โหมดค้นหา';
+
+  @override
+  String get normalFood => 'อาหาร';
+
+  @override
+  String get normalFoodDesc => 'อาหารทั่วไปทำกินเอง';
+
+  @override
+  String get packagedProduct => 'สินค้า';
+
+  @override
+  String get packagedProductDesc => 'สินค้าที่มีฉลากโภชนาการ';
 
   @override
   String get saveAndAnalyzeButton => 'บันทึก & วิเคราะห์';

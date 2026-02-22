@@ -102,6 +102,18 @@ class _MealSectionState extends ConsumerState<MealSection> {
     }
   }
 
+  int _getIngredientCount(FoodEntry entry) {
+    if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
+      return 0;
+    }
+    try {
+      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
+      return decoded.length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   void _exitSelectMode() {
     setState(() {
       _isSelectMode = false;
@@ -1204,6 +1216,22 @@ class _MealSectionState extends ConsumerState<MealSection> {
                           color: isDark ? Colors.white38 : AppColors.textSecondary,
                         ),
                       ),
+                      if (_getIngredientCount(food) > 0) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.restaurant_menu,
+                          size: 12,
+                          color: isDark ? Colors.white38 : AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${_getIngredientCount(food)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white38 : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

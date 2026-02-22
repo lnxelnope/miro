@@ -1732,7 +1732,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     try {
-      final file = await BackupService.createBackup();
+      final backupFiles = await BackupService.createBackup();
 
       // ปิด Loading
       if (context.mounted) Navigator.pop(context);
@@ -1744,7 +1744,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (choice == null || !context.mounted) return;
 
       if (choice == 'save' || choice == 'share') {
-        await BackupService.shareBackupFile(file);
+        await BackupService.shareBackupFiles(
+          backupFiles.dataFile,
+          backupFiles.energyFile,
+        );
       }
     } catch (e) {
       // ปิด Loading (ถ้ายังอยู่)

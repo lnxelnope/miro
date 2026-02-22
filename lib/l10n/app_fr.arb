@@ -1533,6 +1533,8 @@
     }
   },
   "questBarShareSubject": "Essayez MiRO",
+  "questBarCollapse": "Réduire",
+  "questBarExpand": "Développer",
   "claimButtonTitle": "Réclamez de l'énergie quotidienne",
   "claimButtonReceived": "Reçu +{energy}E !",
   "@claimButtonReceived": {
@@ -1778,5 +1780,11 @@
       }
     }
   },
-  "greetingFallback": "Salut! Comment puis-je vous aider aujourd'hui ? Dis-moi ce que tu as mangé !"
+  "greetingFallback": "Salut! Comment puis-je vous aider aujourd'hui ? Dis-moi ce que tu as mangé !",
+  "searchModeLabel": "Mode de recherche",
+  "normalFood": "Nourriture",
+  "normalFoodDesc": "Nourriture maison régulière",
+  "packagedProduct": "Produit",
+  "packagedProductDesc": "Emballé avec étiquette nutritionnelle",
+  "foodNameQuantityAndModeImprovesAccuracy": "Fournir le nom de l'aliment, la quantité et choisir s'il s'agit de nourriture ou de produit améliorera la précision de l'IA."
 }
