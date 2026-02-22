@@ -1071,6 +1071,7 @@ Return ONLY valid JSON.''';
               servingSize: servingSize,
               servingUnit: servingUnit,
               ingredientNames: ingredientNames,
+              userIngredients: userIngredients,
             )
           : _getTextAnalysisPrompt(
               foodName,
@@ -1752,7 +1753,7 @@ IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant di
   /// Prompt for analyzing PACKAGED PRODUCTS by name (text only)
   /// Uses known nutrition facts data for well-known products
   static String _getProductTextAnalysisPrompt(String productName,
-      {double? servingSize, String? servingUnit, List<String>? ingredientNames}) {
+      {double? servingSize, String? servingUnit, List<String>? ingredientNames, List<Map<String, dynamic>>? userIngredients}) {
     final hasUserServing = servingSize != null &&
         servingSize > 0 &&
         servingUnit != null &&
@@ -1763,9 +1764,27 @@ IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant di
     final servingSizeJson = hasUserServing ? servingSize : 1;
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 
-    final ingredientsHint = ingredientNames != null && ingredientNames.isNotEmpty
-        ? '\nUSER SPECIFIED INGREDIENTS: ${ingredientNames.join(", ")}\nUse these ingredients as the base for your analysis.\n'
-        : '';
+    // Build user ingredients hint (with amounts if available, names-only as fallback)
+    String ingredientsHint = '';
+    final hasUserIngredients = userIngredients != null && userIngredients.isNotEmpty;
+    if (hasUserIngredients) {
+      final lines = userIngredients.map((ing) {
+        final name = ing['name'] ?? 'Unknown';
+        final rawAmount = ing['amount'];
+        final hasAmount = rawAmount is num && rawAmount > 0;
+        final amount = hasAmount ? rawAmount : 1;
+        final unit = hasAmount ? (ing['unit'] ?? 'g') : 'serving';
+        return '  - $name: $amount $unit';
+      }).join('\n');
+      ingredientsHint = '''
+
+USER SPECIFIED INGREDIENTS WITH EXACT AMOUNTS:
+$lines
+Use these ingredients to verify the product composition and calculate accurate nutrition.
+''';
+    } else if (ingredientNames != null && ingredientNames.isNotEmpty) {
+      ingredientsHint = '\nUSER SPECIFIED INGREDIENTS: ${ingredientNames.join(", ")}\nUse these ingredients as the base for your analysis.\n';
+    }
 
     return '''You are a Packaged Food & Nutrition Label Expert.
 
