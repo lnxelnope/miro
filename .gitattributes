@@ -1,0 +1,3 @@
+# Keep our version for these files during merge
+pubspec.yaml merge=ours
+ios/Podfile.lock merge=ours
