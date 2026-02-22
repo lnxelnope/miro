@@ -26,7 +26,7 @@ dependencies:
   google_mlkit_text_recognition: any
   google_mlkit_image_labeling: any
   google_mlkit_barcode_scanning: any
-  mobile_scanner: ^5.2.3
+  mobile_scanner: ^7.0.0
   photo_manager: ^3.6.0
   
   # Networking (Gemini API only)
@@ -74,9 +74,6 @@ dependencies:
   
   # V3: Confetti animation
   confetti: ^0.7.0
-  
-  # V3: Google Mobile Ads (Rewarded Ads)
-  google_mobile_ads: ^5.0.0
   
   # Firebase Analytics
   firebase_analytics: ^11.3.3

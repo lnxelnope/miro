@@ -110,6 +110,21 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     }
   }
 
+  Widget _buildCloseButton(bool isDark) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20,
+          color: isDark ? Colors.white70 : Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
@@ -132,16 +147,27 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 12, bottom: 4),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
+          // Drag handle + close
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4, right: 12),
+            child: Row(
+              children: [
+                const Spacer(),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _buildCloseButton(isDark),
+                  ),
+                ),
+              ],
             ),
           ),
 

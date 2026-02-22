@@ -10,20 +10,14 @@ import '../../features/subscription/providers/subscription_provider.dart';
 class SubscriptionAwareGeminiService {
   final EnergyService _energyService;
   final GeminiService _geminiService;
-  final WidgetRef _ref;
+  final Ref _ref;
 
   SubscriptionAwareGeminiService({
     required EnergyService energyService,
-    required WidgetRef ref,
+    required Ref ref,
   })  : _energyService = energyService,
         _geminiService = GeminiService(energyService),
         _ref = ref;
-
-  /// Check if AI analysis should consume energy
-  bool _shouldConsumeEnergy() {
-    final hasSubscription = _ref.read(hasActiveSubscriptionProvider);
-    return !hasSubscription; // Don't consume if subscribed
-  }
 
   /// Check if user can use AI (has energy OR has subscription)
   Future<bool> canUseAI() async {

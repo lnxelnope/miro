@@ -68,6 +68,20 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   double get _carbs => _baseCarbPerUnit * _servingSize;
   double get _fat => _baseFatPerUnit * _servingSize;
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -98,13 +112,20 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            AppIcons.iconWithLabel(
-              AppIcons.meal,
-              widget.meal.name,
-              iconColor: AppIcons.mealColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: AppIcons.iconWithLabel(
+                    AppIcons.meal,
+                    widget.meal.name,
+                    iconColor: AppIcons.mealColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             Text(
               'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
@@ -252,7 +273,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                 child: const Text('Save',
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
+                ),
             ),
           ],
         ),

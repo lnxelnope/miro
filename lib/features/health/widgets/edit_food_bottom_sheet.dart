@@ -755,6 +755,20 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     });
   }
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
@@ -799,12 +813,19 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
             ),
             SizedBox(height: AppSpacing.lg),
 
-            AppIcons.iconWithLabel(
-              AppIcons.edit,
-              L10n.of(context)!.editFoodTitle,
-              iconColor: AppIcons.editColor,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Expanded(
+                  child: AppIcons.iconWithLabel(
+                    AppIcons.edit,
+                    L10n.of(context)!.editFoodTitle,
+                    iconColor: AppIcons.editColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
             ),
             SizedBox(height: AppSpacing.xl),
 

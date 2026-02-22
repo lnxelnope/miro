@@ -668,6 +668,20 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     });
   }
 
+  Widget _buildCloseButton() {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
@@ -732,6 +746,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                         color: AppColors.success),
                   ),
                 ),
+                const SizedBox(width: 8),
+                _buildCloseButton(),
               ],
             ),
             const SizedBox(height: 20),

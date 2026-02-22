@@ -11,6 +11,9 @@ import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
+import 'package:miro_hybrid/features/energy/widgets/weekly_challenge_card.dart';
+import 'package:miro_hybrid/features/energy/widgets/milestone_progress_card.dart';
+import 'package:miro_hybrid/features/energy/widgets/streak_display.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 
@@ -219,6 +222,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               const SizedBox(height: 20),
             ],
 
+            // ────── Streak & Tier Display (only for non-subscribers) ──────
+            if (!isSubscriber) ...[
+              const StreakDisplay(),
+              const SizedBox(height: 20),
+            ],
+
             // ────── Energy Pass Subscription CTA (only for non-subscribers) ──────
             if (!isSubscriber) ...[
               _buildSubscriptionCTA(),
@@ -227,6 +236,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
             // ────── Active Offers from Backend ──────
             ..._buildOfferCards(),
+
+            // ────── Weekly Challenges & Milestones ──────
+            const WeeklyChallengeCard(),
+            const SizedBox(height: 12),
+            const MilestoneProgressCard(),
+            const SizedBox(height: 20),
 
             // ────── Regular Packages ──────
             AppIcons.iconWithLabel(
