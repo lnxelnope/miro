@@ -111,6 +111,9 @@ export const syncBalance = onRequest(
       // Fetch active seasonal quests
       const seasonalQuests = await getActiveSeasonalQuests(deviceId);
 
+      const lastCheckInDate = userData.lastCheckInDate || null;
+      const canClaimToday = lastCheckInDate !== todayStr;
+
       res.status(200).json({
         success: true,
         balance: serverBalance,
@@ -118,6 +121,8 @@ export const syncBalance = onRequest(
         tier: userData.tier ?? "none",
         currentStreak: userData.currentStreak ?? 0,
         longestStreak: userData.longestStreak ?? 0,
+        lastCheckInDate,
+        canClaimToday,
         challenges: userData.challenges ?? {},
         milestones: userData.milestones ?? {},
         totalSpent: userData.totalSpent ?? 0,

@@ -14,6 +14,7 @@ import {checkReferralProgress} from "./referral/checkReferralProgress";
 import {checkWelcomeOfferPromotion} from "./energy/promotions";
 import {checkAndProcessMilestone} from "./energy/milestoneV2";
 import {evaluateOffers} from "./energy/offerEngine";
+import {processCheckIn, CheckInResult} from "./energy/dailyCheckIn";
 
 // Define secrets
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
@@ -1246,6 +1247,18 @@ export const analyzeFood = onRequest(
         return;
       }
 
+      // ────── 4.3.1. Auto check-in: first energy use of the day = streak ──────
+      let checkInResult: CheckInResult | null = null;
+      try {
+        checkInResult = await processCheckIn(deviceId, timezoneOffset);
+        if (!checkInResult.alreadyCheckedIn) {
+          console.log(`🔥 [analyzeFood] Auto check-in: streak=${checkInResult.currentStreak}, tier=${checkInResult.tier}, +${checkInResult.dailyEnergy}E`);
+          newBalance = checkInResult.newBalance ?? newBalance;
+        }
+      } catch (e) {
+        console.error("[analyzeFood] Auto check-in error:", e);
+      }
+
       // ────── 4.4. Call Gemini API ──────
       const geminiRequest: GeminiRequest = {
         type: type as GeminiRequest["type"],
@@ -1361,6 +1374,19 @@ export const analyzeFood = onRequest(
           wasFreeAi: false,
           ...(milestoneResult?.milestoneReached ? {milestone: {label: milestoneResult.milestoneLabel, reward: milestoneResult.reward, nextMilestone: milestoneResult.nextMilestone}} : {}),
           ...(offerResult ? {newOffer: {type: offerResult.type}} : {}),
+          streak: {
+            current: checkInResult?.currentStreak ?? updatedData.currentStreak ?? 0,
+            longest: checkInResult?.longestStreak ?? updatedData.longestStreak ?? 0,
+            tier: checkInResult?.tier ?? updatedData.tier ?? "none",
+            tierUpgraded: checkInResult?.tierUpgraded ?? false,
+            tierDemoted: checkInResult?.tierDemoted ?? false,
+            previousTier: checkInResult?.previousTier,
+            newTier: checkInResult?.tierUpgraded ? checkInResult?.newTier : undefined,
+            energyBonus: checkInResult?.dailyEnergy ?? 0,
+            showWelcomeBackOffer: checkInResult?.showWelcomeBackOffer ?? false,
+            tierRewardEnergy: checkInResult?.tierRewardEnergy ?? 0,
+            promotionBonusRate: checkInResult?.promotionBonusRate ?? 0,
+          },
           challenges: {daily: challengesData.daily || {}, weekly: challengesData.weekly || {}},
           milestones: milestonesData,
           totalSpent: milestoneResult?.newTotalSpent ?? 0,
@@ -1448,6 +1474,19 @@ export const analyzeFood = onRequest(
         energyUsed: baseCost, energyCost: baseCost, wasFreeAi: false,
         ...(milestoneResult2?.milestoneReached ? {milestone: {label: milestoneResult2.milestoneLabel, reward: milestoneResult2.reward, nextMilestone: milestoneResult2.nextMilestone}} : {}),
         ...(offerResult2 ? {newOffer: {type: offerResult2.type}} : {}),
+        streak: {
+          current: checkInResult?.currentStreak ?? updatedData2.currentStreak ?? 0,
+          longest: checkInResult?.longestStreak ?? updatedData2.longestStreak ?? 0,
+          tier: checkInResult?.tier ?? updatedData2.tier ?? "none",
+          tierUpgraded: checkInResult?.tierUpgraded ?? false,
+          tierDemoted: checkInResult?.tierDemoted ?? false,
+          previousTier: checkInResult?.previousTier,
+          newTier: checkInResult?.tierUpgraded ? checkInResult?.newTier : undefined,
+          energyBonus: checkInResult?.dailyEnergy ?? 0,
+          showWelcomeBackOffer: checkInResult?.showWelcomeBackOffer ?? false,
+          tierRewardEnergy: checkInResult?.tierRewardEnergy ?? 0,
+          promotionBonusRate: checkInResult?.promotionBonusRate ?? 0,
+        },
         challenges: {daily: challengesData2.daily || {}, weekly: challengesData2.weekly || {}},
         milestones: milestonesData2,
         totalSpent: milestoneResult2?.newTotalSpent ?? 0,

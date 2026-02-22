@@ -137,6 +137,10 @@ export const registerUser = onRequest(
         // Fetch active seasonal quests
         const seasonalQuests = await getActiveSeasonalQuests(deviceId);
 
+        const lastCheckInDate = data.lastCheckInDate || null;
+        const todayCheck = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
+        const canClaimToday = lastCheckInDate !== todayCheck;
+
         res.status(200).json({
           success: true,
           isNew: false,
@@ -145,6 +149,8 @@ export const registerUser = onRequest(
           tier: data.tier ?? "none",
           currentStreak: data.currentStreak ?? 0,
           longestStreak: data.longestStreak ?? 0,
+          lastCheckInDate,
+          canClaimToday,
           challenges: data.challenges ?? {},
           milestones: data.milestones ?? {},
           totalSpent: data.totalSpent ?? 0,
