@@ -4824,6 +4824,12 @@ abstract class L10n {
   /// **'Ingredients'**
   String get ingredientsTitle;
 
+  /// Subtitle hint on collapsed ingredients section
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to view and edit'**
+  String get ingredientsTapToExpand;
+
   /// No description provided for @pleaseEnterFoodNameShort.
   ///
   /// In en, this message translates to:

@@ -2691,6 +2691,9 @@ class L10nTh extends L10n {
   String get ingredientsTitle => 'Ingredients';
 
   @override
+  String get ingredientsTapToExpand => 'แตะเพื่อดูและแก้ไข';
+
+  @override
   String get pleaseEnterFoodNameShort => 'Please enter food name';
 
   @override

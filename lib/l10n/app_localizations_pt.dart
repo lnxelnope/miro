@@ -2778,6 +2778,9 @@ class L10nPt extends L10n {
   String get ingredientsTitle => 'Ingredients';
 
   @override
+  String get ingredientsTapToExpand => 'Tap to view and edit';
+
+  @override
   String get pleaseEnterFoodNameShort => 'Please enter food name';
 
   @override

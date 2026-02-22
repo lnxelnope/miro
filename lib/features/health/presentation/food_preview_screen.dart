@@ -385,37 +385,51 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               }).toList(),
             ),
 
-            // แสดงวัตถุดิบ (ถ้ามี)
+            // แสดงวัตถุดิบ (ถ้ามี) — ย่อ default, กดเปิดเพื่อดู/แก้ไข
             if (_hasAnalyzed &&
                 _analysisResult?.ingredientsDetail != null &&
                 _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
               const SizedBox(height: 24),
-              AppIcons.iconWithLabel(
-                Icons.restaurant_menu_rounded,
-                L10n.of(context)!.ingredientsTitle,
-                iconColor: AppIcons.mealColor,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children:
-                      _analysisResult!.ingredientsDetail!.map((ingredient) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
-                        style: const TextStyle(fontSize: 13),
+              Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                    childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    initiallyExpanded: false,
+                    leading: const Icon(
+                      Icons.restaurant_menu_rounded,
+                      color: AppIcons.mealColor,
+                      size: 20,
+                    ),
+                    title: Text(
+                      '${L10n.of(context)!.ingredientsTitle} (${_analysisResult!.ingredientsDetail!.length})',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    subtitle: Text(
+                      L10n.of(context)!.ingredientsTapToExpand,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    children: _analysisResult!.ingredientsDetail!.map((ingredient) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ],

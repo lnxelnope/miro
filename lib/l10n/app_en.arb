@@ -1870,6 +1870,10 @@
   "fatLabel": "Fat",
   "mealTypeTitle": "Meal Type",
   "ingredientsTitle": "Ingredients",
+  "ingredientsTapToExpand": "Tap to view and edit",
+  "@ingredientsTapToExpand": {
+    "description": "Subtitle hint on collapsed ingredients section"
+  },
   "pleaseEnterFoodNameShort": "Please enter food name",
   "foodPendingAnalysis": "Food (pending analysis)",
   "unableToAnalyzeImage": "Unable to analyze image",
