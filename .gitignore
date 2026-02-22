@@ -46,8 +46,16 @@ app.*.map.json
 
 # Environment variables
 .env
+.env.save
 .env.local
 .env.*.local
+
+# Local docs (not for repo)
+*.md.local
+*.bak
+
+# Cursor IDE
+.cursor/
 
 # Android signing keys
 android/key.properties

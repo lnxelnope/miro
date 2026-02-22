@@ -1732,8 +1732,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
 
     try {
-      // สร้าง Backup (2 ไฟล์)
-      final files = await BackupService.createBackup();
+      final file = await BackupService.createBackup();
 
       // ปิด Loading
       if (context.mounted) Navigator.pop(context);
@@ -1744,21 +1743,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       if (choice == null || !context.mounted) return;
 
-      if (choice == 'save') {
-        // บันทึก data file ก่อน
-        final savedDataPath = await BackupService.saveToUserDirectory(files.dataFile);
-        if (savedDataPath != null && context.mounted) {
-          // บันทึก energy file ต่อ
-          final savedEnergyPath = await BackupService.saveToUserDirectory(files.energyFile);
-          if (context.mounted) {
-            _showBackupSavedDialog(context, savedDataPath, energyPath: savedEnergyPath);
-          }
-        }
-      } else if (choice == 'share') {
-        await BackupService.shareBackupFiles(files.dataFile, files.energyFile);
-        if (context.mounted) {
-          _showBackupSuccessDialog(context, files.dataFile, energyFile: files.energyFile);
-        }
+      if (choice == 'save' || choice == 'share') {
+        await BackupService.shareBackupFile(file);
       }
     } catch (e) {
       // ปิด Loading (ถ้ายังอยู่)
@@ -1868,84 +1854,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  /// Success Dialog หลังบันทึกลงเครื่อง
-  void _showBackupSavedDialog(BuildContext context, String savedPath, {String? energyPath}) {
-    final dataFileName = savedPath.split('/').last.split('\\').last;
-    final energyFileName = energyPath?.split('/').last.split('\\').last;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
-            const SizedBox(width: 12),
-            Expanded(child: Text(L10n.of(context)!.backupSavedSuccess)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              L10n.of(context)!.backupSavedSuccessContent,
-              style: const TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: AppSpacing.lg),
-            _buildFileInfoBox(Icons.restaurant_menu, dataFileName, AppColors.info),
-            if (energyFileName != null) ...[
-              const SizedBox(height: 8),
-              _buildFileInfoBox(Icons.bolt, energyFileName, AppColors.warning),
-            ],
-            SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-                const SizedBox(width: 4),
-                Text(
-                  L10n.of(context)!.important,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              L10n.of(context)!.backupImportantNotes,
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFileInfoBox(IconData icon, String fileName, Color color) {
-    return Container(
-      padding: AppSpacing.paddingMd,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: AppRadius.sm,
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              fileName,
-              style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// Handle Restore Flow
   Future<void> _handleRestore(BuildContext context) async {
@@ -2026,70 +1934,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // DIALOGS
   // ============================================================
 
-  /// Success Dialog หลัง Backup (Share)
-  void _showBackupSuccessDialog(BuildContext context, File file, {File? energyFile}) {
-    final dataFileName = file.path.split('/').last.split('\\').last;
-    final energyFileName = energyFile?.path.split('/').last.split('\\').last;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: AppColors.success, size: 28),
-            const SizedBox(width: 12),
-            Text(L10n.of(context)!.backupCreated),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              L10n.of(context)!.backupCreatedContent,
-              style: const TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: AppSpacing.lg),
-            _buildFileInfoBox(Icons.restaurant_menu, dataFileName, AppColors.info),
-            if (energyFileName != null) ...[
-              const SizedBox(height: 8),
-              _buildFileInfoBox(Icons.bolt, energyFileName, AppColors.warning),
-            ],
-            SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-                SizedBox(width: AppSpacing.xs),
-                Text(
-                  L10n.of(context)!.important,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-              ],
-            ),
-            SizedBox(height: AppSpacing.sm),
-            Text(
-              L10n.of(context)!.backupImportantNotes,
-              style: const TextStyle(fontSize: 14, height: 1.5),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Confirmation Dialog ก่อน Restore
   Future<bool?> _showRestoreConfirmationDialog(
     BuildContext context,
     BackupInfo info,
   ) {
-    final isDataOnly = info.fileType == BackupFileType.data;
-    final isEnergyOnly = info.fileType == BackupFileType.energy;
-
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -2099,92 +1948,72 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // File type badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isDataOnly
-                      ? AppColors.info.withValues(alpha: 0.1)
-                      : isEnergyOnly
-                          ? AppColors.warning.withValues(alpha: 0.1)
-                          : AppColors.premium.withValues(alpha: 0.1),
+                  color: AppColors.premium.withValues(alpha: 0.1),
                   borderRadius: AppRadius.sm,
                 ),
-                child: Text(
-                  isDataOnly
-                      ? '📋 Data Backup'
-                      : isEnergyOnly
-                          ? '⚡ Energy Backup'
-                          : '📦 Full Backup',
+                child: const Text(
+                  '📦 Full Backup',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDataOnly
-                        ? AppColors.info
-                        : isEnergyOnly
-                            ? AppColors.warning
-                            : AppColors.premium,
+                    color: AppColors.premium,
                   ),
                 ),
               ),
               SizedBox(height: AppSpacing.md),
 
-              // Preview Info
               _buildInfoRow(
                   '${L10n.of(context)!.backupFrom} ', info.deviceInfo ?? L10n.of(context)!.error),
               _buildInfoRow(
                 '${L10n.of(context)!.date} ',
                 _formatDate(info.createdAt),
               ),
-              if (!isDataOnly)
-                _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
-              if (!isEnergyOnly) ...[
-                _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
-                _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
-              ],
+              _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
+              _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
+              _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
 
-              if (!isDataOnly) ...[
-                SizedBox(height: AppSpacing.lg),
-                const Divider(),
-                SizedBox(height: AppSpacing.lg),
+              SizedBox(height: AppSpacing.lg),
+              const Divider(),
+              SizedBox(height: AppSpacing.lg),
 
-                // Warning สำหรับ energy/legacy file เท่านั้น
-                Container(
-                  padding: AppSpacing.paddingMd,
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.1),
-                    border: Border.all(color: AppColors.warning),
-                    borderRadius: AppRadius.sm,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.warning, color: AppColors.warning, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            L10n.of(context)!.restoreImportant,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          color: AppColors.warning,
-                        ),
-                      ),
-                    ],
-                  ),
+              Container(
+                padding: AppSpacing.paddingMd,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.1),
+                  border: Border.all(color: AppColors.warning),
+                  borderRadius: AppRadius.sm,
                 ),
-              ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.warning, color: AppColors.warning, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          L10n.of(context)!.restoreImportant,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -2210,9 +2039,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     BuildContext context,
     BackupRestoreResult result,
   ) {
-    final isDataOnly = result.fileType == BackupFileType.data;
-    final isEnergyOnly = result.fileType == BackupFileType.energy;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -2232,13 +2058,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               style: const TextStyle(fontSize: 16),
             ),
             SizedBox(height: AppSpacing.lg),
-            if (!isDataOnly)
-              _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
-            if (!isEnergyOnly) ...[
-              _buildInfoRow(
-                  '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
-              _buildInfoRow('${L10n.of(context)!.myMealsImported} ', '${result.myMealsImported}'),
-            ],
+            _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
+            _buildInfoRow(
+                '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
+            _buildInfoRow('${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
             SizedBox(height: AppSpacing.lg),
             Row(
               children: [
