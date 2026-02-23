@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.18+43] - 2026-02-24
+
+### ✨ New Features
+- Default app mode to Basic for new users (first-time after onboarding)
+
+### 🐛 Bug Fixes
+- Fixed: Calories (kcal) not updating when changing quantity in Basic mode food detail sheet
+  - Added real-time nutrition recalculation based on baseCalories × quantity
+  - Values now update immediately when user edits quantity field
+
+---
+
 ## [1.1.14+39] - 2026-02-21
 
 ### 🔧 Build Update

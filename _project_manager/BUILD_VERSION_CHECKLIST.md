@@ -4,7 +4,26 @@
 
 ---
 
-## ✅ Build 42 (v1.1.17) - Status: READY FOR PRODUCTION
+## ✅ Build 43 (v1.1.18) - Status: READY FOR PRODUCTION
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.18+43`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 43`, `versionName = "1.1.18"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.18'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning
+- [x] **CHANGELOG.md** - อัปเดตแล้ว
+
+### ✨ Changes in this version:
+- Default app mode to Basic for new users (first-time after onboarding)
+- Fix: Recalculate calories when quantity changes in Basic mode detail sheet
+
+---
+
+## ✅ Build 42 (v1.1.17) - Status: RELEASED
 
 ### 📋 Checklist
 
@@ -186,7 +205,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.17+42
+version: 1.1.18+43
 ```
 **Format:** `versionName+versionCode`
 - `1.1.14` = Version name (แสดงให้ user เห็น)
@@ -195,8 +214,8 @@ version: 1.1.17+42
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 42
-    versionName = "1.1.17"
+    versionCode = 43
+    versionName = "1.1.18"
 }
 ```
 **Format:**
@@ -208,7 +227,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.1.17',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.1.18',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -266,7 +285,7 @@ grep "subtitle: '1\\.1\\." lib/features/profile/presentation/profile_screen.dart
 ### ขั้นที่ 5: Git Commit
 ```bash
 git add pubspec.yaml android/app/build.gradle.kts CHANGELOG.md
-git commit -m "build: v1.1.17+42 - description here"
+git commit -m "build: v1.1.18+43 - description here"
 ```
 
 ---
@@ -275,7 +294,8 @@ git commit -m "build: v1.1.17+42 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 42 | 1.1.17 | 2026-02-23 | ✅ Current |
+| 43 | 1.1.18 | 2026-02-24 | ✅ Current |
+| 42 | 1.1.17 | 2026-02-23 | ✅ Released |
 | 41 | 1.1.16 | 2026-02-23 | ✅ Released |
 | 40 | 1.1.15 | 2026-02-23 | ✅ Released |
 | 39 | 1.1.14 | 2026-02-21 | ✅ Released |
@@ -304,14 +324,14 @@ git commit -m "build: v1.1.17+42 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.17+42`
-- `build.gradle.kts`: `versionCode = 42`, `versionName = "1.1.17"`
+- `pubspec.yaml`: `1.1.18+43`
+- `build.gradle.kts`: `versionCode = 43`, `versionName = "1.1.18"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~248
 ```dart
-subtitle: '1.1.17',  // แก้ให้ตรงกับ versionName
+subtitle: '1.1.18',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 

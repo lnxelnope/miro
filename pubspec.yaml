@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "Miro: The Offline Hybrid Life Assistant"
 publish_to: 'none'
-version: 1.1.17+42
+version: 1.1.18+43
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
