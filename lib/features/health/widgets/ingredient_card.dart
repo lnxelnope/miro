@@ -9,8 +9,8 @@ class IngredientCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onUse;
-  final int depth; // NEW — ระดับความลึก (0 = root, 1 = sub, 2 = sub-sub)
-  final String? detail; // NEW — คำอธิบายเพิ่มเติม (nullable)
+  final int depth;
+  final String? detail;
 
   const IngredientCard({
     super.key,
@@ -18,29 +18,28 @@ class IngredientCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onUse,
-    this.depth = 0, // NEW — default = root level
-    this.detail, // NEW — optional detail
+    this.depth = 0,
+    this.detail,
   });
 
   @override
   Widget build(BuildContext context) {
     final isAi = ingredient.source == 'gemini';
-    // คำนวณ indent สำหรับ sub-ingredients
     final double indent = depth * 16.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: EdgeInsets.only(left: indent),
       child: Row(
         children: [
-          // เส้นแนวตั้งสำหรับ sub-ingredients
           if (depth > 0)
             Container(
               width: 2,
-              height: 50, // adjust ตามขนาด card
+              height: 50,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-              color: AppColors.divider,
-              borderRadius: BorderRadius.circular(1),
+                color: isDark ? AppColors.dividerDark : AppColors.divider,
+                borderRadius: BorderRadius.circular(1),
               ),
             ),
 
@@ -49,12 +48,12 @@ class IngredientCard extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
                 color: depth == 0
-                    ? Colors.white
-                    : AppColors.surfaceVariant,
+                    ? (isDark ? AppColors.surfaceDark : Colors.white)
+                    : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                 borderRadius: AppRadius.lg,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Colors.black.withValues(alpha: isDark ? 0.08 : 0.04),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -69,7 +68,6 @@ class IngredientCard extends StatelessWidget {
                     padding: const EdgeInsets.all(14),
                     child: Row(
                       children: [
-                        // Icon
                         Container(
                           width: 42,
                           height: 42,
@@ -83,7 +81,6 @@ class IngredientCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
 
-                        // Info
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,22 +91,19 @@ class IngredientCard extends StatelessWidget {
                                     child: Text(
                                       ingredient.name,
                                       style: TextStyle(
-                                        fontSize: depth == 0
-                                            ? 15
-                                            : 14, // ROOT: 15, SUB: 14
+                                        fontSize: depth == 0 ? 14 : 13,
                                         fontWeight: depth == 0
-                                            ? FontWeight.w600 // ROOT: bold
-                                            : FontWeight.w400, // SUB: normal
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                         letterSpacing: -0.2,
                                         color: depth == 0
-                                            ? Colors.black87 // ROOT: เข้ม
-                                            : Colors.black54, // SUB: จาง
+                                            ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
+                                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                                       ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  // Source badge
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 6, vertical: 2),
@@ -117,7 +111,7 @@ class IngredientCard extends StatelessWidget {
                                       color: isAi
                                           ? AppColors.premium
                                               .withValues(alpha: 0.1)
-                                          : AppColors.surfaceVariant,
+                                          : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                                       borderRadius: AppRadius.sm,
                                     ),
                                     child: Row(
@@ -147,17 +141,16 @@ class IngredientCard extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 4),
-                              // Nutrition compact row
                               Row(
                                 children: [
                                   Text(
                                     '${ingredient.baseAmount.toStringAsFixed(0)} ${ingredient.baseUnit}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                     ),
                                   ),
-                                  _dot(),
+                                  _dot(isDark),
                                   Text(
                                     '${ingredient.caloriesPerBase.toInt()} kcal',
                                     style: const TextStyle(
@@ -166,31 +159,31 @@ class IngredientCard extends StatelessWidget {
                                       color: AppColors.error,
                                     ),
                                   ),
-                                  _dot(),
+                                  _dot(isDark),
                                   Text(
                                     'P:${ingredient.proteinPerBase.toInt()}  C:${ingredient.carbsPerBase.toInt()}  F:${ingredient.fatPerBase.toInt()}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 11,
-                                        color: AppColors.textSecondary),
+                                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${ingredient.usageCount} uses',
-                                style: const TextStyle(
-                                    fontSize: 10, color: AppColors.textTertiary),
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: isDark ? Colors.white38 : AppColors.textTertiary),
                               ),
 
-                              // NEW — แสดง detail text ถ้ามี
                               if (detail != null && detail!.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     detail!,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                       fontStyle: FontStyle.italic,
                                     ),
                                     maxLines: 2,
@@ -202,10 +195,8 @@ class IngredientCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
 
-                        // Actions
                         Column(
                           children: [
-                            // Log button
                             GestureDetector(
                               onTap: onUse,
                               child: Container(
@@ -220,12 +211,12 @@ class IngredientCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // More menu
                             PopupMenuButton<String>(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: const Icon(Icons.more_horiz_rounded,
-                                  size: 18, color: AppColors.textTertiary),
+                              icon: Icon(Icons.more_horiz_rounded,
+                                  size: 18,
+                                  color: isDark ? Colors.white38 : AppColors.textTertiary),
                               shape: RoundedRectangleBorder(
                                   borderRadius: AppRadius.lg),
                               onSelected: (value) {
@@ -239,15 +230,15 @@ class IngredientCard extends StatelessWidget {
                                 }
                               },
                               itemBuilder: (_) => [
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'edit',
                                   child: Row(
                                     children: [
                                       Icon(Icons.edit_outlined,
                                           size: 18,
-                                          color: AppColors.textSecondary),
-                                      SizedBox(width: 10),
-                                      Text('Edit'),
+                                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                                      const SizedBox(width: 10),
+                                      const Text('Edit'),
                                     ],
                                   ),
                                 ),
@@ -280,14 +271,14 @@ class IngredientCard extends StatelessWidget {
     );
   }
 
-  Widget _dot() {
+  Widget _dot(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5),
       child: Container(
         width: 3,
         height: 3,
-        decoration: const BoxDecoration(
-          color: AppColors.textTertiary,
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white24 : AppColors.textTertiary,
           shape: BoxShape.circle,
         ),
       ),

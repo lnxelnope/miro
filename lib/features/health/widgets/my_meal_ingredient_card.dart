@@ -18,7 +18,7 @@ class MyMealIngredientCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // คำนวณ indent สำหรับ sub-ingredients
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final double indent = depth * 16.0;
 
     return Padding(
@@ -32,7 +32,7 @@ class MyMealIngredientCard extends StatelessWidget {
               height: 50, // adjust ตามขนาด card
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-              color: AppColors.divider,
+              color: isDark ? AppColors.dividerDark : AppColors.divider,
               borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -43,12 +43,13 @@ class MyMealIngredientCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: depth == 0
-                    ? Colors.white
-                    : AppColors.surfaceVariant,
+                    ? (isDark ? AppColors.surfaceDark : Colors.white)
+                    : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                 borderRadius: AppRadius.md,
                 border: Border.all(
-                  color:
-                      depth == 0 ? AppColors.divider : AppColors.surfaceVariant,
+                  color: depth == 0
+                      ? (isDark ? AppColors.dividerDark : AppColors.divider)
+                      : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                 ),
               ),
               child: Column(
@@ -75,8 +76,8 @@ class MyMealIngredientCard extends StatelessWidget {
                                 ? FontWeight.w600 // ROOT: bold
                                 : FontWeight.w400, // SUB: normal
                             color: depth == 0
-                                ? Colors.black87 // ROOT: เข้ม
-                                : Colors.black54, // SUB: จาง
+                                ? (isDark ? AppColors.textPrimaryDark : Colors.black87)
+                                : (isDark ? AppColors.textSecondaryDark : Colors.black54),
                           ),
                         ),
                       ),
@@ -84,7 +85,7 @@ class MyMealIngredientCard extends StatelessWidget {
                         '${ingredient.calories.toInt()} kcal',
                         style: TextStyle(
                           fontSize: depth == 0 ? 14 : 12,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -97,17 +98,17 @@ class MyMealIngredientCard extends StatelessWidget {
                         const SizedBox(width: 16), // indent สำหรับ sub
                       Text(
                         '${ingredient.amount.toStringAsFixed(0)} ${ingredient.unit}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'P:${ingredient.protein.toInt()}  C:${ingredient.carbs.toInt()}  F:${ingredient.fat.toInt()}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -124,9 +125,9 @@ class MyMealIngredientCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               detail!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textSecondary,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                 fontStyle: FontStyle.italic,
                               ),
                               maxLines: 2,

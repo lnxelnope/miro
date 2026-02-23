@@ -8,6 +8,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(L10n.of(context)!.privacyPolicyTitle),
@@ -17,7 +18,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionInformationWeCollect,
@@ -33,6 +34,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Energy balance (for AI features)',
                 '• Energy purchase history (via Google Play)',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionDataStorage,
@@ -42,6 +44,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• No cloud backup of food data (if you uninstall the app, local food data will be lost)',
                 '• You can delete all local data anytime (Profile → Clear Data)',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionDataTransmission,
@@ -74,6 +77,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 'Purpose: Improve app performance, understand feature usage, and optimize user experience.',
                 'Your Choice: You can opt-in or opt-out of analytics at any time in Profile → Settings.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionRequiredPermissions,
@@ -84,6 +88,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Photos/Gallery: Select food photos from gallery',
                 '• Internet: Send photos to AI API and sync Energy balance',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionSecurity,
@@ -95,6 +100,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Payment processing handled securely by Google Play Billing',
                 '• All data transmission encrypted via HTTPS',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionUserRights,
@@ -104,6 +110,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Energy balance persists across app reinstalls (linked to your device)',
                 '• Request Energy data deletion by contacting support',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionDataRetention,
@@ -112,18 +119,21 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Energy balance: Retained indefinitely (linked to your device)',
                 '• Purchase records: Retained as required by Google Play and tax regulations',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionChildrenPrivacy,
               [
                 'MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionChangesToPolicy,
               [
                 'We may update this Privacy Policy from time to time. Changes will be communicated through app updates. Continued use of the app after changes constitutes acceptance of the updated policy.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionDataCollectionConsent,
@@ -150,6 +160,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• All app features remain fully functional',
                 '• Energy system, AI analysis, and purchases work normally',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionPDPACompliance,
@@ -182,19 +193,21 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Energy balance: Retained until you request deletion',
                 '• Analytics data: Retained according to Firebase\'s retention policy (opt-out anytime)',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionContactUs,
               [
                 'If you have questions about this Privacy Policy, please contact us through Google Play Store.',
               ],
+              isDark,
             ),
             const SizedBox(height: 16),
             Text(
               L10n.of(context)!.privacyPolicyEffectiveDate,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -205,23 +218,24 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           L10n.of(context)!.privacyPolicyTitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         Text(
           L10n.of(context)!.privacyPolicySubtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
-            color: AppColors.textSecondary,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -253,7 +267,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, List<String> content) {
+  Widget _buildSection(String title, List<String> content, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,9 +288,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               line,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),

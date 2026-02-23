@@ -5,7 +5,6 @@ import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
-import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
@@ -296,7 +295,6 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     if (newServing <= 0) return;
 
     if (_hasIngredients) {
-      final ratio = newServing / (_baseCalories > 0 ? 1 : 1);
       for (final ing in _ingredients) {
         ing.recalculate();
       }
@@ -818,6 +816,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
     return Container(
@@ -845,7 +844,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary,
+                  color: isDark ? Colors.white24 : AppColors.textTertiary,
                   borderRadius: BorderRadius.circular(2), // Keep 2px for small indicator
                 ),
               ),
@@ -896,7 +895,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 L10n.of(context)!.notFoundInDatabase,
-                style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               ),
             ],
             const SizedBox(height: AppSpacing.lg),
@@ -933,8 +932,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       if (value == null || value.isEmpty) return;
                       _onUnitChanged(value);
                     },
-                    style: const TextStyle(color: Colors.black),
-                    dropdownColor: Colors.white,
+                    style: TextStyle(color: isDark ? AppColors.textPrimaryDark : Colors.black),
+                    dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   ),
                 ),
               ],
@@ -942,7 +941,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             const SizedBox(height: AppSpacing.lg),
 
             // ===== Search Mode Toggle =====
-            _buildSearchModeToggle(),
+            _buildSearchModeToggle(isDark),
             const SizedBox(height: AppSpacing.lg),
 
             // ===== Nutrition & Ingredients (visible only after selecting from MyMeal) =====
@@ -1017,7 +1016,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                               filled: true,
                               fillColor: (_filledFromDb || _hasIngredients)
                                   ? AppColors.warning.withValues(alpha: 0.1)
-                                  : Colors.white,
+                                  : (isDark ? AppColors.surfaceVariantDark : Colors.white),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: AppRadius.md,
                                 borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
@@ -1060,7 +1059,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                     filled: true,
                                     fillColor: (_filledFromDb || _hasIngredients)
                                         ? AppColors.info.withValues(alpha: 0.06)
-                                        : Colors.white,
+                                        : (isDark ? AppColors.surfaceVariantDark : Colors.white),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: AppRadius.md,
                                       borderSide: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
@@ -1102,7 +1101,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                     filled: true,
                                     fillColor: (_filledFromDb || _hasIngredients)
                                         ? AppColors.warning.withValues(alpha: 0.06)
-                                        : Colors.white,
+                                        : (isDark ? AppColors.surfaceVariantDark : Colors.white),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: AppRadius.md,
                                       borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4)),
@@ -1144,7 +1143,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                     filled: true,
                                     fillColor: (_filledFromDb || _hasIngredients)
                                         ? AppColors.error.withValues(alpha: 0.06)
-                                        : Colors.white,
+                                        : (isDark ? AppColors.surfaceVariantDark : Colors.white),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: AppRadius.md,
                                       borderSide: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
@@ -1165,8 +1164,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           const SizedBox(height: AppSpacing.sm),
                           Text(
                             '📊 ${L10n.of(context)!.calculatedFromIngredients}',
-                            style: const TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary),
+                            style: TextStyle(
+                                fontSize: 11, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                           ),
                         ],
                       ],
@@ -1176,7 +1175,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
               const SizedBox(height: AppSpacing.lg),
 
-              _buildIngredientsSection(),
+              _buildIngredientsSection(isDark),
               const SizedBox(height: AppSpacing.lg),
             ],
 
@@ -1197,7 +1196,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   // Search Mode Toggle (Food / Product)
   // ============================================================
-  Widget _buildSearchModeToggle() {
+  Widget _buildSearchModeToggle(bool isDark) {
     return Row(
       children: FoodSearchMode.values.map((mode) {
         final isSelected = _searchMode == mode;
@@ -1218,7 +1217,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withValues(alpha: 0.1)
-                      : AppColors.background,
+                      : (isDark ? AppColors.backgroundDark : AppColors.background),
                   borderRadius: AppRadius.md,
                   border: Border.all(
                     color: isSelected
@@ -1274,6 +1273,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           onSelected: _onSuggestionSelected,
           optionsMaxHeight: 250,
           optionsViewBuilder: (context, onSelected, options) {
+            final isDarkLocal = Theme.of(context).brightness == Brightness.dark;
             return Align(
               alignment: Alignment.topLeft,
               child: Material(
@@ -1312,9 +1312,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         subtitle: Text(
                           '${option.calories.round()} kcal · '
                           '${option.source == 'meal' ? L10n.of(context)!.suggestionSourceMyMeal : option.source == 'ingredient' ? L10n.of(context)!.suggestionSourceIngredient : L10n.of(context)!.suggestionSourceDatabase}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary),
+                              color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
                         ),
                         onTap: () => onSelected(option),
                       );
@@ -1380,7 +1380,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   // Ingredients Section
   // ============================================================
-  Widget _buildIngredientsSection() {
+  Widget _buildIngredientsSection(bool isDark) {
     return Container(
       padding: AppSpacing.paddingMd,
       decoration: BoxDecoration(
@@ -1436,15 +1436,15 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               padding: AppSpacing.paddingSm,
               child: Text(L10n.of(context)!.noIngredientsAddHint,
                   style:
-                      const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                      TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
             )
           else
             ...List.generate(
-                _ingredients.length, (i) => _buildIngredientRow(i)),
+                _ingredients.length, (i) => _buildIngredientRow(i, isDark)),
           const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
           Text(
             L10n.of(context)!.editIngredientsHint,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
           ),
         ],
       ),
@@ -1454,14 +1454,14 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   // Ingredient Row
   // ============================================================
-  Widget _buildIngredientRow(int index) {
+  Widget _buildIngredientRow(int index, bool isDark) {
     final row = _ingredients[index];
     return Container(
       key: row.key,
       margin: const EdgeInsets.only(bottom: AppSpacing.md), // 10 -> 12 closest
       padding: const EdgeInsets.all(AppSpacing.md), // 10 -> 12 closest
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.surfaceVariantDark : Colors.white,
         borderRadius: AppRadius.md, // 10 -> 12 (closest)
         border: Border.all(
             color: row.isFromDb ? AppColors.success.withValues(alpha: 0.3) : AppColors.divider),
@@ -1508,6 +1508,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     _recalculateFromIngredients();
                   },
                   optionsViewBuilder: (context, onSelected, options) {
+                    final isDarkLocal = Theme.of(context).brightness == Brightness.dark;
                     return Align(
                       alignment: Alignment.topLeft,
                       child: Material(
@@ -1528,9 +1529,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                     style: const TextStyle(fontSize: 13)),
                                 subtitle: Text(
                                   '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 11,
-                                      color: AppColors.textSecondary),
+                                      color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
                                 ),
                                 onTap: () => onSelected(ing),
                               );
@@ -1556,7 +1557,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         isDense: true,
                         hintText: L10n.of(context)!.ingredientNameHint,
                         hintStyle:
-                            const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                            TextStyle(fontSize: 12, color: isDark ? Colors.white38 : AppColors.textTertiary),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 8),
                         border: OutlineInputBorder(
@@ -1570,8 +1571,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           borderSide: const BorderSide(
                               color: AppColors.health, width: 1.5),
                         ),
-                        suffixIcon: const Icon(Icons.search,
-                            size: 16, color: AppColors.textSecondary),
+                        suffixIcon: Icon(Icons.search,
+                            size: 16, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       ),
                     );
                   },
@@ -1629,7 +1630,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: L10n.of(context)!.amountHint,
-                    hintStyle: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                    hintStyle: TextStyle(fontSize: 11, color: isDark ? Colors.white38 : AppColors.textTertiary),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
@@ -1648,8 +1649,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   initialValue: UnitConverter.ensureValid(row.unit),
                   isDense: true,
                   isExpanded: true,
-                  style: const TextStyle(fontSize: 12, color: Colors.black87),
-                  dropdownColor: Colors.white,
+                  style: TextStyle(fontSize: 12, color: isDark ? AppColors.textPrimaryDark : Colors.black87),
+                  dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding:
@@ -1680,8 +1681,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   ),
                   Text(
                     'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -1705,7 +1706,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             const SizedBox(height: 8),
             const Divider(height: 1),
             const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
-            _buildSubIngredientsSection(row),
+            _buildSubIngredientsSection(row, isDark),
           ],
         ],
       ),
@@ -1715,7 +1716,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   // Sub-Ingredients Section
   // ============================================================
-  Widget _buildSubIngredientsSection(_EditableIngredient parentRow) {
+  Widget _buildSubIngredientsSection(_EditableIngredient parentRow, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(left: AppSpacing.md),
       child: Column(
@@ -1723,15 +1724,15 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         children: [
           Row(
             children: [
-              const Icon(Icons.subdirectory_arrow_right,
-                  size: 14, color: AppColors.textSecondary),
+              Icon(Icons.subdirectory_arrow_right,
+                  size: 14, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 L10n.of(context)!.subIngredients(parentRow.subIngredients.length),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
               ),
               const Spacer(),
@@ -1771,7 +1772,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           ...parentRow.subIngredients.asMap().entries.map((entry) {
             final subIdx = entry.key;
             final sub = entry.value;
-            return _buildSubIngredientRow(parentRow, sub, subIdx);
+            return _buildSubIngredientRow(parentRow, sub, subIdx, isDark);
           }),
         ],
       ),
@@ -1779,7 +1780,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   }
 
   Widget _buildSubIngredientRow(
-      _EditableIngredient parentRow, _EditableIngredient sub, int subIdx) {
+      _EditableIngredient parentRow, _EditableIngredient sub, int subIdx, bool isDark) {
     return Container(
       key: sub.key is ValueKey
           ? sub.key
@@ -1787,7 +1788,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       margin: const EdgeInsets.only(bottom: AppSpacing.sm, left: AppSpacing.xs), // 6 -> 8 closest
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: isDark ? AppColors.backgroundDark : AppColors.background,
                       borderRadius: AppRadius.sm,
         border: Border.all(color: AppColors.divider),
       ),
@@ -1800,8 +1801,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 width: 3,
                 height: 3,
                 margin: const EdgeInsets.only(right: AppSpacing.sm), // 6 -> 8 closest
-                decoration: const BoxDecoration(
-                  color: AppColors.textTertiary,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : AppColors.textTertiary,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -1843,6 +1844,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     });
                   },
                   optionsViewBuilder: (context, onSelected, options) {
+                    final isDarkLocal = Theme.of(context).brightness == Brightness.dark;
                     return Align(
                       alignment: Alignment.topLeft,
                       child: Material(
@@ -1863,9 +1865,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                     style: const TextStyle(fontSize: 11)),
                                 subtitle: Text(
                                   '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 9,
-                                      color: AppColors.textSecondary),
+                                      color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
                                 ),
                                 onTap: () => onSelected(ing),
                               );
@@ -1894,8 +1896,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 6),
                           hintText: L10n.of(context)!.subIngredientNameHint,
-                          hintStyle: const TextStyle(
-                              fontSize: 11, color: AppColors.textTertiary),
+                          hintStyle: TextStyle(
+                              fontSize: 11, color: isDark ? Colors.white38 : AppColors.textTertiary),
                           border: OutlineInputBorder(
                             borderRadius: AppRadius.sm, // 6 -> 8 (closest)
                             borderSide:
@@ -1972,7 +1974,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         horizontal: 4, vertical: 5),
                     hintText: L10n.of(context)!.amountShort,
                     hintStyle:
-                        const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                        TextStyle(fontSize: 10, color: isDark ? Colors.white38 : AppColors.textTertiary),
                     border: OutlineInputBorder(
                       borderRadius: AppRadius.sm, // 6 -> 8 closest
                       borderSide: const BorderSide(color: AppColors.divider),
@@ -1987,21 +1989,21 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               const SizedBox(width: AppSpacing.xs),
               Text(sub.unit,
                   style:
-                      const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      TextStyle(fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
               const SizedBox(width: 8),
               Text(
                 '${sub.calories.toInt()} kcal',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
               ),
               const Spacer(),
               Text(
                 'P:${sub.protein.toStringAsFixed(0)} C:${sub.carbs.toStringAsFixed(0)} F:${sub.fat.toStringAsFixed(0)}',
                 style:
-                    const TextStyle(fontSize: 9, color: AppColors.textSecondary),
+                    TextStyle(fontSize: 9, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               ),
             ],
           ),

@@ -1786,5 +1786,19 @@
   "normalFoodDesc": "普通家常食物",
   "packagedProduct": "产品",
   "packagedProductDesc": "带营养标签的包装产品",
-  "foodNameQuantityAndModeImprovesAccuracy": "提供食物名称、数量并选择是食物还是产品将提高AI准确性。"
+  "foodNameQuantityAndModeImprovesAccuracy": "提供食物名称、数量并选择是食物还是产品将提高AI准确性。",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "Long-press to select items"
 }

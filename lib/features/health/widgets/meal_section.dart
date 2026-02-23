@@ -735,7 +735,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           widget.mealType.displayName,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 17,
+                fontSize: 16,
               ),
         ),
         const SizedBox(width: 8),
@@ -1719,7 +1719,7 @@ class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
                   child: Text(
                     widget.food.foodName,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,

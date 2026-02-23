@@ -1786,5 +1786,19 @@
   "normalFoodDesc": "Comida caseira regular",
   "packagedProduct": "Produto",
   "packagedProductDesc": "Embalado com etiqueta nutricional",
-  "foodNameQuantityAndModeImprovesAccuracy": "Fornecer o nome do alimento, a quantidade e escolher se é comida ou produto melhorará a precisão da IA."
+  "foodNameQuantityAndModeImprovesAccuracy": "Fornecer o nome do alimento, a quantidade e escolher se é comida ou produto melhorará a precisão da IA.",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "Long-press to select items"
 }

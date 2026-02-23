@@ -21,6 +21,9 @@ import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../../scanner/widgets/retro_scan_dialog.dart';
 import '../widgets/feature_tour.dart';
 import '../widgets/welcome_message_dialog.dart';
+import '../../../core/providers/app_mode_provider.dart';
+import '../../../core/widgets/mode_toggle.dart';
+import 'basic_mode_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -236,36 +239,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       },
       child: Scaffold(
         appBar: _buildAppBar(),
-        body: IndexedStack(
-          index: stackIndex,
-          children: const [
-            HealthTimelineTab(), // 0: Dashboard
-            HealthMyMealTab(), // 1: My Meals
-            ChatScreen(), // 2 (mapped from 3): Chat
-          ],
-        ),
-        bottomNavigationBar: _buildBottomNav(),
+        body: _buildBody(stackIndex),
+        bottomNavigationBar: _buildBottomNavOrNull(),
       ),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final mode = ref.watch(appModeProvider);
     String title;
-    switch (_currentIndex) {
-      case 0:
-        title = L10n.of(context)!.appBarTodayIntake;
-        break;
-      case 1:
-        title = L10n.of(context)!.appBarMyMeals;
-        break;
-      case 2:
-        title = L10n.of(context)!.appBarCamera;
-        break;
-      case 3:
-        title = L10n.of(context)!.appBarAiChat;
-        break;
-      default:
-        title = L10n.of(context)!.appBarMiro;
+    if (mode == AppMode.basic) {
+      title = L10n.of(context)!.appBarTodayIntake;
+    } else {
+      switch (_currentIndex) {
+        case 0:
+          title = L10n.of(context)!.appBarTodayIntake;
+          break;
+        case 1:
+          title = L10n.of(context)!.appBarMyMeals;
+          break;
+        case 2:
+          title = L10n.of(context)!.appBarCamera;
+          break;
+        case 3:
+          title = L10n.of(context)!.appBarAiChat;
+          break;
+        default:
+          title = L10n.of(context)!.appBarMiro;
+      }
     }
 
     return AppBar(
@@ -279,6 +280,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       leadingWidth: 80,
       actions: [
+        const ModeToggle(),
+        const SizedBox(width: 4),
         // Profile icon button (top-right)
         IconButton(
           icon: const Icon(Icons.person_outline),
@@ -292,6 +295,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildBody(int stackIndex) {
+    final mode = ref.watch(appModeProvider);
+    if (mode == AppMode.basic) {
+      return const BasicModeTab();
+    }
+    return IndexedStack(
+      index: stackIndex,
+      children: const [
+        HealthTimelineTab(), // 0: Dashboard
+        HealthMyMealTab(), // 1: My Meals
+        ChatScreen(), // 2 (mapped from 3): Chat
+      ],
+    );
+  }
+
+  Widget? _buildBottomNavOrNull() {
+    final mode = ref.watch(appModeProvider);
+    if (mode == AppMode.basic) return null; // ซ่อน bottom nav ใน basic mode
+    return _buildBottomNav(); // method เดิม
   }
 
   Widget _buildBottomNav() {

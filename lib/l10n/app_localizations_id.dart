@@ -246,7 +246,7 @@ class L10nId extends L10n {
   String get createMeal => 'Buat Makanan';
 
   @override
-  String get ingredients => 'Bahan-bahan';
+  String get ingredients => 'Ingredients';
 
   @override
   String get searchFood => 'Cari makanan';
@@ -1081,7 +1081,7 @@ class L10nId extends L10n {
   String get createIngredient => 'Buat Bahan';
 
   @override
-  String get saveChanges => 'Simpan Perubahan';
+  String get saveChanges => 'Save Changes';
 
   @override
   String get pleaseEnterIngredientNameFirst =>
@@ -1191,7 +1191,7 @@ class L10nId extends L10n {
   String get moveToDate => 'Pindah ke tanggal';
 
   @override
-  String get analyzeSelected => 'Analisis yang dipilih';
+  String get analyzeSelected => 'Analyze';
 
   @override
   String get deleteTooltip => 'Menghapus';
@@ -3018,4 +3018,38 @@ class L10nId extends L10n {
 
   @override
   String get mealSuggestionsOff => 'Off';
+
+  @override
+  String get basicMode => 'Basic';
+
+  @override
+  String get proMode => 'Pro';
+
+  @override
+  String get sandboxEmpty =>
+      'No food items yet. Chat, snap a photo, or tap + to add!';
+
+  @override
+  String get deleteSelected => 'Delete';
+
+  @override
+  String get useProModeForDetail => 'For detailed editing, switch to Pro mode.';
+
+  @override
+  String get quickAddTitle => 'Quick Add';
+
+  @override
+  String get quickAddHint => 'e.g. Pad Thai, Rice...';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get addToSandbox => 'Add';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get longPressToSelect => 'Long-press to select items';
 }

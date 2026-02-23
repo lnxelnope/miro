@@ -130,12 +130,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   /// Modern toolbar row replacing the old AppBar actions
   Widget _buildChatToolbar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: const Border(
-          bottom: BorderSide(color: AppColors.divider, width: 0.5),
+        border: Border(
+          bottom: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.divider, width: 0.5),
         ),
       ),
       child: Row(
@@ -184,7 +185,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     required VoidCallback onPressed,
     Color? color,
   }) {
-    final btnColor = color ?? AppColors.textSecondary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final btnColor = color ?? (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary);
     return Tooltip(
       message: tooltip,
       child: Material(
@@ -242,9 +244,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Text(
               L10n.of(context)!.tellMeWhatYouAteToday,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15,
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.xxl + AppSpacing.xs),
@@ -264,10 +266,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildExampleCard(IconData icon, Color iconColor, String meal, String food) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.surfaceDark : Colors.white,
             borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
@@ -296,9 +299,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 Text(
                   food,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -376,7 +379,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: Icons.help_outline_rounded,
-        iconColor: AppColors.textSecondary,
+        iconColor: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
         label: L10n.of(context)!.helpLabel,
         action: () => _showLocalAiHelp(),
         energyCost: 0,
@@ -410,7 +413,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         decoration: BoxDecoration(
           color: isPremium
               ? AppColors.primary.withValues(alpha: 0.08)
-              : AppColors.surfaceVariant,
+              : (Theme.of(context).brightness == Brightness.dark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
           borderRadius: AppRadius.xl,
         ),
         child: Row(
@@ -423,7 +426,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isPremium ? AppColors.primary : AppColors.textSecondary,
+                color: isPremium ? AppColors.primary : (Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               ),
             ),
           ],
@@ -689,10 +692,11 @@ ${L10n.of(context)!.localAiHelpNote}
   }
 
   Widget _buildInputField() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.surfaceDark : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -706,17 +710,20 @@ ${L10n.of(context)!.localAiHelpNote}
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
+                color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                 borderRadius: AppRadius.xxl,
               ),
               child: TextField(
                 controller: _controller,
                 maxLines: 3,
                 minLines: 1,
+                style: TextStyle(
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                ),
                 decoration: InputDecoration(
                   hintText: L10n.of(context)!.tellMeWhatYouAte,
-                  hintStyle: const TextStyle(
-                    color: AppColors.textTertiary,
+                  hintStyle: TextStyle(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textTertiary,
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
@@ -736,7 +743,7 @@ ${L10n.of(context)!.localAiHelpNote}
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: _isComposing ? AppColors.primary : AppColors.divider,
+              color: _isComposing ? AppColors.primary : (isDark ? AppColors.surfaceVariantDark : AppColors.divider),
               shape: BoxShape.circle,
             ),
             child: Material(
@@ -747,7 +754,7 @@ ${L10n.of(context)!.localAiHelpNote}
                 child: Center(
                   child: Icon(
                     Icons.arrow_upward_rounded,
-                    color: _isComposing ? Colors.white : AppColors.textTertiary,
+                    color: _isComposing ? Colors.white : (isDark ? AppColors.textSecondaryDark : AppColors.textTertiary),
                     size: 22,
                   ),
                 ),
@@ -771,6 +778,7 @@ ${L10n.of(context)!.localAiHelpNote}
   }
 
   Widget _buildTypingIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Row(
@@ -790,7 +798,7 @@ ${L10n.of(context)!.localAiHelpNote}
           Container(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
+              color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
               borderRadius: AppRadius.lg,
             ),
             child: Row(
@@ -827,6 +835,7 @@ ${L10n.of(context)!.localAiHelpNote}
   }
 
   void _showClearConfirmation() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -848,7 +857,7 @@ ${L10n.of(context)!.localAiHelpNote}
           ],
         ),
         content: Text(L10n.of(context)!.clearHistoryMessage,
-            style: const TextStyle(color: AppColors.textSecondary)),
+            style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
@@ -860,7 +869,7 @@ ${L10n.of(context)!.localAiHelpNote}
                   borderRadius: AppRadius.md),
             ),
             child:
-                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                Text('Cancel', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -892,9 +901,11 @@ ${L10n.of(context)!.localAiHelpNote}
         initialChildSize: 0.7,
         minChildSize: 0.5,
         maxChildSize: 0.95,
-        builder: (sheetCtx, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+        builder: (sheetCtx, scrollController) {
+          final isDark = Theme.of(sheetCtx).brightness == Brightness.dark;
+          return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
           ),
           child: Column(
@@ -905,7 +916,7 @@ ${L10n.of(context)!.localAiHelpNote}
                 height: 4,
                 margin: const EdgeInsets.only(top: 12, bottom: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: isDark ? AppColors.dividerDark : AppColors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -928,10 +939,11 @@ ${L10n.of(context)!.localAiHelpNote}
                     const SizedBox(width: AppSpacing.md),
                     Text(
                       L10n.of(context)!.chatHistoryTitle,
-                      style: const TextStyle(
-                          fontSize: 20,
+                      style: TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3),
+                          letterSpacing: -0.3,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
                     ),
                     const Spacer(),
                     GestureDetector(
@@ -970,7 +982,7 @@ ${L10n.of(context)!.localAiHelpNote}
                 ),
               ),
 
-              const Divider(height: 1, color: AppColors.divider),
+              Divider(height: 1, color: isDark ? AppColors.dividerDark : AppColors.divider),
 
               // Sessions list
               Expanded(
@@ -988,14 +1000,14 @@ ${L10n.of(context)!.localAiHelpNote}
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.chat_bubble_outline,
-                                    size: 56, color: AppColors.textTertiary),
+                                Icon(Icons.chat_bubble_outline,
+                                    size: 56, color: isDark ? Colors.white38 : AppColors.textTertiary),
                                 const SizedBox(height: AppSpacing.lg),
                                 Text(
                                   L10n.of(context)!.noChatHistoryYet,
-                                  style: const TextStyle(
-                                      color: AppColors.textTertiary,
-                                      fontSize: 15),
+                                  style: TextStyle(
+                                      color: isDark ? Colors.white38 : AppColors.textTertiary,
+                                      fontSize: 14),
                                 ),
                               ],
                             ),
@@ -1025,13 +1037,15 @@ ${L10n.of(context)!.localAiHelpNote}
               ),
             ],
           ),
-        ),
+        );
+      },
       ),
     );
   }
 
   Widget _buildSessionTile(
       BuildContext context, ChatSession session, bool isActive) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final dateFormat = DateFormat('dd MMM', 'th');
     final timeFormat = DateFormat('HH:mm');
 
@@ -1040,7 +1054,7 @@ ${L10n.of(context)!.localAiHelpNote}
       decoration: BoxDecoration(
         color: isActive
             ? AppColors.primary.withValues(alpha: 0.06)
-            : AppColors.background,
+            : (isDark ? AppColors.backgroundDark : AppColors.background),
             borderRadius: AppRadius.lg,
         border: isActive
             ? Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1)
@@ -1066,12 +1080,12 @@ ${L10n.of(context)!.localAiHelpNote}
                   decoration: BoxDecoration(
                     color: isActive
                         ? AppColors.primary.withValues(alpha: 0.15)
-                        : AppColors.divider,
+                        : (isDark ? AppColors.dividerDark : AppColors.divider),
                     borderRadius: AppRadius.md,
                   ),
                   child: Icon(
                     Icons.chat_rounded,
-                    color: isActive ? AppColors.primary : AppColors.textSecondary,
+                    color: isActive ? AppColors.primary : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     size: 20,
                   ),
                 ),
@@ -1116,8 +1130,8 @@ ${L10n.of(context)!.localAiHelpNote}
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${dateFormat.format(session.updatedAt)} ${timeFormat.format(session.updatedAt)}',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       ),
                     ],
                   ),
@@ -1125,8 +1139,8 @@ ${L10n.of(context)!.localAiHelpNote}
                 const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () => _confirmDeleteSession(context, session),
-                  child: const Icon(Icons.delete_outline_rounded,
-                      size: 18, color: AppColors.textTertiary),
+                  child: Icon(Icons.delete_outline_rounded,
+                      size: 18, color: isDark ? Colors.white38 : AppColors.textTertiary),
                 ),
               ],
             ),
@@ -1137,6 +1151,7 @@ ${L10n.of(context)!.localAiHelpNote}
   }
 
   void _confirmDeleteSession(BuildContext context, ChatSession session) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -1160,7 +1175,7 @@ ${L10n.of(context)!.localAiHelpNote}
           ],
         ),
         content: Text(L10n.of(context)!.deleteChatMessage(session.title),
-            style: const TextStyle(color: AppColors.textSecondary)),
+            style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
@@ -1172,7 +1187,7 @@ ${L10n.of(context)!.localAiHelpNote}
                   borderRadius: AppRadius.md),
             ),
             child:
-                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                Text('Cancel', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {

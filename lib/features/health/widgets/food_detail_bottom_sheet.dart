@@ -344,14 +344,14 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Padding(
-                          padding: EdgeInsets.only(top: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
                           child: Text(
                             'kcal',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -365,15 +365,15 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                     children: [
                       Expanded(
                           child: _buildMacroChip(
-                              'Protein', entry.protein, AppColors.protein)),
+                              'Protein', entry.protein, AppColors.protein, isDark)),
                       const SizedBox(width: 8),
                       Expanded(
                           child: _buildMacroChip(
-                              'Carbs', entry.carbs, AppColors.carbs)),
+                              'Carbs', entry.carbs, AppColors.carbs, isDark)),
                       const SizedBox(width: 8),
                       Expanded(
                           child:
-                              _buildMacroChip('Fat', entry.fat, AppColors.fat)),
+                              _buildMacroChip('Fat', entry.fat, AppColors.fat, isDark)),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -554,7 +554,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   // ============================================================
   // Macro Chip
   // ============================================================
-  Widget _buildMacroChip(String label, double value, Color color) {
+  Widget _buildMacroChip(String label, double value, Color color, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
@@ -574,10 +574,10 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ),
         ],

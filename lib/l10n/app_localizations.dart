@@ -2126,7 +2126,7 @@ abstract class L10n {
   /// No description provided for @analyzeSelected.
   ///
   /// In en, this message translates to:
-  /// **'Analyze selected'**
+  /// **'Analyze'**
   String get analyzeSelected;
 
   /// No description provided for @deleteTooltip.
@@ -5281,6 +5281,72 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Off'**
   String get mealSuggestionsOff;
+
+  /// No description provided for @basicMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic'**
+  String get basicMode;
+
+  /// No description provided for @proMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get proMode;
+
+  /// No description provided for @sandboxEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No food items yet. Chat, snap a photo, or tap + to add!'**
+  String get sandboxEmpty;
+
+  /// No description provided for @deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteSelected;
+
+  /// No description provided for @useProModeForDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'For detailed editing, switch to Pro mode.'**
+  String get useProModeForDetail;
+
+  /// No description provided for @quickAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add'**
+  String get quickAddTitle;
+
+  /// No description provided for @quickAddHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Pad Thai, Rice...'**
+  String get quickAddHint;
+
+  /// No description provided for @quantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get quantity;
+
+  /// No description provided for @addToSandbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addToSandbox;
+
+  /// No description provided for @gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get gallery;
+
+  /// No description provided for @longPressToSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press to select items'**
+  String get longPressToSelect;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

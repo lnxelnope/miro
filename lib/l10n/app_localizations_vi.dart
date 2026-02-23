@@ -245,7 +245,7 @@ class L10nVi extends L10n {
   String get createMeal => 'Tạo bữa ăn';
 
   @override
-  String get ingredients => 'Thành phần';
+  String get ingredients => 'Ingredients';
 
   @override
   String get searchFood => 'Tìm kiếm món ăn';
@@ -1076,7 +1076,7 @@ class L10nVi extends L10n {
   String get createIngredient => 'Tạo thành phần';
 
   @override
-  String get saveChanges => 'Lưu thay đổi';
+  String get saveChanges => 'Save Changes';
 
   @override
   String get pleaseEnterIngredientNameFirst =>
@@ -1186,7 +1186,7 @@ class L10nVi extends L10n {
   String get moveToDate => 'Chuyển đến ngày';
 
   @override
-  String get analyzeSelected => 'Phân tích đã chọn';
+  String get analyzeSelected => 'Analyze';
 
   @override
   String get deleteTooltip => 'Xóa bỏ';
@@ -3024,4 +3024,38 @@ class L10nVi extends L10n {
 
   @override
   String get mealSuggestionsOff => 'Off';
+
+  @override
+  String get basicMode => 'Basic';
+
+  @override
+  String get proMode => 'Pro';
+
+  @override
+  String get sandboxEmpty =>
+      'No food items yet. Chat, snap a photo, or tap + to add!';
+
+  @override
+  String get deleteSelected => 'Delete';
+
+  @override
+  String get useProModeForDetail => 'For detailed editing, switch to Pro mode.';
+
+  @override
+  String get quickAddTitle => 'Quick Add';
+
+  @override
+  String get quickAddHint => 'e.g. Pad Thai, Rice...';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get addToSandbox => 'Add';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get longPressToSelect => 'Long-press to select items';
 }

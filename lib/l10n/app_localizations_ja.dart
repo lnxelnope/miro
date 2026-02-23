@@ -244,7 +244,7 @@ class L10nJa extends L10n {
   String get createMeal => '食事を作成する';
 
   @override
-  String get ingredients => '材料';
+  String get ingredients => 'Ingredients';
 
   @override
   String get searchFood => '食べ物を探す';
@@ -1051,7 +1051,7 @@ class L10nJa extends L10n {
   String get createIngredient => '材料の作成';
 
   @override
-  String get saveChanges => '変更を保存';
+  String get saveChanges => 'Save Changes';
 
   @override
   String get pleaseEnterIngredientNameFirst => '最初に成分名を入力してください';
@@ -1159,7 +1159,7 @@ class L10nJa extends L10n {
   String get moveToDate => '現在までに移動';
 
   @override
-  String get analyzeSelected => '選択したものを分析';
+  String get analyzeSelected => 'Analyze';
 
   @override
   String get deleteTooltip => '消去';
@@ -2935,4 +2935,38 @@ class L10nJa extends L10n {
 
   @override
   String get mealSuggestionsOff => 'Off';
+
+  @override
+  String get basicMode => 'Basic';
+
+  @override
+  String get proMode => 'Pro';
+
+  @override
+  String get sandboxEmpty =>
+      'No food items yet. Chat, snap a photo, or tap + to add!';
+
+  @override
+  String get deleteSelected => 'Delete';
+
+  @override
+  String get useProModeForDetail => 'For detailed editing, switch to Pro mode.';
+
+  @override
+  String get quickAddTitle => 'Quick Add';
+
+  @override
+  String get quickAddHint => 'e.g. Pad Thai, Rice...';
+
+  @override
+  String get quantity => 'Quantity';
+
+  @override
+  String get addToSandbox => 'Add';
+
+  @override
+  String get gallery => 'Gallery';
+
+  @override
+  String get longPressToSelect => 'Long-press to select items';
 }

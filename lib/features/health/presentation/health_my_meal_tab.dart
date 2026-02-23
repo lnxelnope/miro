@@ -83,17 +83,18 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   Widget _buildToggleTabBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
         borderRadius: AppRadius.lg,
       ),
       child: TabBar(
         controller: _subTabController,
         labelColor: Colors.white,
-        unselectedLabelColor: AppColors.textSecondary,
+        unselectedLabelColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
         labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         unselectedLabelStyle:
             const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
@@ -137,26 +138,27 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   Widget _buildSearchBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md + 2, AppSpacing.xl, AppSpacing.xs + 2),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
+          color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
           borderRadius: AppRadius.lg,
         ),
         child: TextField(
           controller: _searchController,
-          style: const TextStyle(fontSize: 15),
+          style: TextStyle(fontSize: 15, color: isDark ? AppColors.textPrimaryDark : null),
           decoration: InputDecoration(
             hintText: L10n.of(context)!.searchMealsOrIngredients,
-            hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 14),
-            prefixIcon: const Icon(Icons.search_rounded,
-                size: 20, color: AppColors.textTertiary),
+            hintStyle: TextStyle(color: isDark ? Colors.white38 : AppColors.textTertiary, fontSize: 14),
+            prefixIcon: Icon(Icons.search_rounded,
+                size: 20, color: isDark ? Colors.white38 : AppColors.textTertiary),
             suffixIcon: _searchController.text.isNotEmpty
                 ? GestureDetector(
                     onTap: () => _searchController.clear(),
-                    child: const Icon(Icons.close_rounded,
-                        size: 18, color: AppColors.textTertiary),
+                    child: Icon(Icons.close_rounded,
+                        size: 18, color: isDark ? Colors.white38 : AppColors.textTertiary),
                   )
                 : null,
             contentPadding:
@@ -336,6 +338,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   // ===== EMPTY STATES =====
 
   Widget _buildEmptyMeals() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxxl),
@@ -356,17 +359,18 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             const SizedBox(height: AppSpacing.xl),
             Text(
               L10n.of(context)!.noMealsYet,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : null,
                   letterSpacing: -0.3),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.noMealsYetDesc,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 14, height: 1.5),
+              style: TextStyle(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: AppSpacing.xxl + 4),
             GestureDetector(
@@ -409,6 +413,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   Widget _buildEmptyIngredients() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxxl),
@@ -429,17 +434,18 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             const SizedBox(height: AppSpacing.xl),
             Text(
               L10n.of(context)!.noIngredientsYet,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : null,
                   letterSpacing: -0.3),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.noIngredientsYetDesc,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: AppColors.textSecondary, fontSize: 14, height: 1.5),
+              style: TextStyle(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary, fontSize: 14, height: 1.5),
             ),
           ],
         ),
@@ -514,6 +520,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     final amountController =
         TextEditingController(text: ingredient.baseAmount.toString());
     MealType selectedMealType = _guessMealType();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
       context: context,
@@ -529,9 +536,9 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             margin:
                 EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
             padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -541,7 +548,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.divider,
+                    color: isDark ? AppColors.dividerDark : AppColors.divider,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -564,9 +571,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     Expanded(
                       child: Text(
                         ingredient.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: isDark ? AppColors.textPrimaryDark : null,
                             letterSpacing: -0.3),
                       ),
                     ),
@@ -577,18 +585,19 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 // Amount input
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
+                    color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                     borderRadius: AppRadius.lg,
                   ),
                   child: TextField(
                     controller: amountController,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.textPrimaryDark : null),
                     decoration: InputDecoration(
                       labelText: L10n.of(context)!.ingredientAmount(ingredient.baseUnit),
-                      labelStyle: const TextStyle(color: AppColors.textSecondary),
+                      labelStyle: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg, vertical: AppSpacing.md + 2),
@@ -635,7 +644,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                             decoration: BoxDecoration(
                               color: selected
                                   ? AppColors.health.withValues(alpha: 0.15)
-                                  : AppColors.surfaceVariant,
+                                  : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                               borderRadius: AppRadius.xl,
                               border: selected
                                   ? Border.all(
@@ -664,7 +673,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
-                            color: AppColors.surfaceVariant,
+                            color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                             borderRadius: AppRadius.lg,
                           ),
                           child: Center(
@@ -673,7 +682,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.grey.shade600,
+                                color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -845,6 +854,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   Future<void> _deleteMeal(MyMeal meal) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -862,7 +872,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             ),
             const SizedBox(width: AppSpacing.md),
             Text(L10n.of(context)!.deleteMealTitle,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: isDark ? AppColors.textPrimaryDark : null)),
           ],
         ),
         content: Column(
@@ -871,10 +881,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           children: [
             Text(L10n.of(context)!.deleteMealMessage(meal.name),
                 style: TextStyle(
-                    fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                    fontWeight: FontWeight.w600, color: isDark ? AppColors.textPrimaryDark : Colors.grey.shade700)),
             const SizedBox(height: 4),
             Text(L10n.of(context)!.deleteMealNote,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                style: TextStyle(fontSize: 13, color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade500)),
           ],
         ),
         actionsPadding:
@@ -888,7 +898,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   borderRadius: AppRadius.md),
             ),
             child:
-                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                Text('Cancel', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -1009,6 +1019,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   Future<void> _deleteIngredient(Ingredient ingredient) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1027,13 +1038,13 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(L10n.of(context)!.deleteIngredientTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: isDark ? AppColors.textPrimaryDark : null)),
             ),
           ],
         ),
         content: Text(L10n.of(context)!.deleteIngredientMessage(ingredient.name),
             style: TextStyle(
-                fontWeight: FontWeight.w600, color: Colors.grey.shade700)),
+                fontWeight: FontWeight.w600, color: isDark ? AppColors.textPrimaryDark : Colors.grey.shade700)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
@@ -1045,7 +1056,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   borderRadius: AppRadius.md),
             ),
             child:
-                Text(L10n.of(context)!.cancel, style: TextStyle(color: Colors.grey.shade600)),
+                Text(L10n.of(context)!.cancel, style: TextStyle(color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -1084,6 +1095,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   }
 
   void _showMealDetail(MyMeal meal) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1094,9 +1106,9 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
           return Container(
             padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.surfaceDark : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -1108,7 +1120,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? AppColors.dividerDark : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -1135,16 +1147,17 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                         children: [
                           Text(
                             meal.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
+                                color: isDark ? AppColors.textPrimaryDark : null,
                                 letterSpacing: -0.3),
                           ),
                           const SizedBox(height: AppSpacing.xxs),
                           Text(
                             meal.baseServingDescription,
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 13),
+                            style: TextStyle(
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary, fontSize: 13),
                           ),
                         ],
                       ),
@@ -1176,7 +1189,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Colors.grey.shade800)),
+                        color: isDark ? AppColors.textPrimaryDark : Colors.grey.shade800)),
                 const SizedBox(height: 10),
 
                 // Ingredients list
@@ -1186,7 +1199,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   data: (ingredients) {
                     if (ingredients.isEmpty) {
                       return Text(L10n.of(context)!.noIngredientsData,
-                          style: const TextStyle(color: AppColors.textSecondary));
+                          style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary));
                     }
                     return Column(
                       children: ingredients
@@ -1195,7 +1208,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surfaceVariant,
+                                  color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                                   borderRadius: AppRadius.md,
                                 ),
                                 child: Row(
@@ -1216,14 +1229,14 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                                           ing.amount.toStringAsFixed(0),
                                           ing.unit,
                                         ),
-                                        style: const TextStyle(fontSize: 14),
+                                        style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : null),
                                       ),
                                     ),
                                     Text(
                                       L10n.of(context)!.ingredientCalories(ing.calories.toInt()),
                                       style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.grey.shade500,
+                                          color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade500,
                                           fontWeight: FontWeight.w600),
                                     ),
                                   ],

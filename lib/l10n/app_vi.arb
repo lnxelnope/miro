@@ -1786,5 +1786,19 @@
   "normalFoodDesc": "Thức ăn nấu tại nhà thông thường",
   "packagedProduct": "Sản phẩm",
   "packagedProductDesc": "Đóng gói với nhãn dinh dưỡng",
-  "foodNameQuantityAndModeImprovesAccuracy": "Cung cấp tên thực phẩm, số lượng và chọn đó là thực phẩm hay sản phẩm sẽ cải thiện độ chính xác của AI."
+  "foodNameQuantityAndModeImprovesAccuracy": "Cung cấp tên thực phẩm, số lượng và chọn đó là thực phẩm hay sản phẩm sẽ cải thiện độ chính xác của AI.",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "Long-press to select items"
 }

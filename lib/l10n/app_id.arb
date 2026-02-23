@@ -1786,5 +1786,19 @@
   "normalFoodDesc": "Makanan rumahan biasa",
   "packagedProduct": "Produk",
   "packagedProductDesc": "Kemasan dengan label nutrisi",
-  "foodNameQuantityAndModeImprovesAccuracy": "Memberikan nama makanan, jumlah, dan memilih apakah itu makanan atau produk akan meningkatkan akurasi AI."
+  "foodNameQuantityAndModeImprovesAccuracy": "Memberikan nama makanan, jumlah, dan memilih apakah itu makanan atau produk akan meningkatkan akurasi AI.",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "Long-press to select items"
 }

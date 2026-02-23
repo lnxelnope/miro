@@ -23,11 +23,12 @@ class MyMealCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAi = meal.source == 'gemini';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
@@ -81,8 +82,8 @@ class MyMealCard extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             '${meal.baseServingDescription} · ${meal.usageCount} uses',
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                           ),
                         ],
                       ),
@@ -94,7 +95,7 @@ class MyMealCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isAi
                             ? AppColors.premium.withValues(alpha: 0.1)
-                            : AppColors.background,
+                            : isDark ? AppColors.backgroundDark : AppColors.background,
                         borderRadius: AppRadius.sm,
                       ),
                       child: Row(
@@ -177,7 +178,7 @@ class MyMealCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     // Edit
                     _actionIcon(
-                        Icons.edit_outlined, AppColors.textTertiary, onEdit),
+                        Icons.edit_outlined, isDark ? Colors.white38 : AppColors.textTertiary, onEdit),
                     const SizedBox(width: 4),
                     // Delete
                     _actionIcon(Icons.delete_outline_rounded,

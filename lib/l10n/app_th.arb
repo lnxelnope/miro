@@ -1855,5 +1855,19 @@
   "quickEditSave": "บันทึก",
   "mealSuggestionsToggle": "คำแนะนำมื้ออาหาร",
   "mealSuggestionsOn": "เปิด",
-  "mealSuggestionsOff": "ปิด"
+  "mealSuggestionsOff": "ปิด",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "ยังไม่มีรายการอาหาร แชท ถ่ายรูป หรือกด + เพื่อเพิ่ม!",
+  "deleteSelected": "ลบ",
+  "analyzeSelected": "วิเคราะห์",
+  "useProModeForDetail": "สำหรับแก้ไขแบบละเอียด ใช้โหมด Pro",
+  "saveChanges": "บันทึก",
+  "quickAddTitle": "เพิ่มด่วน",
+  "quickAddHint": "เช่น ผัดไทย, ข้าวสวย...",
+  "quantity": "ปริมาณ",
+  "addToSandbox": "เพิ่ม",
+  "gallery": "แกลเลอรี",
+  "ingredients": "ส่วนประกอบ",
+  "longPressToSelect": "กดค้างเพื่อเลือกรายการ"
 }

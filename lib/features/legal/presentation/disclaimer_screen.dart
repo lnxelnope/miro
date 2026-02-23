@@ -9,11 +9,12 @@ class DisclaimerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(L10n.of(context)!.disclaimerHealthDisclaimer),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+        foregroundColor: isDark ? AppColors.textPrimaryDark : Colors.black,
         elevation: 0,
       ),
       body: SafeArea(
@@ -22,7 +23,6 @@ class DisclaimerScreen extends StatelessWidget {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Warning icon
             Center(
               child: Container(
                 width: 80,
@@ -42,19 +42,17 @@ class DisclaimerScreen extends StatelessWidget {
             
             const SizedBox(height: AppSpacing.xxl),
             
-            // Full disclaimer text
-            const Text(
+            Text(
               AppDisclaimer.full,
               style: TextStyle(
                 fontSize: 16,
                 height: 1.6,
-                color: Colors.black87,
+                color: isDark ? AppColors.textPrimaryDark : Colors.black87,
               ),
             ),
             
             const SizedBox(height: AppSpacing.xxxl),
             
-            // Acknowledgment section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -85,15 +83,14 @@ class DisclaimerScreen extends StatelessWidget {
             
             const SizedBox(height: AppSpacing.xxxl),
             
-            // Close button
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.textPrimary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark ? Colors.white : AppColors.textPrimary,
+                  foregroundColor: isDark ? AppColors.textPrimary : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: AppRadius.md,
                   ),

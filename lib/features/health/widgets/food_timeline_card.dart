@@ -24,6 +24,7 @@ class FoodTimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
@@ -116,10 +117,10 @@ class FoodTimelineCard extends StatelessWidget {
                             onTap: onEdit,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.edit,
                                 size: 20,
-                                color: AppColors.textSecondary,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -140,12 +141,12 @@ class FoodTimelineCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    _buildMacros(),
+                    _buildMacros(isDark),
                     const SizedBox(height: 4),
                     Text(
                       '${_formatTime(entry.timestamp)} • ${entry.mealType.displayName}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -194,19 +195,19 @@ class FoodTimelineCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMacros() {
+  Widget _buildMacros(bool isDark) {
     return Row(
       children: [
-        _buildMacroChip('P', entry.protein, AppColors.protein),
+        _buildMacroChip('P', entry.protein, AppColors.protein, isDark),
         const SizedBox(width: 8),
-        _buildMacroChip('C', entry.carbs, AppColors.carbs),
+        _buildMacroChip('C', entry.carbs, AppColors.carbs, isDark),
         const SizedBox(width: 8),
-        _buildMacroChip('F', entry.fat, AppColors.fat),
+        _buildMacroChip('F', entry.fat, AppColors.fat, isDark),
       ],
     );
   }
 
-  Widget _buildMacroChip(String label, double value, Color color) {
+  Widget _buildMacroChip(String label, double value, Color color, bool isDark) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -220,8 +221,8 @@ class FoodTimelineCard extends StatelessWidget {
         ),
         Text(
           '${value.toInt()}g',
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             fontSize: 12,
           ),
         ),

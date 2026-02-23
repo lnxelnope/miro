@@ -68,7 +68,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
   void initState() {
     super.initState();
 
-    // Setup pulse animation
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -92,7 +91,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       setState(() {
         _currentStep++;
 
-        // Step 2: Show mock results + highlight wrong ingredient
         if (_currentStep == 1) {
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
@@ -111,7 +109,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       setState(() {
         _currentStep--;
 
-        // Reset state when going back from step 2
         if (_currentStep == 0) {
           _highlightWrongIngredient = false;
           _hasFixedIngredient = false;
@@ -152,7 +149,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
   }
 
   void _onAnalyzeDemo() {
-    // Show a quick animation or feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content:
@@ -164,7 +160,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
   }
 
   void _onEditIngredient() {
-    // Show edit feedback
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('💡 In real use, you can edit ingredient details here.'),
@@ -175,12 +170,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
   }
 
   void _onReSearchIngredient() {
-    // Simulate re-search with loading
     setState(() {
       _highlightWrongIngredient = false;
     });
 
-    // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -201,10 +194,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       ),
     );
 
-    // Simulate AI re-search delay
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
-        Navigator.pop(context); // Close loading dialog
+        Navigator.pop(context);
         setState(() {
           _wrongIngredientName = 'Grilled Steak';
           _hasFixedIngredient = true;
@@ -223,24 +215,25 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
       appBar: AppBar(
         title: Text(
           'Tutorial ${_currentStep + 1}/3',
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
+        backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
+        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
         elevation: 0,
         actions: [
           TextButton(
             onPressed: _skipTutorial,
-            child: const Text(
+            child: Text(
               'Skip →',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               ),
             ),
           ),
@@ -248,14 +241,13 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       ),
       body: Column(
         children: [
-          // Progress indicator
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: ClipRRect(
               borderRadius: AppRadius.sm,
               child: LinearProgressIndicator(
                 value: (_currentStep + 1) / _steps.length,
-                backgroundColor: AppColors.divider,
+                backgroundColor: isDark ? AppColors.dividerDark : AppColors.divider,
                 valueColor:
                     const AlwaysStoppedAnimation<Color>(AppColors.primary),
                 minHeight: 6,
@@ -269,20 +261,18 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Step content
-                  if (_currentStep == 0) _buildStep1AnalyzeDemo(),
-                  if (_currentStep == 1) _buildStep2EditAndResearch(),
-                  if (_currentStep == 2) _buildStep3Completion(),
+                  if (_currentStep == 0) _buildStep1AnalyzeDemo(isDark),
+                  if (_currentStep == 1) _buildStep2EditAndResearch(isDark),
+                  if (_currentStep == 2) _buildStep3Completion(isDark),
                 ],
               ),
             ),
           ),
 
-          // Navigation Buttons
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? AppColors.surfaceDark : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.06),
@@ -302,14 +292,14 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                         shape: RoundedRectangleBorder(
                           borderRadius: AppRadius.md,
                         ),
-                        side: const BorderSide(color: AppColors.divider),
+                        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.divider),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Previous',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -349,15 +339,14 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
   // ============ Step 1: Analyze Demo ============
 
-  Widget _buildStep1AnalyzeDemo() {
+  Widget _buildStep1AnalyzeDemo(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Sample Image
         Container(
           height: 220,
           decoration: BoxDecoration(
-            color: AppColors.divider,
+            color: isDark ? AppColors.dividerDark : AppColors.divider,
             borderRadius: AppRadius.lg,
           ),
           child: ClipRRect(
@@ -366,17 +355,17 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               'assets/images/tutorial_steak.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return const Center(
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.restaurant_menu,
-                          size: 64, color: AppColors.textSecondary),
-                      SizedBox(height: 8),
+                          size: 64, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                      const SizedBox(height: 8),
                       Text(
                         'Sample: Steak and Fries',
                         style: TextStyle(
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -390,13 +379,12 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
         const SizedBox(height: 24),
 
-        // Food Name Input
-        const Text(
+        Text(
           'Food name:',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -416,12 +404,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
         const SizedBox(height: 20),
 
-        // Search Mode Toggle (NEW!)
-        _buildSearchModeToggle(),
+        _buildSearchModeToggle(isDark),
 
         const SizedBox(height: 20),
 
-        // Quantity and Unit Row
         Row(
           children: [
             Expanded(
@@ -429,12 +415,12 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Qty:',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -463,12 +449,12 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Unit:',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -504,16 +490,15 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
         const SizedBox(height: 24),
 
-        // Tip Box
         _buildTipBox(
           _searchMode == FoodSearchMode.normal
               ? '💡 Tip: For packaged products like Lay\'s or Coca-Cola, select "Product" so AI uses official nutrition facts'
               : '💡 Tip: Product mode uses official nutrition facts from labels. Specify portion like "1 bag" or "100g"',
+          isDark,
         ),
 
         const SizedBox(height: 20),
 
-        // Analyze Button (Demo)
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -545,22 +530,21 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
         const SizedBox(height: 24),
 
-        // Tutorial Info Card
-        _buildTutorialInfoCard(_steps[0]),
+        _buildTutorialInfoCard(_steps[0], isDark),
       ],
     );
   }
 
-  Widget _buildSearchModeToggle() {
+  Widget _buildSearchModeToggle(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Type:',
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -572,6 +556,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               label: 'Food',
               mode: FoodSearchMode.normal,
               isSelected: _searchMode == FoodSearchMode.normal,
+              isDark: isDark,
             ),
             const SizedBox(width: 12),
             _buildModePill(
@@ -580,6 +565,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               label: 'Product',
               mode: FoodSearchMode.product,
               isSelected: _searchMode == FoodSearchMode.product,
+              isDark: isDark,
             ),
           ],
         ),
@@ -593,6 +579,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     required String label,
     required FoodSearchMode mode,
     required bool isSelected,
+    required bool isDark,
   }) {
     return Expanded(
       child: InkWell(
@@ -601,10 +588,14 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.surfaceVariant,
+            color: isSelected
+                ? AppColors.primary
+                : isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
             borderRadius: AppRadius.xl,
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.divider,
+              color: isSelected
+                  ? AppColors.primary
+                  : isDark ? AppColors.dividerDark : AppColors.divider,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -618,7 +609,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  color: isSelected
+                      ? Colors.white
+                      : isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
               ),
               if (isSelected) ...[
@@ -634,31 +627,29 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
   // ============ Step 2: Edit & Re-search ============
 
-  Widget _buildStep2EditAndResearch() {
+  Widget _buildStep2EditAndResearch(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'AI analyzed your meal:',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 16),
 
-        // Mock Analysis Results
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.background,
+            color: isDark ? AppColors.backgroundDark : AppColors.background,
             borderRadius: AppRadius.lg,
-            border: Border.all(color: AppColors.divider),
+            border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.divider),
           ),
           child: Column(
             children: [
-              // Correct ingredient
               _buildIngredientCard(
                 name: 'Grilled Steak',
                 amount: '150g',
@@ -667,11 +658,11 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                 carbs: 5,
                 fat: 18,
                 isCorrect: true,
+                isDark: isDark,
               ),
 
               const SizedBox(height: 12),
 
-              // Wrong ingredient with highlight
               AnimatedBuilder(
                 animation: _pulseAnimation,
                 builder: (context, child) {
@@ -691,6 +682,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                       isFixed: _hasFixedIngredient,
                       onEdit: _onEditIngredient,
                       onReSearch: _onReSearchIngredient,
+                      isDark: isDark,
                     ),
                   );
                 },
@@ -698,7 +690,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
               const SizedBox(height: 12),
 
-              // Correct ingredient
               _buildIngredientCard(
                 name: 'French Fries',
                 amount: '100g',
@@ -707,6 +698,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                 carbs: 41,
                 fat: 15,
                 isCorrect: true,
+                isDark: isDark,
               ),
             ],
           ),
@@ -714,8 +706,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
         const SizedBox(height: 24),
 
-        // Tutorial Info Card
-        _buildTutorialInfoCard(_steps[1]),
+        _buildTutorialInfoCard(_steps[1], isDark),
       ],
     );
   }
@@ -732,6 +723,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     bool isFixed = false,
     VoidCallback? onEdit,
     VoidCallback? onReSearch,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -740,14 +732,14 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
             ? AppColors.warning.withValues(alpha: 0.1)
             : isFixed
                 ? AppColors.success.withValues(alpha: 0.1)
-                : Colors.white,
+                : isDark ? AppColors.surfaceDark : Colors.white,
         borderRadius: AppRadius.md,
         border: Border.all(
           color: showWarning
               ? AppColors.warning.withValues(alpha: 0.7)
               : isFixed
                   ? AppColors.success.withValues(alpha: 0.7)
-                  : AppColors.divider,
+                  : isDark ? AppColors.dividerDark : AppColors.divider,
           width: showWarning || isFixed ? 2 : 1,
         ),
       ),
@@ -765,9 +757,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               Expanded(
                 child: Text(
                   name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -793,8 +786,8 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           const SizedBox(height: 4),
           Text(
             amount,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -812,7 +805,6 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
             ],
           ),
 
-          // Action buttons for wrong ingredient
           if (showWarning && onEdit != null && onReSearch != null) ...[
             const SizedBox(height: 12),
             Row(
@@ -874,28 +866,28 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
   // ============ Step 3: Completion ============
 
-  Widget _buildStep3Completion() {
+  Widget _buildStep3Completion(bool isDark) {
     return Column(
       children: [
         const SizedBox(height: 20),
         const Icon(AppIcons.milestone, size: 96, color: AppIcons.milestoneColor),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'You\'re Ready!',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 32),
 
-        // Recap Pills
         _buildRecapPill(
           icon: AppIcons.camera,
           iconColor: AppIcons.cameraColor,
           title: 'Snap or Type',
           subtitle: 'to analyze any food',
+          isDark: isDark,
         ),
         const SizedBox(height: 12),
         _buildRecapPill(
@@ -903,6 +895,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           iconColor: AppIcons.mealColor,
           title: 'Food or Product',
           subtitle: 'choose mode for better accuracy',
+          isDark: isDark,
         ),
         const SizedBox(height: 12),
         _buildRecapPill(
@@ -910,12 +903,12 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           iconColor: AppIcons.editColor,
           title: 'Edit or Re-search',
           subtitle: 'fix anything AI got wrong',
+          isDark: isDark,
         ),
 
         const SizedBox(height: 40),
 
-        // Tutorial Info Card
-        _buildTutorialInfoCard(_steps[2]),
+        _buildTutorialInfoCard(_steps[2], isDark),
       ],
     );
   }
@@ -925,6 +918,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     required Color iconColor,
     required String title,
     required String subtitle,
+    required bool isDark,
   }) {
     return Container(
       width: double.infinity,
@@ -946,18 +940,18 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -970,7 +964,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
 
   // ============ Shared Widgets ============
 
-  Widget _buildTutorialInfoCard(TutorialStep step) {
+  Widget _buildTutorialInfoCard(TutorialStep step, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1005,10 +999,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               Expanded(
                 child: Text(
                   step.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -1017,10 +1011,10 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           const SizedBox(height: 12),
           Text(
             step.description,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               height: 1.6,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ),
         ],
@@ -1028,7 +1022,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
     );
   }
 
-  Widget _buildTipBox(String text) {
+  Widget _buildTipBox(String text, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1044,9 +1038,9 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 height: 1.4,
               ),
             ),

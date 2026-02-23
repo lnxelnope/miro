@@ -8,6 +8,7 @@ class TermsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: Text(L10n.of(context)!.termsOfServiceTitle),
@@ -17,19 +18,21 @@ class TermsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
+            _buildHeader(context, isDark),
             const SizedBox(height: AppSpacing.xxl),
             _buildSection(
               L10n.of(context)!.termsSectionAcceptanceOfTerms,
               [
                 'By downloading, installing, or using MiRO, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionServiceDescription,
               [
                 'MiRO is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionDisclaimerOfWarranties,
@@ -39,6 +42,7 @@ class TermsScreen extends StatelessWidget {
                 '• Calorie and macro values are estimates only',
                 '• The app is provided "as is" without warranties of any kind',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionEnergySystemTerms,
@@ -62,6 +66,7 @@ class TermsScreen extends StatelessWidget {
                 '• Promotional offers cannot be combined with other discounts',
                 '• We reserve the right to modify or cancel promotional offers at any time',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionUserDataAndResponsibilities,
@@ -80,6 +85,7 @@ class TermsScreen extends StatelessWidget {
                 '• Transfer Keys are single-use: once redeemed, the key becomes invalid',
                 '• Creating a new backup invalidates any previous unused Transfer Key',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionBackupTransfer,
@@ -93,6 +99,7 @@ class TermsScreen extends StatelessWidget {
                 '• We are not responsible for unauthorized use of your backup file or Transfer Key',
                 '• Keep your backup file secure — anyone with the file can redeem your Energy',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionInAppPurchases,
@@ -102,6 +109,7 @@ class TermsScreen extends StatelessWidget {
                 '• Google Play\'s refund policies apply',
                 '• Prices are subject to change without notice',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionProhibitedUses,
@@ -114,6 +122,7 @@ class TermsScreen extends StatelessWidget {
                 '• Share or sell your account or Energy balance',
                 '• Use automated tools or bots to access the app',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionIntellectualProperty,
@@ -122,6 +131,7 @@ class TermsScreen extends StatelessWidget {
                 '• The MiRO name and logo are trademarks',
                 '• You may not copy, modify, or distribute app content without permission',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionLimitationOfLiability,
@@ -132,6 +142,7 @@ class TermsScreen extends StatelessWidget {
                 '• We are not liable for loss of data due to app uninstallation or device failure',
                 '• Our total liability shall not exceed the amount you paid for Energy in the past 3 months',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionServiceTermination,
@@ -141,24 +152,28 @@ class TermsScreen extends StatelessWidget {
                 '• We recommend creating a backup before uninstalling to preserve your food history',
                 '• We reserve the right to suspend accounts engaged in fraudulent activity',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionChangesToTerms,
               [
                 'We may update these Terms of Service from time to time. Continued use after changes constitutes acceptance of updated terms. Material changes will be communicated through app updates.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionGoverningLaw,
               [
                 'These terms are governed by the laws of Thailand, without regard to conflict of law principles.',
               ],
+              isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionContactUs,
               [
                 'For questions, support, or to report issues, please contact us through Google Play Store.',
               ],
+              isDark,
             ),
             const SizedBox(height: AppSpacing.lg),
             Container(
@@ -190,9 +205,9 @@ class TermsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             Text(
               L10n.of(context)!.termsLastUpdated,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -203,30 +218,31 @@ class TermsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           L10n.of(context)!.termsOfServiceTitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
           L10n.of(context)!.termsSubtitle,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
-            color: AppColors.textSecondary,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSection(String title, List<String> content) {
+  Widget _buildSection(String title, List<String> content, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -247,9 +263,9 @@ class TermsScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               line,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),

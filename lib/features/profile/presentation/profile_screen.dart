@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:io';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
@@ -57,8 +56,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -299,7 +299,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _buildCollapsibleSection(
                     title: L10n.of(context)!.aboutSection,
                     icon: Icons.info_outline_rounded,
-                    iconColor: AppColors.textSecondary,
+                    iconColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     isExpanded: _aboutExpanded,
                     onToggle: () => setState(() => _aboutExpanded = !_aboutExpanded),
                     child: Column(
@@ -552,9 +552,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(width: 4),
                     Text(
                       '• ${gamification.currentStreak} day streak',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -583,6 +585,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     Color? iconColor,
   }) {
     final color = iconColor ?? AppColors.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [
@@ -599,12 +602,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 vertical: AppSpacing.md + 2,
               ),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: isDark ? AppColors.surfaceDark : AppColors.surface,
                 borderRadius: AppRadius.md,
                 border: Border.all(
                   color: isExpanded
                       ? color.withValues(alpha: 0.3)
-                      : AppColors.divider,
+                      : isDark ? AppColors.dividerDark : AppColors.divider,
                 ),
               ),
               child: Row(
@@ -614,10 +617,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Expanded(
                     child: Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -625,10 +628,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: const Icon(
+                    child: Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 22,
-                      color: AppColors.textTertiary,
+                      color: isDark ? Colors.white38 : AppColors.textTertiary,
                     ),
                   ),
                 ],
@@ -716,14 +719,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     VoidCallback? onTap,
     bool showArrow = true,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.surfaceDark : Colors.white,
                   borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -758,9 +764,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -770,9 +776,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (trailing != null)
                   trailing
                 else if (showArrow)
-                  const Icon(
+                  Icon(
                     Icons.chevron_right,
-                    color: AppColors.textTertiary,
+                    color: isDark ? Colors.white38 : AppColors.textTertiary,
                     size: 20,
                   ),
               ],
@@ -789,6 +795,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required bool isActive,
     required bool isLoading,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isActive) {
       final expiryText = sub.expiryDate != null
           ? '${sub.expiryDate!.day}/${sub.expiryDate!.month}/${sub.expiryDate!.year}'
@@ -888,7 +895,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Container(
                     padding: AppSpacing.paddingMd,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: isDark
+                          ? AppColors.surfaceVariantDark.withValues(alpha: 0.5)
+                          : Colors.white.withValues(alpha: 0.7),
                       borderRadius: AppRadius.md,
                     ),
                     child: Column(
@@ -931,23 +940,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.info_outline,
                         size: 14,
-                        color: AppColors.textTertiary,
+                        color: isDark ? Colors.white38 : AppColors.textTertiary,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         L10n.of(context)!.tapToManageSubscription,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textTertiary,
+                          color: isDark ? Colors.white38 : AppColors.textTertiary,
                         ),
                       ),
                       const Spacer(),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right,
-                        color: AppColors.textTertiary,
+                        color: isDark ? Colors.white38 : AppColors.textTertiary,
                         size: 20,
                       ),
                     ],
@@ -991,15 +1000,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     IconData icon, {
     Color? valueColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.premium.withValues(alpha: 0.6)),
         const SizedBox(width: AppSpacing.sm),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppColors.textSecondary,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
         const Spacer(),
@@ -1008,7 +1018,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-                            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
           ),
         ),
       ],
@@ -1016,11 +1026,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildAiModeSettingCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentMode = ref.watch(chatAiModeProvider);
     final isMiroAi = currentMode == ChatAiMode.miroAi;
 
     return Card(
       margin: EdgeInsets.zero,
+      color: isDark ? AppColors.surfaceDark : null,
       child: Padding(
         padding: AppSpacing.paddingLg,
         child: Column(
@@ -1028,9 +1040,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           children: [
             Text(
               L10n.of(context)!.selectAiPowersChat,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1290,6 +1302,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.md,
@@ -1301,7 +1314,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           border: Border.all(
             color: isSelected
                 ? AppColors.primary.withValues(alpha: 0.4)
-                : AppColors.divider.withValues(alpha: 0.2),
+                : isDark
+                    ? AppColors.dividerDark.withValues(alpha: 0.4)
+                    : AppColors.divider.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1314,7 +1329,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.textTertiary,
+                  color: isSelected ? AppColors.primary : (isDark ? Colors.white38 : AppColors.textTertiary),
                   width: 2,
                 ),
               ),
@@ -1350,9 +1365,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   Text(
                     sublabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1384,6 +1399,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: AppRadius.md,
@@ -1395,7 +1411,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           border: Border.all(
             color: isSelected
                 ? color.withValues(alpha: 0.4)
-                : AppColors.divider.withValues(alpha: 0.2),
+                : isDark
+                    ? AppColors.dividerDark.withValues(alpha: 0.4)
+                    : AppColors.divider.withValues(alpha: 0.2),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1408,7 +1426,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? color : AppColors.textTertiary,
+                  color: isSelected ? color : (isDark ? Colors.white38 : AppColors.textTertiary),
                   width: 2,
                 ),
               ),
@@ -1466,9 +1484,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -2175,8 +2193,10 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
+      color: isDark ? AppColors.surfaceDark : null,
       child: Column(
         children: [
           ListTile(
@@ -2185,10 +2205,10 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
             title: Text(L10n.of(context)!.imagesPerDay),
             subtitle: Text(L10n.of(context)!.scanUpToImagesPerDay('$_scanImageLimit')),
             trailing:
-                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                Icon(Icons.chevron_right, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
             onTap: _showScanLimitDialog,
           ),
-          const Divider(height: 1),
+          Divider(height: 1, color: isDark ? AppColors.dividerDark : null),
           ListTile(
             leading: const Icon(Icons.refresh, color: AppColors.warning),
             title: Text(L10n.of(context)!.resetScanHistory),
@@ -2201,6 +2221,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
   }
 
   void _showScanLimitDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -2210,7 +2231,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           children: [
             Text(
               L10n.of(context)!.maxImagesPerDayDescription,
-              style: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
+              style: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : AppColors.textTertiary),
             ),
             const SizedBox(height: AppSpacing.lg),
             Wrap(

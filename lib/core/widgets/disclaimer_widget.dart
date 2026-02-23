@@ -17,14 +17,15 @@ class DisclaimerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (compact) {
-      return _buildCompactDisclaimer(context);
+      return _buildCompactDisclaimer(context, isDark);
     } else {
-      return _buildFullDisclaimer(context);
+      return _buildFullDisclaimer(context, isDark);
     }
   }
 
-  Widget _buildCompactDisclaimer(BuildContext context) {
+  Widget _buildCompactDisclaimer(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -36,12 +37,12 @@ class DisclaimerWidget extends StatelessWidget {
         children: [
           const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
           const SizedBox(width: AppSpacing.sm),
-          const Expanded(
+          Expanded(
             child: Text(
               'For informational purposes only. Not medical advice.',
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
           ),
@@ -61,7 +62,7 @@ class DisclaimerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildFullDisclaimer(BuildContext context) {
+  Widget _buildFullDisclaimer(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -71,14 +72,14 @@ class DisclaimerWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('⚠️', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          Text('⚠️', style: TextStyle(fontSize: 12, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
           const SizedBox(width: AppSpacing.xs + 2),
-          const Expanded(
+          Expanded(
             child: Text(
               'For informational purposes only',
               style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               ),
             ),
           ),
@@ -91,13 +92,13 @@ class DisclaimerWidget extends StatelessWidget {
                   ),
                 );
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xxs),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xxs),
                 child: Text(
                   'Read Disclaimer',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.info,
+                    color: isDark ? AppColors.primaryLight : AppColors.info,
                     decoration: TextDecoration.underline,
                     fontWeight: FontWeight.w500,
                   ),

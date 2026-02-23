@@ -167,6 +167,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: !_isAnalyzing,
       onPopInvokedWithResult: (didPop, _) async {
@@ -299,13 +300,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: isDark ? AppColors.surfaceVariantDark : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline,
-                        size: 14, color: AppColors.textSecondary),
+                    Icon(Icons.info_outline,
+                        size: 14, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -316,9 +317,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                           _baseCarbs.toInt().toString(),
                           _baseFat.toInt().toString(),
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -394,7 +395,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ExpansionTile(
@@ -415,9 +416,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     ),
                     subtitle: Text(
                       L10n.of(context)!.ingredientsTapToExpand,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                     ),
                     children: _analysisResult!.ingredientsDetail!.map((ingredient) {
@@ -503,6 +504,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Widget _buildErrorMessage() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -534,8 +536,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           ),
           Text(
             _error ?? '',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               fontSize: 12,
             ),
           ),
@@ -623,6 +625,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Widget _buildCaloriesInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -665,13 +668,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
                   'kcal',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
               ),

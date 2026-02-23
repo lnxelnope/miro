@@ -245,7 +245,7 @@ class L10nTh extends L10n {
   String get createMeal => 'สร้างเมนู';
 
   @override
-  String get ingredients => 'วัตถุดิบ';
+  String get ingredients => 'ส่วนประกอบ';
 
   @override
   String get searchFood => 'ค้นหาอาหาร';
@@ -1065,7 +1065,7 @@ class L10nTh extends L10n {
   String get createIngredient => 'สร้างวัตถุดิบ';
 
   @override
-  String get saveChanges => 'บันทึกการเปลี่ยนแปลง';
+  String get saveChanges => 'บันทึก';
 
   @override
   String get pleaseEnterIngredientNameFirst => 'กรุณากรอกชื่อวัตถุดิบก่อน';
@@ -1144,7 +1144,7 @@ class L10nTh extends L10n {
   String get moveToDate => 'ย้ายไปวันที่';
 
   @override
-  String get analyzeSelected => 'วิเคราะห์ที่เลือก';
+  String get analyzeSelected => 'วิเคราะห์';
 
   @override
   String get deleteTooltip => 'ลบ';
@@ -2948,4 +2948,38 @@ class L10nTh extends L10n {
 
   @override
   String get mealSuggestionsOff => 'ปิด';
+
+  @override
+  String get basicMode => 'Basic';
+
+  @override
+  String get proMode => 'Pro';
+
+  @override
+  String get sandboxEmpty =>
+      'ยังไม่มีรายการอาหาร แชท ถ่ายรูป หรือกด + เพื่อเพิ่ม!';
+
+  @override
+  String get deleteSelected => 'ลบ';
+
+  @override
+  String get useProModeForDetail => 'สำหรับแก้ไขแบบละเอียด ใช้โหมด Pro';
+
+  @override
+  String get quickAddTitle => 'เพิ่มด่วน';
+
+  @override
+  String get quickAddHint => 'เช่น ผัดไทย, ข้าวสวย...';
+
+  @override
+  String get quantity => 'ปริมาณ';
+
+  @override
+  String get addToSandbox => 'เพิ่ม';
+
+  @override
+  String get gallery => 'แกลเลอรี';
+
+  @override
+  String get longPressToSelect => 'กดค้างเพื่อเลือกรายการ';
 }

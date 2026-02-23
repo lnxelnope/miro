@@ -15,6 +15,7 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == MessageRole.user;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
@@ -41,7 +42,9 @@ class MessageBubble extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
-                color: isUser ? AppColors.primary : AppColors.surfaceVariant,
+                color: isUser
+                    ? AppColors.primary
+                    : (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(AppRadius.lgValue + 2),
                   topRight: const Radius.circular(AppRadius.lgValue + 2),
@@ -59,8 +62,10 @@ class MessageBubble extends StatelessWidget {
               child: Text(
                 message.content,
                 style: TextStyle(
-                  color: isUser ? Colors.white : AppColors.textPrimary,
-                  fontSize: 15,
+                  color: isUser
+                      ? Colors.white
+                      : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                  fontSize: 14,
                   height: 1.4,
                 ),
               ),

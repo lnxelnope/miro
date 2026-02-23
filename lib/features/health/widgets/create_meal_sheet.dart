@@ -192,22 +192,23 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   }
 
   Widget _buildCloseButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: isDark ? AppColors.surfaceVariantDark : Colors.grey.shade200,
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.close, size: 20, color: Colors.grey.shade600),
+        child: Icon(Icons.close, size: 20, color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Watch provider เพื่อ subscribe ข้อมูล ingredients จาก DB
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     _cachedIngredients = ref.watch(allIngredientsProvider).valueOrNull ?? [];
 
     return Container(
@@ -233,7 +234,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 width: AppSizes.dragHandleWidth,
                 height: AppSizes.dragHandleHeight,
                 decoration: BoxDecoration(
-                  color: AppColors.textTertiary,
+                  color: isDark ? Colors.white38 : AppColors.textTertiary,
                   borderRadius: AppRadius.pill,
                 ),
               ),
@@ -302,8 +303,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
-                    style: const TextStyle(color: Colors.black),
-                    dropdownColor: Colors.white,
+                    style: TextStyle(color: isDark ? AppColors.textPrimaryDark : Colors.black),
+                    dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   ),
                 ),
               ],
@@ -353,8 +354,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   child: Text(
                     L10n.of(context)!.noIngredientsHint,
                     textAlign: TextAlign.center,
-                    style: const
-                        TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary, fontSize: 13),
                   ),
                 ),
               ),
@@ -425,6 +425,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   }
 
   Widget _buildIngredientRow(_IngredientRow row, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       key: row.key,
       margin: const EdgeInsets.only(bottom: AppSpacing.md - 2),
@@ -522,8 +523,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                   ),
-                  style: const TextStyle(fontSize: 14, color: Colors.black),
-                  dropdownColor: Colors.white,
+                  style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : Colors.black),
+                  dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                 ),
               ),
             ],
@@ -547,7 +548,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
+                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -567,7 +568,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
+                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -587,7 +588,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
+                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -607,7 +608,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? AppColors.surfaceVariant : null,
+                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -631,9 +632,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               padding: const EdgeInsets.only(top: AppSpacing.sm - 2),
               child: Text(
                 '${row.detail}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
                 ),
               ),
@@ -695,9 +696,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       margin: const EdgeInsets.only(bottom: AppSpacing.sm - 2),
                       padding: AppSpacing.paddingSm,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDark ? AppColors.surfaceDark : Colors.white,
                         borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
-                        border: Border.all(color: AppColors.divider),
+                        border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.divider),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,9 +763,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                                     style: const TextStyle(fontSize: 11)),
                                                 subtitle: Text(
                                                   '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                       fontSize: 9,
-                                                      color: AppColors.textSecondary),
+                                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                                                 ),
                                                 onTap: () => onSelected(ing),
                                               );
@@ -794,15 +795,15 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                         ),
                                         decoration: InputDecoration(
                                           hintText: L10n.of(context)!.subIngredientNameHintCreate,
-                                          hintStyle: const TextStyle(
-                                              fontSize: 11, color: AppColors.textTertiary),
+                                          hintStyle: TextStyle(
+                                              fontSize: 11, color: isDark ? Colors.white38 : AppColors.textTertiary),
                                           isDense: true,
                                           contentPadding: const EdgeInsets.symmetric(
                                               horizontal: AppSpacing.sm, vertical: AppSpacing.sm - 2),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                             borderSide:
-                                                const BorderSide(color: AppColors.divider),
+                                                BorderSide(color: isDark ? AppColors.dividerDark : AppColors.divider),
                                           ),
                                         ),
                                       ),
@@ -882,14 +883,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm - 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surfaceVariant,
+                                  color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                                   borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                 ),
                                 child: Text(
                                   sub.unit,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.textSecondary,
+                                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                   ),
                                 ),
                               ),
@@ -905,8 +906,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                               const Spacer(),
                               Text(
                                 'P:${sub.proteinController.text} C:${sub.carbsController.text} F:${sub.fatController.text}',
-                                style: const TextStyle(
-                                    fontSize: 9, color: AppColors.textSecondary),
+                                style: TextStyle(
+                                    fontSize: 9, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -917,9 +918,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '💡 ${L10n.of(context)!.editSubIngredientHint}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.textSecondary,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -934,6 +935,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   /// Autocomplete สำหรับชื่อวัตถุดิบ - ค้นหาจาก Ingredient DB
   Widget _buildIngredientAutocomplete(_IngredientRow row) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Autocomplete<Ingredient>(
       key: ValueKey('ac_${row.key}'),
       initialValue: TextEditingValue(text: row.nameController.text),
@@ -981,8 +983,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     title: Text(ing.name, style: const TextStyle(fontSize: 13)),
                     subtitle: Text(
                       '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 11, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     ),
                     onTap: () => onSelected(ing),
                   );
@@ -1006,17 +1008,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: L10n.of(context)!.typeIngredientNameHint,
-            hintStyle: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
+            hintStyle: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : AppColors.textTertiary),
             isDense: true,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md - 2),
             border: OutlineInputBorder(
               borderRadius: AppRadius.sm,
-              borderSide: const BorderSide(color: AppColors.divider),
+              borderSide: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.divider),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.sm,
-              borderSide: const BorderSide(color: AppColors.divider),
+              borderSide: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.divider),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.sm,
