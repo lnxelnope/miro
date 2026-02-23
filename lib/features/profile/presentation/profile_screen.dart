@@ -77,7 +77,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   // Modern Avatar Section
                   _buildModernAvatarSection(context, profile.name ?? 'User'),
-                  SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // ──────────────────────────────────────────────
                   // Health Goals (expanded by default)
@@ -171,7 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.premiumLight,
                               borderRadius: AppRadius.md,
                                 ),
-                                child: Icon(Icons.badge_outlined,
+                                child: const Icon(Icons.badge_outlined,
                                     color: AppColors.premium, size: 20),
                               ),
                               showArrow: false,
@@ -204,7 +204,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.success.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.people_outline,
+                            child: const Icon(Icons.people_outline,
                                 color: AppColors.success, size: 20),
                           ),
                           onTap: () => Navigator.push(
@@ -253,7 +253,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.info.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.backup,
+                            child: const Icon(Icons.backup,
                                 color: AppColors.info, size: 20),
                           ),
                           onTap: () => _handleBackup(context),
@@ -268,7 +268,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.success.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.restore,
+                            child: const Icon(Icons.restore,
                                 color: AppColors.success, size: 20),
                           ),
                           onTap: () => _handleRestore(context),
@@ -284,7 +284,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.error.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.delete_forever,
+                            child: const Icon(Icons.delete_forever,
                                 color: AppColors.error, size: 20),
                           ),
                           onTap: () => _confirmClearAllData(context),
@@ -307,7 +307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.1.15',
+                          subtitle: '1.1.17',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -319,7 +319,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.premiumLight,
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.privacy_tip_outlined,
+                            child: const Icon(Icons.privacy_tip_outlined,
                                 color: AppColors.premium, size: 20),
                           ),
                           onTap: () => Navigator.push(
@@ -337,7 +337,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.ai.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.description_outlined,
+                            child: const Icon(Icons.description_outlined,
                                 color: AppColors.ai, size: 20),
                           ),
                           onTap: () => Navigator.push(
@@ -355,7 +355,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.warning.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.warning_amber,
+                            child: const Icon(Icons.warning_amber,
                                 color: AppColors.warning, size: 20),
                           ),
                           onTap: () => Navigator.push(
@@ -374,7 +374,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.warning.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.lightbulb_outline,
+                            child: const Icon(Icons.lightbulb_outline,
                                 color: AppColors.warning, size: 20),
                           ),
                           onTap: () => _showTutorialAgain(),
@@ -389,7 +389,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.primaryLight.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: Icon(Icons.school,
+                            child: const Icon(Icons.school,
                                 color: AppColors.primary, size: 20),
                           ),
                           onTap: () {
@@ -405,7 +405,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
 
-                  SizedBox(height: AppSpacing.xxxxl),
+                  const SizedBox(height: AppSpacing.xxxxl),
                 ],
               ),
             ),
@@ -423,7 +423,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return Column(
           children: [
             Container(
-              padding: EdgeInsets.all(AppSpacing.xs),
+              padding: const EdgeInsets.all(AppSpacing.xs),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
@@ -449,7 +449,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               name,
               style: const TextStyle(
@@ -458,7 +458,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 letterSpacing: -0.5,
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             // Subscriber Badge (if subscriber)
             if (isSubscribed) ...[
               Container(
@@ -480,7 +480,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.diamond_rounded, size: 16, color: Colors.white),
-                    SizedBox(width: AppSpacing.sm - 2),
+                    const SizedBox(width: AppSpacing.sm - 2),
                     Text(
                       L10n.of(context)!.subscriptionEnergyPass,
                       style: const TextStyle(
@@ -489,9 +489,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: AppSpacing.sm - 2),
+                    const SizedBox(width: AppSpacing.sm - 2),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.25),
                         borderRadius: AppRadius.sm,
@@ -552,7 +552,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(width: 4),
                     Text(
                       '• ${gamification.currentStreak} day streak',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
@@ -594,7 +594,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onTap: onToggle,
             borderRadius: AppRadius.md,
             child: Container(
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.lg,
                 vertical: AppSpacing.md + 2,
               ),
@@ -610,11 +610,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Row(
                 children: [
                   Icon(icon, size: 20, color: color),
-                  SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -625,7 +625,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: Icon(
+                    child: const Icon(
                       Icons.keyboard_arrow_down_rounded,
                       size: 22,
                       color: AppColors.textTertiary,
@@ -639,7 +639,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: Padding(
-            padding: EdgeInsets.only(top: AppSpacing.md),
+            padding: const EdgeInsets.only(top: AppSpacing.md),
             child: child,
           ),
           crossFadeState: isExpanded
@@ -647,7 +647,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
       ],
     );
   }
@@ -758,7 +758,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 4),
                         Text(
                           subtitle,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
@@ -770,7 +770,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (trailing != null)
                   trailing
                 else if (showArrow)
-                  Icon(
+                  const Icon(
                     Icons.chevron_right,
                     color: AppColors.textTertiary,
                     size: 20,
@@ -808,7 +808,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
 
       return Container(
-        margin: EdgeInsets.only(bottom: AppSpacing.md - 2),
+        margin: const EdgeInsets.only(bottom: AppSpacing.md - 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -884,7 +884,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   Container(
                     padding: AppSpacing.paddingMd,
                     decoration: BoxDecoration(
@@ -931,7 +931,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.info_outline,
                         size: 14,
                         color: AppColors.textTertiary,
@@ -939,13 +939,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(width: 6),
                       Text(
                         L10n.of(context)!.tapToManageSubscription,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textTertiary,
                         ),
                       ),
                       const Spacer(),
-                      Icon(
+                      const Icon(
                         Icons.chevron_right,
                         color: AppColors.textTertiary,
                         size: 20,
@@ -972,7 +972,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         color: AppColors.premiumLight,
                         borderRadius: AppRadius.md,
         ),
-        child: Icon(
+        child: const Icon(
           Icons.diamond,
           color: AppColors.premium,
           size: 20,
@@ -994,10 +994,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.premium.withValues(alpha: 0.6)),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 13,
             color: AppColors.textSecondary,
           ),
@@ -1033,7 +1033,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             // Miro AI option
             _buildAiModeOption(
               context: context,
@@ -1041,13 +1041,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: AppColors.ai,
               title: L10n.of(context)!.miroAi,
               subtitle: L10n.of(context)!.miroAiSubtitle,
-              cost: Row(
+              cost: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('2 + ', style: const TextStyle(fontSize: 12)),
-                  const Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('/item', style: const TextStyle(fontSize: 12)),
+                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  Text('2 + ', style: TextStyle(fontSize: 12)),
+                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
+                  Text('/item', style: TextStyle(fontSize: 12)),
                 ],
               ),
               isSelected: isMiroAi,
@@ -1446,14 +1446,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
                         decoration: BoxDecoration(
                           color: AppColors.warning.withValues(alpha: 0.1),
                           borderRadius: AppRadius.md,
                         ),
                         child: DefaultTextStyle(
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.warning,
@@ -1781,7 +1781,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Container(
                 width: AppSizes.dragHandleWidth,
                 height: AppSizes.dragHandleHeight,
-                margin: EdgeInsets.only(bottom: AppSpacing.lg),
+                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                 decoration: BoxDecoration(
                   color: AppColors.textTertiary,
                   borderRadius: AppRadius.pill,
@@ -1807,11 +1807,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 leading: Container(
-                  padding: EdgeInsets.all(AppSpacing.md - 2),
+                  padding: const EdgeInsets.all(AppSpacing.md - 2),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.info.withValues(alpha: 0.2) : AppColors.info.withValues(alpha: 0.1),
                     borderRadius: AppRadius.md,
@@ -1832,7 +1832,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                 leading: Container(
-                  padding: EdgeInsets.all(AppSpacing.md - 2),
+                  padding: const EdgeInsets.all(AppSpacing.md - 2),
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.success.withValues(alpha: 0.2) : AppColors.success.withValues(alpha: 0.1),
                     borderRadius: AppRadius.md,
@@ -1966,7 +1966,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
 
               _buildInfoRow(
                   '${L10n.of(context)!.backupFrom} ', info.deviceInfo ?? L10n.of(context)!.error),
@@ -1978,9 +1978,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
               _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
 
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
               const Divider(),
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
               Container(
                 padding: AppSpacing.paddingMd,
@@ -2008,7 +2008,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 8),
                     Text(
                       L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         height: 1.5,
                         color: AppColors.warning,
@@ -2060,12 +2060,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               L10n.of(context)!.restoreCompleteContent,
               style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
             _buildInfoRow(
                 '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
             _buildInfoRow('${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 const Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
@@ -2212,7 +2212,7 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
               L10n.of(context)!.maxImagesPerDayDescription,
               style: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -2388,7 +2388,7 @@ class _AnalyticsConsentToggleState
         borderRadius: AppRadius.md,
       ),
       child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
         leading: Container(
           padding: AppSpacing.paddingSm,
           decoration: BoxDecoration(
