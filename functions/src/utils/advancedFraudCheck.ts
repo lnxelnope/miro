@@ -122,6 +122,11 @@ export async function checkComebackFraud(
 
 /**
  * Check for challenge completion fraud
+ *
+ * Legitimate daily/weekly claims per 24h:
+ *   2 daily (dailyAi1, dailyAi10) + 3 weekly (weeklyAi20/40/60) = 5
+ *   + referral levels can add more
+ * Threshold set to 15 to avoid false positives during normal usage.
  */
 export async function checkChallengeFraud(
   deviceId: string
@@ -130,7 +135,6 @@ export async function checkChallengeFraud(
     new Date(Date.now() - 24 * 60 * 60 * 1000)
   );
 
-  // Check if user completed multiple challenges in very short time
   const recentCompletions = await db
     .collection("transactions")
     .where("deviceId", "==", deviceId)
@@ -138,7 +142,7 @@ export async function checkChallengeFraud(
     .where("createdAt", ">=", oneDayAgo)
     .get();
 
-  if (recentCompletions.size > 2) {
+  if (recentCompletions.size > 15) {
     return {
       isSuspicious: true,
       reason: `User completed ${recentCompletions.size} challenges in 24h`,

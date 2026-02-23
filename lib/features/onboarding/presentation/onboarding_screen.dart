@@ -37,6 +37,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -56,9 +57,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _pageController,
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 children: [
-                  _buildPage1Welcome(),
-                  _buildPage2CuisineAndGoal(),
-                  _buildPage3Ready(),
+                  _buildPage1Welcome(isDark),
+                  _buildPage2CuisineAndGoal(isDark),
+                  _buildPage3Ready(isDark),
                 ],
               ),
             ),
@@ -84,14 +85,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // ============ Page 1: Welcome ============
 
-  Widget _buildPage1Welcome() {
+  Widget _buildPage1Welcome(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.lg),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: AppSpacing.xxl),
-          // Logo
           ClipRRect(
             borderRadius: AppRadius.xl,
             child: Image.asset(
@@ -104,9 +104,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: AppSpacing.xxl),
           RichText(
             textAlign: TextAlign.center,
-            text: const TextSpan(
+            text: TextSpan(
               children: [
-                TextSpan(
+                const TextSpan(
                   text: 'M I R O\n',
                   style: TextStyle(
                     fontSize: 32,
@@ -120,7 +120,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     letterSpacing: 1,
                   ),
                 ),
@@ -131,20 +131,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           Text(
             L10n.of(context)!.onboardingWelcomeSubtitle,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               height: 1.4,
             ),
           ),
           const SizedBox(height: AppSpacing.xxxxl),
 
-          // Feature Pills
           _buildFeaturePill(
             icon: AppIcons.camera,
             iconColor: AppIcons.cameraColor,
             title: L10n.of(context)!.onboardingSnap,
             subtitle: L10n.of(context)!.onboardingSnapDesc,
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
@@ -152,6 +152,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             iconColor: AppIcons.aiColor,
             title: L10n.of(context)!.onboardingType,
             subtitle: L10n.of(context)!.onboardingTypeDesc,
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
@@ -159,17 +160,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             iconColor: AppIcons.editColor,
             title: L10n.of(context)!.onboardingEdit,
             subtitle: L10n.of(context)!.onboardingEditDesc,
+            isDark: isDark,
           ),
 
           const SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
           const SizedBox(height: AppSpacing.xl),
 
-          // Inline Disclaimer
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.1),
+              color: AppColors.warning.withValues(alpha: isDark ? 0.15 : 0.1),
               borderRadius: AppRadius.sm,
             ),
             child: Row(
@@ -179,9 +180,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Expanded(
                   child: Text(
                     L10n.of(context)!.onboardingDisclaimer,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textPrimary,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -198,15 +199,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     required Color iconColor,
     required String title,
     required String subtitle,
+    required bool isDark,
   }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.08),
+        color: AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
         borderRadius: AppRadius.lg,
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.15),
+          color: AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.15),
         ),
       ),
       child: Row(
@@ -219,17 +221,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   TextSpan(
                     text: '$title → ',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: AppColors.textPrimary,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                   TextSpan(
                     text: subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -243,7 +245,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // ============ Page 2: Cuisine + Calorie Goal ============
 
-  Widget _buildPage2CuisineAndGoal() {
+  Widget _buildPage2CuisineAndGoal(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -256,10 +258,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(width: 12),
               Text(
                 L10n.of(context)!.onboardingQuickSetup,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
               ),
             ],
@@ -267,20 +269,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Text(
             L10n.of(context)!.onboardingHelpAiUnderstand,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 32),
 
-          // Cuisine Preference
           Text(
             L10n.of(context)!.onboardingYourTypicalCuisine,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -306,8 +307,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.xl,
                   side: BorderSide(
-                    color:
-                        isSelected ? AppColors.primary : Colors.grey.shade300,
+                    color: isSelected
+                        ? AppColors.primary
+                        : isDark ? Colors.grey.shade600 : Colors.grey.shade300,
                   ),
                 ),
               );
@@ -315,19 +317,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 32),
 
-          // Calorie Goal (Optional)
           Text(
             L10n.of(context)!.onboardingDailyCalorieGoal,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _calorieGoalController,
             keyboardType: TextInputType.number,
+            style: TextStyle(
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: AppRadius.md,
@@ -335,15 +339,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               suffixText: L10n.of(context)!.onboardingKcalPerDay,
               hintText: L10n.of(context)!.onboardingCalorieGoalHint,
               filled: true,
-              fillColor: AppColors.surfaceVariant,
+              fillColor: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             L10n.of(context)!.onboardingCanChangeAnytime,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-                  color: AppColors.textTertiary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textTertiary,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -357,7 +361,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   // ============ Page 3: You're Ready! ============
 
-  Widget _buildPage3Ready() {
+  Widget _buildPage3Ready(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -368,32 +372,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: AppSpacing.xxl),
           Text(
             L10n.of(context)!.onboardingYoureAllSet,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
             L10n.of(context)!.onboardingStartTracking,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
-              color: AppColors.textSecondary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               height: 1.5,
             ),
           ),
           const SizedBox(height: AppSpacing.xxxxl),
 
-          // Welcome Gift Card
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.success.withValues(alpha: 0.1),
-                  AppColors.primary.withValues(alpha: 0.1),
+                  AppColors.success.withValues(alpha: isDark ? 0.15 : 0.1),
+                  AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.1),
                 ],
               ),
               borderRadius: AppRadius.xl,
@@ -430,19 +433,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 8),
                 Text(
                   L10n.of(context)!.onboardingFreeEnergyDesc,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   L10n.of(context)!.onboardingEnergyCost,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -476,9 +479,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 16),
           Text(
             L10n.of(context)!.onboardingNoCreditCard,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-                  color: AppColors.textTertiary,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textTertiary,
             ),
           ),
         ],
