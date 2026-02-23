@@ -740,6 +740,20 @@ class GeminiService {
 
           AppLogger.info('Created fallback ingredient from main nutrition');
         }
+
+        // ────── 6.6. Warn if all-zero nutrition (likely AI confusion) ──────
+        final nutrition = parsedResult['nutrition'] as Map<String, dynamic>?;
+        if (nutrition != null) {
+          final cal = (nutrition['calories'] ?? 0).toDouble();
+          final pro = (nutrition['protein'] ?? 0).toDouble();
+          final carb = (nutrition['carbs'] ?? 0).toDouble();
+          final fat = (nutrition['fat'] ?? 0).toDouble();
+          if (cal == 0 && pro == 0 && carb == 0 && fat == 0) {
+            AppLogger.warn(
+                '⚠️ AI returned all-zero nutrition for "${parsedResult['food_name']}" — '
+                'energy already charged, returning result as-is for user to edit');
+          }
+        }
       }
 
       return parsedResult;
@@ -796,6 +810,10 @@ class GeminiService {
       } else if (quantity != null) {
         prompt += '\n\nThe user has specified the quantity as: $quantity.';
       }
+
+      AppLogger.info(
+          '[analyzeFoodImage] mode=${searchMode.name}, '
+          'foodName=$foodName, quantity=$quantity, unit=$unit');
 
       final result = await _callBackend(
         type: 'image',
@@ -1052,8 +1070,26 @@ Return ONLY valid JSON.''';
     List<String>? ingredientNames,
     List<Map<String, dynamic>>? userIngredients,
   }) async {
+    // Extract embedded quantity from food name if user didn't specify serving
+    var effectiveName = foodName;
+    var effectiveSize = servingSize;
+    var effectiveUnit = servingUnit;
+
+    final hasUserServing = servingSize != null && servingSize > 0 &&
+        servingUnit != null && servingUnit.isNotEmpty;
+    if (!hasUserServing) {
+      final extracted = _extractEmbeddedQuantity(foodName);
+      if (extracted != null) {
+        effectiveName = extracted.cleanedName;
+        effectiveSize = extracted.size;
+        effectiveUnit = extracted.unit;
+        AppLogger.info(
+            'Extracted quantity from name: "${extracted.cleanedName}" → ${extracted.size} ${extracted.unit}');
+      }
+    }
+
     AppLogger.info(
-        'Analyzing food from name: "$foodName" (${servingSize ?? "?"} ${servingUnit ?? "?"}) mode: ${searchMode.name}');
+        'Analyzing food from name: "$effectiveName" (${effectiveSize ?? "?"} ${effectiveUnit ?? "?"}) mode: ${searchMode.name}');
 
     // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
@@ -1067,16 +1103,16 @@ Return ONLY valid JSON.''';
       // Choose prompt based on search mode
       final prompt = searchMode == FoodSearchMode.product
           ? _getProductTextAnalysisPrompt(
-              foodName,
-              servingSize: servingSize,
-              servingUnit: servingUnit,
+              effectiveName,
+              servingSize: effectiveSize,
+              servingUnit: effectiveUnit,
               ingredientNames: ingredientNames,
               userIngredients: userIngredients,
             )
           : _getTextAnalysisPrompt(
-              foodName,
-              servingSize: servingSize,
-              servingUnit: servingUnit,
+              effectiveName,
+              servingSize: effectiveSize,
+              servingUnit: effectiveUnit,
               ingredientNames: ingredientNames,
               userIngredients: userIngredients,
             );
@@ -1455,7 +1491,18 @@ $cuisineHint
 YOUR PRIORITY ORDER:
 1. If a Nutrition Facts label is visible → extract EXACT values from the label
 2. If the product is from a well-known brand/chain → use known official nutrition data
-3. If neither → estimate based on product type and packaging
+3. If neither → estimate based on product type, packaging size, and similar products
+
+═══════════════════════════════════════════════════════════════════
+ZERO-VALUE PROHIBITION (MOST CRITICAL RULE):
+═══════════════════════════════════════════════════════════════════
+You MUST NEVER return 0 for ALL nutrition values simultaneously.
+Every real food product has calories, protein, carbs, or fat > 0.
+- If you cannot read the nutrition label → estimate from the product type, brand, and size
+- If you don't recognize the product → estimate from similar products in the same category
+- A bag of chips ≈ 150-300 kcal, a candy bar ≈ 200-350 kcal, a drink ≈ 50-200 kcal, etc.
+- ALWAYS provide your best estimate. Zero calories is NEVER acceptable for any real food.
+═══════════════════════════════════════════════════════════════════
 
 STEP-BY-STEP ANALYSIS:
 
@@ -1470,6 +1517,7 @@ Step 2 — NUTRITION DATA EXTRACTION:
 - Note the serving size as stated on label
 - Note servings per container if visible
 - IMPORTANT: Distinguish "per serving" vs "per package". If label says per serving = 30g but the package is 60g (2 servings), and user eats the whole package, multiply by 2.
+- If label is NOT readable or not visible → you MUST estimate from known product data or similar products. NEVER return 0.
 
 Step 3 — PORTION CALCULATION:
 - If the user specifies a portion (e.g., "300 ml"), calculate nutrition for THAT portion only, even if the container is larger.
@@ -1478,11 +1526,38 @@ Step 3 — PORTION CALCULATION:
 - If user says "1 bag/box/bottle", calculate for the ENTIRE container (multiply servings per container)
 - If NO portion is specified, use the most reasonable single-consumption portion
 
-MULTI-PACK / BOX-IN-BOX RULE:
-- If the image shows a large box/pack containing smaller individual packets/units inside, assume the user ate 1 INDIVIDUAL PACKET, NOT the entire outer box
-- Use per-packet nutrition from the label (divide total by number of packets if needed)
+═══════════════════════════════════════════════════════════════════
+VISUAL QUANTITY ESTIMATION (CRITICAL FOR IMAGE ANALYSIS):
+═══════════════════════════════════════════════════════════════════
+When analyzing the image, determine the consumption quantity based on what you SEE:
+
+RULE 1 — WHOLE PRODUCT VISIBLE (single package, no individual units shown):
+- If the image shows ONE complete product package (a bag, bottle, box, can, bar, etc.)
+  and NO individual sub-units are visible → assume the user consumed the ENTIRE package
+- Calculate nutrition for the FULL package content
+- Example: A photo of a single bag of chips → nutrition for the entire bag
+- Example: A photo of a chocolate bar → nutrition for the entire bar
+- Example: A photo of a bottle of juice → nutrition for the entire bottle
+
+RULE 2 — MULTI-PACK WITH INDIVIDUAL UNITS VISIBLE:
+- If the image shows BOTH an outer package AND individual units/pieces inside it
+  → assume the user consumed ONLY the number of individual units VISIBLE
+- Count the individual units you can see
+- Calculate nutrition per individual unit × number of visible units
+- Example: A box of cookies opened with 3 cookies visible → nutrition for 3 cookies
+- Example: A multi-pack with 2 sachets pulled out → nutrition for 2 sachets
+- Example: An egg carton with 6 eggs visible → nutrition for 6 eggs
+
+RULE 3 — PARTIAL CONSUMPTION:
+- If the product appears partially consumed (half-eaten, partially poured) →
+  estimate the consumed portion based on visual cues
+- Example: A half-eaten sandwich → nutrition for approximately half
+═══════════════════════════════════════════════════════════════════
+
+MULTI-PACK / BOX-IN-BOX RULE (when NO individual units are visible):
+- If the image shows ONLY a large outer box (e.g., "12-pack granola bars") with NO individual bars visible → assume 1 individual unit
+- Use per-unit nutrition from the label (divide total by number of units if needed)
 - Set serving_unit to the individual unit (e.g., "packet", "sachet", "bar", "piece")
-- Example: A box of 12 granola bars → report nutrition for 1 bar, not 12
 
 BRANDED PREPARED FOOD RULE (KFC, McDonald's, Starbucks, Pizza Hut, Subway, etc.):
 - If the product is from a well-known food chain or restaurant brand:
@@ -1498,11 +1573,12 @@ BRANDED PREPARED FOOD RULE (KFC, McDonald's, Starbucks, Pizza Hut, Subway, etc.)
 
 CRITICAL RULES:
 - "ingredients_detail" array is MANDATORY
+- ALL nutrition values MUST be > 0 (estimate if label is not readable)
 - For simple packaged products, the product itself IS the main ingredient entry
 - For branded food with multiple pieces, list EACH piece separately
 - For combo/set meals, list EACH component separately
 - If ingredients list is visible on packaging, parse it
-- Use EXACT label/official values when available, do NOT estimate
+- Use EXACT label/official values when available; if not available, ESTIMATE from known data
 - serving_unit should match what the user specified or what makes sense (e.g., "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving", "cup")
 
 Respond in JSON format:
@@ -1526,7 +1602,7 @@ Respond in JSON format:
     {
       "name": "Product Name or Individual Piece",
       "name_en": "Product Name in English",
-      "detail": "Source: nutrition label / official brand data",
+      "detail": "Source: nutrition label / official brand data / estimated from similar products",
       "amount": 1,
       "unit": "piece",
       "calories": 150,
@@ -1537,12 +1613,84 @@ Respond in JSON format:
   ],
   "ingredients": ["ingredient1", "ingredient2"],
   "food_type": "product",
-  "notes": "Source: nutrition label / known product database. Per [portion specified]. Full container: [size]."
+  "notes": "Source: nutrition label / known product database / estimated. Quantity basis: [whole product / N visible units]. Full container: [size]."
 }
 
-IMPORTANT: The user has confirmed this is a PACKAGED PRODUCT. You MUST ALWAYS set "food_type": "product" in your response. Do NOT change it to "food" under any circumstances.
+IMPORTANT RULES:
+1. You MUST ALWAYS set "food_type": "product". Do NOT change it to "food".
+2. calories, protein, carbs, and fat MUST NOT ALL be 0. Every food has nutrition.
+   If you cannot read the label, ESTIMATE based on the product type and similar products.
+3. Determine quantity from the image: whole product = entire package; visible units = only those units.
 
 Return ONLY valid JSON, no markdown or explanations.''';
+  }
+
+  /// Extract embedded quantity from food name text.
+  /// e.g. "ผัดกระเพราอกไก่ 200 กรัม" → (cleanedName: "ผัดกระเพราอกไก่", size: 200, unit: "g")
+  /// Returns null if no quantity pattern is found.
+  static ({String cleanedName, double size, String unit})? _extractEmbeddedQuantity(String foodName) {
+    final thaiUnits = {
+      'กรัม': 'g', 'กก.': 'kg', 'กิโลกรัม': 'kg', 'กก': 'kg',
+      'มล.': 'ml', 'มิลลิลิตร': 'ml', 'มล': 'ml', 'ลิตร': 'l',
+      'ช้อนโต๊ะ': 'tbsp', 'ช้อนชา': 'tsp',
+      'ชิ้น': 'piece', 'ถ้วย': 'cup', 'จาน': 'plate', 'ชาม': 'bowl',
+      'แก้ว': 'glass', 'ลูก': 'piece', 'ไม้': 'skewer',
+      'กล่อง': 'box', 'ซอง': 'pack', 'ขวด': 'bottle', 'กระป๋อง': 'can',
+      'ห่อ': 'wrap', 'แผ่น': 'sheet', 'ฝัก': 'piece', 'หัว': 'piece',
+      'ผล': 'piece', 'ใบ': 'leaf', 'มัด': 'bunch', 'ฟอง': 'piece',
+      'ถุง': 'bag', 'แท่ง': 'stick', 'ลัง': 'box',
+    };
+    final engUnits = {
+      'g': 'g', 'gram': 'g', 'grams': 'g', 'gr': 'g',
+      'kg': 'kg', 'kilogram': 'kg', 'kilograms': 'kg',
+      'mg': 'mg', 'milligram': 'mg',
+      'ml': 'ml', 'milliliter': 'ml', 'milliliters': 'ml',
+      'l': 'l', 'liter': 'l', 'liters': 'l',
+      'oz': 'oz', 'ounce': 'oz', 'ounces': 'oz',
+      'lb': 'lbs', 'lbs': 'lbs', 'pound': 'lbs', 'pounds': 'lbs',
+      'cup': 'cup', 'cups': 'cup',
+      'tbsp': 'tbsp', 'tsp': 'tsp',
+      'piece': 'piece', 'pieces': 'piece', 'pcs': 'piece', 'pc': 'piece',
+      'slice': 'slice', 'slices': 'slice',
+      'serving': 'serving', 'servings': 'serving',
+      'plate': 'plate', 'bowl': 'bowl', 'glass': 'glass',
+    };
+
+    final allUnitsPattern = [...thaiUnits.keys, ...engUnits.keys]
+        .map((u) => RegExp.escape(u))
+        .toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
+    final unitPattern = allUnitsPattern.join('|');
+
+    final regex = RegExp(
+      r'(\d+(?:[.,]\d+)?)\s*(' + unitPattern + r')(?:\s*$|\s*[)\]])',
+      caseSensitive: false,
+    );
+
+    final match = regex.firstMatch(foodName);
+    if (match == null) return null;
+
+    final numberStr = match.group(1)!.replaceAll(',', '.');
+    final rawUnit = match.group(2)!.toLowerCase();
+    final size = double.tryParse(numberStr);
+    if (size == null || size <= 0) return null;
+
+    final normalizedUnit = thaiUnits[match.group(2)!] ??
+        engUnits[rawUnit] ??
+        rawUnit;
+
+    final cleanedName = foodName
+        .replaceRange(match.start, match.end, '')
+        .trim()
+        .replaceAll(RegExp(r'\s+'), ' ');
+
+    return (cleanedName: cleanedName, size: size, unit: normalizedUnit);
+  }
+
+  static bool _isWeightUnit(String? unit) {
+    if (unit == null) return false;
+    return const {'g', 'kg', 'mg', 'oz', 'lbs', 'ml', 'l', 'กรัม', 'กก', 'กก.', 'กิโลกรัม', 'มล', 'มล.', 'ลิตร'}
+        .contains(unit.toLowerCase());
   }
 
   /// Convert internal unit key to human-readable label for AI prompts.
@@ -1629,6 +1777,12 @@ You MUST calculate ALL nutrition values (calories, protein, carbs, fat, fiber, s
 Do NOT override with a different serving size. Do NOT default to 100g unless the user specified 100g.
 Example: "1 egg" means 1 whole egg (~50g), NOT 100g of egg.
 
+EMBEDDED QUANTITY RULE:
+If the food name itself contains a quantity (e.g., "ผัดกระเพราอกไก่ 200 กรัม", "grilled chicken 300g"),
+the TOTAL WEIGHT of the entire dish is that amount. ALL ingredients combined must sum to approximately that weight.
+Do NOT treat the embedded quantity as a single ingredient weight — it is the TOTAL DISH weight.
+Example: "ผัดกระเพราอกไก่ไม่หนัง 200 กรัม" means the ENTIRE dish weighs 200g total, so the chicken portion might be ~120g, with rice ~0g (no rice), basil, garlic, oil, sauce making up the rest.
+
 STEP-BY-STEP ANALYSIS:
 
 Step 1 — IDENTIFY COOKING STATE:
@@ -1652,7 +1806,7 @@ If this is a well-known dish (e.g., Thai street food, convenience store meal, re
 
 FIELD REQUIREMENTS:
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
-- Do NOT use "g" as serving_unit for dishes — use "plate", "bowl", "cup", "piece", "serving", etc.
+${_isWeightUnit(servingUnitJson) ? '- The user specified weight in grams/kg. Keep serving_unit as "$servingUnitJson" and serving_size as $servingSizeJson. Do NOT change to "plate" or "serving".' : '- Do NOT use "g" as serving_unit for dishes — use "plate", "bowl", "cup", "piece", "serving", etc.'}
 - food_name: Keep in ORIGINAL language as user entered
 - food_name_en: MUST ALWAYS be in English
 - All ingredient names: MUST be in English with cooking state description
@@ -1798,10 +1952,19 @@ YOUR TASK:
 2. Use the OFFICIAL nutrition facts data for this product
 3. Calculate nutrition for the SPECIFIED PORTION only
 
+═══════════════════════════════════════════════════════════════════
+ZERO-VALUE PROHIBITION (MOST CRITICAL RULE):
+═══════════════════════════════════════════════════════════════════
+You MUST NEVER return 0 for ALL nutrition values simultaneously.
+Every real food product has calories > 0.
+- If you don't recognize the product → estimate from similar products in the same category
+- ALWAYS provide your best estimate. Zero calories is NEVER acceptable.
+═══════════════════════════════════════════════════════════════════
+
 IMPORTANT RULES:
-- Use known/official nutrition data — do NOT estimate like regular food
+- Use known/official nutrition data when available
 - If the product has a known Nutrition Facts label, use those exact values
-- If you don't recognize the product, indicate low confidence and estimate based on similar products
+- If you don't recognize the product, indicate low confidence and ESTIMATE based on similar products (NEVER return 0)
 - serving_unit should match what makes sense: "bag", "bottle", "box", "bar", "pack", "can", "piece", "serving", "cup"
 
 PORTION vs CONTAINER RULE:
@@ -1887,13 +2050,25 @@ Return ONLY valid JSON.''';
     final itemsListStr = StringBuffer();
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
-      final hasServing = item.servingSize != null && item.servingSize! > 0 && item.servingUnit != null;
-      final servingDesc = hasServing
-          ? '${item.servingSize} ${_unitForAi(item.servingUnit)}'
+      var itemName = item.name;
+      var itemSize = item.servingSize;
+      var itemUnit = item.servingUnit;
+
+      final hasServing = itemSize != null && itemSize > 0 && itemUnit != null;
+      if (!hasServing) {
+        final extracted = _extractEmbeddedQuantity(itemName);
+        if (extracted != null) {
+          itemName = extracted.cleanedName;
+          itemSize = extracted.size;
+          itemUnit = extracted.unit;
+        }
+      }
+
+      final servingDesc = (itemSize != null && itemSize > 0 && itemUnit != null)
+          ? '$itemSize ${_unitForAi(itemUnit)}'
           : '1 standard serving';
       final modeHint = item.searchMode == FoodSearchMode.product ? ' [PRODUCT]' : '';
 
-      // Prefer userIngredients (with amounts) over ingredientNames (names only)
       String ingredientsHint = '';
       if (item.userIngredients != null && item.userIngredients!.isNotEmpty) {
         final details = item.userIngredients!.map((ing) {
@@ -1903,7 +2078,7 @@ Return ONLY valid JSON.''';
       } else if (item.ingredientNames != null && item.ingredientNames!.isNotEmpty) {
         ingredientsHint = ' [INGREDIENTS: ${item.ingredientNames!.join(", ")}]';
       }
-      itemsListStr.writeln('  ${i + 1}. "${item.name}" — $servingDesc$modeHint$ingredientsHint');
+      itemsListStr.writeln('  ${i + 1}. "$itemName" — $servingDesc$modeHint$ingredientsHint');
     }
 
     return '''
@@ -1935,6 +2110,10 @@ NAMING & UNIT RULES:
 USER-SPECIFIED INGREDIENTS RULE:
 Items marked [USER INGREDIENTS] have exact amounts specified by the user (they measured/weighed the food).
 For these items: use the EXACT amounts provided, calculate nutrition for those amounts, and you may ADD hidden ingredients (oil, seasonings) but NEVER change the user's specified amounts.
+
+EMBEDDED QUANTITY RULE:
+If serving size was extracted from the food name (e.g., "200 g"), that is the TOTAL WEIGHT of the entire dish.
+ALL ingredients combined must sum to approximately that weight. Do NOT treat it as a single ingredient weight.
 
 CRITICAL: Return ALL ${items.length} items in the "items" array. Do not skip any.
 Calculate nutrition for EXACTLY the serving size specified per item.
@@ -2024,7 +2203,7 @@ Return ONLY valid JSON, no markdown.''';
           anyAdjusted = true;
           AppLogger.info(
             '[PostProcess] Adjusting "${aiIngredient.name}": '
-            '${aiIngredient.amount}$aiUnit → ${userAmount}$userUnit (ratio: ${ratio.toStringAsFixed(2)})',
+            '${aiIngredient.amount}$aiUnit → $userAmount$userUnit (ratio: ${ratio.toStringAsFixed(2)})',
           );
 
           adjustedIngredients.add(IngredientDetail(

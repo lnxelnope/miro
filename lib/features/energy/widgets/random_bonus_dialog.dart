@@ -67,7 +67,7 @@ class RandomBonusDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     '+$bonusAmount',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: AppColors.warning,

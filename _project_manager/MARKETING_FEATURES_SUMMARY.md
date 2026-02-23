@@ -5,8 +5,8 @@ Precise Insight. Zero Effort.
 🔒 100% Private & On-Device
 No Login. No Cloud. Your data never leaves your device. Total privacy by design.
 
-⚡ One-Tap Batch Analysis
-Snap throughout the day and let our AI track everything in just 10 seconds. Stop logging, start living.
+⚡ scan & Analysis
+All you need is 10 sec.Snap throughout the day and let our AI search for all food photo of your day and analyze in just 10 seconds. Stop logging, start living.
 
 💬 Conversational Logging
 Just talk or type to your AI Oracle. Log your entire day’s intake in a single natural sentence.

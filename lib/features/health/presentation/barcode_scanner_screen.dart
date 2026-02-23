@@ -95,7 +95,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: EdgeInsets.all(AppSpacing.xxl),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
@@ -111,7 +111,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                 children: [
                   if (_detectedBarcode != null) ...[
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.2),
@@ -123,7 +123,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         children: [
                           const Icon(Icons.check_circle,
                               color: AppColors.success, size: 20),
-                          SizedBox(width: AppSpacing.sm),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             'Barcode: $_detectedBarcode',
                             style: const TextStyle(
@@ -133,7 +133,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                   ],
                   if (_isProcessing)
                     const Column(
@@ -151,12 +151,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       'Point camera at product barcode',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     const Text(
                       'Including the nutrition label improves accuracy',
                       style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                     // ปุ่มถ่ายฉลากแทน
                     OutlinedButton.icon(
                       onPressed: () => _switchToNutritionLabel(),

@@ -18,7 +18,7 @@ class DisclaimerScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppSpacing.xxl),
+          padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -40,7 +40,7 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             
             // Full disclaimer text
             const Text(
@@ -52,7 +52,7 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: AppSpacing.xxxl),
+            const SizedBox(height: AppSpacing.xxxl),
             
             // Acknowledgment section
             Container(
@@ -67,13 +67,13 @@ class DisclaimerScreen extends StatelessWidget {
                 children: [
                   Text(
                     L10n.of(context)!.disclaimerImportantReminders,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.info,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   _buildBulletPoint(L10n.of(context)!.disclaimerBullet1),
                   _buildBulletPoint(L10n.of(context)!.disclaimerBullet2),
                   _buildBulletPoint(L10n.of(context)!.disclaimerBullet3),
@@ -83,7 +83,7 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: AppSpacing.xxxl),
+            const SizedBox(height: AppSpacing.xxxl),
             
             // Close button
             SizedBox(
@@ -108,7 +108,7 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
           ],
         ),
         ),
@@ -122,7 +122,7 @@ class DisclaimerScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '• ',
             style: TextStyle(
               fontSize: 16,
@@ -133,7 +133,7 @@ class DisclaimerScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: AppColors.info,
               ),

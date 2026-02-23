@@ -124,7 +124,7 @@ class MyMealIngredientCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               detail!,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                                 fontStyle: FontStyle.italic,

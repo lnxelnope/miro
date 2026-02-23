@@ -1006,6 +1006,12 @@ abstract class L10n {
   /// **'Camera'**
   String get navCamera;
 
+  /// No description provided for @navGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get navGallery;
+
   /// No description provided for @navAiChat.
   ///
   /// In en, this message translates to:
@@ -1869,6 +1875,30 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'✅ Saved successfully'**
   String get savedSuccessfully;
+
+  /// No description provided for @saveToMyMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'📖 Save to My Meals'**
+  String get saveToMyMeals;
+
+  /// No description provided for @savedToMyMealsSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Saved \'{mealName}\' to My Meals'**
+  String savedToMyMealsSuccess(String mealName);
+
+  /// No description provided for @failedToSaveToMyMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Failed to save to My Meals'**
+  String get failedToSaveToMyMeals;
+
+  /// No description provided for @noIngredientsToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients to save'**
+  String get noIngredientsToSave;
 
   /// No description provided for @confirmFoodPhoto.
   ///

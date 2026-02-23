@@ -56,7 +56,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                 children: [
                   const Icon(AppIcons.celebration,
                       size: 18, color: Colors.white),
-                  SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
                   Text('+${data['reward']}E!'),
                 ],
               ),
@@ -142,7 +142,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
       shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
       color: isDark ? AppColors.surfaceDark : AppColors.surface,
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -150,7 +150,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
             Row(
               children: [
                 Icon(_getTierIcon(), size: 24, color: _getTierColor()),
-                  SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     l10n.tierCelebrationTitle(_getTierName(context)),
@@ -166,14 +166,14 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                 if (celebration.isComplete)
                   Container(
                     padding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(AppSpacing.xs),
                     ),
                     child: Text(
                       l10n.tierCelebrationComplete,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: AppColors.success,
@@ -182,7 +182,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                   ),
               ],
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
 
             // 7-day indicator grid
             Row(
@@ -196,7 +196,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
 
                 return Expanded(
                   child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: AppSpacing.xxs + AppSpacing.xxs),
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs + AppSpacing.xxs),
                     child: Column(
                       children: [
                         // Circle indicator
@@ -224,17 +224,17 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                                 ? const Icon(Icons.check,
                                     color: Colors.white, size: 24)
                                 : isExpired
-                                    ? Icon(Icons.close,
+                                    ? const Icon(Icons.close,
                                         color: AppColors.textSecondary, size: 20)
                                     : isFuture
-                                        ? Icon(Icons.circle,
+                                        ? const Icon(Icons.circle,
                                             color: AppColors.textTertiary,
                                             size: 8)
                                         : const Icon(AppIcons.energy,
                                             color: Colors.white, size: 20),
                           ),
                         ),
-                        SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
                         // Day label
                         Text(
                           l10n.tierCelebrationDay(dayNum),
@@ -252,7 +252,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                 );
               }),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
 
             // Claim button (only show if claimable today)
             if (celebration.canClaimToday)
@@ -260,7 +260,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                 child: GestureDetector(
                   onTap: _isLoading ? null : _claimReward,
                   child: Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.xxl, vertical: AppSpacing.xs + AppSpacing.xxs),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
@@ -289,7 +289,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(width: AppSpacing.xs),
+                          const SizedBox(width: AppSpacing.xs),
                           const Icon(AppIcons.energy,
                               size: 16, color: Colors.white),
                         ],
@@ -304,7 +304,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
               Center(
                 child: Text(
                   l10n.tierCelebrationExpired,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
                     fontStyle: FontStyle.italic,

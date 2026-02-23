@@ -35,8 +35,8 @@ class DisclaimerWidget extends StatelessWidget {
       child: Row(
         children: [
           const Icon(AppIcons.warning, size: 18, color: AppIcons.warningColor),
-          SizedBox(width: AppSpacing.sm),
-          Expanded(
+          const SizedBox(width: AppSpacing.sm),
+          const Expanded(
             child: Text(
               'For informational purposes only. Not medical advice.',
               style: TextStyle(
@@ -71,9 +71,9 @@ class DisclaimerWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text('⚠️', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          SizedBox(width: AppSpacing.xs + 2),
-          Expanded(
+          const Text('⚠️', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(width: AppSpacing.xs + 2),
+          const Expanded(
             child: Text(
               'For informational purposes only',
               style: TextStyle(
@@ -91,7 +91,7 @@ class DisclaimerWidget extends StatelessWidget {
                   ),
                 );
               },
-              child: Padding(
+              child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xxs),
                 child: Text(
                   'Read Disclaimer',

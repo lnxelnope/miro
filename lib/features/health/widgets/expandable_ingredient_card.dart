@@ -122,7 +122,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                 child: RotationTransition(
                   turns: Tween<double>(begin: 0, end: 0.5)
                       .animate(_expandAnimation),
-                  child: Icon(
+                  child: const Icon(
                     Icons.arrow_forward_ios,
                     size: 16,
                     color: AppColors.textSecondary,
@@ -163,7 +163,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                   const SizedBox(height: 4),
                   Text(
                     '${widget.ingredient.amount.toStringAsFixed(0)} ${widget.ingredient.unit}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
@@ -276,7 +276,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       child.detail!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         color: AppColors.textSecondary,
                         fontStyle: FontStyle.italic,
@@ -291,7 +291,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
 
           Text(
             '${child.calories.toStringAsFixed(0)} kcal',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,

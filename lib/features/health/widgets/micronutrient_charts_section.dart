@@ -85,18 +85,18 @@ class _MicronutrientChartsSectionState
                         color: AppColors.info.withValues(alpha: 0.1),
                         borderRadius: AppRadius.sm,
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
-                            const Icon(
+                            Icon(
                               Icons.info_outline,
                               size: 20,
                               color: AppColors.info,
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Showing average daily intake. No goals set for micronutrients.',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.info,
                                 ),

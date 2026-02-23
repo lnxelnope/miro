@@ -179,7 +179,7 @@ class FoodTimelineCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(AppIcons.calories, size: 14, color: AppIcons.caloriesColor),
+          const Icon(AppIcons.calories, size: 14, color: AppIcons.caloriesColor),
           const SizedBox(width: 2),
           Text(
             '${entry.calories.toInt()} kcal',

@@ -185,7 +185,7 @@ class AppButton extends StatelessWidget {
       minimumSize: WidgetStatePropertyAll(
         Size(isFullWidth ? double.infinity : 0, _height),
       ),
-      padding: WidgetStatePropertyAll(
+      padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: 0,

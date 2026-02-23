@@ -605,7 +605,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   // Ingredients Section (Collapsible)
   // ============================================================
   Widget _buildIngredientsSection(List<IngredientDetail> ingredients, bool isDark) {
-    final headerColor = const Color(0xFF10B981);
+    const headerColor = Color(0xFF10B981);
 
     return Container(
       decoration: BoxDecoration(

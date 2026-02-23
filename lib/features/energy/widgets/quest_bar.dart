@@ -40,8 +40,8 @@ class _QuestBarState extends ConsumerState<QuestBar> {
   Duration? _remainingTime;
   
   // J10: Swipe to Dismiss (session only - ไม่ persist)
-  Set<String> _dismissedOffers = {};
-  Set<String> _dismissedSeasonalQuests = {};
+  final Set<String> _dismissedOffers = {};
+  final Set<String> _dismissedSeasonalQuests = {};
   
   // J11: API Data
   bool _canClaim = false;
@@ -58,7 +58,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
   bool _adInitialized = false;
 
   // Claim loading states
-  Set<String> _claimingChallenges = {};
+  final Set<String> _claimingChallenges = {};
   bool _isClaimingSeasonal = false;
   bool _isClaimingReferral = false;
 
@@ -313,7 +313,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
 
     if (_isLoading) {
       return Container(
-        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         padding: AppSpacing.paddingLg,
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : Colors.white,
@@ -351,14 +351,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       children: [
         // ────── Seasonal Quest Banner (ปิดได้ เหมือน offer) ──────
         ...visibleSeasonalQuests.map((q) => Padding(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg).copyWith(bottom: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg).copyWith(bottom: AppSpacing.sm),
               child: Dismissible(
                 key: Key('seasonal_banner_${q.id}'),
                 direction: DismissDirection.endToStart,
                 onDismissed: (_) => _dismissSeasonalQuest(q.id),
                 background: Container(
                   alignment: Alignment.centerRight,
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: AppColors.textTertiary,
                     borderRadius: AppRadius.md,
@@ -379,7 +379,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                 }
               : null,
           child: Container(
-            margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+            margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -453,14 +453,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             : AppColors.warning;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg).copyWith(top: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg).copyWith(top: AppSpacing.sm),
       child: Dismissible(
         key: Key('offer_banner_$offerId'),
         direction: DismissDirection.endToStart,
         onDismissed: (_) => _dismissOffer(offerId),
         background: Container(
           alignment: Alignment.centerRight,
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           decoration: BoxDecoration(
             color: AppColors.error,
             borderRadius: AppRadius.md,
@@ -475,7 +475,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             onTap: () => _handleOfferTap(context, offerType, offerId: offerId),
             borderRadius: AppRadius.md,
             child: Container(
-              padding: EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
                 gradient: LinearGradient(colors: gradientColors),
                 borderRadius: AppRadius.md,
@@ -492,7 +492,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                         color: isUrgent ? AppColors.error : AppColors.warning,
                         size: 24,
                       ),
-                      SizedBox(width: AppSpacing.xs + AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs + AppSpacing.xs),
                       Expanded(
                         child: Text(
                           title,
@@ -513,21 +513,21 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     ],
                   ),
                   if (description.isNotEmpty) ...[
-                        SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+                        const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
                     Text(
                       description,
                       style: const TextStyle(fontSize: 13, color: Colors.black54),
                     ),
                   ],
                   if (_remainingTime != null) ...[
-                        SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+                        const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
                     Row(
                       children: [
-                        Icon(Icons.timer, color: AppColors.error, size: 15),
-                        SizedBox(width: AppSpacing.xs),
+                        const Icon(Icons.timer, color: AppColors.error, size: 15),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           l10n.questBarTimeRemaining(_formatDuration(_remainingTime!)),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.error,
                             fontWeight: FontWeight.w600,
@@ -536,7 +536,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       ],
                     ),
                   ],
-                  SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -544,7 +544,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isSubscription ? AppColors.premium : AppColors.warning,
                         foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.xs + AppSpacing.xxs),
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs + AppSpacing.xxs),
                         shape: RoundedRectangleBorder(
                           borderRadius: AppRadius.sm,
                         ),
@@ -580,7 +580,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       borderRadius: AppRadius.md,
       clipBehavior: Clip.antiAlias,
       child: Container(
-        padding: EdgeInsets.all(AppSpacing.md + AppSpacing.xxs),
+        padding: const EdgeInsets.all(AppSpacing.md + AppSpacing.xxs),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.warning.withValues(alpha: 0.2), AppColors.warning.withValues(alpha: 0.2)],
@@ -595,7 +595,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             Row(
               children: [
                 Text(quest.icon, style: const TextStyle(fontSize: 24)),
-                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,7 +603,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       Row(
                         children: [
                           Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xxs),
                             decoration: BoxDecoration(
                                 color: AppColors.error,
@@ -619,10 +619,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                               ),
                             ),
                           ),
-                          SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                          const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                           Text(
                             l10n.seasonalQuestDaysLeft(quest.daysRemaining),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.error,
                               fontWeight: FontWeight.w500,
@@ -630,7 +630,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         quest.title,
                         style: const TextStyle(
@@ -653,13 +653,13 @@ class _QuestBarState extends ConsumerState<QuestBar> {
               ],
             ),
             if (quest.description.isNotEmpty) ...[
-                        SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+                        const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
               Text(
                 quest.description,
                 style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
-            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+            const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             Row(
               children: [
                 Expanded(
@@ -667,14 +667,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     children: [
                       const Icon(AppIcons.energy,
                           size: 16, color: AppColors.warning),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         quest.claimType == 'daily'
                             ? l10n.seasonalQuestRewardDaily(
                                 quest.rewardPerClaim)
                             : l10n.seasonalQuestRewardOnce(
                                 quest.rewardPerClaim),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.warning,
                         ),
@@ -703,7 +703,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       onTap: _isClaimingSeasonal ? null : () => _claimSeasonalQuest(quest.id),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: _isClaimingSeasonal
@@ -732,7 +732,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(width: AppSpacing.xs),
+                  const SizedBox(width: AppSpacing.xs),
                   const Icon(AppIcons.energy, size: 14, color: Colors.white),
                 ],
               ),
@@ -852,7 +852,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       onTap: () => setState(() => _isExpanded = !_isExpanded),
       behavior: HitTestBehavior.opaque,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         child: Column(
           children: [
             Row(
@@ -861,7 +861,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(tierIcon, color: tierColor, size: 24),
-                    SizedBox(height: AppSpacing.xxs),
+                    const SizedBox(height: AppSpacing.xxs),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -874,14 +874,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           ),
                         ),
                         if (!_canClaim) ...[
-                          SizedBox(width: AppSpacing.xxs),
+                          const SizedBox(width: AppSpacing.xxs),
                           const Icon(Icons.check, size: 10, color: AppColors.textSecondary),
                         ],
                       ],
                     ),
                   ],
                 ),
-                SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
                 // Streak text
                 Expanded(
                   child: Column(
@@ -923,8 +923,8 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                   final unclaimed = _countUnclaimedEnergy(gamification);
                   if (unclaimed <= 0) return const SizedBox.shrink();
                   return Container(
-                    margin: EdgeInsets.only(right: AppSpacing.sm),
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    margin: const EdgeInsets.only(right: AppSpacing.sm),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                     decoration: BoxDecoration(
                       color: AppColors.success.withValues(alpha: 0.15),
                       borderRadius: AppRadius.sm,
@@ -933,7 +933,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(AppIcons.energy, size: 13, color: AppColors.success),
-                        SizedBox(width: AppSpacing.xxs),
+                        const SizedBox(width: AppSpacing.xxs),
                         Text(
                           '+$unclaimed',
                           style: const TextStyle(
@@ -956,7 +956,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             ),
             // Progress Bar
             if (tierName != 'Diamond') ...[
-              SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.sm),
               ClipRRect(
                 borderRadius: BorderRadius.circular(AppSpacing.xs),
                 child: LinearProgressIndicator(
@@ -993,18 +993,18 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         children: [
           // ────── 0. Seasonal Quests (dismissed → แสดงใน expanded) ──────
           ...dismissedSeasonalQuests.map((q) => Padding(
-                padding: EdgeInsets.only(bottom: AppSpacing.sm),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: SeasonalQuestCard(quest: q),
               )),
           if (dismissedSeasonalQuests.isNotEmpty)
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
 
           // ────── 1. Ad Reward (balance <= 4) ──────
           if (showAd) ...[
             GestureDetector(
               onTap: _isAdLoading ? null : _handleWatchAd,
               child: Container(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [AppColors.warning.withValues(alpha: 0.3), AppColors.warning.withValues(alpha: 0.3)],
@@ -1015,7 +1015,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(AppSpacing.sm),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: AppRadius.sm,
@@ -1032,14 +1032,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                               size: 24,
                             ),
                     ),
-                    SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             L10n.of(context)!.questBarWatchAd(_adRewardEnergy),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: AppColors.warning,
@@ -1047,7 +1047,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           ),
                           Text(
                             L10n.of(context)!.questBarAdRemaining(_adService.remainingAds, AdService.maxAdsPerDay),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.warning,
                             ),
@@ -1056,7 +1056,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md,
                         vertical: AppSpacing.xs + AppSpacing.xxs,
                       ),
@@ -1066,10 +1066,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                         ),
                         borderRadius: AppRadius.pill,
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             AppIcons.energy,
                             size: 14,
                             color: Colors.white,
@@ -1077,7 +1077,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           SizedBox(width: AppSpacing.xs),
                           Text(
                             '+$_adRewardEnergy',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -1090,20 +1090,20 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
           ],
 
           // ────── 2. Offers (ปิดไม่ได้, แสดงเสมอ) ──────
           if (_allOffers.isNotEmpty) ...[
             ..._allOffers.map((offer) => _buildOfferCard(context, offer, isDark)),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
           ],
 
           // ────── 2.5. Tier Celebrations (active celebrations only) ──────
           ...gamification.tierCelebrations.entries
               .where((e) => !e.value.isComplete)
               .map((e) => Padding(
-                    padding: EdgeInsets.only(bottom: AppSpacing.lg),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                     child: TierCelebrationCard(
                       tierKey: e.key,
                       celebration: e.value,
@@ -1115,27 +1115,27 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             L10n.of(context)!.questBarDailyChallenge,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           _buildDailyChallengeRow(context, gamification, isDark),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           // ────── 4. Weekly Challenges ──────
           Text(
             L10n.of(context)!.questBarWeeklyChallenges,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           const WeeklyChallengeCard(compact: true),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           // ────── 5. Milestones ──────
           Text(
             L10n.of(context)!.questBarMilestones,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           const MilestoneProgressCard(compact: true),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           // ────── 6. Referral (Weekly Quest: +5E per friend, max 10/week) ──────
           _buildReferralRow(context, gamification, isDark),
@@ -1175,7 +1175,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
           isLoading: _claimingChallenges.contains('dailyAi1'),
           onClaim: () => _claimChallenge('dailyAi1'),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         _buildChallengeItem(
           context: context,
           isDark: isDark,
@@ -1214,7 +1214,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         Row(
           children: [
             Icon(icon, size: 20, color: color),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -1234,7 +1234,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     ),
                     WidgetSpan(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
                         child: Icon(
                           AppIcons.energy,
                           size: 12,
@@ -1258,10 +1258,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                          SizedBox(width: AppSpacing.xs),
+                          const SizedBox(width: AppSpacing.xs),
                   Text(
                     L10n.of(context)!.questBarClaimed,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.success,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -1274,11 +1274,11 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             else
               Text(
                 '[$current/$target]',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
           ],
         ),
-                        SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+                        const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.xs),
           child: LinearProgressIndicator(
@@ -1298,7 +1298,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       onTap: isLoading ? null : onClaim,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isLoading
@@ -1326,7 +1326,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                   fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white,
                 ),
               ),
-              SizedBox(width: AppSpacing.xxs),
+              const SizedBox(width: AppSpacing.xxs),
               const Icon(AppIcons.energy, size: 12, color: Colors.white),
             ],
           ],
@@ -1435,7 +1435,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       return Row(
         children: [
           const Icon(Icons.people, color: AppColors.success, size: 20),
-          SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               l10n.inviteFriendsSubtitle,
@@ -1447,10 +1447,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             ),
           ),
           const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                          SizedBox(width: AppSpacing.xs),
+                          const SizedBox(width: AppSpacing.xs),
           Text(
             l10n.referralAllLevelsClaimed,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.success,
               fontWeight: FontWeight.w600,
               fontSize: 12,
@@ -1478,7 +1478,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
               size: 20,
               color: canClaim ? AppColors.success : AppColors.info,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -1498,7 +1498,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     ),
                     WidgetSpan(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
                         child: Icon(
                           AppIcons.energy,
                           size: 12,
@@ -1522,7 +1522,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                 onTap: _isClaimingReferral ? null : () => _claimReferralLevel(levelNum),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: _isClaimingReferral
@@ -1544,7 +1544,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(AppIcons.energy, size: 14, color: Colors.white),
-                            SizedBox(width: AppSpacing.xs),
+                            const SizedBox(width: AppSpacing.xs),
                             Text(
                               '+$reward',
                               style: const TextStyle(
@@ -1572,7 +1572,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.share, size: 14, color: Colors.white),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         l10n.questBarShareSubject,
                         style: const TextStyle(
@@ -1587,7 +1587,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
               ),
           ],
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.xs),
           child: LinearProgressIndicator(
@@ -1599,10 +1599,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
             ),
           ),
         ),
-        SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           l10n.referralProgress(referFriends, target, levelNum, levels.length),
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -1712,7 +1712,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
           onTap: () => _handleOfferTap(context, offerType, offerId: offerId),
           borderRadius: AppRadius.md,
           child: Container(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: gradientColors),
               borderRadius: AppRadius.md,
@@ -1725,7 +1725,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                   color: isUrgent ? AppColors.error : AppColors.warning,
                   size: 22,
                 ),
-                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1740,7 +1740,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                           ),
                         ),
                       if (description.isNotEmpty) ...[
-                        SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           description,
                           style: const TextStyle(
@@ -1750,14 +1750,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                         ),
                       ],
                       if (isFirstOffer && _remainingTime != null) ...[
-                        SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
                         Row(
                           children: [
-                            Icon(Icons.timer, color: AppColors.error, size: 13),
-                            SizedBox(width: AppSpacing.xxs + AppSpacing.xxs),
+                            const Icon(Icons.timer, color: AppColors.error, size: 13),
+                            const SizedBox(width: AppSpacing.xxs + AppSpacing.xxs),
                             Text(
                               l10n.questBarTimeRemaining(_formatDuration(_remainingTime!)),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.error,
                                 fontWeight: FontWeight.w500,
@@ -1769,14 +1769,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
                     ],
                   ),
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 ElevatedButton(
                   onPressed: () => _handleOfferTap(context, offerType, offerId: offerId),
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
                         isSubscription ? AppColors.premium : AppColors.warning,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md + AppSpacing.xxs,
                       vertical: AppSpacing.sm,
                     ),
@@ -1842,6 +1842,30 @@ class _QuestBarState extends ConsumerState<QuestBar> {
     for (final quest in gamification.seasonalQuests) {
       if (quest.isActive && quest.canClaimToday) {
         unclaimed += quest.rewardPerClaim;
+      }
+    }
+
+    // Milestones
+    const milestones = [
+      {'threshold': 10, 'reward': 10, 'label': 'milestone_10'},
+      {'threshold': 25, 'reward': 5, 'label': 'milestone_25'},
+      {'threshold': 50, 'reward': 7, 'label': 'milestone_50'},
+      {'threshold': 100, 'reward': 10, 'label': 'milestone_100'},
+      {'threshold': 250, 'reward': 15, 'label': 'milestone_250'},
+      {'threshold': 500, 'reward': 20, 'label': 'milestone_500'},
+      {'threshold': 1000, 'reward': 30, 'label': 'milestone_1000'},
+      {'threshold': 2500, 'reward': 50, 'label': 'milestone_2500'},
+      {'threshold': 5000, 'reward': 65, 'label': 'milestone_5000'},
+      {'threshold': 10000, 'reward': 100, 'label': 'milestone_10000'},
+    ];
+    final totalSpent = gamification.totalSpent;
+    final claimedMilestones = gamification.claimedMilestones;
+    for (final ms in milestones) {
+      final threshold = ms['threshold'] as int;
+      final reward = ms['reward'] as int;
+      final label = ms['label'] as String;
+      if (totalSpent >= threshold && !claimedMilestones.contains(label)) {
+        unclaimed += reward;
       }
     }
 

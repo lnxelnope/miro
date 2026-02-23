@@ -144,7 +144,7 @@ class TimePeriodCards extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Avg/day: $avgText $unit',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),

@@ -59,7 +59,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
                 children: [
                   const Icon(AppIcons.celebration,
                       size: 18, color: Colors.white),
-                  SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
                   Text('+${data['reward']}E!'),
                 ],
               ),
@@ -124,7 +124,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
         children: [
           for (int i = 0; i < items.length; i++) ...[
             items[i],
-            if (i < items.length - 1) SizedBox(height: AppSpacing.md),
+            if (i < items.length - 1) const SizedBox(height: AppSpacing.md),
           ],
         ],
       );
@@ -146,12 +146,12 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             for (int i = 0; i < items.length; i++) ...[
               items[i],
-              if (i < items.length - 1) SizedBox(height: AppSpacing.md),
+              if (i < items.length - 1) const SizedBox(height: AppSpacing.md),
             ],
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             AppIcons.iconWithLabel(
               AppIcons.timer,
               l10n.questBarResetsMonday,
@@ -187,7 +187,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
         Row(
           children: [
             Icon(icon, size: 20, color: color),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -207,7 +207,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
                     ),
                     WidgetSpan(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
                         child: Icon(
                           AppIcons.energy,
                           size: 12,
@@ -231,11 +231,11 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                  SizedBox(width: AppSpacing.xs),
+                  const Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     L10n.of(context)!.questBarClaimed,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.success,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
@@ -249,7 +249,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: _isLoading
@@ -278,7 +278,7 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
                                 color: Colors.white,
                               ),
                             ),
-                            SizedBox(width: AppSpacing.xxs),
+                            const SizedBox(width: AppSpacing.xxs),
                             const Icon(AppIcons.energy,
                                 size: 12, color: Colors.white),
                           ],
@@ -288,11 +288,11 @@ class _WeeklyChallengeCardState extends ConsumerState<WeeklyChallengeCard> {
             else
               Text(
                 '[$progress/$target]',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
           ],
         ),
-        SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.xs),
         ClipRRect(
           borderRadius: AppRadius.sm,
           child: LinearProgressIndicator(

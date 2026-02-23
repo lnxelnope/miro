@@ -59,7 +59,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
             color: theme.colorScheme.primary,
             size: 28,
           ),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           const Expanded(
             child: Text(
               'Usage Data',
@@ -84,25 +84,25 @@ class AnalyticsConsentDialog extends StatelessWidget {
                 color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             _buildInfoRow(
               icon: Icons.check_circle_outline,
               text: 'What we collect: Feature usage, screens viewed',
               isDark: isDark,
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             _buildInfoRow(
               icon: Icons.block,
               text: 'Not collected: Food data, photos, health info',
               isDark: isDark,
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             _buildInfoRow(
               icon: Icons.shield_outlined,
               text: 'Data is aggregated and anonymous',
               isDark: isDark,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               'You can change this anytime in Profile → Settings',
               style: TextStyle(
@@ -110,7 +110,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
                 color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             InkWell(
               onTap: _openPrivacyPolicy,
               child: Text(
@@ -141,7 +141,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: theme.colorScheme.primary,
             foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
           ),
           child: const Text(
             'Accept',
@@ -165,7 +165,7 @@ class AnalyticsConsentDialog extends StatelessWidget {
           size: 20,
           color: AppColors.success,
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             text,

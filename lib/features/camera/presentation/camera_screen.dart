@@ -227,11 +227,11 @@ class _CameraScreenState extends State<CameraScreen>
           SafeArea(
             child: Padding(
               padding:
-                  EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
               child: Center(
                 child: Container(
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs + 2),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs + 2),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.3),
                     borderRadius: AppRadius.xl,
@@ -295,7 +295,7 @@ class _CameraScreenState extends State<CameraScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.lg),
                       Text(
                         L10n.of(context)!.cameraProcessing,
                         style: const TextStyle(color: Colors.white70, fontSize: 14),

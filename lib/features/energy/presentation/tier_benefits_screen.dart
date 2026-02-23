@@ -24,26 +24,26 @@ class TierBenefitsScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: ListView(
-        padding: EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         children: [
           // Header Card
           _buildHeaderCard(context),
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
 
           // How it works
           _buildHowItWorksCard(context),
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
 
           // Tier List
           Text(
             L10n.of(context)!.tierBenefitsAllTiers,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
 
           _buildTierCard(
             context: context,
@@ -56,7 +56,7 @@ class TierBenefitsScreen extends StatelessWidget {
             gracePeriod: '0 days',
             isStarting: true,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
             context: context,
@@ -68,7 +68,7 @@ class TierBenefitsScreen extends StatelessWidget {
             purchaseBonus: '0%',
             gracePeriod: '0 days',
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
             context: context,
@@ -80,7 +80,7 @@ class TierBenefitsScreen extends StatelessWidget {
             purchaseBonus: '0%',
             gracePeriod: '1 day',
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
             context: context,
@@ -93,7 +93,7 @@ class TierBenefitsScreen extends StatelessWidget {
             gracePeriod: '1 day',
             isRecommended: true,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
 
           _buildTierCard(
             context: context,
@@ -107,11 +107,11 @@ class TierBenefitsScreen extends StatelessWidget {
             isPremium: true,
           ),
 
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
 
           // Tips Card
           _buildTipsCard(context),
-          SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xl),
         ],
       ),
     );
@@ -119,7 +119,7 @@ class TierBenefitsScreen extends StatelessWidget {
 
   Widget _buildHeaderCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.xxl),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
@@ -141,7 +141,7 @@ class TierBenefitsScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: AppRadius.md,
@@ -152,7 +152,7 @@ class TierBenefitsScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Text(
                   L10n.of(context)!.tierBenefitsUnlockRewards,
@@ -166,7 +166,7 @@ class TierBenefitsScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             L10n.of(context)!.tierBenefitsKeepStreakDescription,
             style: TextStyle(
@@ -182,7 +182,7 @@ class TierBenefitsScreen extends StatelessWidget {
 
   Widget _buildHowItWorksCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppRadius.lg,
@@ -200,7 +200,7 @@ class TierBenefitsScreen extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.info_outline, color: AppColors.primary, size: 24),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 L10n.of(context)!.tierBenefitsHowItWorks,
                 style: const TextStyle(
@@ -210,7 +210,7 @@ class TierBenefitsScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           _buildBenefitExplanation(
             context: context,
             icon: Icons.calendar_today,
@@ -218,7 +218,7 @@ class TierBenefitsScreen extends StatelessWidget {
             title: L10n.of(context)!.tierBenefitsDailyEnergyReward,
             description: L10n.of(context)!.tierBenefitsDailyEnergyDescription,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildBenefitExplanation(
             context: context,
             icon: Icons.shopping_bag,
@@ -227,7 +227,7 @@ class TierBenefitsScreen extends StatelessWidget {
             description: L10n.of(context)!.tierBenefitsPurchaseBonusDescription,
             highlight: true,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildBenefitExplanation(
             context: context,
             icon: Icons.shield,
@@ -249,7 +249,7 @@ class TierBenefitsScreen extends StatelessWidget {
     bool highlight = false,
   }) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: highlight ? AppColors.warning.withValues(alpha: 0.1) : AppColors.background,
           borderRadius: AppRadius.md,
@@ -261,14 +261,14 @@ class TierBenefitsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.all(AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: AppRadius.sm,
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,9 +283,9 @@ class TierBenefitsScreen extends StatelessWidget {
                       ),
                     ),
                     if (highlight) ...[
-                      SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.sm),
                       Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.xs + AppSpacing.xxs,
                           vertical: AppSpacing.xxs,
                         ),
@@ -305,10 +305,10 @@ class TierBenefitsScreen extends StatelessWidget {
                     ],
                   ],
                 ),
-                SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
                   description,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
                     height: 1.3,
@@ -359,7 +359,7 @@ class TierBenefitsScreen extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.vertical(
@@ -369,14 +369,14 @@ class TierBenefitsScreen extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(AppSpacing.sm),
+                  padding: const EdgeInsets.all(AppSpacing.sm),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(AppSpacing.xs + 6),
                   ),
                   child: Icon(icon, size: 28, color: color),
                 ),
-                SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +392,7 @@ class TierBenefitsScreen extends StatelessWidget {
                             ),
                           ),
                           if (isRecommended) ...[
-                            SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -413,7 +413,7 @@ class TierBenefitsScreen extends StatelessWidget {
                             ),
                           ],
                           if (isPremium) ...[
-                            SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8,
@@ -440,10 +440,10 @@ class TierBenefitsScreen extends StatelessWidget {
                           ],
                         ],
                       ),
-                      SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         streakRequired,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
@@ -456,7 +456,7 @@ class TierBenefitsScreen extends StatelessWidget {
           ),
           // Benefits
           Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               children: [
                 _buildBenefitRow(
@@ -502,18 +502,18 @@ class TierBenefitsScreen extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 20, color: iconColor),
-        SizedBox(width: AppSpacing.md),
+        const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
           decoration: BoxDecoration(
             color: highlight ? AppColors.warning.withValues(alpha: 0.1) : AppColors.surfaceVariant,
             borderRadius: AppRadius.md,
@@ -536,7 +536,7 @@ class TierBenefitsScreen extends StatelessWidget {
 
   Widget _buildTipsCard(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [AppColors.warning.withValues(alpha: 0.3), AppColors.warning.withValues(alpha: 0.3)],
@@ -551,11 +551,11 @@ class TierBenefitsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.lightbulb, color: AppColors.warning, size: 24),
-              SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.lightbulb, color: AppColors.warning, size: 24),
+              const SizedBox(width: AppSpacing.sm),
               Text(
                 L10n.of(context)!.tierBenefitsProTips,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.warning,
@@ -563,17 +563,17 @@ class TierBenefitsScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildTipRow(context, L10n.of(context)!.tierBenefitsTip1),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           _buildTipRow(context, L10n.of(context)!.tierBenefitsTip2),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           _buildTipRow(
             context,
             L10n.of(context)!.tierBenefitsTip3,
             highlight: true,
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           _buildTipRow(context, L10n.of(context)!.tierBenefitsTip4),
         ],
       ),
@@ -585,7 +585,7 @@ class TierBenefitsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: EdgeInsets.only(top: AppSpacing.xs + AppSpacing.xxs),
+          margin: const EdgeInsets.only(top: AppSpacing.xs + AppSpacing.xxs),
           width: 6,
           height: 6,
           decoration: BoxDecoration(
@@ -593,7 +593,7 @@ class TierBenefitsScreen extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+        const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
         Expanded(
           child: Text(
             text,

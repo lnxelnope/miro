@@ -72,7 +72,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildDot(int index) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       width: _currentPage == index ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
@@ -86,11 +86,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Widget _buildPage1Welcome() {
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl, vertical: AppSpacing.lg),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
           // Logo
           ClipRRect(
             borderRadius: AppRadius.xl,
@@ -101,7 +101,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
           RichText(
             textAlign: TextAlign.center,
             text: const TextSpan(
@@ -127,17 +127,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           Text(
             L10n.of(context)!.onboardingWelcomeSubtitle,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
               height: 1.4,
             ),
           ),
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
 
           // Feature Pills
           _buildFeaturePill(
@@ -146,14 +146,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             title: L10n.of(context)!.onboardingSnap,
             subtitle: L10n.of(context)!.onboardingSnapDesc,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
             icon: Icons.chat_rounded,
             iconColor: AppIcons.aiColor,
             title: L10n.of(context)!.onboardingType,
             subtitle: L10n.of(context)!.onboardingTypeDesc,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildFeaturePill(
             icon: AppIcons.edit,
             iconColor: AppIcons.editColor,
@@ -161,9 +161,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             subtitle: L10n.of(context)!.onboardingEditDesc,
           ),
 
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
-          SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xl),
 
           // Inline Disclaimer
           Container(
@@ -175,11 +175,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             child: Row(
               children: [
                 const Icon(AppIcons.info, size: 20, color: AppIcons.infoColor),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     L10n.of(context)!.onboardingDisclaimer,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textPrimary,
                     ),
@@ -201,7 +201,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: AppRadius.lg,
@@ -227,7 +227,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   TextSpan(
                     text: subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -256,7 +256,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               const SizedBox(width: 12),
               Text(
                 L10n.of(context)!.onboardingQuickSetup,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
@@ -267,7 +267,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Text(
             L10n.of(context)!.onboardingHelpAiUnderstand,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 15,
               color: AppColors.textSecondary,
             ),
@@ -277,13 +277,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Cuisine Preference
           Text(
             L10n.of(context)!.onboardingYourTypicalCuisine,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -318,13 +318,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // Calorie Goal (Optional)
           Text(
             L10n.of(context)!.onboardingDailyCalorieGoal,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _calorieGoalController,
             keyboardType: TextInputType.number,
@@ -341,14 +341,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Text(
             L10n.of(context)!.onboardingCanChangeAnytime,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
                   color: AppColors.textTertiary,
               fontStyle: FontStyle.italic,
             ),
           ),
 
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
         ],
       ),
@@ -363,28 +363,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
           const Icon(AppIcons.celebration, size: 96, color: AppIcons.celebrationColor),
-          SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxl),
           Text(
             L10n.of(context)!.onboardingYoureAllSet,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           Text(
             L10n.of(context)!.onboardingStartTracking,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 15,
               color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
 
           // Welcome Gift Card
           Container(
@@ -421,7 +421,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 16),
                 Text(
                   L10n.of(context)!.onboardingFreeEnergy,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: AppColors.success,
@@ -430,7 +430,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 8),
                 Text(
                   L10n.of(context)!.onboardingFreeEnergyDesc,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
@@ -440,7 +440,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Text(
                   L10n.of(context)!.onboardingEnergyCost,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
                     height: 1.5,
@@ -450,7 +450,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
-          SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xxxxl),
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -465,7 +465,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ),
               child: Text(
                 L10n.of(context)!.onboardingStartTrackingButton,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -476,7 +476,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 16),
           Text(
             L10n.of(context)!.onboardingNoCreditCard,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
                   color: AppColors.textTertiary,
             ),
@@ -509,7 +509,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ),
         child: Text(
           L10n.of(context)!.onboardingNext,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w600,

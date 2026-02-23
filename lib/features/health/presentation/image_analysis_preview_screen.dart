@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/core/ai/gemini_service.dart';
 import 'package:miro_hybrid/core/services/usage_limiter.dart';
+import 'package:miro_hybrid/core/services/image_picker_service.dart';
 import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
@@ -20,17 +22,21 @@ import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
-  final File imageFile;
+  final File? imageFile;
   final String? initialFoodName;
   final double? initialQuantity;
   final String? initialUnit;
+  final MealType? initialMealType;
+  final DateTime? selectedDate;
 
   const ImageAnalysisPreviewScreen({
     super.key,
-    required this.imageFile,
+    this.imageFile,
     this.initialFoodName,
     this.initialQuantity,
     this.initialUnit,
+    this.initialMealType,
+    this.selectedDate,
   });
 
   @override
@@ -48,35 +54,58 @@ class _ImageAnalysisPreviewScreenState
   String? _permanentImagePath;
   bool _isAnalyzing = false;
   bool _showDetails = false;
+  File? _currentImageFile;
+
+  bool get _hasImage => _currentImageFile != null;
 
   @override
   void initState() {
     super.initState();
+    _currentImageFile = widget.imageFile;
     _foodNameController = TextEditingController(
-      text: widget.initialFoodName ?? 'food',
+      text: widget.initialFoodName ?? (_hasImage ? 'food' : ''),
     );
     _quantityController = TextEditingController(
       text: (widget.initialQuantity ?? 1.0).toString(),
     );
     _selectedUnit = widget.initialUnit ?? 'serving';
-    _selectedMealType = _guessMealType();
-    _copyImageToPermanentPath();
+    _selectedMealType = widget.initialMealType ?? _guessMealType();
+    if (_hasImage) {
+      _copyImageToPermanentPath();
+    }
   }
 
   Future<void> _copyImageToPermanentPath() async {
+    if (_currentImageFile == null) return;
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      if (widget.imageFile.path.startsWith(appDir.path)) {
-        _permanentImagePath = widget.imageFile.path;
+      if (_currentImageFile!.path.startsWith(appDir.path)) {
+        _permanentImagePath = _currentImageFile!.path;
         return;
       }
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final destPath = '${appDir.path}/$fileName';
-      await widget.imageFile.copy(destPath);
+      await _currentImageFile!.copy(destPath);
       _permanentImagePath = destPath;
     } catch (e) {
       AppLogger.error('Failed to copy image to permanent path', e);
-      _permanentImagePath = widget.imageFile.path;
+      _permanentImagePath = _currentImageFile!.path;
+    }
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    final file = await ImagePickerService.pickFromCamera();
+    if (file != null && mounted) {
+      setState(() => _currentImageFile = file);
+      await _copyImageToPermanentPath();
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final file = await ImagePickerService.pickFromGallery();
+    if (file != null && mounted) {
+      setState(() => _currentImageFile = file);
+      await _copyImageToPermanentPath();
     }
   }
 
@@ -92,6 +121,17 @@ class _ImageAnalysisPreviewScreenState
 
     final foodName = _foodNameController.text.trim();
     final quantityText = _quantityController.text.trim();
+
+    // Text-only mode: food name is required
+    if (!_hasImage && foodName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.pleaseEnterFoodNameFirst),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     double quantity = 1.0;
     if (quantityText.isNotEmpty) {
@@ -114,13 +154,20 @@ class _ImageAnalysisPreviewScreenState
     if (!mounted) return;
 
     final effectiveName = foodName.isEmpty ? 'food' : foodName;
-    final imagePath = _permanentImagePath ?? widget.imageFile.path;
+    final imagePath = _hasImage
+        ? (_permanentImagePath ?? _currentImageFile!.path)
+        : null;
+
+    // Build timestamp respecting selectedDate if given
+    final date = widget.selectedDate ?? DateTime.now();
+    final now = DateTime.now();
+    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     // Save entry to database first
     final entry = FoodEntry()
       ..foodName = effectiveName
       ..mealType = _selectedMealType
-      ..timestamp = DateTime.now()
+      ..timestamp = entryTimestamp
       ..imagePath = imagePath
       ..servingSize = quantity
       ..servingUnit = _selectedUnit
@@ -128,7 +175,7 @@ class _ImageAnalysisPreviewScreenState
       ..protein = 0
       ..carbs = 0
       ..fat = 0
-      ..source = DataSource.galleryScanned
+      ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
       ..isVerified = false
       ..searchMode = _searchMode;
 
@@ -140,25 +187,28 @@ class _ImageAnalysisPreviewScreenState
     setState(() => _isAnalyzing = true);
 
     // Show loading dialog
+    final l10n = L10n.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
             Text(
-              'PROCESSING IMAGE DATA...',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              _hasImage ? l10n.processingImageData : l10n.analyzingButton,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'Processing advanced nutrition analysis',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              _hasImage
+                  ? 'Processing advanced nutrition analysis'
+                  : effectiveName,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -166,13 +216,24 @@ class _ImageAnalysisPreviewScreenState
     );
 
     try {
-      final result = await GeminiService.analyzeFoodImage(
-        File(imagePath),
-        foodName: effectiveName != 'food' ? effectiveName : null,
-        quantity: quantity > 0 ? quantity : null,
-        unit: _selectedUnit,
-        searchMode: _searchMode,
-      );
+      FoodAnalysisResult? result;
+
+      if (_hasImage && imagePath != null) {
+        result = await GeminiService.analyzeFoodImage(
+          File(imagePath),
+          foodName: effectiveName != 'food' ? effectiveName : null,
+          quantity: quantity > 0 ? quantity : null,
+          unit: _selectedUnit,
+          searchMode: _searchMode,
+        );
+      } else {
+        result = await GeminiService.analyzeFoodByName(
+          effectiveName,
+          servingSize: quantity,
+          servingUnit: _selectedUnit,
+          searchMode: _searchMode,
+        );
+      }
 
       if (result != null) {
         await UsageLimiter.recordAiUsage();
@@ -185,12 +246,13 @@ class _ImageAnalysisPreviewScreenState
 
         if (!mounted) return;
 
+        final analysisResult = result!;
         await showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (_) => GeminiAnalysisSheet(
-            analysisResult: result,
+            analysisResult: analysisResult,
             onConfirm: (confirmedData) async {
               String? ingredientsJsonStr;
               if (confirmedData.ingredientsDetail != null &&
@@ -199,8 +261,8 @@ class _ImageAnalysisPreviewScreenState
               }
 
               FoodSearchMode? updatedSearchMode;
-              if (result.foodType != null) {
-                updatedSearchMode = result.foodType == 'product'
+              if (analysisResult.foodType != null) {
+                updatedSearchMode = analysisResult.foodType == 'product'
                     ? FoodSearchMode.product
                     : FoodSearchMode.normal;
               }
@@ -323,18 +385,36 @@ class _ImageAnalysisPreviewScreenState
     final foodName = _foodNameController.text.trim();
     final quantity = double.tryParse(_quantityController.text.trim()) ?? 1.0;
 
+    if (!_hasImage && foodName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.pleaseEnterFoodNameFirst),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final date = widget.selectedDate ?? DateTime.now();
+    final now = DateTime.now();
+    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+
+    final imagePath = _hasImage
+        ? (_permanentImagePath ?? _currentImageFile!.path)
+        : null;
+
     final entry = FoodEntry()
       ..foodName = foodName.isEmpty ? 'food' : foodName
       ..mealType = _selectedMealType
-      ..timestamp = DateTime.now()
-      ..imagePath = _permanentImagePath ?? widget.imageFile.path
+      ..timestamp = entryTimestamp
+      ..imagePath = imagePath
       ..servingSize = quantity
       ..servingUnit = _selectedUnit
       ..calories = 0
       ..protein = 0
       ..carbs = 0
       ..fat = 0
-      ..source = DataSource.galleryScanned
+      ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
       ..isVerified = false;
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
@@ -368,7 +448,7 @@ class _ImageAnalysisPreviewScreenState
       child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(l10n.analyzeFoodImageTitle),
+        title: Text(l10n.addFoodTitle),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -377,15 +457,102 @@ class _ImageAnalysisPreviewScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image Preview
-            Container(
-              height: 300,
-              color: Colors.grey[200],
-              child: Image.file(
-                widget.imageFile,
-                fit: BoxFit.contain,
+            // Image Preview (only if has image)
+            if (_hasImage)
+              Container(
+                height: 300,
+                color: Colors.grey[200],
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.file(
+                      _currentImageFile!,
+                      fit: BoxFit.contain,
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _currentImageFile = null;
+                          _permanentImagePath = null;
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+
+            // No Image — show camera/gallery options
+            if (!_hasImage)
+              Container(
+                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.04),
+                  borderRadius: AppRadius.lg,
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Icons.add_a_photo_rounded, size: 40,
+                        color: AppColors.primary.withValues(alpha: 0.4)),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.foodNameQuantityAndModeImprovesAccuracy,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _pickImageFromCamera,
+                            icon: const Icon(Icons.camera_alt_rounded, size: 20),
+                            label: Text(l10n.navCamera),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.md,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _pickImageFromGallery,
+                            icon: const Icon(Icons.photo_library_rounded, size: 20),
+                            label: Text(l10n.navGallery),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.md,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
 
             const SizedBox(height: 24),
 
@@ -405,8 +572,10 @@ class _ImageAnalysisPreviewScreenState
                   const SizedBox(height: 8),
                   TextField(
                     controller: _foodNameController,
+                    autofocus: !_hasImage,
                     decoration: InputDecoration(
                       hintText: l10n.foodNameHint,
+                      prefixIcon: const Icon(Icons.search, size: 20),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -417,25 +586,26 @@ class _ImageAnalysisPreviewScreenState
                     ),
                   ),
 
-                  // Helper Text (moved under food name)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, bottom: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.lightbulb_outline, size: 14, color: Colors.grey[500]),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            l10n.foodNameQuantityAndModeImprovesAccuracy,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 11,
+                  // Helper Text
+                  if (_hasImage)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6, bottom: 4),
+                      child: Row(
+                        children: [
+                          Icon(Icons.lightbulb_outline, size: 14, color: Colors.grey[500]),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              l10n.foodNameQuantityAndModeImprovesAccuracy,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 11,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
                   const SizedBox(height: 16),
 
@@ -467,7 +637,7 @@ class _ImageAnalysisPreviewScreenState
                         const SizedBox(width: 4),
                         Text(
                           _showDetails ? l10n.hideDetails : l10n.showDetails,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.primary,
                             fontWeight: FontWeight.w500,

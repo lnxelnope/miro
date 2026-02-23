@@ -216,11 +216,11 @@ class GamificationState {
       weeklyClaimedRewards: [],
       referFriendsProgress: 0,
       totalSpent: 0,
-      claimedMilestones: const [],
+      claimedMilestones: [],
       nextMilestoneIndex: 0,
       bonusRate: 0.0,
       tierCelebrations: {},
-      seasonalQuests: const [],
+      seasonalQuests: [],
     );
   }
 

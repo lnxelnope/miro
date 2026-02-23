@@ -415,7 +415,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                     ),
                     subtitle: Text(
                       L10n.of(context)!.ingredientsTapToExpand,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),

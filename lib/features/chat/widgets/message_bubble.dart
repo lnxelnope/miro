@@ -17,7 +17,7 @@ class MessageBubble extends StatelessWidget {
     final isUser = message.role == MessageRole.user;
 
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -35,11 +35,11 @@ class MessageBubble extends StatelessWidget {
                 child: Icon(AppIcons.ai, size: 18, color: AppIcons.aiColor),
               ),
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
           ],
           Flexible(
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
               decoration: BoxDecoration(
                 color: isUser ? AppColors.primary : AppColors.surfaceVariant,
                 borderRadius: BorderRadius.only(
@@ -67,7 +67,7 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           if (isUser) ...[
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Container(
               width: 32,
               height: 32,

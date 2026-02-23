@@ -207,6 +207,7 @@
   "navDashboard": "Dashboard",
   "navMyMeals": "My Meals",
   "navCamera": "Camera",
+  "navGallery": "Gallery",
   "navAiChat": "AI Chat",
   "navProfile": "Profile",
   
@@ -668,6 +669,17 @@
   "unableToAnalyze": "Unable to analyze",
   "today": "Today",
   "savedSuccessfully": "✅ Saved successfully",
+  "saveToMyMeals": "📖 Save to My Meals",
+  "savedToMyMealsSuccess": "✅ Saved '{mealName}' to My Meals",
+  "@savedToMyMealsSuccess": {
+    "placeholders": {
+      "mealName": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToSaveToMyMeals": "❌ Failed to save to My Meals",
+  "noIngredientsToSave": "No ingredients to save",
 
   "confirmFoodPhoto": "Confirm Food Photo",
   "photoSavedAutomatically": "Photo saved automatically",

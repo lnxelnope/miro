@@ -467,6 +467,9 @@ class L10nKo extends L10n {
   String get navCamera => '카메라';
 
   @override
+  String get navGallery => 'Gallery';
+
+  @override
   String get navAiChat => 'AI채팅';
 
   @override
@@ -971,6 +974,20 @@ class L10nKo extends L10n {
 
   @override
   String get savedSuccessfully => '✅ 성공적으로 저장되었습니다';
+
+  @override
+  String get saveToMyMeals => '📖 Save to My Meals';
+
+  @override
+  String savedToMyMealsSuccess(String mealName) {
+    return '✅ Saved \'$mealName\' to My Meals';
+  }
+
+  @override
+  String get failedToSaveToMyMeals => '❌ Failed to save to My Meals';
+
+  @override
+  String get noIngredientsToSave => 'No ingredients to save';
 
   @override
   String get confirmFoodPhoto => '음식 사진 확인';

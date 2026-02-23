@@ -43,7 +43,7 @@ class GoalsVsActualTable extends StatelessWidget {
               children: [
                 // Header row
                 TableRow(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.surfaceVariant,
                   ),
                   children: [

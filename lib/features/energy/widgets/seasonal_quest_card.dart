@@ -52,7 +52,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(widget.quest.icon, style: const TextStyle(fontSize: 18)),
-                  SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
                   Text('+${data['reward']}E!'),
                 ],
               ),
@@ -99,7 +99,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
           ),
         ),
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -108,7 +108,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                 children: [
                   // Icon
                   Text(quest.icon, style: const TextStyle(fontSize: 28)),
-                  SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                  const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                   // Title + description
                   Expanded(
                     child: Column(
@@ -117,7 +117,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                         Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xxs),
                               decoration: BoxDecoration(
                                 color: AppColors.error,
@@ -133,10 +133,10 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                            const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                             Text(
                               l10n.seasonalQuestDaysLeft(quest.daysRemaining),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.error,
                                 fontWeight: FontWeight.w500,
@@ -144,7 +144,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                             ),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           quest.title,
                           style: TextStyle(
@@ -156,7 +156,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                           ),
                         ),
                         if (quest.description.isNotEmpty) ...[
-                          SizedBox(height: AppSpacing.xxs),
+                          const SizedBox(height: AppSpacing.xxs),
                           Text(
                             quest.description,
                             style: TextStyle(
@@ -172,7 +172,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                   ),
                 ],
               ),
-              SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
 
               // ─── Reward info + Claim button ───
               Row(
@@ -182,7 +182,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                     child: Row(
                       children: [
                         const Icon(AppIcons.energy, size: 16, color: AppColors.warning),
-                        SizedBox(width: AppSpacing.xs),
+                        const SizedBox(width: AppSpacing.xs),
                         Text(
                           quest.claimType == 'daily'
                               ? l10n.seasonalQuestRewardDaily(quest.rewardPerClaim)
@@ -203,7 +203,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                     GestureDetector(
                       onTap: _isLoading ? null : _claimReward,
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
@@ -231,7 +231,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(width: AppSpacing.xs),
+                                  const SizedBox(width: AppSpacing.xs),
                                   const Icon(AppIcons.energy,
                                       size: 16, color: Colors.white),
                                 ],
@@ -240,7 +240,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                     )
                   else if (quest.claimType == 'one_time' && quest.claimed)
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.15),
@@ -249,12 +249,12 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.check_circle,
+                          const Icon(Icons.check_circle,
                               size: 16, color: AppColors.success),
-                          SizedBox(width: AppSpacing.xs),
+                          const SizedBox(width: AppSpacing.xs),
                           Text(
                             l10n.seasonalQuestClaimed,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: AppColors.success,
@@ -267,7 +267,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                       !quest.canClaimToday &&
                       quest.isActive)
                     Container(
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
                       decoration: BoxDecoration(
                         color: AppColors.textSecondary.withValues(alpha: 0.15),
@@ -275,7 +275,7 @@ class _SeasonalQuestCardState extends ConsumerState<SeasonalQuestCard> {
                       ),
                       child: Text(
                         l10n.seasonalQuestClaimedToday,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),

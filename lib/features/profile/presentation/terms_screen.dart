@@ -18,7 +18,7 @@ class TermsScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             _buildSection(
               L10n.of(context)!.termsSectionAcceptanceOfTerms,
               [
@@ -160,7 +160,7 @@ class TermsScreen extends StatelessWidget {
                 'For questions, support, or to report issues, please contact us through Google Play Store.',
               ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -171,13 +171,13 @@ class TermsScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_amber,
+                  const Icon(Icons.warning_amber,
                       color: AppColors.warning, size: 20),
-                  SizedBox(width: AppSpacing.sm),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       L10n.of(context)!.termsAcknowledgment,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AppColors.warning,
                         fontWeight: FontWeight.w500,
@@ -187,16 +187,16 @@ class TermsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               L10n.of(context)!.termsLastUpdated,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
-            SizedBox(height: AppSpacing.xxxl),
+            const SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
@@ -214,10 +214,10 @@ class TermsScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         Text(
           L10n.of(context)!.termsSubtitle,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -238,7 +238,7 @@ class TermsScreen extends StatelessWidget {
             color: AppColors.primary,
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         ...content.map((line) {
           if (line.isEmpty) {
             return const SizedBox(height: 8);
@@ -247,7 +247,7 @@ class TermsScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               line,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textPrimary,
                 height: 1.5,
@@ -255,7 +255,7 @@ class TermsScreen extends StatelessWidget {
             ),
           );
         }),
-        SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xl),
       ],
     );
   }

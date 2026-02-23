@@ -27,7 +27,7 @@ class SearchModeSelector extends StatelessWidget {
           isSelected: selectedMode == FoodSearchMode.normal,
           isDark: isDark,
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         _buildPill(
           context,
           mode: FoodSearchMode.product,
@@ -56,7 +56,7 @@ class SearchModeSelector extends StatelessWidget {
       onTap: () => onChanged(mode),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: AppRadius.xl,
@@ -70,7 +70,7 @@ class SearchModeSelector extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
               Icon(mode.icon, size: 18, color: isSelected ? Colors.white : AppColors.textSecondary),
-            SizedBox(width: AppSpacing.xs + 2),
+            const SizedBox(width: AppSpacing.xs + 2),
             Text(
               mode.displayName,
               style: TextStyle(

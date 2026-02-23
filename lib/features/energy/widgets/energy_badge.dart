@@ -27,7 +27,7 @@ class EnergyBadge extends ConsumerWidget {
         );
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
           color: balance < 10
               ? AppColors.error.withValues(alpha: 0.1)
@@ -42,7 +42,7 @@ class EnergyBadge extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(AppIcons.energy, size: 18, color: AppIcons.energyColor),
-            SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: AppSpacing.xs),
             Text(
               '$balance',
               style: TextStyle(
@@ -53,7 +53,7 @@ class EnergyBadge extends ConsumerWidget {
             ),
             // Phase 5: Subscription badge หรือ Free AI indicator
             if (gamification.isSubscriber) ...[
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               const Icon(
                 AppIcons.subscription,
                 size: 16,

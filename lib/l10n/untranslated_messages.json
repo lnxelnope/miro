@@ -1,5 +1,10 @@
 {
   "de": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -112,6 +117,11 @@
   ],
 
   "es": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -218,6 +228,11 @@
   ],
 
   "fr": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -324,6 +339,11 @@
   ],
 
   "hi": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -430,6 +450,11 @@
   ],
 
   "id": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -536,6 +561,11 @@
   ],
 
   "ja": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -642,6 +672,11 @@
   ],
 
   "ko": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -748,6 +783,11 @@
   ],
 
   "pt": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -944,6 +984,11 @@
   ],
 
   "vi": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",
@@ -1050,6 +1095,11 @@
   ],
 
   "zh": [
+    "navGallery",
+    "saveToMyMeals",
+    "savedToMyMealsSuccess",
+    "failedToSaveToMyMeals",
+    "noIngredientsToSave",
     "vietnamese",
     "vietnameseSublabel",
     "indonesian",

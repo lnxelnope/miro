@@ -189,6 +189,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   int? _selectedMyMealId;
   bool _isAnalyzing = false;
   bool _nutritionExpanded = false;
+  bool _showDetails = false;
 
   double _baseCalories = 0;
   double _baseProtein = 0;
@@ -231,6 +232,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
     _filledFromDb = true;
     _selectedMyMealId = widget.prefillMyMealId;
+    _showDetails = widget.prefillName != null;
   }
 
   @override
@@ -383,12 +385,16 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       _fatController.text = suggestion.fat.round().toString();
       _filledFromDb = true;
       _selectedMyMealId = suggestion.myMealId;
+      // Show details for both meal and ingredient
+      if (suggestion.source == 'meal' || suggestion.source == 'ingredient') {
+        _showDetails = true;
+        _nutritionExpanded = true; // Auto-expand nutrition section
+      }
     });
 
     _servingSizeController.addListener(_onServingSizeChanged);
     _nameFocusNode.unfocus();
 
-    // Load ingredients if selected from MyMeal
     if (suggestion.myMealId != null) {
       _loadIngredientsFromMyMeal(suggestion.myMealId!);
     }
@@ -844,7 +850,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             Text(
               '🍽️ ${L10n.of(context)!.addFoodTitle}',
@@ -853,13 +859,13 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
             // ===== Food Name with Autocomplete =====
             _buildFoodNameField(),
 
             if (_filledFromDb) ...[
-              SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 _selectedMyMealId != null
                     ? L10n.of(context)!.selectedFromMyMeal
@@ -867,20 +873,20 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 style: const TextStyle(fontSize: 11, color: AppColors.success),
               ),
             ] else if (_nameController.text.isNotEmpty) ...[
-              SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.sm),
               AppButton.ai(
                 label: L10n.of(context)!.saveAndAnalyze,
                 icon: Icons.auto_awesome_rounded,
                 isLoading: _isAnalyzing,
                 onPressed: _saveAndAnalyze,
               ),
-              SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 L10n.of(context)!.notFoundInDatabase,
                 style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
               ),
             ],
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ===== Serving Size + Unit =====
             Row(
@@ -898,7 +904,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     ),
                   ),
                 ),
-                SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
@@ -920,276 +926,248 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ===== Search Mode Toggle =====
             _buildSearchModeToggle(),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
-            // ===== Nutrition Fields (collapsible) =====
-            GestureDetector(
-              onTap: () => setState(() => _nutritionExpanded = !_nutritionExpanded),
-              child: Container(
-                padding: AppSpacing.paddingLg,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.warning.withValues(alpha: 0.1), AppColors.warning.withValues(alpha: 0.1)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: AppRadius.lg,
-                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.local_fire_department_rounded,
-                            color: AppColors.warning.withValues(alpha: 0.7), size: 20),
-                        SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            _filledFromDb || _hasIngredients
-                                ? L10n.of(context)!.nutritionAutoCalculated
-                                : L10n.of(context)!.nutritionEnterZero,
-                            style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.warning),
-                          ),
-                        ),
-                        Icon(
-                          _nutritionExpanded ? Icons.expand_less : Icons.expand_more,
-                          color: AppColors.warning,
-                          size: 20,
-                        ),
-                      ],
+            // ===== Nutrition & Ingredients (visible only after selecting from MyMeal) =====
+            if (_showDetails) ...[
+              GestureDetector(
+                onTap: () => setState(() => _nutritionExpanded = !_nutritionExpanded),
+                child: Container(
+                  padding: AppSpacing.paddingLg,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.warning.withValues(alpha: 0.1), AppColors.warning.withValues(alpha: 0.1)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    if (_nutritionExpanded) ...[
-                      SizedBox(height: AppSpacing.md),
-                      GestureDetector(
-                        onTap: () {},
-                        child: TextField(
-                          controller: _caloriesController,
-                          keyboardType: TextInputType.number,
-                          readOnly: _filledFromDb || _hasIngredients,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.warning,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: L10n.of(context)!.caloriesLabel,
-                            labelStyle: TextStyle(
-                              color: AppColors.warning.withValues(alpha: 0.7),
-                              fontWeight: FontWeight.w600,
-                            ),
-                            suffixText: 'kcal',
-                            suffixStyle: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.warning.withValues(alpha: 0.7),
-                            ),
-                            prefixIcon: Icon(Icons.local_fire_department_rounded,
-                                color: AppColors.warning),
-                            hintText: '0',
-                            filled: true,
-                            fillColor: (_filledFromDb || _hasIngredients)
-                                ? AppColors.warning.withValues(alpha: 0.1)
-                                : Colors.white,
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: AppRadius.md,
-                              borderSide: BorderSide(color: AppColors.warning, width: 2),
-                            ),
-                            border: OutlineInputBorder(
-                                borderRadius: AppRadius.md),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: AppSpacing.md),
+                    borderRadius: AppRadius.lg,
+                    border: Border.all(color: AppColors.warning.withValues(alpha: 0.3), width: 1.5),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
                         children: [
+                          Icon(Icons.local_fire_department_rounded,
+                              color: AppColors.warning.withValues(alpha: 0.7), size: 20),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
-                            child: GestureDetector(
-                              onTap: () {},
-                              child: TextField(
-                                controller: _proteinController,
-                                keyboardType: TextInputType.number,
-                                readOnly: _filledFromDb || _hasIngredients,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.info,
-                                ),
-                                decoration: InputDecoration(
-                                  labelText: L10n.of(context)!.proteinLabelShort,
-                                  labelStyle: const TextStyle(
-                                    color: AppColors.info,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                  suffixText: 'g',
-                                  suffixStyle: const TextStyle(
-                                    color: AppColors.info,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  filled: true,
-                                  fillColor: (_filledFromDb || _hasIngredients)
-                                      ? AppColors.info.withValues(alpha: 0.06)
-                                      : Colors.white,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: const BorderSide(color: AppColors.info, width: 2),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius: AppRadius.md),
-                                ),
-                              ),
+                            child: Text(
+                              _filledFromDb || _hasIngredients
+                                  ? L10n.of(context)!.nutritionAutoCalculated
+                                  : L10n.of(context)!.nutritionEnterZero,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.warning),
                             ),
                           ),
-                          SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {},
-                              child: TextField(
-                                controller: _carbsController,
-                                keyboardType: TextInputType.number,
-                                readOnly: _filledFromDb || _hasIngredients,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.warning,
-                                ),
-                                decoration: InputDecoration(
-                                  labelText: L10n.of(context)!.carbsLabelShort,
-                                  labelStyle: const TextStyle(
-                                    color: AppColors.warning,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                  suffixText: 'g',
-                                  suffixStyle: const TextStyle(
-                                    color: AppColors.warning,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  filled: true,
-                                  fillColor: (_filledFromDb || _hasIngredients)
-                                      ? AppColors.warning.withValues(alpha: 0.06)
-                                      : Colors.white,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: const BorderSide(color: AppColors.warning, width: 2),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius: AppRadius.md),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {},
-                              child: TextField(
-                                controller: _fatController,
-                                keyboardType: TextInputType.number,
-                                readOnly: _filledFromDb || _hasIngredients,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.error,
-                                ),
-                                decoration: InputDecoration(
-                                  labelText: L10n.of(context)!.fatLabelShort,
-                                  labelStyle: const TextStyle(
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                  suffixText: 'g',
-                                  suffixStyle: const TextStyle(
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  filled: true,
-                                  fillColor: (_filledFromDb || _hasIngredients)
-                                      ? AppColors.error.withValues(alpha: 0.06)
-                                      : Colors.white,
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: AppRadius.md,
-                                    borderSide: const BorderSide(color: AppColors.error, width: 2),
-                                  ),
-                                  border: OutlineInputBorder(
-                                      borderRadius: AppRadius.md),
-                                ),
-                              ),
-                            ),
+                          Icon(
+                            _nutritionExpanded ? Icons.expand_less : Icons.expand_more,
+                            color: AppColors.warning,
+                            size: 20,
                           ),
                         ],
                       ),
-                      if (_hasIngredients) ...[
-                        SizedBox(height: AppSpacing.sm),
-                        Text(
-                          '📊 ${L10n.of(context)!.calculatedFromIngredients}',
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textSecondary),
+                      if (_nutritionExpanded) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        GestureDetector(
+                          onTap: () {},
+                          child: TextField(
+                            controller: _caloriesController,
+                            keyboardType: TextInputType.number,
+                            readOnly: _filledFromDb || _hasIngredients,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.warning,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: L10n.of(context)!.caloriesLabel,
+                              labelStyle: TextStyle(
+                                color: AppColors.warning.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w600,
+                              ),
+                              suffixText: 'kcal',
+                              suffixStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.warning.withValues(alpha: 0.7),
+                              ),
+                              prefixIcon: const Icon(Icons.local_fire_department_rounded,
+                                  color: AppColors.warning),
+                              hintText: '0',
+                              filled: true,
+                              fillColor: (_filledFromDb || _hasIngredients)
+                                  ? AppColors.warning.withValues(alpha: 0.1)
+                                  : Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.md,
+                                borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.md,
+                                borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                              ),
+                              border: OutlineInputBorder(
+                                  borderRadius: AppRadius.md),
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: TextField(
+                                  controller: _proteinController,
+                                  keyboardType: TextInputType.number,
+                                  readOnly: _filledFromDb || _hasIngredients,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.info,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: L10n.of(context)!.proteinLabelShort,
+                                    labelStyle: const TextStyle(
+                                      color: AppColors.info,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                    suffixText: 'g',
+                                    suffixStyle: const TextStyle(
+                                      color: AppColors.info,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    filled: true,
+                                    fillColor: (_filledFromDb || _hasIngredients)
+                                        ? AppColors.info.withValues(alpha: 0.06)
+                                        : Colors.white,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: const BorderSide(color: AppColors.info, width: 2),
+                                    ),
+                                    border: OutlineInputBorder(
+                                        borderRadius: AppRadius.md),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: TextField(
+                                  controller: _carbsController,
+                                  keyboardType: TextInputType.number,
+                                  readOnly: _filledFromDb || _hasIngredients,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.warning,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: L10n.of(context)!.carbsLabelShort,
+                                    labelStyle: const TextStyle(
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                    suffixText: 'g',
+                                    suffixStyle: const TextStyle(
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    filled: true,
+                                    fillColor: (_filledFromDb || _hasIngredients)
+                                        ? AppColors.warning.withValues(alpha: 0.06)
+                                        : Colors.white,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.4)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                                    ),
+                                    border: OutlineInputBorder(
+                                        borderRadius: AppRadius.md),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {},
+                                child: TextField(
+                                  controller: _fatController,
+                                  keyboardType: TextInputType.number,
+                                  readOnly: _filledFromDb || _hasIngredients,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.error,
+                                  ),
+                                  decoration: InputDecoration(
+                                    labelText: L10n.of(context)!.fatLabelShort,
+                                    labelStyle: const TextStyle(
+                                      color: AppColors.error,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12,
+                                    ),
+                                    suffixText: 'g',
+                                    suffixStyle: const TextStyle(
+                                      color: AppColors.error,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    filled: true,
+                                    fillColor: (_filledFromDb || _hasIngredients)
+                                        ? AppColors.error.withValues(alpha: 0.06)
+                                        : Colors.white,
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: AppRadius.md,
+                                      borderSide: const BorderSide(color: AppColors.error, width: 2),
+                                    ),
+                                    border: OutlineInputBorder(
+                                        borderRadius: AppRadius.md),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_hasIngredients) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            '📊 ${L10n.of(context)!.calculatedFromIngredients}',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
-            // ===== Ingredients Section =====
-            _buildIngredientsSection(),
-            SizedBox(height: AppSpacing.lg),
+              _buildIngredientsSection(),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
-            // ===== Meal Type =====
-            Text(
-              L10n.of(context)!.mealTypeLabel,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: MealType.values.map((type) {
-                final isSelected = _selectedMealType == type;
-                return ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(type.icon, size: 16, color: type.iconColor),
-                      SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
-                      Text(type.displayName),
-                    ],
-                  ),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() => _selectedMealType = type);
-                    }
-                  },
-                  selectedColor: AppColors.health.withValues(alpha: 0.2),
-                );
-              }).toList(),
-            ),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.md),
 
             // ===== Save Button =====
             AppButton.primary(
@@ -1220,7 +1198,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               onTap: () => setState(() => _searchMode = mode),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   vertical: AppSpacing.sm,
                   horizontal: AppSpacing.md,
                 ),
@@ -1246,7 +1224,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           ? AppColors.primary
                           : AppColors.textSecondary,
                     ),
-                    SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       mode.displayName,
                       style: TextStyle(
@@ -1362,6 +1340,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           setState(() {
                             _filledFromDb = false;
                             _selectedMyMealId = null;
+                            _showDetails = false;
                             _baseCalories = 0;
                             _baseProtein = 0;
                             _baseCarbs = 0;
@@ -1402,7 +1381,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           Row(
             children: [
               const Icon(Icons.science_outlined, size: 16, color: AppColors.success),
-              SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
+              const SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
               Expanded(
                 child: Text(
                   L10n.of(context)!.ingredientsEditable,
@@ -1417,7 +1396,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 borderRadius: AppRadius.sm,
                 child: Container(
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: AppRadius.sm,
@@ -1426,7 +1405,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.add, size: 14, color: AppColors.success),
-                      SizedBox(width: AppSpacing.xxs), // 2 -> 2
+                      const SizedBox(width: AppSpacing.xxs), // 2 -> 2
                       Text(L10n.of(context)!.addIngredientButton,
                           style: const TextStyle(
                               fontSize: 11,
@@ -1438,7 +1417,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.md), // 10 -> 12 closest
+          const SizedBox(height: AppSpacing.md), // 10 -> 12 closest
           if (_ingredients.isEmpty)
             Padding(
               padding: AppSpacing.paddingSm,
@@ -1449,7 +1428,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           else
             ...List.generate(
                 _ingredients.length, (i) => _buildIngredientRow(i)),
-          SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+          const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
           Text(
             L10n.of(context)!.editIngredientsHint,
             style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
@@ -1466,8 +1445,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     final row = _ingredients[index];
     return Container(
       key: row.key,
-      margin: EdgeInsets.only(bottom: AppSpacing.md), // 10 -> 12 closest
-      padding: EdgeInsets.all(AppSpacing.md), // 10 -> 12 closest
+      margin: const EdgeInsets.only(bottom: AppSpacing.md), // 10 -> 12 closest
+      padding: const EdgeInsets.all(AppSpacing.md), // 10 -> 12 closest
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppRadius.md, // 10 -> 12 (closest)
@@ -1564,28 +1543,28 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         isDense: true,
                         hintText: L10n.of(context)!.ingredientNameHint,
                         hintStyle:
-                            TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                            const TextStyle(fontSize: 12, color: AppColors.textTertiary),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 8),
                         border: OutlineInputBorder(
                             borderRadius: AppRadius.sm),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: AppRadius.sm,
-                          borderSide: BorderSide(color: AppColors.divider),
+                          borderSide: const BorderSide(color: AppColors.divider),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: AppRadius.sm,
                           borderSide: const BorderSide(
                               color: AppColors.health, width: 1.5),
                         ),
-                        suffixIcon: Icon(Icons.search,
+                        suffixIcon: const Icon(Icons.search,
                             size: 16, color: AppColors.textSecondary),
                       ),
                     );
                   },
                 ),
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               row.isLoading
                   ? const SizedBox(
                       width: 32,
@@ -1616,7 +1595,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+          const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
 
           // Row 2: Amount + Unit + kcal/macro
           Row(
@@ -1637,19 +1616,19 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: L10n.of(context)!.amountHint,
-                    hintStyle: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                    hintStyle: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.sm,
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
+              const SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
@@ -1661,12 +1640,12 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm), // 6 -> 8 closest
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm), // 6 -> 8 closest
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.sm,
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   items: UnitConverter.compactDropdownItems,
@@ -1699,7 +1678,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           if (row.isFromDb) ...[
             const SizedBox(height: 4),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs), // 6 -> 8, 2 -> 2
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs), // 6 -> 8, 2 -> 2
               decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4)), // Keep 4px for badge
@@ -1712,7 +1691,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           if (row.subIngredients.isNotEmpty) ...[
             const SizedBox(height: 8),
             const Divider(height: 1),
-            SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+            const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
             _buildSubIngredientsSection(row),
           ],
         ],
@@ -1725,18 +1704,18 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   // ============================================================
   Widget _buildSubIngredientsSection(_EditableIngredient parentRow) {
     return Padding(
-      padding: EdgeInsets.only(left: AppSpacing.md),
+      padding: const EdgeInsets.only(left: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.subdirectory_arrow_right,
+              const Icon(Icons.subdirectory_arrow_right,
                   size: 14, color: AppColors.textSecondary),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               Text(
                 L10n.of(context)!.subIngredients(parentRow.subIngredients.length),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
@@ -1775,7 +1754,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+          const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
           ...parentRow.subIngredients.asMap().entries.map((entry) {
             final subIdx = entry.key;
             final sub = entry.value;
@@ -1792,7 +1771,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       key: sub.key is ValueKey
           ? sub.key
           : ValueKey('sub_${parentRow.key}_$subIdx'),
-      margin: EdgeInsets.only(bottom: AppSpacing.sm, left: AppSpacing.xs), // 6 -> 8 closest
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm, left: AppSpacing.xs), // 6 -> 8 closest
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: AppColors.background,
@@ -1807,8 +1786,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               Container(
                 width: 3,
                 height: 3,
-                margin: EdgeInsets.only(right: AppSpacing.sm), // 6 -> 8 closest
-                decoration: BoxDecoration(
+                margin: const EdgeInsets.only(right: AppSpacing.sm), // 6 -> 8 closest
+                decoration: const BoxDecoration(
                   color: AppColors.textTertiary,
                   shape: BoxShape.circle,
                 ),
@@ -1902,17 +1881,17 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 6, vertical: 6),
                           hintText: L10n.of(context)!.subIngredientNameHint,
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                               fontSize: 11, color: AppColors.textTertiary),
                           border: OutlineInputBorder(
                             borderRadius: AppRadius.sm, // 6 -> 8 (closest)
                             borderSide:
-                                BorderSide(color: AppColors.divider),
+                                const BorderSide(color: AppColors.divider),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: AppRadius.sm, // 6 -> 8 (closest)
                             borderSide:
-                                BorderSide(color: AppColors.divider),
+                                const BorderSide(color: AppColors.divider),
                           ),
                         ),
                       ),
@@ -1920,13 +1899,13 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   },
                 ),
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               if (!sub.isLoading)
                 InkWell(
                   onTap: () => _lookupSubIngredient(parentRow, subIdx),
                   borderRadius: AppRadius.sm, // 6 -> 8 closest
                   child: Container(
-                    padding: EdgeInsets.all(AppSpacing.xs), // 5 -> 4 closest
+                    padding: const EdgeInsets.all(AppSpacing.xs), // 5 -> 4 closest
                     decoration: BoxDecoration(
                       color: AppColors.info.withValues(alpha: 0.1),
                       borderRadius: AppRadius.sm, // 6 -> 8 closest
@@ -1940,7 +1919,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2)),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               GestureDetector(
                 onTap: () {
                   setState(() {
@@ -1954,7 +1933,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+          const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
           // Amount + Unit + Kcal
           Row(
             children: [
@@ -1980,26 +1959,26 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         horizontal: 4, vertical: 5),
                     hintText: L10n.of(context)!.amountShort,
                     hintStyle:
-                        TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                        const TextStyle(fontSize: 10, color: AppColors.textTertiary),
                     border: OutlineInputBorder(
                       borderRadius: AppRadius.sm, // 6 -> 8 closest
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.sm, // 6 -> 8 closest
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                 ),
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               Text(sub.unit,
                   style:
-                      TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                      const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
               const SizedBox(width: 8),
               Text(
                 '${sub.calories.toInt()} kcal',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textSecondary,
@@ -2009,7 +1988,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               Text(
                 'P:${sub.protein.toStringAsFixed(0)} C:${sub.carbs.toStringAsFixed(0)} F:${sub.fat.toStringAsFixed(0)}',
                 style:
-                    TextStyle(fontSize: 9, color: AppColors.textSecondary),
+                    const TextStyle(fontSize: 9, color: AppColors.textSecondary),
               ),
             ],
           ),

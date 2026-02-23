@@ -45,13 +45,13 @@ class WelcomeMessageDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Icon with gradient background
             Container(
-              padding: EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -63,13 +63,13 @@ class WelcomeMessageDialog extends StatelessWidget {
                 ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.celebration_rounded,
                 size: 56,
                 color: AppColors.primary,
               ),
             ),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             
             // Title
             Text(
@@ -81,7 +81,7 @@ class WelcomeMessageDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             
             // Message
             Text(
@@ -93,11 +93,11 @@ class WelcomeMessageDialog extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             
             // Motivational box
             Container(
-              padding: EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -112,16 +112,16 @@ class WelcomeMessageDialog extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.favorite_rounded,
                     size: 24,
                     color: AppColors.primary,
                   ),
-                  SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Text(
                       l10n.welcomeEndJourney,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary,
@@ -132,7 +132,7 @@ class WelcomeMessageDialog extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             
             // CTA Button
             SizedBox(
@@ -142,7 +142,7 @@ class WelcomeMessageDialog extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
                   elevation: 0,
                 ),

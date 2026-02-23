@@ -238,7 +238,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 ),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 Expanded(
@@ -265,7 +265,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     OutlineInputBorder(borderRadius: AppRadius.md),
               ),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
 
             // Base Serving Size + Unit (2 fields)
             Row(
@@ -285,7 +285,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     ),
                   ),
                 ),
-                SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
                 // Serving Unit (dropdown)
                 Expanded(
                   flex: 3,
@@ -308,7 +308,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 ),
               ],
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
             // Ingredients
             Row(
@@ -427,8 +427,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   Widget _buildIngredientRow(_IngredientRow row, int index) {
     return Container(
       key: row.key,
-      margin: EdgeInsets.only(bottom: AppSpacing.md - 2),
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md - 2, vertical: AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md - 2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md - 2, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         border:
             Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
@@ -486,7 +486,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   decoration: InputDecoration(
                     labelText: L10n.of(context)!.amountLabel,
                     isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
@@ -517,7 +517,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   decoration: InputDecoration(
                     labelText: L10n.of(context)!.unitLabel,
                     isDense: true,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
@@ -543,7 +543,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'kcal',
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
@@ -553,7 +553,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              SizedBox(width: AppSpacing.sm - 2),
+              const SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.proteinController,
@@ -563,7 +563,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'P(g)',
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
@@ -573,7 +573,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              SizedBox(width: AppSpacing.sm - 2),
+              const SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.carbsController,
@@ -583,7 +583,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'C(g)',
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
@@ -593,7 +593,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              SizedBox(width: AppSpacing.sm - 2),
+              const SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: TextField(
                   controller: row.fatController,
@@ -603,7 +603,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     labelText: 'F(g)',
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     filled: row.hasBaseValues,
@@ -618,7 +618,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           // แสดง base info ถ้ามี
           if (row.hasBaseValues)
             Padding(
-              padding: EdgeInsets.only(top: AppSpacing.xs),
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
                 L10n.of(context)!.baseNutritionInfo(row.baseCal.toInt().toString(), row.baseAmount.toStringAsFixed(0), row.unit),
                 style: TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
@@ -628,10 +628,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           // NEW: แสดง detail ถ้ามี
           if (row.detail != null && row.detail!.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(top: AppSpacing.sm - 2),
+              padding: const EdgeInsets.only(top: AppSpacing.sm - 2),
               child: Text(
                 '${row.detail}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 11,
                   color: AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
@@ -641,7 +641,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
           // Add Sub-ingredient button
           Padding(
-            padding: EdgeInsets.only(top: AppSpacing.sm),
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: OutlinedButton.icon(
               onPressed: () => _addSubIngredient(row),
               icon: const Icon(Icons.add, size: 14),
@@ -652,7 +652,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.info,
                 side: BorderSide(color: AppColors.info.withValues(alpha: 0.4)),
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm - 2),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm - 2),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -661,7 +661,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
           // Sub-ingredients (editable)
           if (row.subIngredients != null && row.subIngredients!.isNotEmpty) ...[
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Container(
               padding: AppSpacing.paddingSm,
               decoration: BoxDecoration(
@@ -674,12 +674,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.subdirectory_arrow_right,
+                      const Icon(Icons.subdirectory_arrow_right,
                           size: 14, color: AppColors.info),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         L10n.of(context)!.subIngredientsCount(row.subIngredients!.length.toString()),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: AppColors.info,
@@ -687,12 +687,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   ...row.subIngredients!.asMap().entries.map((entry) {
                     final subIndex = entry.key;
                     final sub = entry.value;
                     return Container(
-                      margin: EdgeInsets.only(bottom: AppSpacing.sm - 2),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sm - 2),
                       padding: AppSpacing.paddingSm,
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -794,15 +794,15 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                         ),
                                         decoration: InputDecoration(
                                           hintText: L10n.of(context)!.subIngredientNameHintCreate,
-                                          hintStyle: TextStyle(
+                                          hintStyle: const TextStyle(
                                               fontSize: 11, color: AppColors.textTertiary),
                                           isDense: true,
-                                          contentPadding: EdgeInsets.symmetric(
+                                          contentPadding: const EdgeInsets.symmetric(
                                               horizontal: AppSpacing.sm, vertical: AppSpacing.sm - 2),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                             borderSide:
-                                                BorderSide(color: AppColors.divider),
+                                                const BorderSide(color: AppColors.divider),
                                           ),
                                         ),
                                       ),
@@ -810,14 +810,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               // AI Search button
                               if (!sub.isLookingUp)
                                 InkWell(
                                   onTap: () => _lookupSubIngredient(row, subIndex),
                                   borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                   child: Container(
-                                    padding: EdgeInsets.all(AppSpacing.xs + 1),
+                                    padding: const EdgeInsets.all(AppSpacing.xs + 1),
                                     decoration: BoxDecoration(
                                       color: AppColors.info.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
@@ -829,7 +829,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                 const SizedBox(
                                     width: 16, height: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2)),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               // Delete button
                               IconButton(
                                 icon: Icon(Icons.close, 
@@ -862,7 +862,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   style: const TextStyle(fontSize: 12),
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    contentPadding: EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                         horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm - 2),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
@@ -877,9 +877,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm - 2),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceVariant,
@@ -887,16 +887,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                 ),
                                 child: Text(
                                   sub.unit,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
                                   ),
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.sm),
+                              const SizedBox(width: AppSpacing.sm),
                               Text(
                                 '${sub.calController.text} kcal',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.info,
@@ -905,7 +905,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                               const Spacer(),
                               Text(
                                 'P:${sub.proteinController.text} C:${sub.carbsController.text} F:${sub.fatController.text}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9, color: AppColors.textSecondary),
                               ),
                             ],
@@ -914,10 +914,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                       ),
                     );
                   }),
-                  SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     '💡 ${L10n.of(context)!.editSubIngredientHint}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 9,
                       color: AppColors.textSecondary,
                       fontStyle: FontStyle.italic,
@@ -1006,17 +1006,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: L10n.of(context)!.typeIngredientNameHint,
-            hintStyle: TextStyle(fontSize: 13, color: AppColors.textTertiary),
+            hintStyle: const TextStyle(fontSize: 13, color: AppColors.textTertiary),
             isDense: true,
             contentPadding:
-                EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md - 2),
+                const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md - 2),
             border: OutlineInputBorder(
               borderRadius: AppRadius.sm,
-              borderSide: BorderSide(color: AppColors.divider),
+              borderSide: const BorderSide(color: AppColors.divider),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.sm,
-              borderSide: BorderSide(color: AppColors.divider),
+              borderSide: const BorderSide(color: AppColors.divider),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.sm,
@@ -1055,7 +1055,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           title: Row(
             children: [
               const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               Text(L10n.of(context)!.reAnalyzeQuestion),
             ],
           ),
@@ -1319,7 +1319,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           title: Row(
             children: [
               const Icon(Icons.auto_awesome, color: AppColors.warning),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Text(L10n.of(context)!.aiAnalyzeAllTitle),
             ],
           ),
@@ -1642,7 +1642,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             SnackBar(
                 content: Text(L10n.of(context)!.couldNotAnalyzeSubIngredient),
                 backgroundColor: AppColors.warning,
-                duration: Duration(seconds: 2)),
+                duration: const Duration(seconds: 2)),
           );
         }
       }

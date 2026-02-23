@@ -5,8 +5,7 @@ import 'package:miro_hybrid/features/health/providers/health_provider.dart';
 import 'package:miro_hybrid/features/profile/providers/profile_provider.dart';
 
 /// Provider for nutrition summary for a specific date
-final nutritionSummaryProvider =
-    FutureProvider.family<NutritionSummary, DateTime>(
+final nutritionSummaryProvider = FutureProvider.family<NutritionSummary, DateTime>(
   (ref, date) async {
     final foodEntries = await ref.watch(foodEntriesByDateProvider(date).future);
     final profileAsync = ref.watch(profileNotifierProvider);
@@ -66,7 +65,7 @@ final nutritionSummaryProvider =
 final timePeriodSummariesProvider = FutureProvider<List<TimePeriodSummary>>(
   (ref) async {
     final now = DateTime.now();
-
+    
     final periods = [
       const _PeriodConfig('1 Day', 1),
       const _PeriodConfig('1 Week', 7),
@@ -98,7 +97,7 @@ Future<TimePeriodSummary> _calculatePeriodSummary(
   DateTime endDate,
 ) async {
   final profileAsync = ref.read(profileNotifierProvider);
-
+  
   // Get all relevant dates
   final dates = <DateTime>[];
   if (period.days == -1) {
@@ -122,7 +121,7 @@ Future<TimePeriodSummary> _calculatePeriodSummary(
   for (final date in dates) {
     try {
       final summary = await ref.read(nutritionSummaryProvider(date).future);
-
+      
       // Only count days with actual food entries
       if (summary.actualCalories > 0) {
         totalCaloriesDiff += summary.caloriesDifference;

@@ -466,6 +466,9 @@ class L10nZh extends L10n {
   String get navCamera => '相机';
 
   @override
+  String get navGallery => 'Gallery';
+
+  @override
   String get navAiChat => '人工智能聊天';
 
   @override
@@ -968,6 +971,20 @@ class L10nZh extends L10n {
 
   @override
   String get savedSuccessfully => '✅ 保存成功';
+
+  @override
+  String get saveToMyMeals => '📖 Save to My Meals';
+
+  @override
+  String savedToMyMealsSuccess(String mealName) {
+    return '✅ Saved \'$mealName\' to My Meals';
+  }
+
+  @override
+  String get failedToSaveToMyMeals => '❌ Failed to save to My Meals';
+
+  @override
+  String get noIngredientsToSave => 'No ingredients to save';
 
   @override
   String get confirmFoodPhoto => '确认食物照片';

@@ -132,7 +132,7 @@ class IngredientCard extends StatelessWidget {
                                         ),
                                         if (isAi) ...[
                                           const SizedBox(width: 2),
-                                          Text(
+                                          const Text(
                                             'AI',
                                             style: TextStyle(
                                               fontSize: 11,
@@ -188,7 +188,7 @@ class IngredientCard extends StatelessWidget {
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text(
                                     detail!,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.textSecondary,
                                       fontStyle: FontStyle.italic,
@@ -239,15 +239,15 @@ class IngredientCard extends StatelessWidget {
                                 }
                               },
                               itemBuilder: (_) => [
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: 'edit',
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.edit_outlined,
+                                      Icon(Icons.edit_outlined,
                                           size: 18,
                                           color: AppColors.textSecondary),
-                                      const SizedBox(width: 10),
-                                      const Text('Edit'),
+                                      SizedBox(width: 10),
+                                      Text('Edit'),
                                     ],
                                   ),
                                 ),
@@ -286,7 +286,7 @@ class IngredientCard extends StatelessWidget {
       child: Container(
         width: 3,
         height: 3,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.textTertiary,
           shape: BoxShape.circle,
         ),

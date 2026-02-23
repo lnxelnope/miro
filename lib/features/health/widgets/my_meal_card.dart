@@ -58,7 +58,7 @@ class MyMealCard extends StatelessWidget {
                         color: AppColors.health.withValues(alpha: 0.1),
                         borderRadius: AppRadius.md,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Icon(AppIcons.meal, size: 24, color: AppIcons.mealColor),
                       ),
                     ),
@@ -81,7 +81,7 @@ class MyMealCard extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             '${meal.baseServingDescription} · ${meal.usageCount} uses',
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontSize: 12, color: AppColors.textSecondary),
                           ),
                         ],
@@ -109,7 +109,7 @@ class MyMealCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 2),
                           if (isAi)
-                            Text(
+                            const Text(
                               'AI',
                               style: TextStyle(
                                 fontSize: 11,

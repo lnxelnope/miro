@@ -16,7 +16,9 @@ import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../models/food_entry.dart';
 import '../models/ingredient.dart';
+import '../models/my_meal.dart';
 import '../providers/my_meal_provider.dart';
+import '../providers/health_provider.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -542,7 +544,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           title: Row(
             children: [
               const Icon(Icons.warning_amber_rounded, color: AppColors.warning),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               Text(L10n.of(context)!.reAnalyzeTitle),
             ],
           ),
@@ -813,7 +815,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     borderRadius: AppRadius.pill),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             Row(
               children: [
@@ -829,11 +831,11 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 _buildCloseButton(),
               ],
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
             // วันที่/เวลา (เปลี่ยนได้)
             _buildDateTimePicker(),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ชื่ออาหาร
             TextField(
@@ -844,7 +846,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     OutlineInputBorder(borderRadius: AppRadius.md),
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ปริมาณ + หน่วย
             Row(
@@ -888,7 +890,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // Nutrition fields (styled)
             Container(
@@ -909,7 +911,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     controller: _caloriesController,
                     keyboardType: TextInputType.number,
                     readOnly: _canAutoRecalculate,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: AppColors.warning,
@@ -945,13 +947,13 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: AppRadius.md,
-                        borderSide: BorderSide(color: AppColors.warning, width: 2),
+                        borderSide: const BorderSide(color: AppColors.warning, width: 2),
                       ),
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
                       Expanded(
@@ -992,7 +994,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                           ),
                         ),
                       ),
-                      SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: TextField(
                           controller: _carbsController,
@@ -1031,7 +1033,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                           ),
                         ),
                       ),
-                      SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: TextField(
                           controller: _fatController,
@@ -1073,7 +1075,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     ],
                   ),
                   if (_hasBaseValues && !_hasIngredients) ...[
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       '📊 ${L10n.of(context)!.baseNutrition(_baseCalories.toInt(), _servingUnit)}',
                       style: const TextStyle(
@@ -1081,7 +1083,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     ),
                   ],
                   if (_hasIngredients) ...[
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     Text(
                       '📊 ${L10n.of(context)!.calculatedFromIngredients}',
                       style: const TextStyle(
@@ -1091,17 +1093,17 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 ],
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ===== Editable Ingredients (always visible) =====
             const Divider(),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             _buildEditableIngredientsSection(),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // ===== Food/Product Mode Selection =====
             const Divider(),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.searchModeLabel,
               style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
@@ -1128,7 +1130,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 ),
               ],
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
 
             // Meal type
             Text(L10n.of(context)!.mealTypeTitle,
@@ -1155,7 +1157,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 );
               }).toList(),
             ),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Save button
             AppButton.primary(
@@ -1163,6 +1165,46 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               icon: Icons.save_rounded,
               onPressed: _save,
             ),
+
+            // Save to My Meals button
+            if (_hasIngredients) ...[
+              const SizedBox(height: AppSpacing.md),
+              InkWell(
+                onTap: _saveAndAddToMyMeals,
+                borderRadius: AppRadius.md,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.md,
+                    horizontal: AppSpacing.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.health.withValues(alpha: 0.4),
+                      width: 1.5,
+                    ),
+                    borderRadius: AppRadius.md,
+                    color: AppColors.health.withValues(alpha: 0.06),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.bookmark_add_rounded,
+                          size: 18, color: AppColors.health),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        L10n.of(context)!.saveToMyMeals,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.health,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1210,7 +1252,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           Row(
             children: [
               const Icon(Icons.science_outlined, size: 16, color: AppColors.success),
-              SizedBox(width: AppSpacing.sm - 2),
+              const SizedBox(width: AppSpacing.sm - 2),
               Expanded(
                 child: Text(
                   L10n.of(context)!.ingredientsEditable,
@@ -1225,7 +1267,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 borderRadius: AppRadius.sm,
                 child: Container(
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: AppRadius.sm,
@@ -1234,7 +1276,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.add, size: 14, color: AppColors.success),
-                      SizedBox(width: AppSpacing.xxs),
+                      const SizedBox(width: AppSpacing.xxs),
                       Text(L10n.of(context)!.addIngredientButton,
                           style: const TextStyle(
                               fontSize: 11,
@@ -1246,7 +1288,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.md - 2),
+          const SizedBox(height: AppSpacing.md - 2),
           if (_ingredients.isEmpty)
             Padding(
               padding: AppSpacing.paddingSm,
@@ -1257,7 +1299,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           else
             ...List.generate(
                 _ingredients.length, (i) => _buildEditableIngredientRow(i)),
-          SizedBox(height: AppSpacing.sm - 2),
+          const SizedBox(height: AppSpacing.sm - 2),
           Text(
             L10n.of(context)!.editIngredientsHint,
             style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
@@ -1271,8 +1313,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     final row = _ingredients[index];
     return Container(
       key: row.key,
-      margin: EdgeInsets.only(bottom: AppSpacing.md - 2),
-      padding: EdgeInsets.all(AppSpacing.md - 2),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md - 2),
+      padding: const EdgeInsets.all(AppSpacing.md - 2),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppRadius.md,
@@ -1370,35 +1412,35 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                         isDense: true,
                         hintText: L10n.of(context)!.ingredientNameHint,
                         hintStyle:
-                            TextStyle(fontSize: 12, color: AppColors.textTertiary),
-                        contentPadding: EdgeInsets.symmetric(
+                            const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                        contentPadding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                         border: OutlineInputBorder(
                             borderRadius: AppRadius.sm),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: AppRadius.sm,
-                          borderSide: BorderSide(color: AppColors.divider),
+                          borderSide: const BorderSide(color: AppColors.divider),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: AppRadius.sm,
                           borderSide: const BorderSide(
                               color: AppColors.health, width: 1.5),
                         ),
-                        suffixIcon: Icon(Icons.search,
+                        suffixIcon: const Icon(Icons.search,
                             size: 16, color: AppColors.textSecondary),
                       ),
                     );
                   },
                   ),
               ),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               row.isLoading
-                  ? SizedBox(
+                  ? const SizedBox(
                       width: 32,
                       height: 32,
                       child: Padding(
                           padding: EdgeInsets.all(AppSpacing.sm - 2),
-                          child: const CircularProgressIndicator(strokeWidth: 2)),
+                          child: CircularProgressIndicator(strokeWidth: 2)),
                     )
                   : SizedBox(
                       width: 32,
@@ -1422,7 +1464,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm - 2),
+          const SizedBox(height: AppSpacing.sm - 2),
 
           // Row 2: ปริมาณ + หน่วย + kcal/macro
           Row(
@@ -1443,19 +1485,19 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     hintText: L10n.of(context)!.amountHint,
-                    hintStyle: TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                    hintStyle: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.sm,
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   ),
               ),
-              SizedBox(width: AppSpacing.sm - 2),
+              const SizedBox(width: AppSpacing.sm - 2),
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
@@ -1467,12 +1509,12 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm),
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: AppRadius.sm,
-                      borderSide: BorderSide(color: AppColors.divider),
+                      borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   items: _buildCompactUnitItems(),
@@ -1503,9 +1545,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           ),
 
           if (row.isFromDb) ...[
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
               decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.xs)),
@@ -1516,9 +1558,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           
           // Sub-ingredients (nested, editable)
           if (row.subIngredients.isNotEmpty) ...[
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             const Divider(height: 1),
-            SizedBox(height: AppSpacing.sm - 2),
+            const SizedBox(height: AppSpacing.sm - 2),
             Padding(
               padding: const EdgeInsets.only(left: 12),
               child: Column(
@@ -1526,12 +1568,12 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.subdirectory_arrow_right, 
+                      const Icon(Icons.subdirectory_arrow_right, 
                           size: 14, color: AppColors.textSecondary),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         L10n.of(context)!.subIngredients(row.subIngredients.length),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
@@ -1558,7 +1600,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                           children: [
                             const Icon(Icons.add_circle_outline,
                                 size: 13, color: AppColors.primary),
-                            SizedBox(width: AppSpacing.xxs),
+                            const SizedBox(width: AppSpacing.xxs),
                             Text(L10n.of(context)!.addSubIngredient,
                                 style: const TextStyle(
                                     fontSize: 10,
@@ -1569,13 +1611,13 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.sm - 2),
+                  const SizedBox(height: AppSpacing.sm - 2),
                   ...row.subIngredients.asMap().entries.map((entry) {
                     final subIdx = entry.key;
                     final sub = entry.value;
                     return Container(
                       key: sub.key is ValueKey ? sub.key : ValueKey('sub_${row.key}_$subIdx'),
-                      margin: EdgeInsets.only(bottom: AppSpacing.sm - 2, left: AppSpacing.xs),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sm - 2, left: AppSpacing.xs),
                       padding: AppSpacing.paddingSm,
                       decoration: BoxDecoration(
                         color: AppColors.background,
@@ -1589,8 +1631,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                             children: [
                               Container(
                                 width: 3, height: 3,
-                                margin: EdgeInsets.only(right: AppSpacing.sm - 2),
-                                decoration: BoxDecoration(
+                                margin: const EdgeInsets.only(right: AppSpacing.sm - 2),
+                                decoration: const BoxDecoration(
                                   color: AppColors.textTertiary,
                                   shape: BoxShape.circle,
                                 ),
@@ -1683,17 +1725,17 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                           contentPadding: const EdgeInsets.symmetric(
                                               horizontal: 6, vertical: 6),
                                           hintText: L10n.of(context)!.subIngredientNameHint,
-                                          hintStyle: TextStyle(
+                                          hintStyle: const TextStyle(
                                               fontSize: 11,
                                               color: AppColors.textTertiary),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
-                                            borderSide: BorderSide(
+                                            borderSide: const BorderSide(
                                                 color: AppColors.divider),
                                           ),
                                           enabledBorder: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
-                                            borderSide: BorderSide(
+                                            borderSide: const BorderSide(
                                                 color: AppColors.divider),
                                           ),
                                         ),
@@ -1702,14 +1744,14 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                   },
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               // AI Search button
                               if (!sub.isLoading)
                                 InkWell(
                                   onTap: () => _lookupSubIngredient(row, subIdx),
                                   borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                   child: Container(
-                                    padding: EdgeInsets.all(AppSpacing.xs + 1),
+                                    padding: const EdgeInsets.all(AppSpacing.xs + 1),
                                     decoration: BoxDecoration(
                                       color: AppColors.info.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
@@ -1721,7 +1763,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                 const SizedBox(
                                     width: 16, height: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2)),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               // Delete button
                               GestureDetector(
                                 onTap: () {
@@ -1740,7 +1782,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                           // Row 2: Amount + Unit + Kcal
                           Row(
                             children: [
-                              SizedBox(width: AppSpacing.md),
+                              const SizedBox(width: AppSpacing.md),
                               SizedBox(
                                 width: 50,
                                 height: 28,
@@ -1758,30 +1800,30 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                   },
                                   decoration: InputDecoration(
                                     isDense: true,
-                                    contentPadding: EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                         horizontal: AppSpacing.xs, vertical: AppSpacing.xs + 1),
                                     hintText: L10n.of(context)!.amountShort,
-                                    hintStyle: TextStyle(
+                                    hintStyle: const TextStyle(
                                         fontSize: 10, color: AppColors.textTertiary),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
-                                      borderSide: BorderSide(color: AppColors.divider),
+                                      borderSide: const BorderSide(color: AppColors.divider),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
-                                      borderSide: BorderSide(color: AppColors.divider),
+                                      borderSide: const BorderSide(color: AppColors.divider),
                                     ),
                                   ),
                                 ),
                               ),
-                              SizedBox(width: AppSpacing.xs),
+                              const SizedBox(width: AppSpacing.xs),
                               Text(sub.unit,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 10, color: AppColors.textSecondary)),
-                              SizedBox(width: AppSpacing.sm),
+                              const SizedBox(width: AppSpacing.sm),
                               Text(
                                 '${sub.calories.toInt()} kcal',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.textSecondary,
@@ -1790,7 +1832,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                               const Spacer(),
                               Text(
                                 'P:${sub.protein.toStringAsFixed(0)} C:${sub.carbs.toStringAsFixed(0)} F:${sub.fat.toStringAsFixed(0)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9, color: AppColors.textSecondary),
                               ),
                             ],
@@ -1869,7 +1911,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
             Text(
               description,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 10,
                 color: AppColors.textSecondary,
               ),
@@ -1892,7 +1934,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       onTap: _pickDate,
       borderRadius: AppRadius.md,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md - 2, vertical: AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md - 2, vertical: AppSpacing.md),
         decoration: BoxDecoration(
           color: isToday
               ? AppColors.primary.withValues(alpha: 0.06)
@@ -1904,19 +1946,19 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           children: [
             const Icon(Icons.calendar_today,
                 size: 18, color: AppColors.primary),
-            SizedBox(width: AppSpacing.md - 2),
+            const SizedBox(width: AppSpacing.md - 2),
             Text(
               isToday ? L10n.of(context)!.today : dateStr,
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
-            SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.lg),
             InkWell(
               onTap: _pickTime,
               child: Row(
                 children: [
                   const Icon(Icons.access_time,
                       size: 18, color: AppColors.primary),
-                  SizedBox(width: AppSpacing.sm - 2),
+                  const SizedBox(width: AppSpacing.sm - 2),
                   Text(
                     timeStr,
                     style: const TextStyle(
@@ -1926,7 +1968,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               ),
             ),
             const Spacer(),
-            Icon(Icons.edit, size: 16, color: AppColors.textTertiary),
+            const Icon(Icons.edit, size: 16, color: AppColors.textTertiary),
           ],
         ),
       ),
@@ -2029,5 +2071,107 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           backgroundColor: AppColors.success,
           duration: const Duration(seconds: 2)),
     );
+  }
+
+  /// Save current food entry + add to My Meals
+  Future<void> _saveAndAddToMyMeals() async {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterFoodName)),
+      );
+      return;
+    }
+
+    if (!_hasIngredients) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(L10n.of(context)!.noIngredientsToSave)),
+      );
+      return;
+    }
+
+    // 1) Save the current food entry first (same as _save)
+    final calories = double.tryParse(_caloriesController.text) ?? 0;
+    final protein = double.tryParse(_proteinController.text) ?? 0;
+    final carbs = double.tryParse(_carbsController.text) ?? 0;
+    final fat = double.tryParse(_fatController.text) ?? 0;
+    final servingSize = double.tryParse(_servingSizeController.text) ?? 1.0;
+
+    widget.entry.foodName = _nameController.text.trim();
+    widget.entry.mealType = _selectedMealType;
+    widget.entry.searchMode = _searchMode;
+    widget.entry.servingSize = servingSize;
+    widget.entry.servingUnit = _servingUnit;
+    widget.entry.calories = calories;
+    widget.entry.protein = protein;
+    widget.entry.carbs = carbs;
+    widget.entry.fat = fat;
+    widget.entry.timestamp = _timestamp;
+    widget.entry.updatedAt = DateTime.now();
+
+    if (!_hasBaseValues && servingSize > 0 && calories > 0) {
+      widget.entry.baseCalories = calories / servingSize;
+      widget.entry.baseProtein = protein / servingSize;
+      widget.entry.baseCarbs = carbs / servingSize;
+      widget.entry.baseFat = fat / servingSize;
+    }
+
+    widget.entry.ingredientsJson =
+        jsonEncode(_ingredients.map((e) => e.toMap()).toList());
+
+    widget.onSave(widget.entry);
+
+    // 2) Also save to My Meals
+    final mealName = _nameController.text.trim();
+    final servingDescription = '$servingSize $_servingUnit';
+
+    try {
+      final ingredientsData = _ingredients.map((ing) => ing.toMap()).toList();
+
+      final allMeals = await ref.read(allMyMealsProvider.future);
+      final uniqueName = _getUniqueMealName(mealName, allMeals);
+
+      await ref.read(foodEntriesNotifierProvider.notifier).saveIngredientsAndMeal(
+        mealName: uniqueName,
+        servingDescription: servingDescription,
+        ingredientsData: ingredientsData,
+        source: 'manual',
+      );
+
+      ref.invalidate(allMyMealsProvider);
+      ref.invalidate(allIngredientsProvider);
+
+      AppLogger.info('[EditFood] Saved "$uniqueName" to My Meals (source=manual)');
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.savedToMyMealsSuccess(uniqueName)),
+          backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      AppLogger.error('[EditFood] Failed to save to My Meals', e);
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.failedToSaveToMyMeals),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
+    final names = allMeals.map((m) => m.name).toSet();
+    if (!names.contains(baseName)) return baseName;
+    
+    int counter = 2;
+    while (names.contains('$baseName ($counter)')) {
+      counter++;
+    }
+    return '$baseName ($counter)';
   }
 }

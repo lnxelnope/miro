@@ -171,7 +171,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   MealSection(
                     mealType: MealType.breakfast,
                     foods: foodEntries
@@ -222,7 +222,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   ),
                   if (timelineAsync.hasError)
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                       child: Text(
                         L10n.of(context)!.errorLoading(timelineAsync.error.toString()),
                         style: const TextStyle(
@@ -235,7 +235,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           ),
 
           // Bottom padding
-          SliverToBoxAdapter(
+          const SliverToBoxAdapter(
             child: SizedBox(height: AppSpacing.xxxxl * 2.5),
           ),
         ],
@@ -248,7 +248,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final isToday = _isToday(_selectedDate);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -263,7 +263,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           GestureDetector(
             onTap: _pickDate,
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               decoration: BoxDecoration(
                 color: isToday
                     ? AppColors.primary.withValues(alpha: 0.1)
@@ -277,7 +277,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(AppIcons.calendar, size: 16, color: AppIcons.calendarColor),
-                      SizedBox(width: AppSpacing.xs),
+                      const SizedBox(width: AppSpacing.xs),
                       Text(
                         isToday ? "Today" : dateFormat.format(_selectedDate),
                         style: TextStyle(
@@ -287,7 +287,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                       ),
                     ],
                   ),
-                  SizedBox(width: AppSpacing.xs),
+                  const SizedBox(width: AppSpacing.xs),
                   Icon(
                     Icons.arrow_drop_down,
                     color:
@@ -362,7 +362,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             final remaining = countSnapshot.data ?? 3;
 
             return Container(
-              margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               padding: AppSpacing.paddingLg,
               decoration: BoxDecoration(
                 color: AppColors.premiumLight,
@@ -380,7 +380,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                     child: const Icon(Icons.auto_awesome,
                         color: AppColors.premium, size: 24),
                   ),
-                  SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,10 +393,10 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                             color: AppColors.premium,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.xxs),
+                        const SizedBox(height: AppSpacing.xxs),
                         Text(
                           L10n.of(context)!.upgradeToProUnlimited,
-                          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
@@ -406,7 +406,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.premium,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       shape: RoundedRectangleBorder(
                         borderRadius: AppRadius.xl,
@@ -869,7 +869,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   Future<void> _autoSaveToDatabase(
       FoodEntry entry, FoodAnalysisResult result) async {
     if (result.ingredientsDetail == null ||
-        result.ingredientsDetail!.isEmpty) return;
+        result.ingredientsDetail!.isEmpty) {
+      return;
+    }
 
     try {
       // Get unique name if duplicate
@@ -939,8 +941,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     // Analyzing state — show progress bar
     if (_isAnalyzing) {
       return Container(
-        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: AppRadius.md,
@@ -953,14 +955,14 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           children: [
             Row(
               children: [
-                SizedBox(
+                const SizedBox(
                   width: AppSpacing.lg, height: AppSpacing.lg,
-                  child: const CircularProgressIndicator(
+                  child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation(AppColors.primary),
                   ),
                 ),
-                SizedBox(width: AppSpacing.xl / 2),
+                const SizedBox(width: AppSpacing.xl / 2),
                 Expanded(
                   child: Text(
                     L10n.of(context)!.analyzeProgress(_currentItemName, _analyzeCurrent, _analyzeTotal),
@@ -975,7 +977,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                 ),
               ],
             ),
-            SizedBox(height: AppSpacing.xs + 2),
+            const SizedBox(height: AppSpacing.xs + 2),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
@@ -993,8 +995,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     // Empty state — show pull to refresh hint
     if (!hasData) {
       return Container(
-        margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.md),
+        margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md + 2, vertical: AppSpacing.md),
         decoration: BoxDecoration(
           color: isDark ? AppColors.surfaceDark : AppColors.surface,
           borderRadius: AppRadius.md,
@@ -1009,7 +1011,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               size: 18,
               color: textColor,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               L10n.of(context)!.pullToScanMeal,
               style: TextStyle(
@@ -1025,8 +1027,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
     // Has data - show info chips and buttons
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: AppRadius.md,
@@ -1042,7 +1044,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               AppIcons.camera, imageCount.toString(),
               AppIcons.cameraColor, chipBg, textColor,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
           ],
           // Text-only count
           if (textCount > 0) ...[
@@ -1050,7 +1052,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               Icons.restaurant_menu_rounded, textCount.toString(),
               AppIcons.mealColor, chipBg, textColor,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
           ],
           // Database count
           if (dbCount > 0) ...[
@@ -1058,7 +1060,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
               Icons.storage_rounded, dbCount.toString(),
               AppColors.ai, chipBg, textColor,
             ),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
           ],
 
           const Spacer(),
@@ -1067,7 +1069,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
           GestureDetector(
             onTap: _scanForFood,
             child: Container(
-              padding: EdgeInsets.all(AppSpacing.xs + 2),
+              padding: const EdgeInsets.all(AppSpacing.xs + 2),
               decoration: BoxDecoration(
                 color: chipBg,
                 borderRadius: AppRadius.sm,
@@ -1078,11 +1080,11 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
 
           // Analyze button (only if there are unanalyzed entries)
           if (energyCost > 0) ...[
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             GestureDetector(
               onTap: () => _startBatchAnalysis(unanalyzed),
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   borderRadius: AppRadius.sm,
@@ -1091,7 +1093,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(AppIcons.ai, size: 14, color: Colors.white),
-                    SizedBox(width: AppSpacing.xs + 1),
+                    const SizedBox(width: AppSpacing.xs + 1),
                     Text(
                       L10n.of(context)!.analyzeAll,
                       style: const TextStyle(
@@ -1099,9 +1101,9 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: AppSpacing.xs + 1),
+                    const SizedBox(width: AppSpacing.xs + 1),
                     const Icon(AppIcons.energy, size: 13, color: AppIcons.energyColor),
-                    SizedBox(width: AppSpacing.xxs),
+                    const SizedBox(width: AppSpacing.xxs),
                     Text(
                       '$energyCost',
                       style: const TextStyle(
@@ -1125,7 +1127,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     Color iconColor, Color bgColor, Color textColor,
   ) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: AppRadius.sm,
@@ -1134,7 +1136,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: iconColor),
-          SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             count,
             style: TextStyle(

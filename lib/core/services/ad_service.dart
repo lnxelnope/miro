@@ -2,6 +2,7 @@
 ///
 /// Rewarded Ads Service (Google AdMob)
 /// Max 3 ads/day, +3E per ad
+library;
 
 import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';

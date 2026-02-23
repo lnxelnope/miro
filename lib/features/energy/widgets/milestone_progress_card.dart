@@ -145,14 +145,14 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
             canClaim: canClaim,
           ),
           if (lockedMilestone != null) ...[
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
-                SizedBox(width: AppSpacing.xs),
+                const Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   l10n.milestoneNext(lockedMilestone['threshold'] as int),
-                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -177,7 +177,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             _buildMilestoneRow(
               title: l10n.milestoneUseEnergyComplete(threshold),
               progress: totalSpent,
@@ -187,15 +187,15 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
               canClaim: canClaim,
             ),
             if (lockedMilestone != null) ...[
-              SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
-                  Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
-                  SizedBox(width: AppSpacing.xs),
+                  const Icon(Icons.lock, size: 14, color: AppColors.textTertiary),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
                     l10n.milestoneNext(lockedMilestone['threshold'] as int),
                     style:
-                        TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -223,7 +223,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
         Row(
           children: [
             Icon(AppIcons.milestone, size: 20, color: color),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -243,7 +243,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
                     ),
                     WidgetSpan(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
                         child: Icon(
                           AppIcons.energy,
                           size: 12,
@@ -266,7 +266,7 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
               GestureDetector(
                 onTap: _claimMilestones,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.warning, AppColors.warning],
@@ -284,14 +284,14 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
                           color: Colors.white,
                         ),
                       ),
-                      SizedBox(width: AppSpacing.xxs),
+                      const SizedBox(width: AppSpacing.xxs),
                       const Icon(AppIcons.energy, size: 12, color: Colors.white),
                     ],
                   ),
                 ),
               )
             else if (_isClaiming)
-              SizedBox(
+              const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
@@ -299,11 +299,11 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
             else
               Text(
                 '[$progress/$target]',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
           ],
         ),
-        SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.xs),
         ClipRRect(
           borderRadius: AppRadius.sm,
           child: LinearProgressIndicator(
@@ -323,11 +323,11 @@ class _MilestoneProgressCardState extends ConsumerState<MilestoneProgressCard> {
     final l10n = L10n.of(context)!;
     return Row(
       children: [
-        Icon(Icons.check_circle, color: AppColors.success, size: 20),
-        SizedBox(width: AppSpacing.sm),
+        const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           l10n.milestoneAllComplete,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.success,

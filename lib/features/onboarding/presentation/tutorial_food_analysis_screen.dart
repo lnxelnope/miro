@@ -366,13 +366,13 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
               'assets/images/tutorial_steak.png',
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.restaurant_menu,
                           size: 64, color: AppColors.textSecondary),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         'Sample: Steak and Fries',
                         style: TextStyle(
@@ -793,7 +793,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           const SizedBox(height: 4),
           Text(
             amount,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
             ),
@@ -955,7 +955,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),
@@ -1017,7 +1017,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           const SizedBox(height: 12),
           Text(
             step.description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               height: 1.6,
               color: AppColors.textSecondary,
@@ -1044,7 +1044,7 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: AppColors.textSecondary,
                 height: 1.4,

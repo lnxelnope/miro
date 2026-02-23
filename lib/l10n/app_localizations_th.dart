@@ -473,6 +473,9 @@ class L10nTh extends L10n {
   String get navCamera => 'กล้อง';
 
   @override
+  String get navGallery => 'แกลเลอรี';
+
+  @override
   String get navAiChat => 'แชท AI';
 
   @override
@@ -983,6 +986,20 @@ class L10nTh extends L10n {
 
   @override
   String get savedSuccessfully => '✅ บันทึกสำเร็จ';
+
+  @override
+  String get saveToMyMeals => '📖 บันทึกไปยังเมนูของฉัน';
+
+  @override
+  String savedToMyMealsSuccess(String mealName) {
+    return '✅ บันทึก \'$mealName\' ไปยังเมนูของฉันแล้ว';
+  }
+
+  @override
+  String get failedToSaveToMyMeals => '❌ บันทึกไปยังเมนูของฉันไม่สำเร็จ';
+
+  @override
+  String get noIngredientsToSave => 'ไม่มีวัตถุดิบที่จะบันทึก';
 
   @override
   String get confirmFoodPhoto => 'ยืนยันรูปอาหาร';

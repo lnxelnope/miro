@@ -153,7 +153,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: AnimatedSize(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -172,7 +172,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -188,7 +188,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             color: AppColors.primary,
           ),
         ),
-        SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xl),
         Text(
           l10n.retroScanTitle,
           style: const TextStyle(
@@ -197,7 +197,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           l10n.retroScanDescription,
           style: TextStyle(
@@ -207,9 +207,9 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.lg),
         Container(
-          padding: EdgeInsets.all(AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.info.withValues(alpha: 0.08),
             borderRadius: AppRadius.sm,
@@ -220,11 +220,11 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           child: Row(
             children: [
               const Icon(Icons.info_outline, size: 18, color: AppColors.info),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.retroScanNote,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.info,
                     height: 1.4,
@@ -234,7 +234,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             ],
           ),
         ),
-        SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.xxl),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -244,12 +244,12 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
             ),
           ),
         ),
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
         TextButton(
           onPressed: _skip,
           child: Text(
@@ -276,7 +276,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             );
           },
           child: Container(
-            padding: EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
@@ -288,7 +288,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             ),
           ),
         ),
-        SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xl),
         Text(
           l10n.retroScanTagline,
           style: const TextStyle(
@@ -298,16 +298,16 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.lg),
         ClipRRect(
           borderRadius: AppRadius.sm,
-          child: LinearProgressIndicator(
+          child: const LinearProgressIndicator(
             backgroundColor: AppColors.divider,
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             minHeight: 6,
           ),
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           _statusText,
           style: TextStyle(
@@ -317,7 +317,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           textAlign: TextAlign.center,
         ),
         if (_totalImages > 0) ...[
-          SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             l10n.retroScanPhotosFound(_totalImages),
             style: TextStyle(
@@ -337,7 +337,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
             color: (hasResults ? AppColors.success : AppColors.info)
                 .withValues(alpha: 0.12),
@@ -349,7 +349,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             color: hasResults ? AppColors.success : AppColors.info,
           ),
         ),
-        SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xl),
         Text(
           hasResults
               ? l10n.retroScanCompleteTitle
@@ -360,7 +360,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           ),
           textAlign: TextAlign.center,
         ),
-        SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.md),
         Text(
           hasResults
               ? l10n.retroScanCompleteDesc(_foodFound)
@@ -373,9 +373,9 @@ class _RetroScanDialogState extends State<RetroScanDialog>
           textAlign: TextAlign.center,
         ),
         if (hasResults) ...[
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           Container(
-            padding: EdgeInsets.all(AppSpacing.md),
+            padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.warning.withValues(alpha: 0.08),
               borderRadius: AppRadius.sm,
@@ -386,11 +386,11 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             child: Row(
               children: [
                 const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.warning),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     l10n.retroScanAnalyzeHint,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.warning,
                       height: 1.4,
@@ -401,7 +401,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             ),
           ),
         ],
-        SizedBox(height: AppSpacing.xxl),
+        const SizedBox(height: AppSpacing.xxl),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -409,7 +409,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               shape: RoundedRectangleBorder(borderRadius: AppRadius.sm),
             ),
             child: Text(l10n.retroScanDone),

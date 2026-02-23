@@ -61,7 +61,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(AppIcons.celebration, size: 18, color: Colors.white),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Text(L10n.of(context)!.referralEnergyBonus(result['bonusEnergy'] as int)),
               ],
             ),
@@ -117,7 +117,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,7 +128,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -139,7 +139,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     Container(
                       padding: AppSpacing.paddingLg,
                       decoration: BoxDecoration(
@@ -169,7 +169,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
                       L10n.of(context)!.referralShareCodeDescription,
                       style: const TextStyle(
@@ -182,7 +182,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Enter Referral Code Section
             Card(
@@ -191,7 +191,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -202,7 +202,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _referralCodeController,
                       decoration: InputDecoration(
@@ -215,7 +215,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                       textCapitalization: TextCapitalization.characters,
                     ),
                     if (_errorMessage != null) ...[
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
                         _errorMessage!,
                         style: const TextStyle(
@@ -225,7 +225,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                       ),
                     ],
                     if (_successMessage != null) ...[
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.sm),
                       Text(
                         _successMessage!,
                         style: const TextStyle(
@@ -242,7 +242,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                           shape: RoundedRectangleBorder(
                             borderRadius: AppRadius.md,
                           ),
@@ -271,7 +271,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
 
             // How It Works
             Card(
@@ -280,7 +280,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                 borderRadius: AppRadius.lg,
               ),
               child: Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -297,19 +297,19 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                       L10n.of(context)!.referralStep1Title,
                       L10n.of(context)!.referralStep1Description,
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '2',
                       L10n.of(context)!.referralStep2Title,
                       L10n.of(context)!.referralStep2Description,
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '3',
                       L10n.of(context)!.referralStep3Title,
                       L10n.of(context)!.referralStep3Description,
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
                     _buildStep(
                       '4',
                       L10n.of(context)!.referralStep4Title,
@@ -361,7 +361,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
               const SizedBox(height: 4),
               Text(
                 description,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),

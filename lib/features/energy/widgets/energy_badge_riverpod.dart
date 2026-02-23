@@ -110,11 +110,11 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         color: AppColors.textSecondary.withValues(alpha: 0.08),
         borderRadius: AppRadius.lg,
       ),
-      child: Row(
+      child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.bolt_rounded, size: 18, color: AppColors.textTertiary),
-          const SizedBox(width: 3),
+          Icon(Icons.bolt_rounded, size: 18, color: AppColors.textTertiary),
+          SizedBox(width: 3),
           SizedBox(
             width: 12,
             height: 12,

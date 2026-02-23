@@ -483,6 +483,9 @@ class L10nFr extends L10n {
   String get navCamera => 'Caméra';
 
   @override
+  String get navGallery => 'Gallery';
+
+  @override
   String get navAiChat => 'Chat IA';
 
   @override
@@ -1008,6 +1011,20 @@ class L10nFr extends L10n {
 
   @override
   String get savedSuccessfully => '✅ Enregistré avec succès';
+
+  @override
+  String get saveToMyMeals => '📖 Save to My Meals';
+
+  @override
+  String savedToMyMealsSuccess(String mealName) {
+    return '✅ Saved \'$mealName\' to My Meals';
+  }
+
+  @override
+  String get failedToSaveToMyMeals => '❌ Failed to save to My Meals';
+
+  @override
+  String get noIngredientsToSave => 'No ingredients to save';
 
   @override
   String get confirmFoodPhoto => 'Confirmer la photo de la nourriture';

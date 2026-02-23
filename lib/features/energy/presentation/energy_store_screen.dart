@@ -734,8 +734,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     } catch (e) {
       debugPrint('[EnergyStore] Error claiming free energy: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('เกิดข้อผิดพลาด'),
+        const SnackBar(
+          content: Text('เกิดข้อผิดพลาด'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -1232,7 +1232,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             bonusEnergy > 0
                                 ? '$energy + $bonusEnergy Bonus = $totalEnergy Energy'
                                 : '$energy Energy',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
@@ -1298,7 +1298,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             if (originalPrice != null) ...[
                               Text(
                                 originalPrice,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
                                   decoration: TextDecoration.lineThrough,
@@ -1309,7 +1309,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             ],
                             Text(
                               priceText,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.success,
@@ -1426,7 +1426,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
           const SizedBox(width: 12),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w500,

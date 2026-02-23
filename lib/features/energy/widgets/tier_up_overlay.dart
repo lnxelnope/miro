@@ -3,6 +3,7 @@
 /// V3: Tier Up Celebration Overlay
 ///
 /// แสดง full-screen overlay เมื่อ user tier upgrade พร้อม animation
+library;
 
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
@@ -111,7 +112,7 @@ class _TierUpOverlayState extends State<TierUpOverlay>
                     _getTierIcon(widget.newTier),
                     style: const TextStyle(fontSize: 100),
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // ยินดีด้วย
                   Text(
@@ -122,7 +123,7 @@ class _TierUpOverlayState extends State<TierUpOverlay>
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // Tier name
                   Text(
@@ -133,7 +134,7 @@ class _TierUpOverlayState extends State<TierUpOverlay>
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Motivation text
                   Text(
@@ -144,11 +145,11 @@ class _TierUpOverlayState extends State<TierUpOverlay>
                       fontSize: 16,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Reward
                   Container(
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.xxl,
                       vertical: AppSpacing.md,
                     ),

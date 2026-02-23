@@ -46,14 +46,14 @@ gcloud auth login
 
 ```powershell
 cd c:\aiprogram\miro
-.\scripts\update-gemini-api-key.ps1
+.\scripts\update-gemini-api-key.p
 ```
 
 ### macOS / Linux (Bash)
 
 ```bash
 cd /path/to/miro
-chmod +x scripts/update-gemini-api-key.sh
+chmod +x scripts/update-gemini-as1pi-key.sh
 ./scripts/update-gemini-api-key.sh
 ```
 
@@ -72,7 +72,7 @@ chmod +x scripts/update-gemini-api-key.sh
 
 #### PowerShell (Windows):
 ```powershell
-.\scripts\update-gemini-api-key.ps1
+.\scripts\ps1update-gemini-api-key.
 ```
 
 สคริปต์จะถาม:

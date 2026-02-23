@@ -229,6 +229,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     required String servingDescription,
     String? imagePath,
     required List<Map<String, dynamic>> ingredientsData,
+    String source = 'gemini', // default 'gemini', can be 'manual'
   }) async {
     try {
       final notifier = MyMealNotifier();
@@ -268,9 +269,10 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         baseServingDescription: servingDescription,
         imagePath: imagePath,
         ingredients: inputs,
+        source: source, // Pass source parameter
       );
       AppLogger.info(
-          'Auto-saved meal: $mealName + ${inputs.length} ROOT ingredients');
+          'Auto-saved meal: $mealName (source=$source) + ${inputs.length} ROOT ingredients');
     } catch (e) {
       AppLogger.warn('Failed to auto-save', e);
       // Don't throw - this is a bonus feature, shouldn't break main flow

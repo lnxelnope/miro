@@ -54,7 +54,7 @@ class AppRadius {
   static final BorderRadius pill = BorderRadius.circular(pillValue);
 
   // สำหรับ bottom sheet (โค้งแค่ด้านบน)
-  static final BorderRadius sheetTop = BorderRadius.vertical(
+  static const BorderRadius sheetTop = BorderRadius.vertical(
     top: Radius.circular(xlValue),
   );
 }

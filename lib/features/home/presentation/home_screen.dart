@@ -109,7 +109,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Row(
           children: [
             const Icon(Icons.security, color: AppColors.primary),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Text(L10n.of(context)!.permissionRequired),
           ],
         ),
@@ -118,19 +118,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(L10n.of(context)!.permissionRequiredDesc),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
                 const Icon(Icons.photo_library, color: AppColors.health),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(L10n.of(context)!.permissionPhotos)),
               ],
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 const Icon(Icons.camera_alt, color: AppColors.finance),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(L10n.of(context)!.permissionCamera)),
               ],
             ),
@@ -272,7 +272,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       title: Text(title),
       leading: Padding(
         key: _energyBadgeKey,
-        padding: EdgeInsets.only(left: AppSpacing.sm),
+        padding: const EdgeInsets.only(left: AppSpacing.sm),
         child: const Center(
           child: EnergyBadgeRiverpod(),
         ),

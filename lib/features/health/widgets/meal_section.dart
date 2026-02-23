@@ -510,7 +510,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
   Future<void> _autoSaveToDatabase(
       FoodEntry entry, FoodAnalysisResult result) async {
     if (result.ingredientsDetail == null ||
-        result.ingredientsDetail!.isEmpty) return;
+        result.ingredientsDetail!.isEmpty) {
+      return;
+    }
 
     try {
       // Get unique name if duplicate

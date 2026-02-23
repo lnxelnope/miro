@@ -80,8 +80,8 @@ class FeatureTour {
           align: ContentAlign.bottom,
           builder: (context, controller) {
             return Container(
-              margin: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-              padding: EdgeInsets.all(AppSpacing.xl),
+              margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: AppRadius.lg,
@@ -111,7 +111,7 @@ class FeatureTour {
                           size: 24,
                         ),
                       ),
-                      SizedBox(width: AppSpacing.md),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: AppIcons.iconWithLabel(
                           AppIcons.energy,
@@ -123,7 +123,7 @@ class FeatureTour {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
                   const Text(
                     'This is your Energy. Each analysis costs 1 Energy.\n\n'
                     'You have 10 free Energy to get started!\n'
@@ -131,9 +131,9 @@ class FeatureTour {
                     'Tap here to visit the Energy Store.',
                     style: TextStyle(fontSize: 14, height: 1.5),
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
                   Container(
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.info.withValues(alpha: 0.1),
                       borderRadius: AppRadius.sm,
@@ -141,7 +141,7 @@ class FeatureTour {
                         color: AppColors.info.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(
                           Icons.info_outline,
@@ -161,13 +161,13 @@ class FeatureTour {
                       ],
                     ),
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () => controller.skip(),
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.xl,
                           vertical: AppSpacing.xl / 2,
                         ),

@@ -126,18 +126,18 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Widget _buildError() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               L10n.of(context)!.subscriptionFailedToLoad,
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               _error ?? L10n.of(context)!.subscriptionUnknownError,
               style: Theme.of(context).textTheme.bodyMedium,
@@ -162,7 +162,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         children: [
           // Active Badge
           Container(
-            padding: EdgeInsets.all(AppSpacing.xxl),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -175,7 +175,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             child: Column(
               children: [
                 const Icon(Icons.verified, size: 64, color: Colors.white),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   L10n.of(context)!.subscriptionEnergyPassActive,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -183,7 +183,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   L10n.of(context)!.subscriptionUnlimitedAccess,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -202,20 +202,20 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             title: L10n.of(context)!.subscriptionStatus,
             value: subscription.status.displayText,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.access_time,
             title: L10n.of(context)!.subscriptionRenews,
             value: subscription.formattedExpiryDate,
           ),
-          SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.payment,
             title: L10n.of(context)!.subscriptionPrice,
             value: '\$4.99/month',
           ),
 
-          SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.xxxl),
 
           // Benefits
           Text(
@@ -229,7 +229,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 (benefit) => _buildBenefitItem(benefit),
               ),
 
-          SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.xxxl),
 
           // Manage Button
           OutlinedButton(
@@ -258,9 +258,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(L10n.of(context)!.subscriptionNoProductAvailable),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             ElevatedButton(
               onPressed: _loadProducts,
               child: Text(L10n.of(context)!.subscriptionRetry),
@@ -277,7 +277,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         children: [
           // Header
           Container(
-            padding: EdgeInsets.all(AppSpacing.xxxl),
+            padding: const EdgeInsets.all(AppSpacing.xxxl),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -294,14 +294,14 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   size: 80,
                   color: AppColors.primary,
                 ),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Energy Pass',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Unlimited AI Analysis',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -313,7 +313,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             ),
           ),
 
-          SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.xxxl),
 
           // V3: แสดง 3 Plans
           ...plans.map((plan) => _buildPlanCard(plan)),

@@ -60,7 +60,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     super.build(context);
     return Column(
       children: [
-        SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.sm),
 
         // Modern toggle tab bar
         _buildToggleTabBar(),
@@ -84,8 +84,8 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   Widget _buildToggleTabBar() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      padding: EdgeInsets.all(AppSpacing.xs),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant,
         borderRadius: AppRadius.lg,
@@ -116,7 +116,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(AppIcons.meal, size: 18, color: AppIcons.mealColor),
-                SizedBox(width: AppSpacing.xs + 2),
+                const SizedBox(width: AppSpacing.xs + 2),
                 Text(L10n.of(context)!.tabMeals),
               ],
             ),
@@ -126,7 +126,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text('🥬', style: TextStyle(fontSize: 16)),
-                SizedBox(width: AppSpacing.xs + 2),
+                const SizedBox(width: AppSpacing.xs + 2),
                 Text(L10n.of(context)!.tabIngredients),
               ],
             ),
@@ -138,7 +138,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md + 2, AppSpacing.xl, AppSpacing.xs + 2),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md + 2, AppSpacing.xl, AppSpacing.xs + 2),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.surfaceVariant,
@@ -149,18 +149,18 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           style: const TextStyle(fontSize: 15),
           decoration: InputDecoration(
             hintText: L10n.of(context)!.searchMealsOrIngredients,
-            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 14),
-            prefixIcon: Icon(Icons.search_rounded,
+            hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 14),
+            prefixIcon: const Icon(Icons.search_rounded,
                 size: 20, color: AppColors.textTertiary),
             suffixIcon: _searchController.text.isNotEmpty
                 ? GestureDetector(
                     onTap: () => _searchController.clear(),
-                    child: Icon(Icons.close_rounded,
+                    child: const Icon(Icons.close_rounded,
                         size: 18, color: AppColors.textTertiary),
                   )
                 : null,
             contentPadding:
-                EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             border: InputBorder.none,
           ),
         ),
@@ -187,7 +187,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         return Stack(
           children: [
             ListView.builder(
-              padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.xxxxl * 2.5),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.xxxxl * 2.5),
               itemCount: meals.length,
               itemBuilder: (context, index) {
                 final meal = meals[index];
@@ -217,7 +217,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     return GestureDetector(
       onTap: _createNewMeal,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.health, AppColors.health.withValues(alpha: 0.85)],
@@ -235,7 +235,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.add_rounded, color: Colors.white, size: 22),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               L10n.of(context)!.createNewMeal,
               style: const TextStyle(
@@ -270,7 +270,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
         return Stack(
           children: [
             ListView.builder(
-              padding: EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.xxxxl * 2.5),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.xxxxl * 2.5),
               itemCount: ingredients.length,
               itemBuilder: (context, index) {
                 final ingredient = ingredients[index];
@@ -299,7 +299,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     return GestureDetector(
       onTap: _addIngredient,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [AppColors.success, AppColors.success.withValues(alpha: 0.85)],
@@ -317,7 +317,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.add_rounded, color: Colors.white, size: 22),
-            SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.sm),
             Text(
               L10n.of(context)!.addIngredient,
               style: const TextStyle(
@@ -338,7 +338,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   Widget _buildEmptyMeals() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.xxxl),
+        padding: const EdgeInsets.all(AppSpacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -353,7 +353,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 child: Icon(AppIcons.meal, size: 48, color: AppIcons.mealColor),
               ),
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               L10n.of(context)!.noMealsYet,
               style: const TextStyle(
@@ -361,19 +361,19 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3),
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.noMealsYetDesc,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                   color: AppColors.textSecondary, fontSize: 14, height: 1.5),
             ),
-            SizedBox(height: AppSpacing.xxl + 4),
+            const SizedBox(height: AppSpacing.xxl + 4),
             GestureDetector(
               onTap: _createNewMeal,
               child: Container(
                 padding:
-                    EdgeInsets.symmetric(horizontal: AppSpacing.xxl + 4, vertical: AppSpacing.md + 2),
+                    const EdgeInsets.symmetric(horizontal: AppSpacing.xxl + 4, vertical: AppSpacing.md + 2),
                 decoration: BoxDecoration(
                   color: AppColors.health,
                   borderRadius: AppRadius.lg,
@@ -389,7 +389,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-                    SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       L10n.of(context)!.createMeal,
                       style: const TextStyle(
@@ -411,7 +411,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   Widget _buildEmptyIngredients() {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.xxxl),
+        padding: const EdgeInsets.all(AppSpacing.xxxl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -426,7 +426,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 child: Text('🥬', style: TextStyle(fontSize: 38)),
               ),
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               L10n.of(context)!.noIngredientsYet,
               style: const TextStyle(
@@ -434,11 +434,11 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3),
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.noIngredientsYetDesc,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                   color: AppColors.textSecondary, fontSize: 14, height: 1.5),
             ),
           ],
@@ -528,7 +528,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           return Container(
             margin:
                 EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-            padding: EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -545,7 +545,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Header
                 Row(
@@ -560,7 +560,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                       child: const Center(
                           child: Text('🥬', style: TextStyle(fontSize: 22))),
                     ),
-                    SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         ingredient.name,
@@ -572,7 +572,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     ),
                   ],
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Amount input
                 Container(
@@ -588,20 +588,20 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                         fontSize: 16, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       labelText: L10n.of(context)!.ingredientAmount(ingredient.baseUnit),
-                      labelStyle: TextStyle(color: AppColors.textSecondary),
+                      labelStyle: const TextStyle(color: AppColors.textSecondary),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
+                      contentPadding: const EdgeInsets.symmetric(
                           horizontal: AppSpacing.lg, vertical: AppSpacing.md + 2),
                     ),
                     onChanged: (_) => setSheetState(() {}),
                   ),
                 ),
-                SizedBox(height: AppSpacing.md + 2),
+                const SizedBox(height: AppSpacing.md + 2),
 
                 // Preview nutrition
                 Container(
                   padding:
-                      EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
+                      const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.lg),
                   decoration: BoxDecoration(
                     color: AppColors.protein.withValues(alpha: 0.06),
                     borderRadius: AppRadius.lg,
@@ -616,7 +616,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     ],
                   ),
                 ),
-                SizedBox(height: AppSpacing.md + 2),
+                const SizedBox(height: AppSpacing.md + 2),
 
                 // Meal type chips
                 SingleChildScrollView(
@@ -625,12 +625,12 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     children: MealType.values.map((type) {
                       final selected = selectedMealType == type;
                       return Padding(
-                        padding: EdgeInsets.only(right: AppSpacing.sm),
+                        padding: const EdgeInsets.only(right: AppSpacing.sm),
                         child: GestureDetector(
                           onTap: () =>
                               setSheetState(() => selectedMealType = type),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.md + 2, vertical: AppSpacing.sm),
                             decoration: BoxDecoration(
                               color: selected
@@ -653,7 +653,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     }).toList(),
                   ),
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Buttons
                 Row(
@@ -680,7 +680,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                         ),
                       ),
                     ),
-                    SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       flex: 2,
                       child: GestureDetector(
@@ -730,7 +730,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                           );
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md + 2),
                           decoration: BoxDecoration(
                             color: AppColors.health,
                             borderRadius: AppRadius.lg,
@@ -857,10 +857,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: AppRadius.md,
               ),
-              child: Icon(Icons.delete_outline_rounded,
+              child: const Icon(Icons.delete_outline_rounded,
                   color: AppColors.error, size: 20),
             ),
-            SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.md),
             Text(L10n.of(context)!.deleteMealTitle,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           ],
@@ -883,19 +883,19 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
             ),
             child:
-                Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error.withValues(alpha: 0.7),
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
               elevation: 0,
@@ -1021,10 +1021,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: AppRadius.md,
               ),
-              child: Icon(Icons.delete_outline_rounded,
+              child: const Icon(Icons.delete_outline_rounded,
                   color: AppColors.error, size: 20),
             ),
-            SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(L10n.of(context)!.deleteIngredientTitle,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
@@ -1040,7 +1040,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
             ),
@@ -1052,7 +1052,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error.withValues(alpha: 0.7),
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xl / 2),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
               elevation: 0,
@@ -1093,7 +1093,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
           final ingredientsAsync = consumerRef.watch(mealIngredientsProvider(meal.id));
 
           return Container(
-            padding: EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -1113,7 +1113,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     ),
                   ),
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Header
                 Row(
@@ -1128,7 +1128,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                       child: const Center(
                           child: Icon(AppIcons.meal, size: 28, color: AppIcons.mealColor)),
                     ),
-                    SizedBox(width: AppSpacing.md + 2),
+                    const SizedBox(width: AppSpacing.md + 2),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1140,10 +1140,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: -0.3),
                           ),
-                          SizedBox(height: AppSpacing.xxs),
+                          const SizedBox(height: AppSpacing.xxs),
                           Text(
                             meal.baseServingDescription,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 color: AppColors.textSecondary, fontSize: 13),
                           ),
                         ],
@@ -1151,25 +1151,25 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     ),
                   ],
                 ),
-                SizedBox(height: AppSpacing.xl - 2),
+                const SizedBox(height: AppSpacing.xl - 2),
 
                 // Nutrition pills
                 Row(
                   children: [
                     _detailNutritionPill('${meal.totalCalories.toInt()}', 'kcal',
                         AppColors.protein),
-                    SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.sm),
                     _detailNutritionPill('${meal.totalProtein.toInt()}g', 'Protein',
                         AppColors.tasks),
-                    SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.sm),
                     _detailNutritionPill('${meal.totalCarbs.toInt()}g', 'Carbs',
                         AppColors.carbs),
-                    SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.sm),
                     _detailNutritionPill('${meal.totalFat.toInt()}g', 'Fat',
                         AppColors.success),
                   ],
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Ingredients header
                 Text(L10n.of(context)!.tabIngredients,
@@ -1186,13 +1186,13 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   data: (ingredients) {
                     if (ingredients.isEmpty) {
                       return Text(L10n.of(context)!.noIngredientsData,
-                          style: TextStyle(color: AppColors.textSecondary));
+                          style: const TextStyle(color: AppColors.textSecondary));
                     }
                     return Column(
                       children: ingredients
                           .map((ing) => Container(
-                                margin: EdgeInsets.only(bottom: AppSpacing.xs + 2),
-                                padding: EdgeInsets.symmetric(
+                                margin: const EdgeInsets.only(bottom: AppSpacing.xs + 2),
+                                padding: const EdgeInsets.symmetric(
                                     horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
                                 decoration: BoxDecoration(
                                   color: AppColors.surfaceVariant,
@@ -1208,7 +1208,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                                         shape: BoxShape.circle,
                                       ),
                                     ),
-                                    SizedBox(width: AppSpacing.xl / 2),
+                                    const SizedBox(width: AppSpacing.xl / 2),
                                     Expanded(
                                       child: Text(
                                         L10n.of(context)!.ingredientDetail(
@@ -1233,7 +1233,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                     );
                   },
                 ),
-                SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xl),
 
                 // Use meal button
                 GestureDetector(
@@ -1243,7 +1243,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   },
                   child: Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: AppColors.health,
                       borderRadius: AppRadius.lg,
@@ -1284,7 +1284,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
   Widget _detailNutritionPill(String value, String label, Color color) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.xl / 2),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl / 2),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.07),
           borderRadius: AppRadius.md,
@@ -1299,7 +1299,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   color: color,
                   letterSpacing: -0.3),
             ),
-            SizedBox(height: AppSpacing.xxs),
+            const SizedBox(height: AppSpacing.xxs),
             Text(label,
                 style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7))),
           ],

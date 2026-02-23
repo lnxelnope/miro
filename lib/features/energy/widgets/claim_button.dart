@@ -150,10 +150,10 @@ class _ClaimButtonState extends ConsumerState<ClaimButton> {
                     ),
                   )
                 else if (_hasClaimed)
-                  Icon(Icons.check, size: 16, color: AppColors.textSecondary)
+                  const Icon(Icons.check, size: 16, color: AppColors.textSecondary)
                 else
                   const Icon(AppIcons.energy, size: 14, color: Colors.white),
-                SizedBox(width: AppSpacing.xs),
+                const SizedBox(width: AppSpacing.xs),
                 Text(
                   '+${widget.claimableEnergy}',
                   style: TextStyle(

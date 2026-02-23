@@ -18,7 +18,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
-            SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl),
             _buildSection(
               L10n.of(context)!.privacyPolicySectionInformationWeCollect,
               [
@@ -192,13 +192,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               L10n.of(context)!.privacyPolicyEffectiveDate,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
-            SizedBox(height: AppSpacing.xxxl),
+            const SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
@@ -219,7 +219,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           L10n.of(context)!.privacyPolicySubtitle,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -234,12 +234,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(Icons.privacy_tip, color: AppColors.success, size: 20),
-              SizedBox(width: AppSpacing.sm),
+              const Icon(Icons.privacy_tip, color: AppColors.success, size: 20),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   L10n.of(context)!.privacyPolicyHeaderNote,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: AppColors.success,
                     fontWeight: FontWeight.w500,
@@ -274,7 +274,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               line,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textPrimary,
                 height: 1.5,
@@ -282,7 +282,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
           );
         }),
-        SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.xl),
       ],
     );
   }

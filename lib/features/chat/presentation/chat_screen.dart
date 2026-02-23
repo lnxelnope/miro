@@ -111,7 +111,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ? _buildWelcomeScreen()
               : ListView.builder(
                   controller: _scrollController,
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                   itemCount: messages.length + (isLoading ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (isLoading && index == messages.length) {
@@ -134,7 +134,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(
+        border: const Border(
           bottom: BorderSide(color: AppColors.divider, width: 0.5),
         ),
       ),
@@ -145,7 +145,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             tooltip: L10n.of(context)!.chatHistory,
             onPressed: () => _showChatHistory(context),
           ),
-          SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
           _buildToolbarButton(
             icon: Icons.add_comment_outlined,
             tooltip: L10n.of(context)!.newChat,
@@ -166,7 +166,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               });
             },
           ),
-          SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
           _buildToolbarButton(
             icon: Icons.delete_outline_rounded,
             tooltip: L10n.of(context)!.clear,
@@ -193,7 +193,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           onTap: onPressed,
           borderRadius: AppRadius.md,
           child: Container(
-            padding: EdgeInsets.all(AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
               color: btnColor.withValues(alpha: 0.08),
               borderRadius: AppRadius.md,
@@ -208,7 +208,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildWelcomeScreen() {
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.xxl + AppSpacing.xs),
+        padding: const EdgeInsets.all(AppSpacing.xxl + AppSpacing.xs),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -229,33 +229,33 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 child: Icon(AppIcons.ai, size: 40, color: AppIcons.aiColor),
               ),
             ),
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               L10n.of(context)!.helloImMiro,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
               ),
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               L10n.of(context)!.tellMeWhatYouAteToday,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 color: AppColors.textSecondary,
               ),
             ),
-            SizedBox(height: AppSpacing.xxl + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xxl + AppSpacing.xs),
 
             // Example cards
             _buildExampleCard(AppIcons.breakfast, AppIcons.breakfastColor, 'Breakfast', 'scrambled eggs with toast'),
-            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+            const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.lunch, AppIcons.lunchColor, 'Lunch', 'chicken caesar salad'),
-            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+            const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.dinner, AppIcons.dinnerColor, 'Dinner', 'grilled salmon with rice'),
-            SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
+            const SizedBox(height: AppSpacing.xs + AppSpacing.xxs),
             _buildExampleCard(AppIcons.snack, AppIcons.snackColor, 'Snack', 'apple and peanut butter'),
           ],
         ),
@@ -265,7 +265,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildExampleCard(IconData icon, Color iconColor, String meal, String food) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
             borderRadius: AppRadius.lg,
@@ -280,7 +280,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Row(
         children: [
           Icon(icon, size: 28, color: iconColor),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,7 +296,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 Text(
                   food,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -336,7 +336,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         action: () => _requestMenuSuggestion(),
         energyCost: 1,
       ),
-      SizedBox(width: AppSpacing.sm),
+      const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
@@ -344,7 +344,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         action: () => _showWeeklySummary(),
         energyCost: 0,
       ),
-      SizedBox(width: AppSpacing.sm),
+      const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
@@ -352,7 +352,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         action: () => _showMonthlySummary(),
         energyCost: 0,
       ),
-      SizedBox(width: AppSpacing.sm),
+      const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: AppIcons.tips,
         iconColor: AppIcons.tipsColor,
@@ -373,7 +373,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         action: () => _sendQuickMessage(L10n.of(context)!.howManyCaloriesToday),
         energyCost: 0,
       ),
-      SizedBox(width: AppSpacing.sm),
+      const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
         icon: Icons.help_outline_rounded,
         iconColor: AppColors.textSecondary,
@@ -406,7 +406,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         }
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: isPremium
               ? AppColors.primary.withValues(alpha: 0.08)
@@ -417,7 +417,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: iconColor),
-            SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+            const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
             Text(
               label,
               style: TextStyle(
@@ -690,7 +690,7 @@ ${L10n.of(context)!.localAiHelpNote}
 
   Widget _buildInputField() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -715,12 +715,12 @@ ${L10n.of(context)!.localAiHelpNote}
                 minLines: 1,
                 decoration: InputDecoration(
                   hintText: L10n.of(context)!.tellMeWhatYouAte,
-                  hintStyle: TextStyle(
+                  hintStyle: const TextStyle(
                     color: AppColors.textTertiary,
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.xl,
                     vertical: AppSpacing.md,
                   ),
@@ -729,7 +729,7 @@ ${L10n.of(context)!.localAiHelpNote}
               ),
             ),
           ),
-          SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+          const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
           // Send button — animated circle
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
@@ -772,7 +772,7 @@ ${L10n.of(context)!.localAiHelpNote}
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: Row(
         children: [
           Container(
@@ -786,9 +786,9 @@ ${L10n.of(context)!.localAiHelpNote}
               child: Icon(AppIcons.ai, size: 18, color: AppIcons.aiColor),
             ),
           ),
-          SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.sm),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.surfaceVariant,
               borderRadius: AppRadius.lg,
@@ -797,9 +797,9 @@ ${L10n.of(context)!.localAiHelpNote}
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDot(0),
-                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 _buildDot(1),
-                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 _buildDot(2),
               ],
             ),
@@ -834,33 +834,33 @@ ${L10n.of(context)!.localAiHelpNote}
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: AppRadius.md,
               ),
-              child: Icon(Icons.delete_outline_rounded,
+              child: const Icon(Icons.delete_outline_rounded,
                   color: AppColors.error, size: 20),
             ),
-            SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.md),
             Text(L10n.of(context)!.clearHistoryTitle,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           ],
         ),
         content: Text(L10n.of(context)!.clearHistoryMessage,
-            style: TextStyle(color: AppColors.textSecondary)),
+            style: const TextStyle(color: AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
             ),
             child:
-                Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -870,7 +870,7 @@ ${L10n.of(context)!.localAiHelpNote}
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
               elevation: 0,
@@ -917,7 +917,7 @@ ${L10n.of(context)!.localAiHelpNote}
                 child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(AppSpacing.sm),
+                      padding: const EdgeInsets.all(AppSpacing.sm),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: AppRadius.md,
@@ -925,10 +925,10 @@ ${L10n.of(context)!.localAiHelpNote}
                       child: const Icon(Icons.history_rounded,
                           color: AppColors.primary, size: 20),
                     ),
-                    SizedBox(width: AppSpacing.md),
+                    const SizedBox(width: AppSpacing.md),
                     Text(
                       L10n.of(context)!.chatHistoryTitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -0.3),
@@ -942,7 +942,7 @@ ${L10n.of(context)!.localAiHelpNote}
                             .startNewSession();
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.08),
@@ -953,7 +953,7 @@ ${L10n.of(context)!.localAiHelpNote}
                           children: [
                             const Icon(Icons.add_rounded,
                                 size: 16, color: AppColors.primary),
-                            SizedBox(width: AppSpacing.xs),
+                            const SizedBox(width: AppSpacing.xs),
                             Text(
                               L10n.of(context)!.newLabel,
                               style: const TextStyle(
@@ -970,7 +970,7 @@ ${L10n.of(context)!.localAiHelpNote}
                 ),
               ),
 
-              Divider(height: 1, color: AppColors.divider),
+              const Divider(height: 1, color: AppColors.divider),
 
               // Sessions list
               Expanded(
@@ -988,12 +988,12 @@ ${L10n.of(context)!.localAiHelpNote}
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.chat_bubble_outline,
+                                const Icon(Icons.chat_bubble_outline,
                                     size: 56, color: AppColors.textTertiary),
-                                SizedBox(height: AppSpacing.lg),
+                                const SizedBox(height: AppSpacing.lg),
                                 Text(
                                   L10n.of(context)!.noChatHistoryYet,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: AppColors.textTertiary,
                                       fontSize: 15),
                                 ),
@@ -1036,7 +1036,7 @@ ${L10n.of(context)!.localAiHelpNote}
     final timeFormat = DateFormat('HH:mm');
 
     return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.sm),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
         color: isActive
             ? AppColors.primary.withValues(alpha: 0.06)
@@ -1057,7 +1057,7 @@ ${L10n.of(context)!.localAiHelpNote}
           },
           borderRadius: AppRadius.lg,
           child: Padding(
-            padding: EdgeInsets.all(AppSpacing.md + AppSpacing.xxs),
+            padding: const EdgeInsets.all(AppSpacing.md + AppSpacing.xxs),
             child: Row(
               children: [
                 Container(
@@ -1075,7 +1075,7 @@ ${L10n.of(context)!.localAiHelpNote}
                     size: 20,
                   ),
                 ),
-                SizedBox(width: AppSpacing.md),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1097,7 +1097,7 @@ ${L10n.of(context)!.localAiHelpNote}
                           ),
                           if (isActive)
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.xs + AppSpacing.xxs, vertical: AppSpacing.xxs),
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
@@ -1105,7 +1105,7 @@ ${L10n.of(context)!.localAiHelpNote}
                               ),
                               child: Text(
                                 L10n.of(context)!.active,
-                                style: TextStyle(
+                                style: const TextStyle(
                                     fontSize: 9,
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold),
@@ -1113,19 +1113,19 @@ ${L10n.of(context)!.localAiHelpNote}
                             ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         '${dateFormat.format(session.updatedAt)} ${timeFormat.format(session.updatedAt)}',
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: AppSpacing.sm),
                 GestureDetector(
                   onTap: () => _confirmDeleteSession(context, session),
-                  child: Icon(Icons.delete_outline_rounded,
+                  child: const Icon(Icons.delete_outline_rounded,
                       size: 18, color: AppColors.textTertiary),
                 ),
               ],
@@ -1144,15 +1144,15 @@ ${L10n.of(context)!.localAiHelpNote}
         title: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(AppSpacing.sm),
+              padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
                 color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: AppRadius.md,
               ),
-              child: Icon(Icons.delete_outline_rounded,
+              child: const Icon(Icons.delete_outline_rounded,
                   color: AppColors.error, size: 20),
             ),
-            SizedBox(width: AppSpacing.md),
+            const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(L10n.of(context)!.deleteChatTitle,
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
@@ -1160,19 +1160,19 @@ ${L10n.of(context)!.localAiHelpNote}
           ],
         ),
         content: Text(L10n.of(context)!.deleteChatMessage(session.title),
-            style: TextStyle(color: AppColors.textSecondary)),
+            style: const TextStyle(color: AppColors.textSecondary)),
         actionsPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
             ),
             child:
-                Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+                const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1184,7 +1184,7 @@ ${L10n.of(context)!.localAiHelpNote}
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xs + AppSpacing.xxs),
               shape: RoundedRectangleBorder(
                   borderRadius: AppRadius.md),
               elevation: 0,
@@ -1208,7 +1208,7 @@ ${L10n.of(context)!.localAiHelpNote}
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
             decoration: BoxDecoration(
               color: modeColor.withValues(alpha: 0.08),
               borderRadius: AppRadius.xl,
@@ -1221,7 +1221,7 @@ ${L10n.of(context)!.localAiHelpNote}
                   size: 14,
                   color: modeColor,
                 ),
-                SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
+                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
                 Text(
                   chatAiMode.displayName,
                   style: TextStyle(

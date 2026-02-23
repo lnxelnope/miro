@@ -46,7 +46,7 @@ class StreakDisplay extends ConsumerWidget {
                       ),
                     );
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.info_outline,
                     color: AppColors.textSecondary,
                     size: 20,
@@ -111,7 +111,7 @@ class StreakDisplay extends ConsumerWidget {
             if (gamification.tier != 'diamond')
               Text(
                 '${gamification.daysToNextTier} days until next tier',
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14,
                 ),
@@ -121,7 +121,7 @@ class StreakDisplay extends ConsumerWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.shield_outlined,
                     size: 16,
                     color: AppColors.info,

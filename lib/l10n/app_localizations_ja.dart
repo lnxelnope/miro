@@ -468,6 +468,9 @@ class L10nJa extends L10n {
   String get navCamera => 'カメラ';
 
   @override
+  String get navGallery => 'Gallery';
+
+  @override
   String get navAiChat => 'AIチャット';
 
   @override
@@ -971,6 +974,20 @@ class L10nJa extends L10n {
 
   @override
   String get savedSuccessfully => '✅ 正常に保存されました';
+
+  @override
+  String get saveToMyMeals => '📖 Save to My Meals';
+
+  @override
+  String savedToMyMealsSuccess(String mealName) {
+    return '✅ Saved \'$mealName\' to My Meals';
+  }
+
+  @override
+  String get failedToSaveToMyMeals => '❌ Failed to save to My Meals';
+
+  @override
+  String get noIngredientsToSave => 'No ingredients to save';
 
   @override
   String get confirmFoodPhoto => '食べ物の写真を確認する';

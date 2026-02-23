@@ -44,7 +44,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text('📋', style: TextStyle(fontSize: 64)),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           const Text(
             'Scan a nutrition label',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -56,7 +56,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary),
           ),
-          SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.xxxl),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -68,19 +68,19 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
                       shape: RoundedRectangleBorder(
                       borderRadius: AppRadius.md),
                 ),
               ),
-              SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.md),
               OutlinedButton.icon(
                 onPressed: _pickFromGallery,
                 icon: const Icon(Icons.photo_library),
                 label: const Text('From Gallery'),
                 style: OutlinedButton.styleFrom(
                   padding:
-                      EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md + 2),
                       shape: RoundedRectangleBorder(
                       borderRadius: AppRadius.md),
                 ),
@@ -98,7 +98,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
         // Image preview
         Expanded(
           child: Container(
-            margin: EdgeInsets.all(AppSpacing.lg),
+            margin: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               borderRadius: AppRadius.lg,
               border:
@@ -136,13 +136,13 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.premium,
                           foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                           shape: RoundedRectangleBorder(
                               borderRadius: AppRadius.md),
                         ),
                       ),
                     ),
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
                         Expanded(
@@ -151,7 +151,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             icon: const Icon(Icons.camera_alt, size: 18),
                             label: const Text('Retake'),
                             style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                               shape: RoundedRectangleBorder(
                                   borderRadius: AppRadius.md),
                             ),
@@ -164,7 +164,7 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
                             icon: const Icon(Icons.close, size: 18),
                             label: const Text('Cancel'),
                             style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                               shape: RoundedRectangleBorder(
                                   borderRadius: AppRadius.md),
                             ),

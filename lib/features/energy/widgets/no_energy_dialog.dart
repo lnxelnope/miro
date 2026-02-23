@@ -89,7 +89,7 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
       title: Row(
         children: [
           const Icon(AppIcons.energy, size: 32, color: AppIcons.energyColor),
-          SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.md),
           Text(l10n.noEnergyTitle),
         ],
       ),
@@ -101,15 +101,15 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
             l10n.noEnergyContent,
             style: const TextStyle(fontSize: 16),
           ),
-          SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               const Icon(AppIcons.tips, size: 16, color: AppIcons.tipsColor),
-              SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   l10n.noEnergyTip,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                     fontStyle: FontStyle.italic,
@@ -129,10 +129,10 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
           TextButton.icon(
             onPressed: _isLoadingAd ? null : _handleWatchAd,
             icon: _isLoadingAd
-                ? SizedBox(
+                ? const SizedBox(
                     width: AppSpacing.lg,
                     height: AppSpacing.lg,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.play_circle_outline, color: AppColors.info),
             label: Text(
@@ -150,7 +150,7 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.success,
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
           ),
           child: Text(l10n.noEnergyBuyEnergy, style: const TextStyle(color: Colors.white)),
         ),
