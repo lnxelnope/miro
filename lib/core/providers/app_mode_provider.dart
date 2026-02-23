@@ -10,17 +10,17 @@ final appModeProvider = StateNotifierProvider<AppModeNotifier, AppMode>((ref) {
 class AppModeNotifier extends StateNotifier<AppMode> {
   static const String _key = 'app_mode';
 
-  AppModeNotifier() : super(AppMode.pro) {
+  AppModeNotifier() : super(AppMode.basic) {
     _load();
   }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getString(_key);
-    if (value == 'basic') {
+    if (value == null) {
       state = AppMode.basic;
     } else {
-      state = AppMode.pro;
+      state = value == 'pro' ? AppMode.pro : AppMode.basic;
     }
   }
 
