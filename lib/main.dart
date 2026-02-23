@@ -9,7 +9,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'core/theme/app_theme.dart';
-import 'core/widgets/keyboard_done_bar.dart';
 import 'core/database/database_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/energy_service.dart';
@@ -209,7 +208,10 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       supportedLocales: L10n.supportedLocales,
       locale: locale,
 
-      builder: (context, child) => IOSKeyboardDoneBar(child: child!),
+      builder: (context, child) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: child!,
+      ),
       home: _buildHome(),
     );
   }

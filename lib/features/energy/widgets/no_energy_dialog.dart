@@ -90,7 +90,14 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
         children: [
           const Icon(AppIcons.energy, size: 32, color: AppIcons.energyColor),
           const SizedBox(width: AppSpacing.md),
-          Text(l10n.noEnergyTitle),
+          Expanded(child: Text(l10n.noEnergyTitle)),
+          IconButton(
+            icon: const Icon(Icons.close, size: 20),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black.withValues(alpha: 0.05),
+            ),
+            onPressed: () => Navigator.pop(context, false),
+          ),
         ],
       ),
       content: Column(

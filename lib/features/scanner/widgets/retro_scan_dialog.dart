@@ -152,17 +152,36 @@ class _RetroScanDialogState extends State<RetroScanDialog>
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          child: switch (_phase) {
-            _RetroScanPhase.ask => _buildAskPhase(l10n, isDark),
-            _RetroScanPhase.scanning => _buildScanningPhase(l10n, isDark),
-            _RetroScanPhase.done => _buildDonePhase(l10n, isDark),
-          },
-        ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: switch (_phase) {
+                _RetroScanPhase.ask => _buildAskPhase(l10n, isDark),
+                _RetroScanPhase.scanning => _buildScanningPhase(l10n, isDark),
+                _RetroScanPhase.done => _buildDonePhase(l10n, isDark),
+              },
+            ),
+          ),
+          if (_phase != _RetroScanPhase.scanning)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.black.withValues(alpha: 0.05),
+                ),
+                onPressed: () {
+                  RetroScanDialog.markRetroScanDone();
+                  Navigator.pop(context, _phase == _RetroScanPhase.done ? _foodFound : null);
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

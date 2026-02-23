@@ -22,11 +22,12 @@ class WelcomeOfferUnlockedDialog {
             ),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              // 🎉 Icon
-              Container(
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
@@ -177,6 +178,19 @@ class WelcomeOfferUnlockedDialog {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black.withValues(alpha: 0.05),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
               ),
             ],
           ),

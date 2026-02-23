@@ -17,13 +17,14 @@ class RandomBonusDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.xxl,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Icon
-            const Icon(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
               AppIcons.randomBonus,
               size: 80,
               color: AppIcons.randomBonusColor,
@@ -101,6 +102,19 @@ class RandomBonusDialog extends StatelessWidget {
             ),
           ],
         ),
+      ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: const Icon(Icons.close, size: 20),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.black.withValues(alpha: 0.05),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+        ],
       ),
     );
   }

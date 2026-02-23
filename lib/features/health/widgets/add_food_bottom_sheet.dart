@@ -852,12 +852,25 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            Text(
-              '🍽️ ${L10n.of(context)!.addFoodTitle}',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '🍽️ ${L10n.of(context)!.addFoodTitle}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 22),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black.withValues(alpha: 0.05),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.xl),
 
