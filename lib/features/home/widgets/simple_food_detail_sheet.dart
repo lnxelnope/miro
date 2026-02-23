@@ -57,13 +57,32 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     _carbs = widget.entry.carbs;
     _fat = widget.entry.fat;
     _loadIngredients();
+
+    _quantityController.addListener(_onQuantityChanged);
   }
 
   @override
   void dispose() {
+    _quantityController.removeListener(_onQuantityChanged);
     _nameController.dispose();
     _quantityController.dispose();
     super.dispose();
+  }
+
+  void _onQuantityChanged() {
+    final newQty = double.tryParse(_quantityController.text);
+    if (newQty == null || newQty <= 0) return;
+
+    final entry = widget.entry;
+    if (entry.hasBaseValues) {
+      setState(() {
+        _calories = entry.baseCalories * newQty;
+        _protein = entry.baseProtein * newQty;
+        _carbs = entry.baseCarbs * newQty;
+        _fat = entry.baseFat * newQty;
+        _hasChanges = true;
+      });
+    }
   }
 
   void _loadIngredients() {
@@ -121,6 +140,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         double.tryParse(_quantityController.text) ?? entry.servingSize;
     if (newQty != entry.servingSize) {
       entry.servingSize = newQty;
+      if (entry.hasBaseValues) {
+        entry.recalculateFromBase();
+      }
       changed = true;
     }
 
