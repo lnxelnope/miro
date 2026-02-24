@@ -325,6 +325,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   // CHAT INPUT
   // ============================================================
   Widget _buildChatInput(L10n l10n) {
+    final isLoading = ref.watch(chatLoadingProvider);
     return Container(
       padding: EdgeInsets.only(
         left: AppSpacing.lg,
@@ -384,7 +385,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: _isComposing
+              color: (_isComposing || isLoading)
                   ? AppColors.primary
                   : (isDark ? AppColors.surfaceVariantDark : AppColors.divider),
               shape: BoxShape.circle,
@@ -392,21 +393,25 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: _isComposing ? _sendChat : null,
+                onTap: _isComposing && !isLoading ? _sendChat : null,
                 borderRadius: AppRadius.xl,
                 child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        AppIcons.energy,
-                        color: _isComposing
-                            ? AppIcons.energyColor
-                            : (isDark ? AppColors.textSecondaryDark : AppColors.textTertiary),
-                        size: 18,
-                      ),
-                    ],
-                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(AppIcons.energyColor),
+                          ),
+                        )
+                      : Icon(
+                          AppIcons.energy,
+                          color: _isComposing
+                              ? AppIcons.energyColor
+                              : (isDark ? AppColors.textSecondaryDark : AppColors.textTertiary),
+                          size: 18,
+                        ),
                 ),
               ),
             ),
