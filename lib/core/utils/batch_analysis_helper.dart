@@ -330,8 +330,10 @@ class BatchAnalysisHelper {
 
       totalSuccessCount += batchSuccessCount;
 
-      // Refresh providers
-      ref.invalidate(healthTimelineProvider(selectedDate));
+      // Refresh providers — invalidate foodEntriesByDate first so healthTimeline gets fresh DB data
+      final d = dateOnly(selectedDate);
+      ref.invalidate(foodEntriesByDateProvider(d));
+      ref.invalidate(healthTimelineProvider(d));
       ref.invalidate(todayCaloriesProvider);
       ref.invalidate(todayMacrosProvider);
 
@@ -340,7 +342,7 @@ class BatchAnalysisHelper {
       // Check for new unanalyzed entries
       try {
         final refreshed =
-            await ref.read(foodEntriesByDateProvider(selectedDate).future);
+            await ref.read(foodEntriesByDateProvider(d).future);
         entriesToProcess = refreshed
             .where(
                 (f) => !f.hasNutritionData && !failedIds.contains(f.id))
@@ -353,6 +355,13 @@ class BatchAnalysisHelper {
         break;
       }
     }
+
+    // Final refresh so UI shows results immediately when analyze completes
+    final d = dateOnly(selectedDate);
+    ref.invalidate(foodEntriesByDateProvider(d));
+    ref.invalidate(healthTimelineProvider(d));
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
 
     return BatchAnalysisResult(
       successCount: totalSuccessCount,

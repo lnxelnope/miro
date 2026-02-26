@@ -23,6 +23,7 @@ import 'features/home/presentation/home_screen.dart';
 import 'features/onboarding/presentation/onboarding_screen.dart';
 import 'features/onboarding/presentation/language_selection_screen.dart';
 import 'features/profile/providers/locale_provider.dart';
+import 'dart:io' show Platform;
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Global navigator key for deep linking
@@ -184,6 +185,14 @@ class _MiroAppState extends ConsumerState<MiroApp> {
       if (count > 0) {
         final profile = await DatabaseService.userProfiles.get(1);
         _onboardingComplete = profile?.onboardingComplete ?? false;
+
+        if (profile != null && profile.platform == null) {
+          profile.platform = Platform.isIOS ? 'ios' : 'android';
+          profile.updatedAt = DateTime.now();
+          await DatabaseService.isar.writeTxn(() async {
+            await DatabaseService.userProfiles.put(profile);
+          });
+        }
       }
     } catch (e) {
       debugPrint('_initApp error: $e');

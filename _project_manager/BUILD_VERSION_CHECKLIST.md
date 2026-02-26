@@ -6,13 +6,13 @@
 
 ---
 
-## ✅ Build 44 (v1.1.19) - Status: READY FOR PRODUCTION
+## ✅ Build 46 (v1.1.21) - Status: READY FOR PRODUCTION
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.19+44`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 44`, `versionName = "1.1.19"`)
-- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.19'`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.21+46`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 46`, `versionName = "1.1.21"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.21'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
@@ -21,6 +21,41 @@
 - [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
 
 ### ✨ Changes in this version:
+- **Basic Mode: Long Press to Move Date** - Long press food entry → date picker menu to move entry to another date (meal type preserved)
+- **Platform Tracking** - Auto-detect and store OS (android/ios) in user profile at app startup for future database migration support
+- **Bug Fix: Analyze Results Not Showing** - Fixed analyze completion not refreshing food list immediately (added `foodEntriesByDateProvider` invalidation)
+
+---
+
+## ✅ Build 45 (v1.1.20) - Status: RELEASED
+
+### 📋 Checklist
+
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.20+45`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 45`, `versionName = "1.1.20"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.20'`)
+- [ ] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [ ] **Target SDK** - 35 (Android 15)
+- [ ] **Compile SDK** - 36 (Android 16)
+- [ ] **Version Naming** - ตาม Semantic Versioning
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว
+- [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
+
+### ✨ Changes in this version:
+- Version bump 1.1.19 → 1.1.20 (Build 45)
+
+---
+
+## ✅ Build 44 (v1.1.19) - Status: RELEASED
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.19+44`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 44`, `versionName = "1.1.19"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.19'`)
+- [x] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
+
+### ✨ Changes in that version:
 - **AdMob Compliance (Android + iOS):**
   - Android: เพิ่ม `com.google.android.gms.permission.AD_ID` ใน AndroidManifest.xml (แก้ Play Console warning)
   - iOS: เพิ่ม `NSUserTrackingUsageDescription` + `SKAdNetworkItems` ใน Info.plist
@@ -230,7 +265,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.19+44
+version: 1.1.21+46
 ```
 **Format:** `versionName+versionCode`
 - `1.1.14` = Version name (แสดงให้ user เห็น)
@@ -239,8 +274,8 @@ version: 1.1.19+44
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 44
-    versionName = "1.1.19"
+    versionCode = 46
+    versionName = "1.1.21"
 }
 ```
 **Format:**
@@ -252,7 +287,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.1.19',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.1.21',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -277,22 +312,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.18+43 → 1.1.19+44
-version: 1.1.19+44
+# ตัวอย่าง: จาก 1.1.20+45 → 1.1.21+46
+version: 1.1.21+46
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 44  // เพิ่มทีละ 1
-    versionName = "1.1.19"  // ตรงกับ pubspec
+    versionCode = 46  // เพิ่มทีละ 1
+    versionName = "1.1.21"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.1.19',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.1.21',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -319,7 +354,9 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 44 | 1.1.19 | 2026-02-26 | ✅ Current |
+| 46 | 1.1.21 | 2026-02-26 | ✅ Current |
+| 45 | 1.1.20 | 2026-02-26 | ✅ Released |
+| 44 | 1.1.19 | 2026-02-26 | ✅ Released |
 | 43 | 1.1.18 | 2026-02-24 | ✅ Released |
 | 42 | 1.1.17 | 2026-02-23 | ✅ Released |
 | 41 | 1.1.16 | 2026-02-23 | ✅ Released |
@@ -350,14 +387,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.19+44`
-- `build.gradle.kts`: `versionCode = 44`, `versionName = "1.1.19"`
+- `pubspec.yaml`: `1.1.21+46`
+- `build.gradle.kts`: `versionCode = 46`, `versionName = "1.1.21"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.1.19',  // แก้ให้ตรงกับ versionName
+subtitle: '1.1.21',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 

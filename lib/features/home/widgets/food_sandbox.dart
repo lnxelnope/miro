@@ -14,6 +14,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
   final void Function(FoodEntry entry) onTap;
   final void Function(List<FoodEntry> selected) onDeleteSelected;
   final void Function(List<FoodEntry> selected) onAnalyzeSelected;
+  final void Function(FoodEntry entry, DateTime newDate)? onMoveToDate;
 
   const FoodSandbox({
     super.key,
@@ -21,6 +22,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
     required this.onTap,
     required this.onDeleteSelected,
     required this.onAnalyzeSelected,
+    this.onMoveToDate,
   });
 
   @override
@@ -38,6 +40,72 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
       _selectionMode = true;
       _selectedIds.add(entryId);
     });
+  }
+
+  Future<void> _showLongPressMenu(FoodEntry entry) async {
+    HapticFeedback.mediumImpact();
+    final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: AppRadius.lg,
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Container(
+                  width: 36, height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.calendar_today_rounded, color: AppColors.primary),
+                title: Text(l10n.moveToAnotherDate),
+                onTap: () => Navigator.pop(ctx, 'move_date'),
+              ),
+              ListTile(
+                leading: Icon(Icons.check_circle_outline_rounded,
+                    color: isDark ? Colors.white70 : AppColors.textSecondary),
+                title: Text(l10n.selectAll),
+                onTap: () => Navigator.pop(ctx, 'select'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    if (result == 'move_date') {
+      _pickDateForEntry(entry);
+    } else if (result == 'select') {
+      _enterSelectionMode(entry.id);
+    }
+  }
+
+  Future<void> _pickDateForEntry(FoodEntry entry) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: entry.timestamp,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (picked == null || !mounted) return;
+    widget.onMoveToDate?.call(entry, picked);
   }
 
   void _exitSelectionMode() {
@@ -116,7 +184,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
                   },
                   onLongPress: () {
                     if (!_selectionMode) {
-                      _enterSelectionMode(entry.id);
+                      _showLongPressMenu(entry);
                     }
                   },
                 );

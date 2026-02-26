@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.1.21+46] - 2026-02-26
+
+### ✨ New Features
+- **Basic Mode: Long Press to Move Date** - Long press any food entry in Basic mode → shows menu with "Move to Another Date" option
+  - Opens date picker to select new date
+  - Moves entry to selected date (preserves meal type and all data)
+  - Shows confirmation snackbar after moving
+- **Platform Tracking** - Automatically detects and stores OS platform (android/ios) in user profile at app startup
+  - Added `platform` field to UserProfile model
+  - Used for future database migration support (e.g., iOS China market separation)
+
+### 🐛 Bug Fixes
+- **Fixed: Analyze Results Not Showing Immediately** - Fixed analyze completion not refreshing food list
+  - Root cause: Missing `foodEntriesByDateProvider` invalidation in batch analysis helper
+  - Solution: Added proper provider invalidation with `dateOnly()` normalization
+  - Results now appear immediately after analyze completes (no refresh needed)
+  - Applied to both Pro and Basic mode analyze flows
+
+### 🔧 Technical
+- Updated `batch_analysis_helper.dart`: Added `foodEntriesByDateProvider` invalidation
+- Updated `UserProfile` model: Added `platform` field (Isar schema regenerated)
+- Updated `main.dart`: Auto-detect and save platform on first launch
+
+---
+
+## [1.1.20+45] - 2026-02-26
+
+### 🔧 Build Update
+- Version bump to 1.1.20+45
+- ads declare
+---
+
 ## [1.1.18+43] - 2026-02-24
 
 ### ✨ New Features

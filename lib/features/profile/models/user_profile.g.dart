@@ -122,38 +122,43 @@ const UserProfileSchema = CollectionSchema(
       name: r'onboardingComplete',
       type: IsarType.bool,
     ),
-    r'proteinGoal': PropertySchema(
+    r'platform': PropertySchema(
       id: 21,
+      name: r'platform',
+      type: IsarType.string,
+    ),
+    r'proteinGoal': PropertySchema(
+      id: 22,
       name: r'proteinGoal',
       type: IsarType.double,
     ),
     r'snackBudget': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'snackBudget',
       type: IsarType.double,
     ),
     r'suggestionThreshold': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'suggestionThreshold',
       type: IsarType.double,
     ),
     r'targetWeight': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'targetWeight',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'waterGoal': PropertySchema(
-      id: 26,
+      id: 27,
       name: r'waterGoal',
       type: IsarType.double,
     ),
     r'weight': PropertySchema(
-      id: 27,
+      id: 28,
       name: r'weight',
       type: IsarType.double,
     )
@@ -209,6 +214,12 @@ int _userProfileEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.platform;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -239,13 +250,14 @@ void _userProfileSerialize(
   writer.writeBool(offsets[18], object.mealSuggestionsEnabled);
   writer.writeString(offsets[19], object.name);
   writer.writeBool(offsets[20], object.onboardingComplete);
-  writer.writeDouble(offsets[21], object.proteinGoal);
-  writer.writeDouble(offsets[22], object.snackBudget);
-  writer.writeDouble(offsets[23], object.suggestionThreshold);
-  writer.writeDouble(offsets[24], object.targetWeight);
-  writer.writeDateTime(offsets[25], object.updatedAt);
-  writer.writeDouble(offsets[26], object.waterGoal);
-  writer.writeDouble(offsets[27], object.weight);
+  writer.writeString(offsets[21], object.platform);
+  writer.writeDouble(offsets[22], object.proteinGoal);
+  writer.writeDouble(offsets[23], object.snackBudget);
+  writer.writeDouble(offsets[24], object.suggestionThreshold);
+  writer.writeDouble(offsets[25], object.targetWeight);
+  writer.writeDateTime(offsets[26], object.updatedAt);
+  writer.writeDouble(offsets[27], object.waterGoal);
+  writer.writeDouble(offsets[28], object.weight);
 }
 
 UserProfile _userProfileDeserialize(
@@ -277,13 +289,14 @@ UserProfile _userProfileDeserialize(
   object.mealSuggestionsEnabled = reader.readBool(offsets[18]);
   object.name = reader.readStringOrNull(offsets[19]);
   object.onboardingComplete = reader.readBool(offsets[20]);
-  object.proteinGoal = reader.readDouble(offsets[21]);
-  object.snackBudget = reader.readDouble(offsets[22]);
-  object.suggestionThreshold = reader.readDouble(offsets[23]);
-  object.targetWeight = reader.readDoubleOrNull(offsets[24]);
-  object.updatedAt = reader.readDateTime(offsets[25]);
-  object.waterGoal = reader.readDouble(offsets[26]);
-  object.weight = reader.readDoubleOrNull(offsets[27]);
+  object.platform = reader.readStringOrNull(offsets[21]);
+  object.proteinGoal = reader.readDouble(offsets[22]);
+  object.snackBudget = reader.readDouble(offsets[23]);
+  object.suggestionThreshold = reader.readDouble(offsets[24]);
+  object.targetWeight = reader.readDoubleOrNull(offsets[25]);
+  object.updatedAt = reader.readDateTime(offsets[26]);
+  object.waterGoal = reader.readDouble(offsets[27]);
+  object.weight = reader.readDoubleOrNull(offsets[28]);
   return object;
 }
 
@@ -337,18 +350,20 @@ P _userProfileDeserializeProp<P>(
     case 20:
       return (reader.readBool(offset)) as P;
     case 21:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 22:
       return (reader.readDouble(offset)) as P;
     case 23:
       return (reader.readDouble(offset)) as P;
     case 24:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 25:
-      return (reader.readDateTime(offset)) as P;
-    case 26:
       return (reader.readDouble(offset)) as P;
+    case 25:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 26:
+      return (reader.readDateTime(offset)) as P;
     case 27:
+      return (reader.readDouble(offset)) as P;
+    case 28:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -2052,6 +2067,159 @@ extension UserProfileQueryFilter
   }
 
   QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'platform',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'platform',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> platformEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> platformBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'platform',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'platform',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> platformMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'platform',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'platform',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      platformIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'platform',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
       proteinGoalEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -2810,6 +2978,18 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByPlatform() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'platform', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByPlatformDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'platform', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByProteinGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'proteinGoal', Sort.asc);
@@ -3178,6 +3358,18 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByPlatform() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'platform', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByPlatformDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'platform', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByProteinGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'proteinGoal', Sort.asc);
@@ -3408,6 +3600,13 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByPlatform(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'platform', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByProteinGoal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'proteinGoal');
@@ -3589,6 +3788,12 @@ extension UserProfileQueryProperty
       onboardingCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'onboardingComplete');
+    });
+  }
+
+  QueryBuilder<UserProfile, String?, QQueryOperations> platformProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'platform');
     });
   }
 

@@ -125,6 +125,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onTap: (entry) => _showFoodDetail(entry),
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
+      onMoveToDate: _moveEntryToDate,
     );
   }
 
@@ -401,6 +402,31 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     } finally {
       if (mounted) setState(() => _isScanning = false);
     }
+  }
+
+  Future<void> _moveEntryToDate(FoodEntry entry, DateTime newDate) async {
+    final oldTime = entry.timestamp;
+    entry.timestamp = DateTime(
+      newDate.year, newDate.month, newDate.day,
+      oldTime.hour, oldTime.minute,
+    );
+    await ref
+        .read(foodEntriesNotifierProvider.notifier)
+        .updateFoodEntry(entry);
+
+    if (!mounted) return;
+    refreshFoodProviders(ref, _selectedDate);
+    refreshFoodProviders(ref, dateOnly(newDate));
+
+    final fmt = DateFormat('d MMM');
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(L10n.of(context)!.movedEntriesToDate(1, fmt.format(newDate))),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _showFoodDetail(FoodEntry entry) {

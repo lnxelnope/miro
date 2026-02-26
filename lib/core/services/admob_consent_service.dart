@@ -56,8 +56,8 @@ class AdmobConsentService {
 
     final params = ConsentRequestParameters();
 
-    // Request latest consent info
-    await ConsentInformation.instance.requestConsentInfoUpdate(
+    // Request latest consent info (returns void, uses callbacks)
+    ConsentInformation.instance.requestConsentInfoUpdate(
       params,
       () async {
         debugPrint('[AdmobConsent] Consent info updated');

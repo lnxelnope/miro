@@ -51,6 +51,9 @@ class UserProfile {
   bool onboardingComplete = false;
   // ===== จบส่วนเพิ่ม =====
 
+  // Platform info (auto-detected at first launch)
+  String? platform; // 'android' or 'ios'
+
   DateTime createdAt = DateTime.now();
   DateTime updatedAt = DateTime.now();
 }
