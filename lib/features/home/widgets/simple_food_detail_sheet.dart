@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/search_mode_selector.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/models/food_entry.dart';
 import '../../health/providers/health_provider.dart';
@@ -23,6 +25,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late TextEditingController _nameController;
   late TextEditingController _quantityController;
   late String _selectedUnit;
+  late FoodSearchMode _searchMode;
   bool _isEditingName = false;
   bool _hasChanges = false;
   List<Map<String, dynamic>> _ingredients = [];
@@ -32,6 +35,10 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late double _protein;
   late double _carbs;
   late double _fat;
+
+  // Original values for ingredient scaling
+  late double _originalServingSize;
+  List<Map<String, dynamic>> _baseIngredients = [];
 
   static const _unitOptions = [
     'serving', 'piece', 'g', 'ml', 'cup', 'tbsp', 'plate', 'bowl',
@@ -52,10 +59,12 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     if (!_unitOptions.contains(_selectedUnit)) {
       _selectedUnit = 'serving';
     }
+    _searchMode = widget.entry.searchMode;
     _calories = widget.entry.calories;
     _protein = widget.entry.protein;
     _carbs = widget.entry.carbs;
     _fat = widget.entry.fat;
+    _originalServingSize = widget.entry.servingSize > 0 ? widget.entry.servingSize : 1;
     _loadIngredients();
 
     _quantityController.addListener(_onQuantityChanged);
@@ -80,6 +89,22 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         _protein = entry.baseProtein * newQty;
         _carbs = entry.baseCarbs * newQty;
         _fat = entry.baseFat * newQty;
+
+        // Scale ingredients proportionally
+        if (_baseIngredients.isNotEmpty) {
+          final ratio = newQty / _originalServingSize;
+          _ingredients = _baseIngredients.map((base) {
+            final scaled = Map<String, dynamic>.from(base);
+            final baseAmt = (base['amount'] as num?)?.toDouble() ?? 0;
+            scaled['amount'] = baseAmt * ratio;
+            scaled['calories'] = ((base['calories'] as num?)?.toDouble() ?? 0) * ratio;
+            scaled['protein'] = ((base['protein'] as num?)?.toDouble() ?? 0) * ratio;
+            scaled['carbs'] = ((base['carbs'] as num?)?.toDouble() ?? 0) * ratio;
+            scaled['fat'] = ((base['fat'] as num?)?.toDouble() ?? 0) * ratio;
+            return scaled;
+          }).toList();
+        }
+
         _hasChanges = true;
       });
     }
@@ -92,6 +117,10 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         final decoded =
             jsonDecode(widget.entry.ingredientsJson!) as List<dynamic>;
         _ingredients = decoded
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        // Deep copy for base reference used when scaling by quantity
+        _baseIngredients = decoded
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
       } catch (_) {}
@@ -151,6 +180,11 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       changed = true;
     }
 
+    if (_searchMode != entry.searchMode) {
+      entry.searchMode = _searchMode;
+      changed = true;
+    }
+
     if (_hasChanges) {
       entry.ingredientsJson =
           _ingredients.isNotEmpty ? jsonEncode(_ingredients) : null;
@@ -182,6 +216,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         ? widget.entry.servingUnit
         : 'serving';
     if (_selectedUnit != originalUnit) return true;
+    if (_searchMode != widget.entry.searchMode) return true;
     return false;
   }
 
@@ -359,6 +394,18 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // 2.6 Search Mode (Food / Product)
+                  SearchModeSelector(
+                    selectedMode: _searchMode,
+                    onChanged: (mode) {
+                      setState(() {
+                        _searchMode = mode;
+                        _hasChanges = true;
+                      });
+                    },
                   ),
                   const SizedBox(height: AppSpacing.lg),
 

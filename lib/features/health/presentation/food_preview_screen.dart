@@ -5,15 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
-import '../../../core/utils/logger.dart';
-import '../../../core/services/usage_limiter.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
+import '../providers/analysis_provider.dart';
 
 class FoodPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -126,50 +123,11 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     super.dispose();
   }
 
-  /// เตือนผู้ใช้ก่อนออกขณะ AI กำลังวิเคราะห์
-  Future<bool> _onWillPop() async {
-    if (!_isAnalyzing) return true;
-
-    final shouldLeave = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            const SizedBox(width: 12),
-            Expanded(child: Text(L10n.of(context)!.analyzingTitle)),
-          ],
-        ),
-        content: Text(L10n.of(context)!.analyzingWarningContent),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(L10n.of(context)!.waitButton),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
-            ),
-            child: Text(L10n.of(context)!.exitButton),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLeave == true) {
-      _isCancelled = true;
-      return true;
-    }
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
-      canPop: !_isAnalyzing,
+      canPop: true,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         final shouldLeave = await _onWillPop();
@@ -743,83 +701,33 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Future<void> _analyzeFood() async {
-    // === ตรวจสอบ Energy ก่อนเรียก API ===
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy) {
-      if (mounted) {
-        await NoEnergyDialog.show(context);
-      }
-      return;
-    }
-    // === จบ Gate Check ===
+    final foodName = _nameController.text.trim();
+    final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
-    setState(() {
-      _isAnalyzing = true;
-      _isCancelled = false;
-      _error = null;
-    });
+    final entry = FoodEntry()
+      ..foodName = foodName.isNotEmpty
+          ? foodName
+          : L10n.of(context)!.foodPendingAnalysis
+      ..mealType = _selectedMealType
+      ..servingSize = servingSize
+      ..servingUnit = _servingUnit
+      ..imagePath = widget.imageFile.path
+      ..timestamp = DateTime.now()
+      ..searchMode = _searchMode
+      ..source = DataSource.galleryScanned;
 
-    try {
-      final foodName = _nameController.text.trim();
-      final quantity = double.tryParse(_servingSizeController.text);
-      final result = await GeminiService.analyzeFoodImage(
-        widget.imageFile,
-        foodName: foodName.isNotEmpty ? foodName : null,
-        quantity: quantity != null && quantity > 0 ? quantity : null,
-        unit: _servingUnit,
-        searchMode: _searchMode,
-      );
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    await notifier.addFoodEntry(entry);
 
-      // ถ้า user กดออกระหว่างรอ → หยุดทำงาน
-      if (_isCancelled || !mounted) return;
+    if (!mounted) return;
 
-      if (result != null) {
-        // === Record AI Usage หลังสำเร็จ ===
-        await UsageLimiter.recordAiUsage();
-        if (_isCancelled || !mounted) return;
-        setState(() {
-          _analysisResult = result;
-          _hasAnalyzed = true;
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: dateOnly(DateTime.now()),
+    );
 
-          // Fill in fields
-          _nameController.text = result.foodName;
-          _servingUnit = _getValidUnit(result.servingUnit);
-
-          // คำนวณ base values (ต่อ 1 หน่วย) จาก Gemini
-          final geminiServing =
-              result.servingSize > 0 ? result.servingSize : 1.0;
-          _baseCalories = result.nutrition.calories / geminiServing;
-          _baseProtein = result.nutrition.protein / geminiServing;
-          _baseCarbs = result.nutrition.carbs / geminiServing;
-          _baseFat = result.nutrition.fat / geminiServing;
-          _hasBaseValues = true;
-
-          // ต้อง remove listener ก่อน set text เพื่อไม่ให้ trigger ซ้ำ
-          _servingSizeController.removeListener(_onServingSizeChanged);
-          _caloriesController.text =
-              result.nutrition.calories.toInt().toString();
-          _proteinController.text = result.nutrition.protein.toInt().toString();
-          _carbsController.text = result.nutrition.carbs.toInt().toString();
-          _fatController.text = result.nutrition.fat.toInt().toString();
-          _servingSizeController.text = result.servingSize.toString();
-          _servingSizeController.addListener(_onServingSizeChanged);
-        });
-      } else {
-        setState(() => _error = L10n.of(context)!.unableToAnalyzeImage);
-      }
-    } catch (e) {
-      if (_isCancelled || !mounted) return;
-      // ตรวจสอบว่าเป็น Energy error หรือไม่
-      if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
-      } else {
-        setState(() => _error = e.toString());
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isAnalyzing = false);
-      }
-    }
+    refreshFoodProviders(ref, dateOnly(DateTime.now()));
+    Navigator.pop(context);
   }
 
   Future<void> _saveFood() async {

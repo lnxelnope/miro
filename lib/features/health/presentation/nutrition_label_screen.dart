@@ -5,12 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
-import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
-import '../providers/my_meal_provider.dart';
-import '../widgets/gemini_analysis_sheet.dart';
+import '../providers/analysis_provider.dart';
 import '../models/food_entry.dart';
 import 'image_analysis_preview_screen.dart';
 
@@ -224,140 +222,26 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
   Future<void> _analyzeLabel() async {
     if (_capturedImage == null) return;
 
-    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.notEnoughEnergy),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
+    final entry = FoodEntry()
+      ..foodName = 'Nutrition Label'
+      ..mealType = _guessMealType()
+      ..timestamp = DateTime.now()
+      ..imagePath = _capturedImage!.path
+      ..searchMode = FoodSearchMode.product
+      ..source = DataSource.galleryScanned;
 
-    setState(() => _isAnalyzing = true);
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    await notifier.addFoodEntry(entry);
 
-    // ────── แสดง loading dialog ──────
     if (!context.mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: dateOnly(DateTime.now()),
     );
 
-    try {
-      final result = await GeminiService.analyzeNutritionLabel(_capturedImage!);
-
-      if (!context.mounted) return;
-      Navigator.pop(context); // ปิด loading dialog
-      setState(() => _isAnalyzing = false);
-
-      if (result == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Unable to read label. Try taking a clearer photo'),
-              duration: Duration(seconds: 2)),
-        );
-        return;
-      }
-
-      // แสดงผล
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => GeminiAnalysisSheet(
-          analysisResult: result,
-          onConfirm: (confirmedData) async {
-            final entry = FoodEntry()
-              ..foodName = confirmedData.foodName
-              ..foodNameEn = confirmedData.foodNameEn
-              ..mealType = _guessMealType()
-              ..timestamp = DateTime.now()
-              ..imagePath = _capturedImage!.path
-              ..servingSize = confirmedData.servingSize
-              ..servingUnit = confirmedData.servingUnit
-              ..servingGrams = confirmedData.servingGrams
-              ..calories = confirmedData.calories
-              ..protein = confirmedData.protein
-              ..carbs = confirmedData.carbs
-              ..fat = confirmedData.fat
-              ..baseCalories = confirmedData.baseCalories
-              ..baseProtein = confirmedData.baseProtein
-              ..baseCarbs = confirmedData.baseCarbs
-              ..baseFat = confirmedData.baseFat
-              ..fiber = confirmedData.fiber
-              ..sugar = confirmedData.sugar
-              ..sodium = confirmedData.sodium
-              ..source = DataSource.aiAnalyzed
-              ..aiConfidence = confirmedData.confidence
-              ..isVerified = true
-              ..notes = 'Scanned nutrition label';
-
-            final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-            await notifier.addFoodEntry(entry);
-
-            // Auto-save ingredient
-            if (confirmedData.ingredientsDetail != null &&
-                confirmedData.ingredientsDetail!.isNotEmpty) {
-              try {
-                await notifier.saveIngredientsAndMeal(
-                  mealName: confirmedData.foodName,
-                  mealNameEn: confirmedData.foodNameEn,
-                  servingDescription:
-                      '${confirmedData.servingSize} ${confirmedData.servingUnit}',
-                  imagePath: _capturedImage!.path,
-                  ingredientsData: confirmedData.ingredientsDetail!,
-                );
-
-                // Invalidate MyMeal providers to refresh UI
-                ref.invalidate(allMyMealsProvider);
-                ref.invalidate(allIngredientsProvider);
-              } catch (e) {
-                AppLogger.warn('Auto-save failed', e);
-              }
-            }
-
-            refreshFoodProviders(ref, DateTime.now());
-
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Saved "${confirmedData.foodName}"'),
-                backgroundColor: AppColors.success,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-            Navigator.pop(context); // ปิด screen
-          },
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-
-      // ปิด loading dialog ถ้ายังเปิดอยู่
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-
-      setState(() => _isAnalyzing = false);
-
-      // ตรวจสอบว่าเป็น Energy error หรือไม่
-      if (e.toString().contains('Insufficient energy')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.notEnoughEnergy),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ $e'), duration: const Duration(seconds: 2)),
-        );
-      }
-    }
+    refreshFoodProviders(ref, dateOnly(DateTime.now()));
+    Navigator.pop(context);
   }
 
   MealType _guessMealType() {

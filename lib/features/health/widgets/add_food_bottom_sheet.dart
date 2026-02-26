@@ -15,6 +15,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
+import '../providers/analysis_provider.dart';
 import '../models/food_entry.dart';
 import '../models/ingredient.dart';
 import '../models/my_meal.dart';
@@ -2013,7 +2014,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   }
 
   // ============================================================
-  // Save & Analyze (analyze immediately, not later)
+  // Save & Analyze (save immediately, analyze in background)
   // ============================================================
   Future<void> _saveAndAnalyze() async {
     final foodName = _nameController.text.trim();
@@ -2026,171 +2027,36 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       return;
     }
 
-    // Check energy first
-    if (!await GeminiService.hasEnergy()) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.notEnoughEnergy),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
+    final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
+    final date = widget.selectedDate ?? DateTime.now();
+    final now = DateTime.now();
+    final timestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+
+    String? ingredientsJsonStr;
+    if (_hasIngredients) {
+      ingredientsJsonStr = jsonEncode(_ingredients.map((e) => e.toMap()).toList());
     }
 
-    // Show loading
-    setState(() => _isAnalyzing = true);
+    final entry = FoodEntry()
+      ..foodName = foodName
+      ..mealType = _selectedMealType
+      ..timestamp = timestamp
+      ..servingSize = servingSize
+      ..servingUnit = _servingUnit
+      ..ingredientsJson = ingredientsJsonStr
+      ..searchMode = _searchMode
+      ..source = DataSource.manual;
 
-    try {
-      final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
-      
-      // Extract ingredient names and amounts if available
-      List<String>? ingredientNames;
-      List<Map<String, dynamic>>? userIngredients;
-      if (_hasIngredients) {
-        ingredientNames = _ingredients
-            .where((ing) => ing.nameController.text.trim().isNotEmpty)
-            .map((ing) => ing.nameController.text.trim())
-            .toList();
+    widget.onSave(entry);
 
-        userIngredients = _ingredients
-            .where((ing) => ing.nameController.text.trim().isNotEmpty)
-            .map((ing) {
-              final amount = double.tryParse(ing.amountController.text);
-              return <String, dynamic>{
-                'name': ing.nameController.text.trim(),
-                'amount': (amount != null && amount > 0) ? amount : 1.0,
-                'unit': (amount != null && amount > 0) ? ing.unit : 'serving',
-              };
-            })
-            .toList();
-        if (userIngredients.isEmpty) userIngredients = null;
-      }
+    if (!mounted) return;
 
-      // Analyze with AI
-      var result = await GeminiService.analyzeFoodByName(
-        foodName,
-        servingSize: servingSize,
-        servingUnit: _servingUnit,
-        searchMode: _searchMode,
-        ingredientNames: ingredientNames,
-        userIngredients: userIngredients,
-      );
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: dateOnly(date),
+    );
 
-      // Post-process: enforce user-specified amounts
-      if (result != null && userIngredients != null && userIngredients.isNotEmpty) {
-        result = GeminiService.enforceUserIngredientAmounts(result, userIngredients);
-      }
-
-      if (result == null) {
-        if (!mounted) return;
-        setState(() => _isAnalyzing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.analysisFailed),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
-
-      // Record energy usage
-      await UsageLimiter.recordAiUsage();
-      ref.invalidate(energyBalanceProvider);
-      ref.invalidate(currentEnergyProvider);
-
-      // Apply result to controllers
-      _nameController.text = result.foodName;
-      _caloriesController.text = result.nutrition.calories.toStringAsFixed(0);
-      _proteinController.text = result.nutrition.protein.toStringAsFixed(1);
-      _carbsController.text = result.nutrition.carbs.toStringAsFixed(1);
-      _fatController.text = result.nutrition.fat.toStringAsFixed(1);
-      _servingSizeController.text = result.servingSize.toStringAsFixed(0);
-      _servingUnit = result.servingUnit;
-      
-      // Update ingredients from AI if available
-      if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
-        _ingredients.clear();
-        for (final detail in result.ingredientsDetail!) {
-          final ing = _EditableIngredient(
-            name: detail.name,
-            nameEn: detail.nameEn,
-            amount: detail.amount,
-            unit: detail.unit,
-            calories: detail.calories,
-            protein: detail.protein,
-            carbs: detail.carbs,
-            fat: detail.fat,
-          );
-          ing.isFromDb = true;
-          _ingredients.add(ing);
-        }
-      }
-
-      setState(() => _isAnalyzing = false);
-
-      // Now save with the analyzed data
-      final date = widget.selectedDate ?? DateTime.now();
-      final now = DateTime.now();
-      final timestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
-
-      String? ingredientsJsonStr;
-      if (_hasIngredients) {
-        ingredientsJsonStr = jsonEncode(_ingredients.map((e) => e.toMap()).toList());
-      }
-
-      final entry = FoodEntry()
-        ..foodName = result.foodName
-        ..mealType = _selectedMealType
-        ..timestamp = timestamp
-        ..servingSize = result.servingSize
-        ..servingUnit = result.servingUnit
-        ..calories = result.nutrition.calories
-        ..protein = result.nutrition.protein
-        ..carbs = result.nutrition.carbs
-        ..fat = result.nutrition.fat
-        ..baseCalories = result.servingSize > 0 
-            ? result.nutrition.calories / result.servingSize 
-            : result.nutrition.calories
-        ..baseProtein = result.servingSize > 0 
-            ? result.nutrition.protein / result.servingSize 
-            : result.nutrition.protein
-        ..baseCarbs = result.servingSize > 0 
-            ? result.nutrition.carbs / result.servingSize 
-            : result.nutrition.carbs
-        ..baseFat = result.servingSize > 0 
-            ? result.nutrition.fat / result.servingSize 
-            : result.nutrition.fat
-        ..ingredientsJson = ingredientsJsonStr
-        ..searchMode = _searchMode
-        ..source = DataSource.aiAnalyzed;
-
-      widget.onSave(entry);
-
-      // Auto-save to MyMeal + Ingredient DB if has ingredients
-      if (_hasIngredients && result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
-        await _autoSaveToDatabase(result.foodName, ingredientsJsonStr);
-      }
-
-      if (!mounted) return;
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.aiAnalysisComplete),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } catch (e) {
-      AppLogger.error('[SaveAndAnalyze] Failed', e);
-      if (!mounted) return;
-      setState(() => _isAnalyzing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.analysisFailed),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+    Navigator.pop(context);
   }
 
   // ============================================================

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/models/food_entry.dart';
 
@@ -308,6 +309,21 @@ class _FoodBubbleState extends State<_FoodBubble>
     final hasImage =
         entry.imagePath != null && File(entry.imagePath!).existsSync();
     final isUnanalyzed = !entry.hasNutritionData;
+    final isProduct = entry.searchMode == FoodSearchMode.product;
+
+    // Border color differs between normal items and products
+    Color borderColor;
+    if (widget.isSelected) {
+      borderColor = AppColors.primary;
+    } else if (isUnanalyzed) {
+      borderColor = AppColors.warning.withValues(alpha: 0.4);
+    } else if (isProduct) {
+      borderColor = isDark
+          ? AppColors.health.withValues(alpha: 0.6)
+          : AppColors.health.withValues(alpha: 0.5);
+    } else {
+      borderColor = isDark ? AppColors.dividerDark : AppColors.divider;
+    }
 
     Widget bubble = GestureDetector(
       onTap: widget.onTap,
@@ -319,19 +335,17 @@ class _FoodBubbleState extends State<_FoodBubble>
         decoration: BoxDecoration(
           color: widget.isSelected
               ? AppColors.primary.withValues(alpha: 0.15)
-              : isDark
-                  ? AppColors.surfaceDark
-                  : AppColors.surface,
+              : isProduct
+                  ? (isDark
+                      ? AppColors.health.withValues(alpha: 0.08)
+                      : AppColors.health.withValues(alpha: 0.05))
+                  : isDark
+                      ? AppColors.surfaceDark
+                      : AppColors.surface,
           borderRadius: AppRadius.md,
           border: Border.all(
-            color: widget.isSelected
-                ? AppColors.primary
-                : isUnanalyzed
-                    ? AppColors.warning.withValues(alpha: 0.4)
-                    : isDark
-                        ? AppColors.dividerDark
-                        : AppColors.divider,
-            width: widget.isSelected ? 2 : 1,
+            color: borderColor,
+            width: widget.isSelected ? 2 : (isProduct ? 1.5 : 1),
           ),
           boxShadow: [
             BoxShadow(
@@ -344,6 +358,34 @@ class _FoodBubbleState extends State<_FoodBubble>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Product badge
+            if (isProduct && !isUnanalyzed)
+              Container(
+                margin: const EdgeInsets.only(bottom: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.health.withValues(alpha: 0.2)
+                      : AppColors.health.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(FoodSearchMode.product.icon, size: 8,
+                        color: isDark ? AppColors.health : AppColors.health),
+                    const SizedBox(width: 2),
+                    Text(
+                      'Product',
+                      style: TextStyle(
+                        fontSize: 7,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.health : AppColors.health,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Image (แสดงเฉพาะเมื่อมีรูป)
             if (hasImage) ...[
               ClipRRect(

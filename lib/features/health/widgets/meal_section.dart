@@ -4,25 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../../core/ai/gemini_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../features/energy/providers/energy_provider.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
 import 'package:isar/isar.dart';
-import '../models/my_meal.dart';
-import '../providers/my_meal_provider.dart';
 import '../../../core/database/database_service.dart';
-import '../../../core/services/usage_limiter.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
 import 'ghost_meal_suggestion.dart';
+import '../providers/analysis_provider.dart';
 
 class MealSection extends ConsumerStatefulWidget {
   final MealType mealType;
@@ -59,48 +55,6 @@ class _MealSectionState extends ConsumerState<MealSection> {
   int? _editingFoodId;
   TextEditingController? _editNameController;
 
-  // Analyze selected state
-  bool _isAnalyzingSelected = false;
-  int _analyzeTotal = 0;
-  int _analyzeCurrent = 0;
-  String _currentItemName = '';
-  bool _cancelAnalyze = false;
-
-  /// Extract ingredient names and user-specified amounts from a FoodEntry's ingredientsJson.
-  /// Returns both names-only list (for backward compat) and full details with amounts.
-  static ({List<String>? names, List<Map<String, dynamic>>? userIngredients}) _extractIngredientsFromJson(FoodEntry entry) {
-    if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
-      return (names: null, userIngredients: null);
-    }
-    try {
-      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
-      final names = decoded
-          .map((item) => item['name'] as String?)
-          .where((name) => name != null && name.isNotEmpty)
-          .cast<String>()
-          .toList();
-
-      final userIngredients = decoded
-          .where((item) =>
-              item['name'] != null &&
-              item['amount'] != null &&
-              (item['amount'] as num) > 0)
-          .map((item) => <String, dynamic>{
-                'name': item['name'] as String,
-                'amount': (item['amount'] as num).toDouble(),
-                'unit': item['unit'] as String? ?? 'g',
-              })
-          .toList();
-
-      return (
-        names: names.isNotEmpty ? names : null,
-        userIngredients: userIngredients.isNotEmpty ? userIngredients : null,
-      );
-    } catch (err) {
-      AppLogger.warn('[_extractIngredientsFromJson] Failed to parse ingredientsJson for ${entry.foodName}: $err');
-      return (names: null, userIngredients: null);
-    }
-  }
 
   int _getIngredientCount(FoodEntry entry) {
     if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
@@ -254,11 +208,10 @@ class _MealSectionState extends ConsumerState<MealSection> {
   }
 
   // ============================================================
-  // Analyze Selected Entries
+  // Analyze Selected Entries (via global AnalysisNotifier)
   // ============================================================
-  static const int _batchSize = 5;
 
-  Future<void> _analyzeSelected() async {
+  void _analyzeSelected() {
     if (_selectedIds.isEmpty) return;
 
     final selectedEntries = widget.foods
@@ -278,277 +231,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
       return;
     }
 
-    // Check energy
-    final energyAsync = ref.read(energyBalanceProvider);
-    final currentBalance = energyAsync.valueOrNull ?? 0;
-    final requiredEnergy = selectedEntries.length;
-
-    if (currentBalance < requiredEnergy) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.notEnoughEnergy),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isAnalyzingSelected = true;
-      _analyzeTotal = selectedEntries.length;
-      _analyzeCurrent = 0;
-      _currentItemName = '';
-      _cancelAnalyze = false;
-    });
-
-    int successCount = 0;
-    final failedIds = <int>[];
-
-    // Split into text-only (batchable) and image entries
-    final textEntries = selectedEntries
-        .where((e) => e.imagePath == null || e.imagePath!.isEmpty)
-        .toList();
-    final imageEntries = selectedEntries
-        .where((e) => e.imagePath != null && e.imagePath!.isNotEmpty)
-        .toList();
-
-    // ── Batch process text entries (max 5 per batch) ──
-    for (int chunkStart = 0; chunkStart < textEntries.length; chunkStart += _batchSize) {
-      if (_cancelAnalyze) break;
-
-      final chunkEnd = (chunkStart + _batchSize).clamp(0, textEntries.length);
-      final chunk = textEntries.sublist(chunkStart, chunkEnd);
-
-      setState(() {
-        _analyzeCurrent = successCount + failedIds.length + 1;
-        _currentItemName = L10n.of(context)!.batchAnalyzeItems(chunk.length);
-      });
-
-      try {
-        final batchItems = chunk.map((e) {
-          final extracted = _extractIngredientsFromJson(e);
-          return (
-            name: e.foodName,
-            servingSize: e.servingSize as double?,
-            servingUnit: e.servingUnit as String?,
-            searchMode: e.searchMode,
-            ingredientNames: extracted.names,
-            userIngredients: extracted.userIngredients,
-          );
-        }).toList();
-
-        final results = await GeminiService.analyzeFoodBatch(batchItems);
-
-        for (int i = 0; i < chunk.length; i++) {
-          final entry = chunk[i];
-          var result = i < results.length ? results[i] : null;
-
-          if (result != null && result.confidence > 0) {
-            // Post-process: enforce user-specified amounts
-            final userIngs = batchItems[i].userIngredients;
-            if (userIngs != null && userIngs.isNotEmpty) {
-              result = GeminiService.enforceUserIngredientAmounts(result, userIngs);
-            }
-            _applyResultToEntry(entry, result);
-            await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-            await _autoSaveToDatabase(entry, result);
-            await UsageLimiter.recordAiUsage();
-            successCount++;
-          } else {
-            failedIds.add(entry.id);
-          }
-        }
-      } catch (e, stackTrace) {
-        AppLogger.error('[SelectAnalyze] Batch failed, falling back to individual', stackTrace);
-        for (final entry in chunk) {
-          if (_cancelAnalyze) break;
-          try {
-            setState(() {
-              _analyzeCurrent = successCount + failedIds.length + 1;
-              _currentItemName = entry.foodName;
-            });
-            
-            final extracted = _extractIngredientsFromJson(entry);
-            
-            var result = await GeminiService.analyzeFoodByName(
-              entry.foodName,
-              servingSize: entry.servingSize,
-              servingUnit: entry.servingUnit,
-              searchMode: entry.searchMode,
-              ingredientNames: extracted.names,
-              userIngredients: extracted.userIngredients,
-            );
-            if (result != null) {
-              // Post-process: enforce user-specified amounts
-              if (extracted.userIngredients != null && extracted.userIngredients!.isNotEmpty) {
-                result = GeminiService.enforceUserIngredientAmounts(result, extracted.userIngredients!);
-              }
-              _applyResultToEntry(entry, result);
-              await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-              await _autoSaveToDatabase(entry, result);
-              await UsageLimiter.recordAiUsage();
-              successCount++;
-            } else {
-              failedIds.add(entry.id);
-            }
-          } catch (e2) {
-            AppLogger.error('[SelectAnalyze] Fallback failed "${entry.foodName}"', e2);
-            failedIds.add(entry.id);
-          }
-          await Future.delayed(const Duration(milliseconds: 300));
-        }
-      }
-
-      if (chunkStart + _batchSize < textEntries.length) {
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-    }
-
-    // ── Image entries one-by-one ──
-    for (int i = 0; i < imageEntries.length; i++) {
-      if (_cancelAnalyze) break;
-
-      final entry = imageEntries[i];
-      setState(() {
-        _analyzeCurrent = successCount + failedIds.length + 1;
-        _currentItemName = entry.foodName;
-      });
-
-      try {
-        final result = await GeminiService.analyzeFoodImage(
-          File(entry.imagePath!),
-          foodName: entry.foodName,
-          quantity: entry.servingSize,
-          unit: entry.servingUnit,
-          searchMode: entry.searchMode,
-        );
-
-        if (result != null) {
-          _applyResultToEntry(entry, result);
-          await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-          await _autoSaveToDatabase(entry, result);
-          await UsageLimiter.recordAiUsage();
-          successCount++;
-        } else {
-          failedIds.add(entry.id);
-        }
-      } catch (e, stackTrace) {
-        AppLogger.error('[SelectAnalyze] Image failed "${entry.foodName}" — $e', stackTrace);
-        failedIds.add(entry.id);
-      }
-
-      if (i < imageEntries.length - 1) {
-        await Future.delayed(const Duration(milliseconds: 300));
-      }
-    }
-
-    // Refresh
-    ref.invalidate(healthTimelineProvider(widget.selectedDate));
-    ref.invalidate(foodEntriesByDateProvider(widget.selectedDate));
-    ref.invalidate(todayCaloriesProvider);
-    ref.invalidate(todayMacrosProvider);
-    ref.invalidate(fulfillCalorieProvider(widget.selectedDate));
-
-    setState(() {
-      _isAnalyzingSelected = false;
-    });
-
-    _exitSelectMode();
-
-    if (!mounted) return;
-    final failedCount = failedIds.length;
-    final message = _cancelAnalyze
-        ? L10n.of(context)!.analyzeCancelledSelected(successCount)
-        : failedCount == 0
-            ? L10n.of(context)!.analyzedEntriesAll(successCount)
-            : L10n.of(context)!.analyzedEntriesPartial(successCount, _analyzeTotal, failedCount);
-
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: failedCount == 0 ? AppColors.success : AppColors.warning,
-        duration: const Duration(seconds: 3),
-      ),
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: selectedEntries,
+      selectedDate: widget.selectedDate,
     );
-  }
-
-  void _applyResultToEntry(FoodEntry entry, FoodAnalysisResult result) {
-    entry.foodName = result.foodName;
-    entry.foodNameEn = result.foodNameEn;
-    entry.calories = result.nutrition.calories;
-    entry.protein = result.nutrition.protein;
-    entry.carbs = result.nutrition.carbs;
-    entry.fat = result.nutrition.fat;
-    entry.fiber = result.nutrition.fiber;
-    entry.sugar = result.nutrition.sugar;
-    entry.sodium = result.nutrition.sodium;
-
-    // Keep user's original searchMode choice — don't override from AI response
-
-    final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-    entry.baseCalories = result.nutrition.calories / serving;
-    entry.baseProtein = result.nutrition.protein / serving;
-    entry.baseCarbs = result.nutrition.carbs / serving;
-    entry.baseFat = result.nutrition.fat / serving;
-    entry.servingSize = result.servingSize;
-    entry.servingUnit = result.servingUnit;
-    entry.servingGrams = result.servingGrams?.toDouble();
-    entry.source = DataSource.aiAnalyzed;
-    entry.isVerified = true;
-    entry.aiConfidence = result.confidence;
-
-    if (result.ingredientsDetail != null && result.ingredientsDetail!.isNotEmpty) {
-      entry.ingredientsJson = jsonEncode(
-        result.ingredientsDetail!.map((item) => item.toJson()).toList(),
-      );
-    }
-  }
-
-  /// Auto-save analyzed result to MyMeal + Ingredient database
-  Future<void> _autoSaveToDatabase(
-      FoodEntry entry, FoodAnalysisResult result) async {
-    if (result.ingredientsDetail == null ||
-        result.ingredientsDetail!.isEmpty) {
-      return;
-    }
-
-    try {
-      // Get unique name if duplicate
-      final all = await DatabaseService.myMeals.where().findAll();
-      final uniqueName = _getUniqueMealName(result.foodName, all);
-
-      final ingredientsData =
-          result.ingredientsDetail!.map((e) => e.toJson()).toList();
-
-      await ref.read(foodEntriesNotifierProvider.notifier).saveIngredientsAndMeal(
-        mealName: uniqueName,
-        mealNameEn: result.foodNameEn,
-        servingDescription:
-            '${result.servingSize} ${result.servingUnit}',
-        imagePath: entry.imagePath,
-        ingredientsData: ingredientsData,
-      );
-
-      ref.invalidate(allMyMealsProvider);
-      ref.invalidate(allIngredientsProvider);
-      AppLogger.info(
-          '[AutoSave] Saved "$uniqueName" → MyMeal + ${ingredientsData.length} ingredients');
-    } catch (e) {
-      AppLogger.warn('[AutoSave] Failed for "${result.foodName}": $e');
-    }
-  }
-
-  String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
-    final names = allMeals.map((m) => m.name).toSet();
-    if (!names.contains(baseName)) return baseName;
-    
-    int counter = 2;
-    while (names.contains('$baseName ($counter)')) {
-      counter++;
-    }
-    return '$baseName ($counter)';
+    _exitSelectMode();
   }
 
   void _deleteSingleWithUndo(FoodEntry food) {
@@ -776,7 +463,8 @@ class _MealSectionState extends ConsumerState<MealSection> {
         .where((f) => _selectedIds.contains(f.id) && !f.hasNutritionData)
         .length;
 
-    if (_isAnalyzingSelected) {
+    final analysisState = ref.watch(analysisProvider);
+    if (analysisState.isAnalyzing) {
       return Column(
         children: [
           Row(
@@ -788,13 +476,16 @@ class _MealSectionState extends ConsumerState<MealSection> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  L10n.of(context)!.analyzeProgressSelected(_analyzeCurrent, _analyzeTotal, _currentItemName),
+                  L10n.of(context)!.analyzeProgressSelected(
+                      analysisState.current,
+                      analysisState.total,
+                      analysisState.currentItemName),
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               TextButton(
-                onPressed: () => setState(() => _cancelAnalyze = true),
+                onPressed: () => ref.read(analysisProvider.notifier).cancel(),
                 style: TextButton.styleFrom(
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -808,7 +499,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: _analyzeTotal > 0 ? _analyzeCurrent / _analyzeTotal : 0,
+              value: analysisState.total > 0
+                  ? analysisState.current / analysisState.total
+                  : 0,
               minHeight: 4,
               backgroundColor: isDark ? Colors.white12 : AppColors.divider,
             ),
@@ -1438,162 +1131,18 @@ class _MealSectionState extends ConsumerState<MealSection> {
       food.searchMode = newMode;
       await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(food);
       
-      // Trigger analysis with the new mode
-      await _analyzeSingleEntry(context, food);
+      // Trigger analysis with the new mode (fire-and-forget)
+      _analyzeSingleEntry(context, food);
       
       setState(() {});
     }
   }
 
-  Future<void> _analyzeSingleEntry(BuildContext context, FoodEntry entry) async {
-    // Check energy
-    final energyAsync = ref.read(energyBalanceProvider);
-    final currentBalance = energyAsync.valueOrNull ?? 0;
-
-    if (currentBalance < 1) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.notEnoughEnergy),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
-    }
-
-    // Show loading
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              L10n.of(context)!.analyzingAsMode(entry.searchMode.displayName),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+  void _analyzeSingleEntry(BuildContext context, FoodEntry entry) {
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: widget.selectedDate,
     );
-
-    try {
-      FoodAnalysisResult? result;
-
-      if (entry.imagePath != null && entry.imagePath!.isNotEmpty) {
-        AppLogger.info('[ReAnalyze] Analyzing image: "${entry.foodName}" as ${entry.searchMode.name}');
-        result = await GeminiService.analyzeFoodImage(
-          File(entry.imagePath!),
-          foodName: entry.foodName,
-          quantity: entry.servingSize,
-          unit: entry.servingUnit,
-          searchMode: entry.searchMode,
-        );
-      } else {
-        AppLogger.info('[ReAnalyze] Analyzing text: "${entry.foodName}" as ${entry.searchMode.name}');
-        
-        final extracted = _extractIngredientsFromJson(entry);
-        
-        result = await GeminiService.analyzeFoodByName(
-          entry.foodName,
-          servingSize: entry.servingSize,
-          servingUnit: entry.servingUnit,
-          searchMode: entry.searchMode,
-          ingredientNames: extracted.names,
-          userIngredients: extracted.userIngredients,
-        );
-
-        // Post-process: enforce user-specified amounts
-        if (result != null && extracted.userIngredients != null && extracted.userIngredients!.isNotEmpty) {
-          result = GeminiService.enforceUserIngredientAmounts(result, extracted.userIngredients!);
-        }
-      }
-
-      if (result != null) {
-        entry.foodName = result.foodName;
-        entry.foodNameEn = result.foodNameEn;
-        entry.calories = result.nutrition.calories;
-        entry.protein = result.nutrition.protein;
-        entry.carbs = result.nutrition.carbs;
-        entry.fat = result.nutrition.fat;
-        entry.fiber = result.nutrition.fiber;
-        entry.sugar = result.nutrition.sugar;
-        entry.sodium = result.nutrition.sodium;
-        final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-        entry.baseCalories = result.nutrition.calories / serving;
-        entry.baseProtein = result.nutrition.protein / serving;
-        entry.baseCarbs = result.nutrition.carbs / serving;
-        entry.baseFat = result.nutrition.fat / serving;
-        entry.servingSize = result.servingSize;
-        entry.servingUnit = result.servingUnit;
-        entry.servingGrams = result.servingGrams?.toDouble();
-        entry.source = DataSource.aiAnalyzed;
-        entry.isVerified = true;
-        entry.aiConfidence = result.confidence;
-
-        // Keep user's original searchMode choice — don't override from AI response
-
-        if (result.ingredientsDetail != null &&
-            result.ingredientsDetail!.isNotEmpty) {
-          entry.ingredientsJson = jsonEncode(
-            result.ingredientsDetail!.map((item) => item.toJson()).toList(),
-          );
-        }
-
-        await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-        await _autoSaveToDatabase(entry, result);
-        await UsageLimiter.recordAiUsage();
-        ref.invalidate(energyBalanceProvider);
-        ref.invalidate(currentEnergyProvider);
-
-        // Refresh providers
-        ref.invalidate(healthTimelineProvider(widget.selectedDate));
-        ref.invalidate(foodEntriesByDateProvider(widget.selectedDate));
-        ref.invalidate(todayCaloriesProvider);
-        ref.invalidate(todayMacrosProvider);
-
-        if (!mounted) return;
-        Navigator.pop(context); // Close loading dialog
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.reAnalyzedAsMode(entry.searchMode.displayName)),
-            backgroundColor: AppColors.success,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      } else {
-        if (!mounted) return;
-        Navigator.pop(context); // Close loading dialog
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.analysisFailed),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error('[ReAnalyze] Error', e, stackTrace);
-
-      if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ Error: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
   }
 
   // ============================================================

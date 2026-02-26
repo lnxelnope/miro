@@ -30,7 +30,7 @@ class BatchAnalysisHelper {
 
   /// ตรวจสอบ energy ก่อน analyze
   /// return true ถ้าพอใช้
-  static Future<bool> checkEnergy(WidgetRef ref, int requiredEnergy) async {
+  static Future<bool> checkEnergy(Ref ref, int requiredEnergy) async {
     final energyService = GeminiService.energyService;
     if (energyService != null) {
       final isFirstFree = await energyService.isFirstFreeAnalysisAvailable();
@@ -116,7 +116,7 @@ class BatchAnalysisHelper {
 
   /// Auto-save meal + ingredients ไป database
   static Future<void> autoSaveToDatabase(
-    WidgetRef ref,
+    Ref ref,
     FoodEntry entry,
     FoodAnalysisResult result,
   ) async {
@@ -166,7 +166,7 @@ class BatchAnalysisHelper {
   /// [onProgress] callback: (currentIndex, totalCount, currentItemName)
   /// [shouldCancel] callback: return true เพื่อยกเลิก
   static Future<BatchAnalysisResult> analyzeEntries({
-    required WidgetRef ref,
+    required Ref ref,
     required List<FoodEntry> entries,
     required DateTime selectedDate,
     required void Function(int current, int total, String itemName) onProgress,

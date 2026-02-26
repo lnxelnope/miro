@@ -7,16 +7,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/ai/gemini_service.dart';
-import '../../../core/services/usage_limiter.dart';
 import '../../../core/widgets/search_mode_selector.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
-import '../../../features/energy/providers/energy_provider.dart';
-import '../../../core/database/database_service.dart';
+import '../../../core/ai/gemini_service.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
+import '../providers/analysis_provider.dart';
 import '../providers/my_meal_provider.dart';
-import 'gemini_analysis_sheet.dart';
 
 class FoodDetailBottomSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -1151,7 +1147,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
       if (confirmed != true) return;
     }
 
-    // แสดง Confirmation Dialog
+    // Apply confirmed params before enqueueing
     if (!mounted) return;
     final analyzeParams = await _showAnalyzeConfirmation(entry);
     if (analyzeParams == null) return;
@@ -1162,228 +1158,22 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     final FoodSearchMode confirmedSearchMode =
         analyzeParams['searchMode'] as FoodSearchMode? ?? FoodSearchMode.normal;
 
-    // ตรวจสอบ Energy
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy && mounted) {
-      await NoEnergyDialog.show(context);
-      return;
-    }
+    // Update entry with confirmed params before enqueue
+    if (confirmedFoodName.isNotEmpty) entry.foodName = confirmedFoodName;
+    if (confirmedQuantity > 0) entry.servingSize = confirmedQuantity;
+    entry.servingUnit = confirmedUnit;
+    entry.searchMode = confirmedSearchMode;
+    await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
 
     if (!mounted) return;
 
-    setState(() => _isAnalyzing = true);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              hasImage
-                  ? 'PROCESSING IMAGE DATA...'
-                  : 'PARSING FOOD NAME...',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Processing advanced nutrition analysis',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
+    final selectedDate = widget.selectedDate ?? dateOnly(DateTime.now());
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: selectedDate,
     );
 
-    try {
-      FoodAnalysisResult? result;
-      final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-
-      if (hasImage) {
-        AppLogger.info(
-            'Starting Gemini image analysis... (mode: ${confirmedSearchMode.name})');
-        result = await GeminiService.analyzeFoodImage(
-          File(entry.imagePath!),
-          foodName: confirmedFoodName.isNotEmpty ? confirmedFoodName : null,
-          quantity: confirmedQuantity > 0 ? confirmedQuantity : null,
-          unit: confirmedUnit,
-          searchMode: confirmedSearchMode,
-        );
-      } else {
-        AppLogger.info(
-            'Starting Gemini analysis from name... (mode: ${confirmedSearchMode.name})');
-        result = await GeminiService.analyzeFoodByName(
-          confirmedFoodName.isNotEmpty ? confirmedFoodName : entry.foodName,
-          servingSize:
-              confirmedQuantity > 0 ? confirmedQuantity : entry.servingSize,
-          servingUnit: confirmedUnit,
-          searchMode: confirmedSearchMode,
-        );
-      }
-
-      if (result != null) {
-        await UsageLimiter.recordAiUsage();
-
-        if (!mounted) return;
-        ref.invalidate(energyBalanceProvider);
-        ref.invalidate(currentEnergyProvider);
-
-        Navigator.pop(context); // ปิด loading dialog
-
-        if (!mounted) return;
-        await showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (_) => GeminiAnalysisSheet(
-            analysisResult: result!,
-            onConfirm: (confirmedData) async {
-              String? ingredientsJsonStr;
-              if (confirmedData.ingredientsDetail != null &&
-                  confirmedData.ingredientsDetail!.isNotEmpty) {
-                ingredientsJsonStr =
-                    jsonEncode(confirmedData.ingredientsDetail);
-              }
-
-              // Update searchMode based on AI's foodType response
-              FoodSearchMode? updatedSearchMode;
-              if (result?.foodType != null) {
-                if (result!.foodType == 'product') {
-                  updatedSearchMode = FoodSearchMode.product;
-                } else {
-                  updatedSearchMode = FoodSearchMode.normal;
-                }
-              }
-
-              await notifier.updateFromGeminiConfirmed(
-                entry.id,
-                foodName: confirmedData.foodName,
-                foodNameEn: confirmedData.foodNameEn,
-                calories: confirmedData.calories,
-                protein: confirmedData.protein,
-                carbs: confirmedData.carbs,
-                fat: confirmedData.fat,
-                baseCalories: confirmedData.baseCalories,
-                baseProtein: confirmedData.baseProtein,
-                baseCarbs: confirmedData.baseCarbs,
-                baseFat: confirmedData.baseFat,
-                servingSize: confirmedData.servingSize,
-                servingUnit: confirmedData.servingUnit,
-                servingGrams: confirmedData.servingGrams,
-                confidence: confirmedData.confidence,
-                fiber: confirmedData.fiber,
-                sugar: confirmedData.sugar,
-                sodium: confirmedData.sodium,
-                notes: confirmedData.notes,
-                ingredientsJson: ingredientsJsonStr,
-              );
-
-              // Update searchMode separately if AI detected it
-              if (updatedSearchMode != null) {
-                final updatedEntry = await DatabaseService.foodEntries.get(entry.id);
-                if (updatedEntry != null) {
-                  updatedEntry.searchMode = updatedSearchMode;
-                  await DatabaseService.isar.writeTxn(() async {
-                    await DatabaseService.foodEntries.put(updatedEntry);
-                  });
-                }
-              }
-
-              if (confirmedData.ingredientsDetail != null &&
-                  confirmedData.ingredientsDetail!.isNotEmpty) {
-                try {
-                  await notifier.saveIngredientsAndMeal(
-                    mealName: confirmedData.foodName,
-                    mealNameEn: confirmedData.foodNameEn,
-                    servingDescription:
-                        '${confirmedData.servingSize} ${confirmedData.servingUnit}',
-                    imagePath: entry.imagePath,
-                    ingredientsData: confirmedData.ingredientsDetail!,
-                  );
-
-                  if (!mounted) return;
-                  ref.invalidate(allMyMealsProvider);
-                  ref.invalidate(allIngredientsProvider);
-
-                  AppLogger.info(
-                      'Auto-saved: ${confirmedData.ingredientsDetail!.length} ingredients + 1 meal');
-                } catch (e) {
-                  AppLogger.warn('Could not auto-save meal: $e');
-                }
-              }
-
-              if (!mounted) return;
-
-              if (widget.selectedDate != null) {
-                ref.invalidate(foodEntriesByDateProvider(widget.selectedDate!));
-                ref.invalidate(healthTimelineProvider(widget.selectedDate!));
-              }
-              ref.invalidate(todayCaloriesProvider);
-              ref.invalidate(todayMacrosProvider);
-
-              if (!context.mounted) return;
-              Navigator.pop(context);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      '✅ Updated successfully${confirmedData.ingredientsDetail != null && confirmedData.ingredientsDetail!.isNotEmpty ? ' + saved to My Meal' : ''}'),
-                  backgroundColor: AppColors.success,
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
-        );
-      } else {
-        if (!mounted) return;
-        Navigator.pop(context);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Could not analyze - please try again'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e, stackTrace) {
-      AppLogger.error('Error', e, stackTrace);
-
-      setState(() => _isAnalyzing = false);
-
-      if (!mounted) return;
-      Navigator.pop(context);
-      if (!mounted) return;
-
-      if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
-        return;
-      }
-
-      String errorMessage = 'An error occurred. Please try again.';
-      if (e.toString().contains('parse JSON')) {
-        errorMessage = 'Could not read AI result - please try again';
-      } else {
-        errorMessage = e.toString().replaceAll('Exception: ', '');
-        if (errorMessage.length > 100) {
-          errorMessage = '${errorMessage.substring(0, 100)}...';
-        }
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ $errorMessage'),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
+    Navigator.pop(context);
   }
 
   Future<void> _handleDelete() async {
