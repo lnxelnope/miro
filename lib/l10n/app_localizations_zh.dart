@@ -2948,5 +2948,69 @@ class L10nZh extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => '长按选择项目';
+
+  @override
+  String get healthSyncSection => '健康同步';
+
+  @override
+  String get healthSyncTitle => '与健康应用同步';
+
+  @override
+  String get healthSyncSubtitleOn => '食物记录已同步 • 包含活动能量';
+
+  @override
+  String get healthSyncSubtitleOff => '点击连接 Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => '已开启健康同步';
+
+  @override
+  String get healthSyncDisabled => '已关闭健康同步';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => '需要访问权限';
+
+  @override
+  String get healthSyncPermissionDeniedMessage => '您之前拒绝了健康数据访问权限。\n请在设备设置中开启。';
+
+  @override
+  String get healthSyncGoToSettings => '前往设置';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal 今日活动消耗';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      '此设备不支持 Health Connect，请安装 Health Connect 应用。';
+
+  @override
+  String get healthSyncFoodSynced => '食物已同步到健康应用';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth => '已从健康应用中删除食物';
+
+  @override
+  String get bmrSettingTitle => 'BMR（基础代谢率）';
+
+  @override
+  String get bmrSettingSubtitle => '用于估算活动消耗的能量';
+
+  @override
+  String get bmrDialogTitle => '设置您的BMR';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO使用BMR从总消耗热量中减去基础代谢，仅显示您的运动消耗。默认为1500千卡/天。您可以通过健身应用或在线计算器查询您的BMR。';
+
+  @override
+  String get healthSyncEnabledBmrHint => '健康同步已启用。BMR默认：1500千卡/天 — 可在设置中调整。';
+
+  @override
+  String get privacyPolicySectionHealthData => '健康数据整合';
+
+  @override
+  String get termsSectionHealthDataSync => '健康数据同步';
 }

@@ -1841,7 +1841,7 @@ class L10nEn extends L10n {
 
   @override
   String get privacyPolicyEffectiveDate =>
-      'Effective Date: February 18, 2026\nLast Updated: February 18, 2026';
+      'Effective Date: February 18, 2026\nLast Updated: February 26, 2026';
 
   @override
   String get termsOfServiceTitle => 'Terms of Service';
@@ -1897,7 +1897,7 @@ class L10nEn extends L10n {
       'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.';
 
   @override
-  String get termsLastUpdated => 'Last updated: February 15, 2026';
+  String get termsLastUpdated => 'Last updated: February 26, 2026';
 
   @override
   String get profileAndSettings => 'Profile & Settings';
@@ -3030,4 +3030,73 @@ class L10nEn extends L10n {
 
   @override
   String get longPressToSelect => 'Long-press to select items';
+
+  @override
+  String get healthSyncSection => 'Health Sync';
+
+  @override
+  String get healthSyncTitle => 'Sync with Health App';
+
+  @override
+  String get healthSyncSubtitleOn =>
+      'Food entries synced • Active energy included';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'Tap to connect Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => 'Health sync enabled';
+
+  @override
+  String get healthSyncDisabled => 'Health sync disabled';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'Permission Required';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'You previously denied health data access.\nPlease enable it in your device settings.';
+
+  @override
+  String get healthSyncGoToSettings => 'Go to Settings';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal burned today';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'Health Connect is not available on this device. Please install the Health Connect app.';
+
+  @override
+  String get healthSyncFoodSynced => 'Food synced to Health App';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth => 'Food removed from Health App';
+
+  @override
+  String get bmrSettingTitle => 'BMR (Basal Metabolic Rate)';
+
+  @override
+  String get bmrSettingSubtitle =>
+      'Used to estimate active energy from total burned';
+
+  @override
+  String get bmrDialogTitle => 'Set your BMR';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'Health sync enabled. BMR default: 1500 kcal/day — adjust in Settings if needed.';
+
+  @override
+  String get privacyPolicySectionHealthData => 'Health Data Integration';
+
+  @override
+  String get termsSectionHealthDataSync => 'Health Data Synchronization';
 }

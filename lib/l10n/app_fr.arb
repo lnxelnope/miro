@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Appui long pour sélectionner",
+
+  "healthSyncSection": "Synchronisation Santé",
+  "healthSyncTitle": "Synchroniser avec l'App Santé",
+  "healthSyncSubtitleOn": "Repas synchronisés • Énergie active incluse",
+  "healthSyncSubtitleOff": "Appuyez pour connecter Apple Health / Health Connect",
+  "healthSyncEnabled": "Synchronisation santé activée",
+  "healthSyncDisabled": "Synchronisation santé désactivée",
+  "healthSyncPermissionDeniedTitle": "Autorisation Nécessaire",
+  "healthSyncPermissionDeniedMessage": "Vous avez précédemment refusé l'accès aux données de santé.\nVeuillez l'activer dans les paramètres de l'appareil.",
+  "healthSyncGoToSettings": "Aller aux Paramètres",
+  "healthSyncActiveEnergyValue": "+{value} kcal brûlées aujourd'hui",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect n'est pas disponible sur cet appareil. Veuillez installer l'application Health Connect.",
+  "healthSyncFoodSynced": "Aliment synchronisé avec l'App Santé",
+  "healthSyncFoodDeletedFromHealth": "Aliment supprimé de l'App Santé",
+  "bmrSettingTitle": "BMR (Métabolisme de base)",
+  "bmrSettingSubtitle": "Utilisé pour estimer l'énergie active",
+  "bmrDialogTitle": "Définir votre BMR",
+  "bmrDialogDescription": "MiRO utilise le BMR pour soustraire l'énergie au repos des calories totales brûlées, n'affichant que votre énergie active. La valeur par défaut est 1500 kcal/jour. Vous pouvez trouver votre BMR via des apps fitness ou des calculateurs en ligne.",
+  "healthSyncEnabledBmrHint": "Synchronisation santé activée. BMR par défaut : 1500 kcal/jour — ajustez dans les Paramètres.",
+  "privacyPolicySectionHealthData": "Intégration des Données de Santé",
+  "termsSectionHealthDataSync": "Synchronisation des Données de Santé"
 }

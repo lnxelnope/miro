@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Nhấn giữ để chọn mục",
+
+  "healthSyncSection": "Đồng bộ Sức khỏe",
+  "healthSyncTitle": "Đồng bộ với Ứng dụng Sức khỏe",
+  "healthSyncSubtitleOn": "Đồng bộ thực phẩm • Bao gồm năng lượng hoạt động",
+  "healthSyncSubtitleOff": "Nhấn để kết nối Apple Health / Health Connect",
+  "healthSyncEnabled": "Đã bật đồng bộ sức khỏe",
+  "healthSyncDisabled": "Đã tắt đồng bộ sức khỏe",
+  "healthSyncPermissionDeniedTitle": "Cần quyền truy cập",
+  "healthSyncPermissionDeniedMessage": "Bạn đã từ chối quyền truy cập dữ liệu sức khỏe.\nVui lòng bật trong cài đặt thiết bị.",
+  "healthSyncGoToSettings": "Đi tới Cài đặt",
+  "healthSyncActiveEnergyValue": "+{value} kcal đã đốt cháy hôm nay",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect không khả dụng trên thiết bị này. Vui lòng cài đặt ứng dụng Health Connect.",
+  "healthSyncFoodSynced": "Đã đồng bộ thực phẩm đến Ứng dụng Sức khỏe",
+  "healthSyncFoodDeletedFromHealth": "Đã xóa thực phẩm khỏi Ứng dụng Sức khỏe",
+  "bmrSettingTitle": "BMR (Tỷ lệ trao đổi chất cơ bản)",
+  "bmrSettingSubtitle": "Dùng để ước tính năng lượng hoạt động",
+  "bmrDialogTitle": "Đặt BMR của bạn",
+  "bmrDialogDescription": "MiRO sử dụng BMR để trừ năng lượng nghỉ ngơi từ tổng calo đốt cháy, chỉ hiển thị năng lượng hoạt động. Mặc định là 1500 kcal/ngày. Bạn có thể tìm BMR từ ứng dụng sức khỏe hoặc máy tính trực tuyến.",
+  "healthSyncEnabledBmrHint": "Đã bật đồng bộ sức khỏe. BMR mặc định: 1500 kcal/ngày — điều chỉnh trong Cài đặt nếu cần.",
+  "privacyPolicySectionHealthData": "Tích hợp Dữ liệu Sức khỏe",
+  "termsSectionHealthDataSync": "Đồng bộ Dữ liệu Sức khỏe"
 }

@@ -3255,7 +3255,7 @@ abstract class L10n {
   /// No description provided for @privacyPolicyEffectiveDate.
   ///
   /// In en, this message translates to:
-  /// **'Effective Date: February 18, 2026\nLast Updated: February 18, 2026'**
+  /// **'Effective Date: February 18, 2026\nLast Updated: February 26, 2026'**
   String get privacyPolicyEffectiveDate;
 
   /// No description provided for @termsOfServiceTitle.
@@ -3363,7 +3363,7 @@ abstract class L10n {
   /// No description provided for @termsLastUpdated.
   ///
   /// In en, this message translates to:
-  /// **'Last updated: February 15, 2026'**
+  /// **'Last updated: February 26, 2026'**
   String get termsLastUpdated;
 
   /// No description provided for @profileAndSettings.
@@ -5347,6 +5347,126 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Long-press to select items'**
   String get longPressToSelect;
+
+  /// No description provided for @healthSyncSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Sync'**
+  String get healthSyncSection;
+
+  /// No description provided for @healthSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync with Health App'**
+  String get healthSyncTitle;
+
+  /// No description provided for @healthSyncSubtitleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Food entries synced • Active energy included'**
+  String get healthSyncSubtitleOn;
+
+  /// No description provided for @healthSyncSubtitleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to connect Apple Health / Health Connect'**
+  String get healthSyncSubtitleOff;
+
+  /// No description provided for @healthSyncEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Health sync enabled'**
+  String get healthSyncEnabled;
+
+  /// No description provided for @healthSyncDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Health sync disabled'**
+  String get healthSyncDisabled;
+
+  /// No description provided for @healthSyncPermissionDeniedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permission Required'**
+  String get healthSyncPermissionDeniedTitle;
+
+  /// No description provided for @healthSyncPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You previously denied health data access.\nPlease enable it in your device settings.'**
+  String get healthSyncPermissionDeniedMessage;
+
+  /// No description provided for @healthSyncGoToSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Settings'**
+  String get healthSyncGoToSettings;
+
+  /// No description provided for @healthSyncActiveEnergyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'+{value} kcal burned today'**
+  String healthSyncActiveEnergyValue(String value);
+
+  /// No description provided for @healthSyncNotAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect is not available on this device. Please install the Health Connect app.'**
+  String get healthSyncNotAvailable;
+
+  /// No description provided for @healthSyncFoodSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Food synced to Health App'**
+  String get healthSyncFoodSynced;
+
+  /// No description provided for @healthSyncFoodDeletedFromHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Food removed from Health App'**
+  String get healthSyncFoodDeletedFromHealth;
+
+  /// No description provided for @bmrSettingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'BMR (Basal Metabolic Rate)'**
+  String get bmrSettingTitle;
+
+  /// No description provided for @bmrSettingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to estimate active energy from total burned'**
+  String get bmrSettingSubtitle;
+
+  /// No description provided for @bmrDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your BMR'**
+  String get bmrDialogTitle;
+
+  /// No description provided for @bmrDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.'**
+  String get bmrDialogDescription;
+
+  /// No description provided for @healthSyncEnabledBmrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Health sync enabled. BMR default: 1500 kcal/day — adjust in Settings if needed.'**
+  String get healthSyncEnabledBmrHint;
+
+  /// No description provided for @privacyPolicySectionHealthData.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Data Integration'**
+  String get privacyPolicySectionHealthData;
+
+  /// No description provided for @termsSectionHealthDataSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Data Synchronization'**
+  String get termsSectionHealthDataSync;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

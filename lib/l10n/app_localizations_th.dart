@@ -2982,4 +2982,71 @@ class L10nTh extends L10n {
 
   @override
   String get longPressToSelect => 'กดค้างเพื่อเลือกรายการ';
+
+  @override
+  String get healthSyncSection => 'เชื่อมต่อสุขภาพ';
+
+  @override
+  String get healthSyncTitle => 'เชื่อมต่อกับ Health App';
+
+  @override
+  String get healthSyncSubtitleOn => 'ซิงค์รายการอาหาร • รวมพลังงานที่เผาผลาญ';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'แตะเพื่อเชื่อมต่อ Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => 'เปิดเชื่อมต่อสุขภาพแล้ว';
+
+  @override
+  String get healthSyncDisabled => 'ปิดเชื่อมต่อสุขภาพแล้ว';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'ต้องการสิทธิ์การเข้าถึง';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'คุณเคยปฏิเสธการเข้าถึงข้อมูลสุขภาพ\nกรุณาไปเปิดที่ตั้งค่าเครื่อง';
+
+  @override
+  String get healthSyncGoToSettings => 'ไปที่ตั้งค่า';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal จากกิจกรรมวันนี้';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'ไม่พบ Health Connect บนอุปกรณ์นี้ กรุณาติดตั้งแอป Health Connect';
+
+  @override
+  String get healthSyncFoodSynced => 'ซิงค์อาหารไปยัง Health App แล้ว';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth => 'ลบอาหารจาก Health App แล้ว';
+
+  @override
+  String get bmrSettingTitle => 'BMR (อัตราการเผาผลาญขั้นพื้นฐาน)';
+
+  @override
+  String get bmrSettingSubtitle => 'ใช้คำนวณพลังงานจากการเคลื่อนไหว';
+
+  @override
+  String get bmrDialogTitle => 'ตั้งค่า BMR ของคุณ';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'เปิด Health Sync แล้ว BMR เริ่มต้น: 1500 kcal/วัน — ปรับได้ใน Settings';
+
+  @override
+  String get privacyPolicySectionHealthData => 'การเชื่อมต่อข้อมูลสุขภาพ';
+
+  @override
+  String get termsSectionHealthDataSync => 'การซิงค์ข้อมูลสุขภาพ';
 }

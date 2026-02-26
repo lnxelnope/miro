@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "चुनने के लिए लंबे समय तक दबाएं",
+
+  "healthSyncSection": "स्वास्थ्य सिंक",
+  "healthSyncTitle": "स्वास्थ्य ऐप से सिंक करें",
+  "healthSyncSubtitleOn": "भोजन रिकॉर्ड सिंक • सक्रिय ऊर्जा शामिल",
+  "healthSyncSubtitleOff": "Apple Health / Health Connect से जुड़ने के लिए टैप करें",
+  "healthSyncEnabled": "स्वास्थ्य सिंक सक्रिय",
+  "healthSyncDisabled": "स्वास्थ्य सिंक निष्क्रिय",
+  "healthSyncPermissionDeniedTitle": "अनुमति आवश्यक",
+  "healthSyncPermissionDeniedMessage": "आपने पहले स्वास्थ्य डेटा एक्सेस अस्वीकार कर दिया था।\nकृपया डिवाइस सेटिंग्स में सक्षम करें।",
+  "healthSyncGoToSettings": "सेटिंग्स में जाएं",
+  "healthSyncActiveEnergyValue": "+{value} kcal आज जली हुई",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "इस डिवाइस पर Health Connect उपलब्ध नहीं है। कृपया Health Connect ऐप इंस्टॉल करें।",
+  "healthSyncFoodSynced": "भोजन स्वास्थ्य ऐप में सिंक किया गया",
+  "healthSyncFoodDeletedFromHealth": "स्वास्थ्य ऐप से भोजन हटाया गया",
+  "bmrSettingTitle": "BMR (बेसल मेटाबोलिक रेट)",
+  "bmrSettingSubtitle": "सक्रिय ऊर्जा अनुमान के लिए उपयोग",
+  "bmrDialogTitle": "अपना BMR सेट करें",
+  "bmrDialogDescription": "MiRO कुल कैलोरी बर्न से आराम की ऊर्जा घटाने के लिए BMR का उपयोग करता है, केवल आपकी सक्रिय ऊर्जा दिखाता है। डिफ़ॉल्ट 1500 kcal/दिन है। आप अपना BMR फिटनेस ऐप्स या ऑनलाइन कैलकुलेटर से जान सकते हैं।",
+  "healthSyncEnabledBmrHint": "स्वास्थ्य सिंक सक्रिय। BMR डिफ़ॉल्ट: 1500 kcal/दिन — सेटिंग्स में समायोजित करें।",
+  "privacyPolicySectionHealthData": "स्वास्थ्य डेटा एकीकरण",
+  "termsSectionHealthDataSync": "स्वास्थ्य डेटा सिंक्रनाइज़ेशन"
 }

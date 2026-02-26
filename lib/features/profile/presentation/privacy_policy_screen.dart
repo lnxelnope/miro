@@ -87,6 +87,30 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Camera: Take food photos for AI analysis',
                 '• Photos/Gallery: Select food photos from gallery',
                 '• Internet: Send photos to AI API and sync Energy balance',
+                '• Health Data (optional): Read active energy burned and write dietary nutrition data to Apple Health (iOS) or Google Health Connect (Android)',
+              ],
+              isDark,
+            ),
+            _buildSection(
+              L10n.of(context)!.privacyPolicySectionHealthData,
+              [
+                'When you enable Health Sync, MiRO integrates with Apple Health (iOS) or Google Health Connect (Android):',
+                '',
+                'What we READ (with your permission):',
+                '',
+                '• Active Energy Burned: Used to display how many calories you have burned today through physical activity',
+                '',
+                'What we WRITE (with your permission):',
+                '',
+                '• Dietary Energy (calories, protein, carbs, fat): When you log a meal in MiRO, the nutrition data is sent to your Health App',
+                '',
+                'Important:',
+                '',
+                '• Health Sync is optional — you must explicitly enable it',
+                '• All health data stays on your device — it is never sent to our servers',
+                '• You can disable Health Sync at any time in Settings',
+                '• Disabling Health Sync does not delete previously synced data from your Health App',
+                '• We only access the specific data types listed above — no heart rate, sleep, weight, or other health metrics',
               ],
               isDark,
             ),
@@ -207,7 +231,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
               L10n.of(context)!.privacyPolicyEffectiveDate,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -235,7 +261,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
           L10n.of(context)!.privacyPolicySubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color:
+                isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -290,7 +317,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               line,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color:
+                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),

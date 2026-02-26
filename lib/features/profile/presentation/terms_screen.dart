@@ -145,6 +145,21 @@ class TermsScreen extends StatelessWidget {
               isDark,
             ),
             _buildSection(
+              L10n.of(context)!.termsSectionHealthDataSync,
+              [
+                'MiRO offers optional integration with Apple Health (iOS) and Google Health Connect (Android).',
+                '',
+                '• Health Sync is entirely optional and must be enabled by you',
+                '• When enabled, MiRO reads your active energy burned and writes dietary nutrition data to your Health App',
+                '• Nutritional data written to Health App is based on your manual entries and AI estimates — accuracy is not guaranteed',
+                '• Deleting a food entry in MiRO will also remove it from your Health App',
+                '• Disabling Health Sync will stop future syncing but will NOT delete previously synced records',
+                '• We are NOT responsible for how third-party apps (Apple Health, Google Health Connect, fitness trackers) interpret or display the data',
+                '• Health data never leaves your device — it is synced locally between MiRO and your Health App only',
+              ],
+              isDark,
+            ),
+            _buildSection(
               L10n.of(context)!.termsSectionServiceTermination,
               [
                 '• You may stop using the app at any time by uninstalling it',
@@ -181,7 +196,8 @@ class TermsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: AppRadius.sm,
-                border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                border:
+                    Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,7 +223,9 @@ class TermsScreen extends StatelessWidget {
               L10n.of(context)!.termsLastUpdated,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -235,7 +253,8 @@ class TermsScreen extends StatelessWidget {
           L10n.of(context)!.termsSubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color:
+                isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
       ],
@@ -265,7 +284,8 @@ class TermsScreen extends StatelessWidget {
               line,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color:
+                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),

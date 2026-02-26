@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/services/analytics_service.dart';
+import '../../../core/services/health_sync_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
 import '../models/food_entry.dart';
+import '../../profile/models/user_profile.dart';
+import '../../profile/providers/profile_provider.dart';
 import 'my_meal_provider.dart';
 
 // ===== DATE HELPER =====
@@ -36,6 +39,36 @@ final todayCaloriesProvider = FutureProvider<double>((ref) async {
   final today = dateOnly(DateTime.now());
   final entries = await ref.watch(foodEntriesByDateProvider(today).future);
   return entries.fold<double>(0, (sum, entry) => sum + entry.calories);
+});
+
+/// Active Energy burned today (kcal). Returns 0 if health sync is off.
+/// Uses TCB − BMR (prorated) when ACTIVE_ENERGY_BURNED is unavailable.
+/// Watches profileNotifierProvider so it recalculates when BMR changes.
+final activeEnergyProvider = FutureProvider<double>((ref) async {
+  try {
+    final profileAsync = ref.watch(profileNotifierProvider);
+    final profile = profileAsync.valueOrNull;
+    if (profile == null || !profile.isHealthConnectConnected) return 0;
+
+    return await HealthSyncService.getTodayActiveEnergy(
+        bmr: profile.safeBmr);
+  } catch (_) {
+    return 0;
+  }
+});
+
+/// Effective calorie goal = base goal + active energy (if health sync is on).
+final effectiveCalorieGoalProvider = FutureProvider<double>((ref) async {
+  final profileAsync = ref.watch(profileNotifierProvider);
+  final profile = profileAsync.valueOrNull;
+  final baseGoal = profile?.calorieGoal ?? 2000;
+
+  if (profile != null && profile.isHealthConnectConnected) {
+    final activeEnergy = await ref.watch(activeEnergyProvider.future);
+    return baseGoal + activeEnergy;
+  }
+
+  return baseGoal;
 });
 
 // Get today's macros
@@ -93,11 +126,27 @@ final healthTimelineProvider =
 class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
   FoodEntriesNotifier() : super(const AsyncValue.loading());
 
+  Future<bool> _isHealthSyncEnabled() async {
+    try {
+      final profiles = await DatabaseService.userProfiles
+          .filter()
+          .idGreaterThan(0)
+          .findFirst();
+      return profiles?.isHealthConnectConnected ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> addFoodEntry(FoodEntry entry) async {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.foodEntries.put(entry);
     });
     AnalyticsService.logMealLogged(source: entry.source.name);
+
+    if (await _isHealthSyncEnabled()) {
+      _syncEntryToHealth(entry);
+    }
   }
 
   Future<void> updateFoodEntry(FoodEntry entry) async {
@@ -105,6 +154,10 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.foodEntries.put(entry);
     });
+
+    if (await _isHealthSyncEnabled()) {
+      _syncEntryToHealth(entry, oldSyncKey: entry.healthConnectId);
+    }
   }
 
   Future<void> deleteFoodEntry(int id) async {
@@ -115,8 +168,14 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         throw Exception('Entry not found');
       }
 
-      // ────── Soft Delete - ทำเครื่องหมายว่าลบแล้ว ──────
-      // ไม่ลบรูปออกจากเครื่อง เพื่อให้ scan controller รู้ว่ารูปนี้เคยถูกสแกนแล้ว
+      // Delete from Health App first (if synced)
+      if (await _isHealthSyncEnabled() &&
+          entry.healthConnectId != null &&
+          entry.healthConnectId!.isNotEmpty) {
+        await HealthSyncService.deleteFoodEntry(
+            healthSyncKey: entry.healthConnectId!);
+      }
+
       entry.isDeleted = true;
       entry.updatedAt = DateTime.now();
 
@@ -129,6 +188,32 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     } catch (e, stackTrace) {
       AppLogger.error('Error deleting FoodEntry id=$id', e, stackTrace);
       rethrow;
+    }
+  }
+
+  /// Fire-and-forget sync to Health App.
+  Future<void> _syncEntryToHealth(FoodEntry entry, {String? oldSyncKey}) async {
+    try {
+      final syncKey = await HealthSyncService.updateFoodEntry(
+        oldHealthSyncKey: oldSyncKey,
+        name: entry.foodName,
+        calories: entry.calories,
+        protein: entry.protein,
+        carbs: entry.carbs,
+        fat: entry.fat,
+        timestamp: entry.timestamp,
+        mealType: entry.mealType,
+      );
+
+      if (syncKey != null) {
+        entry.healthConnectId = syncKey;
+        entry.syncedAt = DateTime.now();
+        await DatabaseService.isar.writeTxn(() async {
+          await DatabaseService.foodEntries.put(entry);
+        });
+      }
+    } catch (e) {
+      AppLogger.warn('Health sync failed for "${entry.foodName}"', e);
     }
   }
 

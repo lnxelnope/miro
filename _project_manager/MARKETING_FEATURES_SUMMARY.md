@@ -25,7 +25,7 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 
 **App Name:** MiRO — My Intake Record Oracle  
 **Tagline:** "Decode every bite. Own every byte."  
-**Version:** 1.1.3  
+**Version:** 1.2.0  
 **Platform:** Android (iOS coming soon)  
 **Pricing:** Free to start (Energy Token system for AI features)  
 **Languages:** English, (AI understands all languages)  
@@ -92,7 +92,18 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 - **MiRO AI** — Powered by Google Gemini. Analyzes photos, understands natural language, highest accuracy. Uses Energy Tokens
 - **1 Free AI analysis per day** — active streak users get daily free AI access, no Energy needed
 
-### 1.9 You OWN Your Data and Your Purchases — Anti-Subscription Philosophy
+### 1.9 Health Sync — Eat Smarter with Your Body's Data
+- **Two-way sync** with Apple Health (iOS) and Google Health Connect (Android)
+- **Outbound:** Every food you log in MiRO is automatically written to your device's Health app — calories, protein, carbs, fat, meal type. Your smartwatch, fitness app, and health dashboard all see what you ate. One log, everywhere.
+- **Inbound:** MiRO reads your Active Energy (calories burned from movement) and **adds it to your daily calorie goal** in real time
+- **Example:** Goal = 2,000 kcal. You burned 350 active kcal by afternoon → MiRO shows your goal as 2,350 kcal. You earned those calories — now you can see it.
+- **One-tap toggle** right on the home screen — turn Active Energy bonus on/off instantly
+- **Green progress bar** fills as you move. Once it surpasses your BMR baseline, the bonus turns green with a growing "+X kcal" number
+- **Works with all major health ecosystems:** Apple Watch, Samsung Health, Google Fit, Fitbit, Garmin — anything that writes to Apple Health or Health Connect
+- **Privacy-first:** Permission is requested only when you enable it. Disable anytime. No data leaves your device.
+- **No other calorie tracker does this at the ingredient level.** Other apps send a single "500 kcal lunch" — MiRO sends the full breakdown: Chicken 200 kcal + Rice 250 kcal + Sauce 50 kcal
+
+### 1.10 You OWN Your Data and Your Purchases — Anti-Subscription Philosophy
 - **No account required** — No login, no sign-up, no email, no phone number. Ever.
 - **All data stored locally** — Your health data stays on YOUR device. We can't see it even if we wanted to
 - **Energy Tokens never expire** — You buy them, you own them. Unlike monthly subscriptions that vanish when you stop paying
@@ -132,13 +143,27 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 ### 2.3 Health Dashboard
 
 - **Daily Summary Ring:** Calories eaten vs. goal + macro breakdown (Protein / Carbs / Fat)
+- **Active Energy Row:** Real-time burned-calorie bar with green "+X kcal" bonus — toggleable on/off right from the home screen
+- **Smart Goal Adjustment:** When Health Sync is on, your calorie goal auto-adjusts: Base Goal + Active Energy = what you can actually eat today
 - **Timeline View:** Chronological feed of everything eaten today, grouped by meal
 - **Diet View:** Organized by meal type (Breakfast, Lunch, Dinner, Snack)
 - **Goals vs Actual Table:** Side-by-side comparison of targets vs. reality
 - **Micronutrient Charts:** Visual tracking of Fiber, Sugar, Sodium, Vitamins
 - **Time Period Summaries:** Daily / Weekly / Monthly views
 
-### 2.4 My Meals — Personal Meal Library
+### 2.4 Health Sync — Connect Your Fitness Ecosystem
+
+| Direction | What Happens | Data |
+|-----------|-------------|------|
+| **MiRO → Health App** | Every food entry auto-synced to Apple Health / Health Connect | Calories, Protein, Carbs, Fat, Meal Type |
+| **Health App → MiRO** | Active Energy burned pulled into MiRO | Bonus kcal added to daily goal |
+
+- Works with Apple Watch, Samsung Health, Google Fit, Fitbit, Garmin, and any app that writes to Apple Health or Health Connect
+- One-tap enable in Settings or directly from the calorie summary on home screen
+- Customizable BMR (default 1,500 kcal) for accurate active energy calculation
+- Delete a food entry in MiRO → automatically removed from Health App too
+
+### 2.5 My Meals — Personal Meal Library
 
 - **Create custom meals:** Combine multiple ingredients into a reusable meal template
 - **One-tap logging:** Tap once to log a saved meal — no re-entering data
@@ -146,13 +171,13 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 - **Usage tracking:** See how often you log each meal
 - **Editable ingredients:** Adjust amounts, add/remove ingredients anytime
 
-### 2.5 Quick Add — Fastest Logging Possible
+### 2.6 Quick Add — Fastest Logging Possible
 
 - **Favorites:** Your most frequently eaten foods appear as one-tap buttons
 - **Repeat Yesterday (per meal):** Copy a specific meal from yesterday
 - **Same as Yesterday (full day):** Copy everything you ate yesterday in one tap
 
-### 2.6 Ingredient Breakdown — Restaurant-Grade Detail
+### 2.7 Ingredient Breakdown — Restaurant-Grade Detail
 
 - **Root Ingredients:** Main visible components of a dish
 - **Sub-Ingredients:** What each component is made of
@@ -160,7 +185,7 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 - **Hidden Calories Detection:** AI flags invisible calorie sources (cooking oil, sugar in sauces, seasonings)
 - **Fully Editable:** Adjust any ingredient amount → calories auto-recalculate
 
-### 2.7 Gallery Auto-Scan
+### 2.8 Gallery Auto-Scan
 
 - Pull-to-refresh on the Timeline → app scans your photo gallery for new food photos
 - Automatically detects which photos are food
@@ -359,6 +384,9 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 | 10 | **Energy Store** | Energy packages + Gamification rewards |
 | 11 | **Profile → Cuisine Selection** | 15 cuisine options with flags |
 | 12 | **Onboarding** | 3 pages → ready to use in 30 seconds |
+| 13 | **Home → Active Energy Bar** | Green progress bar + "+X kcal" bonus from movement, toggle on/off |
+| 14 | **Settings → Health Sync** | One-tap enable, BMR setting, permission flow |
+| 15 | **Health Connect / Apple Health** | MiRO entries appearing in device Health app with full nutrition |
 
 ---
 
@@ -375,6 +403,8 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 | Cuisine Preference Bias | ✅ 15 cuisines | ❌ | ❌ | ❌ |
 | Hidden Calorie Detection | ✅ Cooking oil, sauces, seasonings | ❌ | ❌ | ❌ |
 | Nutrition Label OCR | ✅ | ❌ | ❌ | ❌ |
+| Health Sync (ingredient-level) | ✅ Full breakdown synced | 🟡 Single total only | 🟡 Single total only | 🟡 Single total only |
+| Active Energy → Smart Calorie Goal | ✅ Real-time bonus | ❌ | ✅ Basic | 🟡 Premium only |
 
 ### User Experience Comparison
 
@@ -466,6 +496,17 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 - AI splits into 4 meals → shows full ingredient breakdown for each → all logged
 - Hook: "One message. Every meal. Done."
 
+### Video 14: "Log Once. See Everywhere." (30s)
+- User snaps lunch in MiRO → ingredient breakdown appears → immediately shows on Apple Watch / Samsung Health / Google Fit
+- Cut to: smartwatch showing today's nutrition with full macro breakdown
+- Hook: "Log in MiRO. See it on your wrist."
+
+### Video 15: "Burn More. Eat More." (20s)
+- Morning: goal shows 2,000 kcal. User walks, exercises.
+- Afternoon: green bar fills → goal becomes 2,350 kcal → "+350 kcal" appears
+- User taps toggle on/off — instant control
+- Hook: "You earned it. MiRO counts it."
+
 ---
 
 ## 14. KEY MESSAGES FOR MARKETING
@@ -483,6 +524,8 @@ For those who take every calorie seriously. Fine-tune and adjust details at the 
 10. **"The most accurate food tracker on Earth."** — Bold accuracy claim
 11. **"Live first. Log later."** — Gallery auto-scan angle
 12. **"Your entire day in one message."** — Meal Journey angle
+13. **"Log once. See it on your wrist."** — Health Sync angle
+14. **"Burn more. Eat more. MiRO adjusts."** — Active Energy angle
 
 ### Target Audience:
 - **Primary:** Health-conscious individuals who want effortless food logging
@@ -519,6 +562,7 @@ MiRO's accuracy comes from **5 layers of precision stacked together**, which no 
 | **5. User Editing** | Remove, add, or adjust any ingredient after AI analysis | Human correction on top of AI analysis = maximum accuracy |
 | **6. Gallery Catch-All** | Auto-finds food photos you took throughout the day | Nothing gets forgotten — every meal photo becomes a log entry |
 | **7. Meal Journey Batch** | Describe your entire day → AI splits and analyzes each meal separately | Complete daily nutrition even if you forgot to log in the moment |
+| **8. Health Sync** | Food data synced to Health app + Active Energy pulled back into goal | One ecosystem — smartwatch, fitness apps, and MiRO all stay in sync |
 
 **The result:** AI analysis + cultural context + user correction = accuracy that no single AI model can achieve alone.
 
@@ -553,5 +597,6 @@ MiRO's accuracy comes from **5 layers of precision stacked together**, which no 
 ---
 
 *Document created: February 17, 2026*  
+*Updated: February 26, 2026 — Added Health Sync (Apple Health / Health Connect)*  
 *For internal marketing team use*  
 *MiRO — My Intake Record Oracle*

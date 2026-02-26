@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Pressione e segure para selecionar",
+
+  "healthSyncSection": "Sincronização de Saúde",
+  "healthSyncTitle": "Sincronizar com App de Saúde",
+  "healthSyncSubtitleOn": "Alimentos sincronizados • Energia ativa incluída",
+  "healthSyncSubtitleOff": "Toque para conectar Apple Health / Health Connect",
+  "healthSyncEnabled": "Sincronização de saúde ativada",
+  "healthSyncDisabled": "Sincronização de saúde desativada",
+  "healthSyncPermissionDeniedTitle": "Permissão Necessária",
+  "healthSyncPermissionDeniedMessage": "Você negou anteriormente o acesso aos dados de saúde.\nPor favor, ative nas configurações do dispositivo.",
+  "healthSyncGoToSettings": "Ir para Configurações",
+  "healthSyncActiveEnergyValue": "+{value} kcal queimadas hoje",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect não está disponível neste dispositivo. Por favor, instale o app Health Connect.",
+  "healthSyncFoodSynced": "Alimento sincronizado com App de Saúde",
+  "healthSyncFoodDeletedFromHealth": "Alimento removido do App de Saúde",
+  "bmrSettingTitle": "BMR (Taxa Metabólica Basal)",
+  "bmrSettingSubtitle": "Usado para estimar energia ativa",
+  "bmrDialogTitle": "Definir seu BMR",
+  "bmrDialogDescription": "O MiRO usa o BMR para subtrair a energia em repouso do total de calorias queimadas, mostrando apenas sua energia ativa. O padrão é 1500 kcal/dia. Você pode encontrar seu BMR em apps de fitness ou calculadoras online.",
+  "healthSyncEnabledBmrHint": "Sincronização de saúde ativada. BMR padrão: 1500 kcal/dia — ajuste nas Configurações.",
+  "privacyPolicySectionHealthData": "Integração de Dados de Saúde",
+  "termsSectionHealthDataSync": "Sincronização de Dados de Saúde"
 }

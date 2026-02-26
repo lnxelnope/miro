@@ -1,5 +1,58 @@
 # Changelog
 
+## [1.2.0+48] - 2026-02-26
+
+### 🎉 Major Feature: Health Sync (Apple Health / Google Health Connect)
+
+#### Two-Way Health Data Integration:
+- **Outbound Sync:** Every food entry logged in MiRO automatically syncs to Apple Health (iOS) and Google Health Connect (Android)
+  - Full ingredient-level breakdown: Calories, Protein, Carbs, Fat, Meal Type
+  - Works seamlessly with smartwatches (Apple Watch, Samsung Galaxy Watch), fitness apps (Google Fit, Fitbit, Garmin)
+  - Delete food in MiRO → automatically removed from Health app too
+  - One log, visible everywhere — your smartwatch, fitness dashboard, and health ecosystem all stay in sync
+
+- **Inbound Sync:** Active Energy (calories burned from movement) pulled from Health apps
+  - Real-time bonus calories added to your daily calorie goal
+  - Green progress bar fills as you move throughout the day
+  - Toggle on/off directly from home screen (available in both Basic & Pro modes)
+  - Customizable BMR (default 1,500 kcal/day) for accurate active energy calculation
+  - Example: Goal = 2,000 kcal. You burned 350 active kcal by afternoon → MiRO shows your goal as 2,350 kcal
+
+#### Privacy & Permissions:
+- Single permission request for both read (Active Energy) and write (Nutrition) permissions
+- Permission requested only when user enables Health Sync
+- User can disable anytime — no data leaves device without consent
+- Updated Terms of Service and Privacy Policy with Health Data Integration sections
+- Full localization (l10n) for all 12 supported languages
+
+#### Technical Implementation:
+- **iOS:** Apple HealthKit integration with proper entitlements (`Runner.entitlements`) and Info.plist permissions
+- **Android:** Google Health Connect integration (minSdk 26, `FlutterFragmentActivity`, manifest declarations)
+- **Data Models:** Added `customBmr` field to UserProfile, `healthConnectId` to FoodEntry
+- **Services:** `HealthSyncService` handles all health data operations
+- **UI:** Compact Active Energy row with green progress bar, mini toggle, fire icon
+
+### 🐛 Bug Fixes:
+- **Fixed: NaN/Infinity Error in BMR Calculation** - Resolved crash when displaying BMR in settings (`Unsupported operation: Infinity or NaN toInt`)
+  - Root cause: Existing user profiles created before `customBmr` field was added returned NaN from Isar database
+  - Solution: Added `safeBmr` getter in UserProfile model with NaN/Infinity safety checks
+  - Added safety checks in all `.toInt()` calls for activeEnergy and goal calculations
+  - All NaN/Infinity values now default to 1,500 kcal
+
+- **Fixed: Active Energy Not Updating When BMR Changed** - Active Energy now recalculates immediately when BMR is changed in settings
+  - Root cause: `activeEnergyProvider` was reading profile directly from database instead of watching `profileNotifierProvider`
+  - Solution: Changed provider to watch `profileNotifierProvider` — automatically recalculates when profile changes
+  - Also fixed `effectiveCalorieGoalProvider` to watch profile changes
+
+### 🔧 Technical:
+- Updated `user_profile.dart`: Added `safeBmr` getter for NaN safety
+- Updated `health_provider.dart`: Changed to watch `profileNotifierProvider` for real-time updates
+- Updated `health_sync_service.dart`: Added BMR parameter validation
+- Updated `daily_summary_card.dart`: Added safety checks for NaN/Infinity in goal and activeEnergy
+- Updated `profile_screen.dart`: BMR setting tile uses `safeBmr` getter
+
+---
+
 ## [1.1.22+47] - 2026-02-26
 
 ### ✨ UI Improvements

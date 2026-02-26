@@ -1792,5 +1792,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Lange drücken zum Auswählen",
+
+  "healthSyncSection": "Gesundheits-Sync",
+  "healthSyncTitle": "Mit Gesundheits-App synchronisieren",
+  "healthSyncSubtitleOn": "Mahlzeiten synchronisiert • Aktive Energie enthalten",
+  "healthSyncSubtitleOff": "Tippen zum Verbinden mit Apple Health / Health Connect",
+  "healthSyncEnabled": "Gesundheits-Sync aktiviert",
+  "healthSyncDisabled": "Gesundheits-Sync deaktiviert",
+  "healthSyncPermissionDeniedTitle": "Berechtigung Erforderlich",
+  "healthSyncPermissionDeniedMessage": "Sie haben zuvor den Zugriff auf Gesundheitsdaten verweigert.\nBitte aktivieren Sie ihn in den Geräteeinstellungen.",
+  "healthSyncGoToSettings": "Zu Einstellungen",
+  "healthSyncActiveEnergyValue": "+{value} kcal heute verbrannt",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect ist auf diesem Gerät nicht verfügbar. Bitte installieren Sie die Health Connect App.",
+  "healthSyncFoodSynced": "Mahlzeit mit Gesundheits-App synchronisiert",
+  "healthSyncFoodDeletedFromHealth": "Mahlzeit aus Gesundheits-App entfernt",
+  "bmrSettingTitle": "BMR (Grundumsatz)",
+  "bmrSettingSubtitle": "Zur Schätzung der aktiven Energie verwendet",
+  "bmrDialogTitle": "BMR einstellen",
+  "bmrDialogDescription": "MiRO verwendet den BMR, um die Ruheenergie von den insgesamt verbrannten Kalorien abzuziehen und nur Ihre aktive Energie anzuzeigen. Standard ist 1500 kcal/Tag. Sie können Ihren BMR über Fitness-Apps oder Online-Rechner ermitteln.",
+  "healthSyncEnabledBmrHint": "Gesundheitssynchronisierung aktiviert. BMR-Standard: 1500 kcal/Tag — in den Einstellungen anpassbar.",
+  "privacyPolicySectionHealthData": "Gesundheitsdaten-Integration",
+  "termsSectionHealthDataSync": "Gesundheitsdaten-Synchronisierung"
 }

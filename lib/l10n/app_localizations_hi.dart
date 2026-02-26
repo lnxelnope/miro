@@ -3042,5 +3042,73 @@ class L10nHi extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => 'चुनने के लिए लंबे समय तक दबाएं';
+
+  @override
+  String get healthSyncSection => 'स्वास्थ्य सिंक';
+
+  @override
+  String get healthSyncTitle => 'स्वास्थ्य ऐप से सिंक करें';
+
+  @override
+  String get healthSyncSubtitleOn => 'भोजन रिकॉर्ड सिंक • सक्रिय ऊर्जा शामिल';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'Apple Health / Health Connect से जुड़ने के लिए टैप करें';
+
+  @override
+  String get healthSyncEnabled => 'स्वास्थ्य सिंक सक्रिय';
+
+  @override
+  String get healthSyncDisabled => 'स्वास्थ्य सिंक निष्क्रिय';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'अनुमति आवश्यक';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'आपने पहले स्वास्थ्य डेटा एक्सेस अस्वीकार कर दिया था।\nकृपया डिवाइस सेटिंग्स में सक्षम करें।';
+
+  @override
+  String get healthSyncGoToSettings => 'सेटिंग्स में जाएं';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal आज जली हुई';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'इस डिवाइस पर Health Connect उपलब्ध नहीं है। कृपया Health Connect ऐप इंस्टॉल करें।';
+
+  @override
+  String get healthSyncFoodSynced => 'भोजन स्वास्थ्य ऐप में सिंक किया गया';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth =>
+      'स्वास्थ्य ऐप से भोजन हटाया गया';
+
+  @override
+  String get bmrSettingTitle => 'BMR (बेसल मेटाबोलिक रेट)';
+
+  @override
+  String get bmrSettingSubtitle => 'सक्रिय ऊर्जा अनुमान के लिए उपयोग';
+
+  @override
+  String get bmrDialogTitle => 'अपना BMR सेट करें';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO कुल कैलोरी बर्न से आराम की ऊर्जा घटाने के लिए BMR का उपयोग करता है, केवल आपकी सक्रिय ऊर्जा दिखाता है। डिफ़ॉल्ट 1500 kcal/दिन है। आप अपना BMR फिटनेस ऐप्स या ऑनलाइन कैलकुलेटर से जान सकते हैं।';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'स्वास्थ्य सिंक सक्रिय। BMR डिफ़ॉल्ट: 1500 kcal/दिन — सेटिंग्स में समायोजित करें।';
+
+  @override
+  String get privacyPolicySectionHealthData => 'स्वास्थ्य डेटा एकीकरण';
+
+  @override
+  String get termsSectionHealthDataSync => 'स्वास्थ्य डेटा सिंक्रनाइज़ेशन';
 }

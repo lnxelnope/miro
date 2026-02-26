@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "长按选择项目",
+
+  "healthSyncSection": "健康同步",
+  "healthSyncTitle": "与健康应用同步",
+  "healthSyncSubtitleOn": "食物记录已同步 • 包含活动能量",
+  "healthSyncSubtitleOff": "点击连接 Apple Health / Health Connect",
+  "healthSyncEnabled": "已开启健康同步",
+  "healthSyncDisabled": "已关闭健康同步",
+  "healthSyncPermissionDeniedTitle": "需要访问权限",
+  "healthSyncPermissionDeniedMessage": "您之前拒绝了健康数据访问权限。\n请在设备设置中开启。",
+  "healthSyncGoToSettings": "前往设置",
+  "healthSyncActiveEnergyValue": "+{value} kcal 今日活动消耗",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "此设备不支持 Health Connect，请安装 Health Connect 应用。",
+  "healthSyncFoodSynced": "食物已同步到健康应用",
+  "healthSyncFoodDeletedFromHealth": "已从健康应用中删除食物",
+  "bmrSettingTitle": "BMR（基础代谢率）",
+  "bmrSettingSubtitle": "用于估算活动消耗的能量",
+  "bmrDialogTitle": "设置您的BMR",
+  "bmrDialogDescription": "MiRO使用BMR从总消耗热量中减去基础代谢，仅显示您的运动消耗。默认为1500千卡/天。您可以通过健身应用或在线计算器查询您的BMR。",
+  "healthSyncEnabledBmrHint": "健康同步已启用。BMR默认：1500千卡/天 — 可在设置中调整。",
+  "privacyPolicySectionHealthData": "健康数据整合",
+  "termsSectionHealthDataSync": "健康数据同步"
 }

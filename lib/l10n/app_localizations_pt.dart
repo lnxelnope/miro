@@ -3068,5 +3068,74 @@ class L10nPt extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => 'Pressione e segure para selecionar';
+
+  @override
+  String get healthSyncSection => 'Sincronização de Saúde';
+
+  @override
+  String get healthSyncTitle => 'Sincronizar com App de Saúde';
+
+  @override
+  String get healthSyncSubtitleOn =>
+      'Alimentos sincronizados • Energia ativa incluída';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'Toque para conectar Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => 'Sincronização de saúde ativada';
+
+  @override
+  String get healthSyncDisabled => 'Sincronização de saúde desativada';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'Permissão Necessária';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'Você negou anteriormente o acesso aos dados de saúde.\nPor favor, ative nas configurações do dispositivo.';
+
+  @override
+  String get healthSyncGoToSettings => 'Ir para Configurações';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal queimadas hoje';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'Health Connect não está disponível neste dispositivo. Por favor, instale o app Health Connect.';
+
+  @override
+  String get healthSyncFoodSynced => 'Alimento sincronizado com App de Saúde';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth =>
+      'Alimento removido do App de Saúde';
+
+  @override
+  String get bmrSettingTitle => 'BMR (Taxa Metabólica Basal)';
+
+  @override
+  String get bmrSettingSubtitle => 'Usado para estimar energia ativa';
+
+  @override
+  String get bmrDialogTitle => 'Definir seu BMR';
+
+  @override
+  String get bmrDialogDescription =>
+      'O MiRO usa o BMR para subtrair a energia em repouso do total de calorias queimadas, mostrando apenas sua energia ativa. O padrão é 1500 kcal/dia. Você pode encontrar seu BMR em apps de fitness ou calculadoras online.';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'Sincronização de saúde ativada. BMR padrão: 1500 kcal/dia — ajuste nas Configurações.';
+
+  @override
+  String get privacyPolicySectionHealthData => 'Integração de Dados de Saúde';
+
+  @override
+  String get termsSectionHealthDataSync => 'Sincronização de Dados de Saúde';
 }

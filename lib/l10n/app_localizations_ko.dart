@@ -2973,5 +2973,71 @@ class L10nKo extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => '길게 눌러 항목 선택';
+
+  @override
+  String get healthSyncSection => '건강 동기화';
+
+  @override
+  String get healthSyncTitle => '건강 앱과 동기화';
+
+  @override
+  String get healthSyncSubtitleOn => '음식 기록 동기화 • 활동 에너지 포함';
+
+  @override
+  String get healthSyncSubtitleOff => '탭하여 Apple Health / Health Connect 연결';
+
+  @override
+  String get healthSyncEnabled => '건강 동기화가 활성화되었습니다';
+
+  @override
+  String get healthSyncDisabled => '건강 동기화가 비활성화되었습니다';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => '접근 권한 필요';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      '이전에 건강 데이터 접근을 거부했습니다.\n기기 설정에서 활성화해 주세요.';
+
+  @override
+  String get healthSyncGoToSettings => '설정으로 이동';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal 오늘 소모';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      '이 기기에서 Health Connect를 사용할 수 없습니다. Health Connect 앱을 설치해 주세요.';
+
+  @override
+  String get healthSyncFoodSynced => '음식이 건강 앱에 동기화되었습니다';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth => '건강 앱에서 음식이 삭제되었습니다';
+
+  @override
+  String get bmrSettingTitle => 'BMR (기초대사량)';
+
+  @override
+  String get bmrSettingSubtitle => '활동 에너지 추정에 사용';
+
+  @override
+  String get bmrDialogTitle => 'BMR 설정';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO는 BMR을 사용하여 총 소모 칼로리에서 기초대사량을 차감하여 활동 에너지만 표시합니다. 기본값은 1500 kcal/일입니다. BMR은 피트니스 앱이나 온라인 계산기에서 확인할 수 있습니다.';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      '건강 동기화가 활성화되었습니다. BMR 기본값: 1500 kcal/일 — 설정에서 조정 가능합니다.';
+
+  @override
+  String get privacyPolicySectionHealthData => '건강 데이터 연동';
+
+  @override
+  String get termsSectionHealthDataSync => '건강 데이터 동기화';
 }

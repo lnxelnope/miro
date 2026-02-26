@@ -6,19 +6,69 @@
 
 ---
 
-## ✅ Build 47 (v1.1.22) - Status: READY FOR PRODUCTION
+## ✅ Build 48 (v1.2.0) - Status: READY FOR PRODUCTION
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.22+47`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 47`, `versionName = "1.1.22"`)
-- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.22'`)
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.0+48`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 48`, `versionName = "1.2.0"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.0'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
 - [ ] **Version Naming** - ตาม Semantic Versioning
 - [ ] **CHANGELOG.md** - อัปเดตแล้ว
 - [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
+
+### ✨ Major Feature: Health Sync (Apple Health / Google Health Connect)
+
+#### Two-Way Health Data Integration:
+- **Outbound Sync:** Every food entry logged in MiRO automatically syncs to Apple Health (iOS) and Google Health Connect (Android)
+  - Full ingredient-level breakdown: Calories, Protein, Carbs, Fat, Meal Type
+  - Works with smartwatches (Apple Watch, Samsung Galaxy Watch), fitness apps (Google Fit, Fitbit, Garmin)
+  - Delete food in MiRO → automatically removed from Health app too
+- **Inbound Sync:** Active Energy (calories burned from movement) pulled from Health apps
+  - Real-time bonus calories added to daily calorie goal
+  - Green progress bar fills as you move throughout the day
+  - Toggle on/off directly from home screen (Basic & Pro modes)
+  - Customizable BMR (default 1,500 kcal/day) for accurate active energy calculation
+
+#### Technical Implementation:
+- **iOS:** Apple HealthKit integration with proper entitlements and Info.plist permissions
+- **Android:** Google Health Connect integration (minSdk 26, FlutterFragmentActivity, manifest declarations)
+- **Permission Flow:** Single permission request for both read (Active Energy) and write (Nutrition) permissions
+- **Data Models:** Added `customBmr` field to UserProfile, `healthConnectId` to FoodEntry
+- **Services:** HealthSyncService handles all health data operations
+- **UI:** Compact Active Energy row with green progress bar, mini toggle, fire icon
+
+#### Privacy & Legal:
+- Updated Terms of Service and Privacy Policy with Health Data Integration sections
+- Full localization (l10n) for all 12 supported languages
+- Permission requested only when user enables Health Sync
+- User can disable anytime — no data leaves device without consent
+
+### 🐛 Bug Fixes:
+- Fixed: NaN/Infinity error in BMR calculation causing crashes (`Unsupported operation: Infinity or NaN toInt`)
+  - Added `safeBmr` getter in UserProfile model
+  - Safety checks in all `.toInt()` calls for activeEnergy and goal calculations
+- Fixed: Active Energy not updating when BMR changed in settings
+  - Changed `activeEnergyProvider` to watch `profileNotifierProvider` instead of reading from database directly
+  - Provider now recalculates automatically when profile changes
+
+---
+## ✅ Build 47 (v1.1.22) - Status: RELEASED
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.1.22+47`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 47`, `versionName = "1.1.22"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.22'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning
+- [x] **CHANGELOG.md** - อัปเดตแล้ว
+- [x] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
 
 ### ✨ Changes in this version:
 - **Basic Mode: Selection Bar UI Improvements** - Long press → selection mode with improved action bar
@@ -277,17 +327,17 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.22+47
+version: 1.2.0+48
 ```
 **Format:** `versionName+versionCode`
-- `1.1.14` = Version name (แสดงให้ user เห็น)
-- `39` = Build number / Version code (internal)
+- `1.2.0` = Version name (แสดงให้ user เห็น)
+- `48` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 47
-    versionName = "1.1.22"
+    versionCode = 48
+    versionName = "1.2.0"
 }
 ```
 **Format:**
@@ -299,7 +349,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.1.22',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -324,22 +374,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.21+46 → 1.1.22+47
-version: 1.1.22+47
+# ตัวอย่าง: จาก 1.1.22+47 → 1.2.0+48
+version: 1.2.0+48
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 47  // เพิ่มทีละ 1
-    versionName = "1.1.22"  // ตรงกับ pubspec
+    versionCode = 48  // เพิ่มทีละ 1
+    versionName = "1.2.0"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.1.22',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.2.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -366,7 +416,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 47 | 1.1.22 | 2026-02-26 | ✅ Current |
+| 48 | 1.2.0 | 2026-02-26 | ✅ Current |
+| 47 | 1.1.22 | 2026-02-26 | ✅ Released |
 | 46 | 1.1.21 | 2026-02-26 | ✅ Released |
 | 45 | 1.1.20 | 2026-02-26 | ✅ Released |
 | 44 | 1.1.19 | 2026-02-26 | ✅ Released |
@@ -400,14 +451,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.22+47`
-- `build.gradle.kts`: `versionCode = 47`, `versionName = "1.1.22"`
+- `pubspec.yaml`: `1.2.0+48`
+- `build.gradle.kts`: `versionCode = 48`, `versionName = "1.2.0"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.1.22',  // แก้ให้ตรงกับ versionName
+subtitle: '1.2.0',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 

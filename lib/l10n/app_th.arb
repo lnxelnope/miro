@@ -1869,5 +1869,31 @@
   "addToSandbox": "เพิ่ม",
   "gallery": "แกลเลอรี",
   "ingredients": "ส่วนประกอบ",
-  "longPressToSelect": "กดค้างเพื่อเลือกรายการ"
+  "longPressToSelect": "กดค้างเพื่อเลือกรายการ",
+
+  "healthSyncSection": "เชื่อมต่อสุขภาพ",
+  "healthSyncTitle": "เชื่อมต่อกับ Health App",
+  "healthSyncSubtitleOn": "ซิงค์รายการอาหาร • รวมพลังงานที่เผาผลาญ",
+  "healthSyncSubtitleOff": "แตะเพื่อเชื่อมต่อ Apple Health / Health Connect",
+  "healthSyncEnabled": "เปิดเชื่อมต่อสุขภาพแล้ว",
+  "healthSyncDisabled": "ปิดเชื่อมต่อสุขภาพแล้ว",
+  "healthSyncPermissionDeniedTitle": "ต้องการสิทธิ์การเข้าถึง",
+  "healthSyncPermissionDeniedMessage": "คุณเคยปฏิเสธการเข้าถึงข้อมูลสุขภาพ\nกรุณาไปเปิดที่ตั้งค่าเครื่อง",
+  "healthSyncGoToSettings": "ไปที่ตั้งค่า",
+  "healthSyncActiveEnergyValue": "+{value} kcal จากกิจกรรมวันนี้",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "ไม่พบ Health Connect บนอุปกรณ์นี้ กรุณาติดตั้งแอป Health Connect",
+  "healthSyncFoodSynced": "ซิงค์อาหารไปยัง Health App แล้ว",
+  "healthSyncFoodDeletedFromHealth": "ลบอาหารจาก Health App แล้ว",
+  "bmrSettingTitle": "BMR (อัตราการเผาผลาญขั้นพื้นฐาน)",
+  "bmrSettingSubtitle": "ใช้คำนวณพลังงานจากการเคลื่อนไหว",
+  "bmrDialogTitle": "ตั้งค่า BMR ของคุณ",
+  "bmrDialogDescription": "MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
+  "healthSyncEnabledBmrHint": "เปิด Health Sync แล้ว BMR เริ่มต้น: 1500 kcal/วัน — ปรับได้ใน Settings",
+  "privacyPolicySectionHealthData": "การเชื่อมต่อข้อมูลสุขภาพ",
+  "termsSectionHealthDataSync": "การซิงค์ข้อมูลสุขภาพ"
 }

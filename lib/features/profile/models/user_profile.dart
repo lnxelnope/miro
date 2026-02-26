@@ -40,6 +40,15 @@ class UserProfile {
   bool isGoogleCalendarConnected = false;
   bool isHealthConnectConnected = false;
 
+  // Health Sync: BMR for estimating active energy from TCB
+  double customBmr = 1500; // kcal/day
+
+  @ignore
+  double get safeBmr =>
+      (customBmr.isNaN || customBmr.isInfinite || customBmr <= 0)
+          ? 1500
+          : customBmr;
+
   // ===== Onboarding Fields =====
   String? gender; // 'male' หรือ 'female'
   int? age;

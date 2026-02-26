@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Tekan lama untuk memilih",
+
+  "healthSyncSection": "Sinkronisasi Kesehatan",
+  "healthSyncTitle": "Sinkronkan dengan Aplikasi Kesehatan",
+  "healthSyncSubtitleOn": "Data makanan disinkronkan • Energi aktif termasuk",
+  "healthSyncSubtitleOff": "Ketuk untuk menghubungkan Apple Health / Health Connect",
+  "healthSyncEnabled": "Sinkronisasi kesehatan diaktifkan",
+  "healthSyncDisabled": "Sinkronisasi kesehatan dinonaktifkan",
+  "healthSyncPermissionDeniedTitle": "Izin Diperlukan",
+  "healthSyncPermissionDeniedMessage": "Anda sebelumnya menolak akses data kesehatan.\nSilakan aktifkan di pengaturan perangkat.",
+  "healthSyncGoToSettings": "Buka Pengaturan",
+  "healthSyncActiveEnergyValue": "+{value} kcal terbakar hari ini",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect tidak tersedia di perangkat ini. Silakan instal aplikasi Health Connect.",
+  "healthSyncFoodSynced": "Makanan disinkronkan ke Aplikasi Kesehatan",
+  "healthSyncFoodDeletedFromHealth": "Makanan dihapus dari Aplikasi Kesehatan",
+  "bmrSettingTitle": "BMR (Tingkat Metabolisme Basal)",
+  "bmrSettingSubtitle": "Digunakan untuk memperkirakan energi aktif",
+  "bmrDialogTitle": "Atur BMR Anda",
+  "bmrDialogDescription": "MiRO menggunakan BMR untuk mengurangi energi istirahat dari total kalori yang terbakar, hanya menampilkan energi aktif Anda. Default adalah 1500 kcal/hari. Anda dapat menemukan BMR dari aplikasi fitness atau kalkulator online.",
+  "healthSyncEnabledBmrHint": "Sinkronisasi kesehatan diaktifkan. BMR default: 1500 kcal/hari — sesuaikan di Pengaturan.",
+  "privacyPolicySectionHealthData": "Integrasi Data Kesehatan",
+  "termsSectionHealthDataSync": "Sinkronisasi Data Kesehatan"
 }

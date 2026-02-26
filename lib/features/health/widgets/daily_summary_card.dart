@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/health_sync_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../profile/models/user_profile.dart';
 
 class DailySummaryCard extends ConsumerWidget {
   final DateTime? selectedDate;
@@ -75,8 +78,19 @@ class DailySummaryCard extends ConsumerWidget {
             final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
             final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
 
-            final goal = profile.calorieGoal;
-            final percent = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
+            final isHealthOn = profile.isHealthConnectConnected;
+            final activeEnergyAsync =
+                isToday && isHealthOn ? ref.watch(activeEnergyProvider) : null;
+            final rawActive = activeEnergyAsync?.valueOrNull ?? 0.0;
+            final activeEnergy =
+                (rawActive.isNaN || rawActive.isInfinite) ? 0.0 : rawActive;
+
+            final baseGoal = profile.calorieGoal;
+            final goal =
+                (isHealthOn && isToday) ? baseGoal + activeEnergy : baseGoal;
+            final safeGoal = (goal.isNaN || goal.isInfinite) ? baseGoal : goal;
+            final percent =
+                safeGoal > 0 ? (calories / safeGoal).clamp(0.0, 1.0) : 0.0;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,10 +161,11 @@ class DailySummaryCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // Main content: Macros left + Circular right
+                // Main content: Macros + Active Energy (left) + Circular kcal (right)
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Left: Macro progress bars
+                    // Left: Macro bars + Active Energy row
                     Expanded(
                       child: Column(
                         children: [
@@ -177,21 +192,28 @@ class DailySummaryCard extends ConsumerWidget {
                             color: AppColors.fat,
                             isDark: isDark,
                           ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _ActiveEnergyRow(
+                            profile: profile,
+                            activeEnergy: activeEnergy,
+                            isHealthOn: isHealthOn,
+                            isDark: isDark,
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: AppSpacing.lg),
 
-                    // Right: Circular kcal
+                    // Right: Circular kcal (spans all 4 rows)
                     SizedBox(
-                      width: 76,
-                      height: 76,
+                      width: 90,
+                      height: 90,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
                           SizedBox(
-                            width: 76,
-                            height: 76,
+                            width: 90,
+                            height: 90,
                             child: CircularProgressIndicator(
                               value: percent,
                               strokeWidth: 6,
@@ -213,14 +235,14 @@ class DailySummaryCard extends ConsumerWidget {
                                 '${calories.toInt()}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 17,
+                                  fontSize: 18,
                                   color: isDark
                                       ? AppColors.textPrimaryDark
                                       : AppColors.textPrimary,
                                 ),
                               ),
                               Text(
-                                '/${goal.toInt()}',
+                                '/${safeGoal.toInt()}',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w500,
@@ -351,6 +373,201 @@ class DailySummaryCard extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Compact Active Energy row — same height as macro bars.
+/// Tap to toggle; first enable triggers Health Connect permission request.
+class _ActiveEnergyRow extends ConsumerStatefulWidget {
+  final UserProfile profile;
+  final double activeEnergy;
+  final bool isHealthOn;
+  final bool isDark;
+
+  const _ActiveEnergyRow({
+    required this.profile,
+    required this.activeEnergy,
+    required this.isHealthOn,
+    required this.isDark,
+  });
+
+  @override
+  ConsumerState<_ActiveEnergyRow> createState() => _ActiveEnergyRowState();
+}
+
+class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
+  bool _isLoading = false;
+
+  Future<void> _toggle() async {
+    if (widget.isHealthOn) {
+      widget.profile.isHealthConnectConnected = false;
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfile(widget.profile);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final available = await HealthSyncService.isAvailable();
+    if (!available) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.healthSyncNotAvailable),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    final granted = await HealthSyncService.requestPermissions();
+    if (!granted) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showPermissionDeniedDialog();
+      }
+      return;
+    }
+
+    widget.profile.isHealthConnectConnected = true;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile(widget.profile);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.healthSyncPermissionDeniedTitle),
+        content: Text(L10n.of(context)!.healthSyncPermissionDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              HealthSyncService.openDeviceSettings();
+            },
+            child: Text(L10n.of(context)!.healthSyncGoToSettings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _barMaxKcal = 500.0;
+  static const _activeGreen = Color(0xFF4CAF50);
+
+  @override
+  Widget build(BuildContext context) {
+    final isOn = widget.isHealthOn;
+    final offColor = widget.isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
+    final chipColor = isOn ? _activeGreen : offColor;
+    final progress = isOn
+        ? (widget.activeEnergy / _barMaxKcal).clamp(0.0, 1.0)
+        : 0.0;
+
+    return GestureDetector(
+      onTap: _isLoading ? null : _toggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isOn
+              ? _activeGreen.withValues(alpha: widget.isDark ? 0.15 : 0.10)
+              : (widget.isDark
+                  ? AppColors.surfaceVariantDark
+                  : AppColors.divider.withValues(alpha: 0.4)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              size: 12,
+              color: chipColor,
+            ),
+            const SizedBox(width: 4),
+            // Green progress bar (fills toward 500 kcal)
+            Expanded(
+              child: _isLoading
+                  ? SizedBox(
+                      height: 6,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: const LinearProgressIndicator(
+                          minHeight: 6,
+                        ),
+                      ),
+                    )
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: SizedBox(
+                        height: 6,
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          minHeight: 6,
+                          backgroundColor: widget.isDark
+                              ? AppColors.surfaceVariantDark
+                              : AppColors.divider,
+                          valueColor:
+                              AlwaysStoppedAnimation(chipColor),
+                        ),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 6),
+            // Value text
+            Text(
+              isOn
+                  ? '+${widget.activeEnergy.toInt()}'
+                  : 'off',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: chipColor,
+              ),
+            ),
+            const SizedBox(width: 4),
+            // Mini toggle
+            Container(
+              width: 22,
+              height: 12,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: isOn
+                    ? _activeGreen
+                    : (widget.isDark
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade400),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                alignment:
+                    isOn ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

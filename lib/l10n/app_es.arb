@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "Mantén pulsado para seleccionar",
+
+  "healthSyncSection": "Sincronización de Salud",
+  "healthSyncTitle": "Sincronizar con App de Salud",
+  "healthSyncSubtitleOn": "Alimentos sincronizados • Energía activa incluida",
+  "healthSyncSubtitleOff": "Toca para conectar Apple Health / Health Connect",
+  "healthSyncEnabled": "Sincronización de salud activada",
+  "healthSyncDisabled": "Sincronización de salud desactivada",
+  "healthSyncPermissionDeniedTitle": "Permiso Necesario",
+  "healthSyncPermissionDeniedMessage": "Previamente denegaste el acceso a datos de salud.\nPor favor habilítalo en la configuración del dispositivo.",
+  "healthSyncGoToSettings": "Ir a Configuración",
+  "healthSyncActiveEnergyValue": "+{value} kcal quemadas hoy",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect no está disponible en este dispositivo. Por favor instala la app Health Connect.",
+  "healthSyncFoodSynced": "Alimento sincronizado con App de Salud",
+  "healthSyncFoodDeletedFromHealth": "Alimento eliminado de App de Salud",
+  "bmrSettingTitle": "BMR (Tasa Metabólica Basal)",
+  "bmrSettingSubtitle": "Usado para estimar energía activa",
+  "bmrDialogTitle": "Configurar tu BMR",
+  "bmrDialogDescription": "MiRO usa el BMR para restar la energía en reposo del total de calorías quemadas, mostrando solo tu energía activa. El valor predeterminado es 1500 kcal/día. Puedes encontrar tu BMR en apps de fitness o calculadoras en línea.",
+  "healthSyncEnabledBmrHint": "Sincronización de salud activada. BMR predeterminado: 1500 kcal/día — ajústalo en Configuración.",
+  "privacyPolicySectionHealthData": "Integración de Datos de Salud",
+  "termsSectionHealthDataSync": "Sincronización de Datos de Salud"
 }

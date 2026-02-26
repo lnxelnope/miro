@@ -1800,5 +1800,31 @@
   "addToSandbox": "Add",
   "gallery": "Gallery",
   "ingredients": "Ingredients",
-  "longPressToSelect": "Long-press to select items"
+  "longPressToSelect": "長押しして選択",
+
+  "healthSyncSection": "ヘルスケア連携",
+  "healthSyncTitle": "ヘルスケアアプリと同期",
+  "healthSyncSubtitleOn": "食事記録を同期 • アクティブエネルギーを含む",
+  "healthSyncSubtitleOff": "タップして Apple Health / Health Connect に接続",
+  "healthSyncEnabled": "ヘルスケア同期がオンになりました",
+  "healthSyncDisabled": "ヘルスケア同期がオフになりました",
+  "healthSyncPermissionDeniedTitle": "アクセス許可が必要です",
+  "healthSyncPermissionDeniedMessage": "以前にヘルスケアデータへのアクセスを拒否しました。\nデバイスの設定で有効にしてください。",
+  "healthSyncGoToSettings": "設定へ移動",
+  "healthSyncActiveEnergyValue": "+{value} kcal 今日の消費",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "このデバイスでは Health Connect を利用できません。Health Connect アプリをインストールしてください。",
+  "healthSyncFoodSynced": "食事をヘルスケアアプリに同期しました",
+  "healthSyncFoodDeletedFromHealth": "ヘルスケアアプリから食事を削除しました",
+  "bmrSettingTitle": "BMR（基礎代謝量）",
+  "bmrSettingSubtitle": "活動エネルギーの推定に使用",
+  "bmrDialogTitle": "BMRを設定",
+  "bmrDialogDescription": "MiROはBMRを使用して総消費カロリーから基礎代謝を差し引き、活動エネルギーのみを表示します。デフォルトは1500 kcal/日です。BMRはフィットネスアプリやオンライン計算機で確認できます。",
+  "healthSyncEnabledBmrHint": "ヘルスケア同期が有効になりました。BMRデフォルト：1500 kcal/日 — 設定で調整できます。",
+  "privacyPolicySectionHealthData": "ヘルスケアデータ連携",
+  "termsSectionHealthDataSync": "ヘルスケアデータ同期"
 }

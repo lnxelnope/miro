@@ -2968,5 +2968,71 @@ class L10nJa extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => '長押しして選択';
+
+  @override
+  String get healthSyncSection => 'ヘルスケア連携';
+
+  @override
+  String get healthSyncTitle => 'ヘルスケアアプリと同期';
+
+  @override
+  String get healthSyncSubtitleOn => '食事記録を同期 • アクティブエネルギーを含む';
+
+  @override
+  String get healthSyncSubtitleOff => 'タップして Apple Health / Health Connect に接続';
+
+  @override
+  String get healthSyncEnabled => 'ヘルスケア同期がオンになりました';
+
+  @override
+  String get healthSyncDisabled => 'ヘルスケア同期がオフになりました';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'アクセス許可が必要です';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      '以前にヘルスケアデータへのアクセスを拒否しました。\nデバイスの設定で有効にしてください。';
+
+  @override
+  String get healthSyncGoToSettings => '設定へ移動';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal 今日の消費';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'このデバイスでは Health Connect を利用できません。Health Connect アプリをインストールしてください。';
+
+  @override
+  String get healthSyncFoodSynced => '食事をヘルスケアアプリに同期しました';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth => 'ヘルスケアアプリから食事を削除しました';
+
+  @override
+  String get bmrSettingTitle => 'BMR（基礎代謝量）';
+
+  @override
+  String get bmrSettingSubtitle => '活動エネルギーの推定に使用';
+
+  @override
+  String get bmrDialogTitle => 'BMRを設定';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiROはBMRを使用して総消費カロリーから基礎代謝を差し引き、活動エネルギーのみを表示します。デフォルトは1500 kcal/日です。BMRはフィットネスアプリやオンライン計算機で確認できます。';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'ヘルスケア同期が有効になりました。BMRデフォルト：1500 kcal/日 — 設定で調整できます。';
+
+  @override
+  String get privacyPolicySectionHealthData => 'ヘルスケアデータ連携';
+
+  @override
+  String get termsSectionHealthDataSync => 'ヘルスケアデータ同期';
 }

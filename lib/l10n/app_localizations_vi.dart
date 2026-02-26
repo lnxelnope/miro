@@ -3057,5 +3057,75 @@ class L10nVi extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => 'Nhấn giữ để chọn mục';
+
+  @override
+  String get healthSyncSection => 'Đồng bộ Sức khỏe';
+
+  @override
+  String get healthSyncTitle => 'Đồng bộ với Ứng dụng Sức khỏe';
+
+  @override
+  String get healthSyncSubtitleOn =>
+      'Đồng bộ thực phẩm • Bao gồm năng lượng hoạt động';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'Nhấn để kết nối Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => 'Đã bật đồng bộ sức khỏe';
+
+  @override
+  String get healthSyncDisabled => 'Đã tắt đồng bộ sức khỏe';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'Cần quyền truy cập';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'Bạn đã từ chối quyền truy cập dữ liệu sức khỏe.\nVui lòng bật trong cài đặt thiết bị.';
+
+  @override
+  String get healthSyncGoToSettings => 'Đi tới Cài đặt';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal đã đốt cháy hôm nay';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'Health Connect không khả dụng trên thiết bị này. Vui lòng cài đặt ứng dụng Health Connect.';
+
+  @override
+  String get healthSyncFoodSynced =>
+      'Đã đồng bộ thực phẩm đến Ứng dụng Sức khỏe';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth =>
+      'Đã xóa thực phẩm khỏi Ứng dụng Sức khỏe';
+
+  @override
+  String get bmrSettingTitle => 'BMR (Tỷ lệ trao đổi chất cơ bản)';
+
+  @override
+  String get bmrSettingSubtitle => 'Dùng để ước tính năng lượng hoạt động';
+
+  @override
+  String get bmrDialogTitle => 'Đặt BMR của bạn';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO sử dụng BMR để trừ năng lượng nghỉ ngơi từ tổng calo đốt cháy, chỉ hiển thị năng lượng hoạt động. Mặc định là 1500 kcal/ngày. Bạn có thể tìm BMR từ ứng dụng sức khỏe hoặc máy tính trực tuyến.';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'Đã bật đồng bộ sức khỏe. BMR mặc định: 1500 kcal/ngày — điều chỉnh trong Cài đặt nếu cần.';
+
+  @override
+  String get privacyPolicySectionHealthData => 'Tích hợp Dữ liệu Sức khỏe';
+
+  @override
+  String get termsSectionHealthDataSync => 'Đồng bộ Dữ liệu Sức khỏe';
 }

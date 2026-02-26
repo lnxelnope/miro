@@ -35,6 +35,8 @@ import 'package:flutter/services.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../core/services/health_sync_service.dart';
+import '../models/user_profile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -51,6 +53,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _cuisineExpanded = false;
   bool _photoScanExpanded = false;
   bool _accountExpanded = false;
+  bool _healthSyncExpanded = false;
   bool _dataExpanded = false;
   bool _aboutExpanded = false;
 
@@ -70,7 +73,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       body: ref.watch(profileNotifierProvider).when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Center(child: Text(L10n.of(context)!.errorOccurred(e.toString()))),
+            error: (e, st) => Center(
+                child: Text(L10n.of(context)!.errorOccurred(e.toString()))),
             data: (profile) => SingleChildScrollView(
               padding: AppSpacing.paddingXl,
               child: Column(
@@ -86,7 +90,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: L10n.of(context)!.healthGoalsSection,
                     icon: Icons.track_changes_rounded,
                     isExpanded: _healthGoalsExpanded,
-                    onToggle: () => setState(() => _healthGoalsExpanded = !_healthGoalsExpanded),
+                    onToggle: () => setState(
+                        () => _healthGoalsExpanded = !_healthGoalsExpanded),
                     child: _buildModernSettingCard(
                       context: context,
                       title: L10n.of(context)!.dailyGoals,
@@ -107,7 +112,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: L10n.of(context)!.languageSection,
                     icon: Icons.language_rounded,
                     isExpanded: _languageExpanded,
-                    onToggle: () => setState(() => _languageExpanded = !_languageExpanded),
+                    onToggle: () =>
+                        setState(() => _languageExpanded = !_languageExpanded),
                     child: _buildLanguageCard(context),
                   ),
 
@@ -119,7 +125,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.auto_awesome_rounded,
                     iconColor: AppColors.ai,
                     isExpanded: _aiChatExpanded,
-                    onToggle: () => setState(() => _aiChatExpanded = !_aiChatExpanded),
+                    onToggle: () =>
+                        setState(() => _aiChatExpanded = !_aiChatExpanded),
                     child: _buildAiModeSettingCard(context),
                   ),
 
@@ -131,7 +138,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.restaurant_rounded,
                     iconColor: AppColors.warning,
                     isExpanded: _cuisineExpanded,
-                    onToggle: () => setState(() => _cuisineExpanded = !_cuisineExpanded),
+                    onToggle: () =>
+                        setState(() => _cuisineExpanded = !_cuisineExpanded),
                     child: _buildCuisinePreferenceCard(context, profile),
                   ),
 
@@ -142,7 +150,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: L10n.of(context)!.photoScanSection,
                     icon: Icons.photo_camera_rounded,
                     isExpanded: _photoScanExpanded,
-                    onToggle: () => setState(() => _photoScanExpanded = !_photoScanExpanded),
+                    onToggle: () => setState(
+                        () => _photoScanExpanded = !_photoScanExpanded),
                     child: _ScanSettingsCard(),
                   ),
 
@@ -153,12 +162,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     title: L10n.of(context)!.accountSection,
                     icon: Icons.person_outline_rounded,
                     isExpanded: _accountExpanded,
-                    onToggle: () => setState(() => _accountExpanded = !_accountExpanded),
+                    onToggle: () =>
+                        setState(() => _accountExpanded = !_accountExpanded),
                     child: Column(
                       children: [
                         Consumer(
                           builder: (context, ref, _) {
-                            final gamification = ref.watch(gamificationProvider);
+                            final gamification =
+                                ref.watch(gamificationProvider);
                             return _buildModernSettingCard(
                               context: context,
                               title: L10n.of(context)!.miroId,
@@ -168,8 +179,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               leading: Container(
                                 padding: AppSpacing.paddingSm,
                                 decoration: BoxDecoration(
-                              color: AppColors.premiumLight,
-                              borderRadius: AppRadius.md,
+                                  color: AppColors.premiumLight,
+                                  borderRadius: AppRadius.md,
                                 ),
                                 child: const Icon(Icons.badge_outlined,
                                     color: AppColors.premium, size: 20),
@@ -180,12 +191,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       icon: const Icon(Icons.copy, size: 18),
                                       onPressed: () {
                                         Clipboard.setData(
-                                          ClipboardData(text: gamification.miroId),
+                                          ClipboardData(
+                                              text: gamification.miroId),
                                         );
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
                                           SnackBar(
-                                            content: Text(L10n.of(context)!.miroIdCopied),
-                                            duration: const Duration(seconds: 2),
+                                            content: Text(
+                                                L10n.of(context)!.miroIdCopied),
+                                            duration:
+                                                const Duration(seconds: 2),
                                           ),
                                         );
                                       },
@@ -233,6 +248,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
 
                   // ──────────────────────────────────────────────
+                  // Health Sync (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.healthSyncSection,
+                    icon: Icons.favorite_rounded,
+                    iconColor: AppColors.error,
+                    isExpanded: _healthSyncExpanded,
+                    onToggle: () => setState(
+                        () => _healthSyncExpanded = !_healthSyncExpanded),
+                    child: Column(
+                      children: [
+                        _HealthSyncToggle(profile: profile),
+                        if (profile.isHealthConnectConnected)
+                          _BmrSettingTile(profile: profile),
+                      ],
+                    ),
+                  ),
+
+                  // ──────────────────────────────────────────────
                   // Data (collapsed by default)
                   // ──────────────────────────────────────────────
                   _buildCollapsibleSection(
@@ -240,7 +274,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.storage_rounded,
                     iconColor: AppColors.info,
                     isExpanded: _dataExpanded,
-                    onToggle: () => setState(() => _dataExpanded = !_dataExpanded),
+                    onToggle: () =>
+                        setState(() => _dataExpanded = !_dataExpanded),
                     child: Column(
                       children: [
                         _buildModernSettingCard(
@@ -299,15 +334,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _buildCollapsibleSection(
                     title: L10n.of(context)!.aboutSection,
                     icon: Icons.info_outline_rounded,
-                    iconColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    iconColor: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
                     isExpanded: _aboutExpanded,
-                    onToggle: () => setState(() => _aboutExpanded = !_aboutExpanded),
+                    onToggle: () =>
+                        setState(() => _aboutExpanded = !_aboutExpanded),
                     child: Column(
                       children: [
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.1.22',
+                          subtitle: '1.2.0',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -342,7 +380,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const TermsScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const TermsScreen()),
                           ),
                         ),
                         _buildModernSettingCard(
@@ -382,11 +421,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.foodAnalysisTutorial,
-                          subtitle: L10n.of(context)!.foodAnalysisTutorialSubtitle,
+                          subtitle:
+                              L10n.of(context)!.foodAnalysisTutorialSubtitle,
                           leading: Container(
                             padding: AppSpacing.paddingSm,
                             decoration: BoxDecoration(
-                              color: AppColors.primaryLight.withValues(alpha: 0.1),
+                              color:
+                                  AppColors.primaryLight.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
                             child: const Icon(Icons.school,
@@ -419,7 +460,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         final gamification = ref.watch(gamificationProvider);
         final subState = ref.watch(subscriptionProvider);
         final isSubscribed = subState.subscription.isActive;
-        
+
         return Column(
           children: [
             Container(
@@ -462,7 +503,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             // Subscriber Badge (if subscriber)
             if (isSubscribed) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.premium, AppColors.premiumDark],
@@ -479,7 +521,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.diamond_rounded, size: 16, color: Colors.white),
+                    const Icon(Icons.diamond_rounded,
+                        size: 16, color: Colors.white),
                     const SizedBox(width: AppSpacing.sm - 2),
                     Text(
                       L10n.of(context)!.subscriptionEnergyPass,
@@ -491,7 +534,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(width: AppSpacing.sm - 2),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm - 2,
+                          vertical: AppSpacing.xxs),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.25),
                         borderRadius: AppRadius.sm,
@@ -523,7 +568,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
               borderRadius: AppRadius.xl,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: gamification.tierColor.withValues(alpha: 0.15),
                   borderRadius: AppRadius.xl,
@@ -607,7 +653,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 border: Border.all(
                   color: isExpanded
                       ? color.withValues(alpha: 0.3)
-                      : isDark ? AppColors.dividerDark : AppColors.divider,
+                      : isDark
+                          ? AppColors.dividerDark
+                          : AppColors.divider,
                 ),
               ),
               child: Row(
@@ -620,7 +668,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
@@ -645,9 +695,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             padding: const EdgeInsets.only(top: AppSpacing.md),
             child: child,
           ),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -661,7 +710,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     // Helper method to extract icon and label from emoji-prefixed title
     IconData? icon;
     String label;
-    
+
     if (title.startsWith('🎯')) {
       icon = AppIcons.target;
       label = title.substring(2).trim();
@@ -686,7 +735,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } else {
       label = title;
     }
-    
+
     return Align(
       alignment: Alignment.centerLeft,
       child: icon != null
@@ -724,7 +773,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : Colors.white,
-                  borderRadius: AppRadius.lg,
+        borderRadius: AppRadius.lg,
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -739,7 +788,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-                  borderRadius: AppRadius.lg,
+          borderRadius: AppRadius.lg,
           child: Padding(
             padding: AppSpacing.paddingLg,
             child: Row(
@@ -766,7 +815,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           subtitle,
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
                           ),
                         ),
                       ],
@@ -825,7 +876,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-                  borderRadius: AppRadius.lg,
+          borderRadius: AppRadius.lg,
           border: Border.all(
             color: AppColors.premium.withValues(alpha: 0.2),
           ),
@@ -837,7 +888,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               context,
               MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
             ),
-                  borderRadius: AppRadius.lg,
+            borderRadius: AppRadius.lg,
             child: Padding(
               padding: AppSpacing.paddingLg,
               child: Column(
@@ -918,7 +969,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         if (expiryText.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           _buildSubscriptionInfoRow(
-                            sub.autoRenewing ? L10n.of(context)!.renews : L10n.of(context)!.expires,
+                            sub.autoRenewing
+                                ? L10n.of(context)!.renews
+                                : L10n.of(context)!.expires,
                             expiryText,
                             sub.autoRenewing
                                 ? Icons.autorenew
@@ -928,7 +981,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         const SizedBox(height: 8),
                         _buildSubscriptionInfoRow(
                           L10n.of(context)!.autoRenew,
-                          sub.autoRenewing ? L10n.of(context)!.on : L10n.of(context)!.off,
+                          sub.autoRenewing
+                              ? L10n.of(context)!.on
+                              : L10n.of(context)!.off,
                           Icons.repeat,
                           valueColor: sub.autoRenewing
                               ? AppColors.success
@@ -950,7 +1005,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         L10n.of(context)!.tapToManageSubscription,
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? Colors.white38 : AppColors.textTertiary,
+                          color:
+                              isDark ? Colors.white38 : AppColors.textTertiary,
                         ),
                       ),
                       const Spacer(),
@@ -978,8 +1034,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       leading: Container(
         padding: AppSpacing.paddingSm,
         decoration: BoxDecoration(
-                        color: AppColors.premiumLight,
-                        borderRadius: AppRadius.md,
+          color: AppColors.premiumLight,
+          borderRadius: AppRadius.md,
         ),
         child: const Icon(
           Icons.diamond,
@@ -1009,7 +1065,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           label,
           style: TextStyle(
             fontSize: 13,
-            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            color:
+                isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
         const Spacer(),
@@ -1018,7 +1075,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: valueColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+            color: valueColor ??
+                (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
           ),
         ),
       ],
@@ -1042,7 +1100,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               L10n.of(context)!.selectAiPowersChat,
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: AppSpacing.md),
@@ -1075,7 +1135,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: AppColors.success,
               title: L10n.of(context)!.localAi,
               subtitle: L10n.of(context)!.localAiSubtitle,
-              cost: Text(L10n.of(context)!.free, style: const TextStyle(fontSize: 12)),
+              cost: Text(L10n.of(context)!.free,
+                  style: const TextStyle(fontSize: 12)),
               isSelected: !isMiroAi,
               onTap: () {
                 ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
@@ -1117,37 +1178,63 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   String _getLanguageLabel(BuildContext context, String code) {
     switch (code) {
-      case 'en': return L10n.of(context)!.english;
-      case 'th': return L10n.of(context)!.thai;
-      case 'vi': return L10n.of(context)!.vietnamese;
-      case 'id': return L10n.of(context)!.indonesian;
-      case 'zh': return L10n.of(context)!.chinese;
-      case 'ja': return L10n.of(context)!.japanese;
-      case 'ko': return L10n.of(context)!.korean;
-      case 'es': return L10n.of(context)!.spanish;
-      case 'fr': return L10n.of(context)!.french;
-      case 'de': return L10n.of(context)!.german;
-      case 'pt': return L10n.of(context)!.portuguese;
-      case 'hi': return L10n.of(context)!.hindi;
-      default: return code;
+      case 'en':
+        return L10n.of(context)!.english;
+      case 'th':
+        return L10n.of(context)!.thai;
+      case 'vi':
+        return L10n.of(context)!.vietnamese;
+      case 'id':
+        return L10n.of(context)!.indonesian;
+      case 'zh':
+        return L10n.of(context)!.chinese;
+      case 'ja':
+        return L10n.of(context)!.japanese;
+      case 'ko':
+        return L10n.of(context)!.korean;
+      case 'es':
+        return L10n.of(context)!.spanish;
+      case 'fr':
+        return L10n.of(context)!.french;
+      case 'de':
+        return L10n.of(context)!.german;
+      case 'pt':
+        return L10n.of(context)!.portuguese;
+      case 'hi':
+        return L10n.of(context)!.hindi;
+      default:
+        return code;
     }
   }
 
   String _getLanguageSublabel(BuildContext context, String code) {
     switch (code) {
-      case 'en': return L10n.of(context)!.englishSublabel;
-      case 'th': return L10n.of(context)!.thaiSublabel;
-      case 'vi': return L10n.of(context)!.vietnameseSublabel;
-      case 'id': return L10n.of(context)!.indonesianSublabel;
-      case 'zh': return L10n.of(context)!.chineseSublabel;
-      case 'ja': return L10n.of(context)!.japaneseSublabel;
-      case 'ko': return L10n.of(context)!.koreanSublabel;
-      case 'es': return L10n.of(context)!.spanishSublabel;
-      case 'fr': return L10n.of(context)!.frenchSublabel;
-      case 'de': return L10n.of(context)!.germanSublabel;
-      case 'pt': return L10n.of(context)!.portugueseSublabel;
-      case 'hi': return L10n.of(context)!.hindiSublabel;
-      default: return code;
+      case 'en':
+        return L10n.of(context)!.englishSublabel;
+      case 'th':
+        return L10n.of(context)!.thaiSublabel;
+      case 'vi':
+        return L10n.of(context)!.vietnameseSublabel;
+      case 'id':
+        return L10n.of(context)!.indonesianSublabel;
+      case 'zh':
+        return L10n.of(context)!.chineseSublabel;
+      case 'ja':
+        return L10n.of(context)!.japaneseSublabel;
+      case 'ko':
+        return L10n.of(context)!.koreanSublabel;
+      case 'es':
+        return L10n.of(context)!.spanishSublabel;
+      case 'fr':
+        return L10n.of(context)!.frenchSublabel;
+      case 'de':
+        return L10n.of(context)!.germanSublabel;
+      case 'pt':
+        return L10n.of(context)!.portugueseSublabel;
+      case 'hi':
+        return L10n.of(context)!.hindiSublabel;
+      default:
+        return code;
     }
   }
 
@@ -1160,10 +1247,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildLanguageCard(BuildContext context) {
     final currentLocale = ref.watch(localeProvider);
-    
+
     final String languageLabel;
     final String languageFlag;
-    
+
     if (currentLocale != null) {
       languageLabel = _getLanguageLabel(context, currentLocale.languageCode);
       languageFlag = _getLanguageFlag(currentLocale.languageCode);
@@ -1171,7 +1258,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       languageLabel = L10n.of(context)!.systemDefault;
       languageFlag = '🌐';
     }
-    
+
     return _buildModernSettingCard(
       context: context,
       title: L10n.of(context)!.languageTitle,
@@ -1237,7 +1324,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _showLanguageDialog(BuildContext context) async {
     final currentLocale = ref.read(localeProvider);
-    
+
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -1257,7 +1344,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: () {
                     ref.read(localeProvider.notifier).state = null;
                     Navigator.pop(ctx);
-                    _showLanguageChangedSnackbar(L10n.of(context)!.systemDefault);
+                    _showLanguageChangedSnackbar(
+                        L10n.of(context)!.systemDefault);
                   },
                 ),
                 const SizedBox(height: 8),
@@ -1275,7 +1363,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onTap: () {
                         ref.read(localeProvider.notifier).state = Locale(code);
                         Navigator.pop(ctx);
-                        _showLanguageChangedSnackbar(_getLanguageLabel(context, code));
+                        _showLanguageChangedSnackbar(
+                            _getLanguageLabel(context, code));
                       },
                     ),
                   );
@@ -1309,7 +1398,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Container(
         padding: AppSpacing.paddingMd,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : Colors.transparent,
           borderRadius: AppRadius.md,
           border: Border.all(
             color: isSelected
@@ -1329,7 +1420,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : (isDark ? Colors.white38 : AppColors.textTertiary),
+                  color: isSelected
+                      ? AppColors.primary
+                      : (isDark ? Colors.white38 : AppColors.textTertiary),
                   width: 2,
                 ),
               ),
@@ -1367,7 +1460,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     sublabel,
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1406,7 +1501,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Container(
         padding: AppSpacing.paddingMd,
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
           borderRadius: AppRadius.md,
           border: Border.all(
             color: isSelected
@@ -1426,7 +1522,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? color : (isDark ? Colors.white38 : AppColors.textTertiary),
+                  color: isSelected
+                      ? color
+                      : (isDark ? Colors.white38 : AppColors.textTertiary),
                   width: 2,
                 ),
               ),
@@ -1465,7 +1563,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm - 2, vertical: AppSpacing.xxs),
+                            horizontal: AppSpacing.sm - 2,
+                            vertical: AppSpacing.xxs),
                         decoration: BoxDecoration(
                           color: AppColors.warning.withValues(alpha: 0.1),
                           borderRadius: AppRadius.md,
@@ -1486,7 +1585,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1650,8 +1751,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child:
-                Text(L10n.of(context)!.deleteAll, style: const TextStyle(color: Colors.white)),
+            child: Text(L10n.of(context)!.deleteAll,
+                style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -1679,7 +1780,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(L10n.of(context)!.allDataClearedSuccess), duration: const Duration(seconds: 2)),
+            SnackBar(
+                content: Text(L10n.of(context)!.allDataClearedSuccess),
+                duration: const Duration(seconds: 2)),
           );
           Navigator.pushAndRemoveUntil(
             context,
@@ -1690,7 +1793,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(L10n.of(context)!.errorOccurred(e.toString())), backgroundColor: AppColors.error, duration: const Duration(seconds: 2)),
+            SnackBar(
+                content: Text(L10n.of(context)!.errorOccurred(e.toString())),
+                backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 2)),
           );
         }
       }
@@ -1806,7 +1912,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                 child: Text(
                   L10n.of(context)!.backupCreated,
                   style: const TextStyle(
@@ -1821,7 +1928,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   L10n.of(context)!.backupChooseDestination,
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textTertiary
+                        : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -1831,11 +1940,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(AppSpacing.md - 2),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.info.withValues(alpha: 0.2) : AppColors.info.withValues(alpha: 0.1),
+                    color: isDark
+                        ? AppColors.info.withValues(alpha: 0.2)
+                        : AppColors.info.withValues(alpha: 0.1),
                     borderRadius: AppRadius.md,
                   ),
                   child: Icon(Icons.save_alt_rounded,
-                      color: isDark ? AppColors.info.withValues(alpha: 0.7) : AppColors.info,
+                      color: isDark
+                          ? AppColors.info.withValues(alpha: 0.7)
+                          : AppColors.info,
                       size: 24),
                 ),
                 title: Text(
@@ -1852,11 +1965,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(AppSpacing.md - 2),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.success.withValues(alpha: 0.2) : AppColors.success.withValues(alpha: 0.1),
+                    color: isDark
+                        ? AppColors.success.withValues(alpha: 0.2)
+                        : AppColors.success.withValues(alpha: 0.1),
                     borderRadius: AppRadius.md,
                   ),
                   child: Icon(Icons.share_rounded,
-                      color: isDark ? AppColors.success.withValues(alpha: 0.7) : AppColors.success,
+                      color: isDark
+                          ? AppColors.success.withValues(alpha: 0.7)
+                          : AppColors.success,
                       size: 24),
                 ),
                 title: Text(
@@ -1874,7 +1991,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
-
 
   /// Handle Restore Flow
   Future<void> _handleRestore(BuildContext context) async {
@@ -1970,7 +2086,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.premium.withValues(alpha: 0.1),
                   borderRadius: AppRadius.sm,
@@ -1985,21 +2102,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-
-              _buildInfoRow(
-                  '${L10n.of(context)!.backupFrom} ', info.deviceInfo ?? L10n.of(context)!.error),
+              _buildInfoRow('${L10n.of(context)!.backupFrom} ',
+                  info.deviceInfo ?? L10n.of(context)!.error),
               _buildInfoRow(
                 '${L10n.of(context)!.date} ',
                 _formatDate(info.createdAt),
               ),
-              _buildInfoRow('${L10n.of(context)!.energy} ', '${info.energyBalance}'),
-              _buildInfoRow('${L10n.of(context)!.foodEntries} ', '${info.foodEntryCount}'),
-              _buildInfoRow('${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
-
+              _buildInfoRow(
+                  '${L10n.of(context)!.energy} ', '${info.energyBalance}'),
+              _buildInfoRow('${L10n.of(context)!.foodEntries} ',
+                  '${info.foodEntryCount}'),
+              _buildInfoRow(
+                  '${L10n.of(context)!.myMeals} ', '${info.myMealCount}'),
               const SizedBox(height: AppSpacing.lg),
               const Divider(),
               const SizedBox(height: AppSpacing.lg),
-
               Container(
                 padding: AppSpacing.paddingMd,
                 decoration: BoxDecoration(
@@ -2012,7 +2129,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.warning, color: AppColors.warning, size: 20),
+                        const Icon(Icons.warning,
+                            color: AppColors.warning, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           L10n.of(context)!.restoreImportant,
@@ -2025,7 +2143,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      L10n.of(context)!.restoreImportantNotes('${info.energyBalance}'),
+                      L10n.of(context)!
+                          .restoreImportantNotes('${info.energyBalance}'),
                       style: const TextStyle(
                         fontSize: 13,
                         height: 1.5,
@@ -2079,18 +2198,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: AppSpacing.lg),
-            _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ', '${result.newEnergyBalance}'),
+            _buildInfoRow('${L10n.of(context)!.newEnergyBalance} ',
+                '${result.newEnergyBalance}'),
+            _buildInfoRow('${L10n.of(context)!.foodEntriesImported} ',
+                '${result.foodEntriesImported}'),
             _buildInfoRow(
-                '${L10n.of(context)!.foodEntriesImported} ', '${result.foodEntriesImported}'),
-            _buildInfoRow('${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
+                '${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
-                const Icon(AppIcons.success, size: 16, color: AppIcons.successColor),
+                const Icon(AppIcons.success,
+                    size: 16, color: AppIcons.successColor),
                 const SizedBox(width: 4),
                 Text(
                   L10n.of(context)!.appWillRefresh,
-                  style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
+                  style: const TextStyle(
+                      fontSize: 14, fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -2203,9 +2326,12 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
             leading: const Icon(Icons.photo_library_outlined,
                 color: AppColors.primary),
             title: Text(L10n.of(context)!.imagesPerDay),
-            subtitle: Text(L10n.of(context)!.scanUpToImagesPerDay('$_scanImageLimit')),
-            trailing:
-                Icon(Icons.chevron_right, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+            subtitle: Text(
+                L10n.of(context)!.scanUpToImagesPerDay('$_scanImageLimit')),
+            trailing: Icon(Icons.chevron_right,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary),
             onTap: _showScanLimitDialog,
           ),
           Divider(height: 1, color: isDark ? AppColors.dividerDark : null),
@@ -2231,7 +2357,9 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
           children: [
             Text(
               L10n.of(context)!.maxImagesPerDayDescription,
-              style: TextStyle(fontSize: 13, color: isDark ? Colors.white38 : AppColors.textTertiary),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.white38 : AppColors.textTertiary),
             ),
             const SizedBox(height: AppSpacing.lg),
             Wrap(
@@ -2313,7 +2441,8 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('retro_scan_completed');
 
-        AppLogger.info('Deleted ${ids.length} scan entries (gallery+analyzed) & reset retro scan flag');
+        AppLogger.info(
+            'Deleted ${ids.length} scan entries (gallery+analyzed) & reset retro scan flag');
 
         if (!mounted) return;
         _showMessage(L10n.of(context)!.resetComplete('${ids.length}'));
@@ -2409,16 +2538,20 @@ class _AnalyticsConsentToggleState
         borderRadius: AppRadius.md,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
         leading: Container(
           padding: AppSpacing.paddingSm,
           decoration: BoxDecoration(
-            color: isDark ? AppColors.info.withValues(alpha: 0.2) : AppColors.info.withValues(alpha: 0.1),
+            color: isDark
+                ? AppColors.info.withValues(alpha: 0.2)
+                : AppColors.info.withValues(alpha: 0.1),
             borderRadius: AppRadius.md,
           ),
           child: Icon(
             Icons.analytics_outlined,
-            color: isDark ? AppColors.info.withValues(alpha: 0.7) : AppColors.info,
+            color:
+                isDark ? AppColors.info.withValues(alpha: 0.7) : AppColors.info,
             size: 20,
           ),
         ),
@@ -2453,3 +2586,300 @@ class _AnalyticsConsentToggleState
   }
 }
 
+/// Health Sync toggle — connects to Apple Health / Google Health Connect.
+/// Requests Read + Write permissions on first toggle ON.
+class _HealthSyncToggle extends ConsumerStatefulWidget {
+  final UserProfile profile;
+  const _HealthSyncToggle({required this.profile});
+
+  @override
+  ConsumerState<_HealthSyncToggle> createState() => _HealthSyncToggleState();
+}
+
+class _HealthSyncToggleState extends ConsumerState<_HealthSyncToggle> {
+  bool _isLoading = false;
+  late bool _isEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _isEnabled = widget.profile.isHealthConnectConnected;
+  }
+
+  Future<void> _toggle(bool value) async {
+    if (value) {
+      await _enableHealthSync();
+    } else {
+      await _disableHealthSync();
+    }
+  }
+
+  Future<void> _enableHealthSync() async {
+    setState(() => _isLoading = true);
+
+    final available = await HealthSyncService.isAvailable();
+    if (!available) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.healthSyncNotAvailable),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    final hasPerms = await HealthSyncService.hasPermissions();
+    bool granted = hasPerms;
+
+    if (!hasPerms) {
+      granted = await HealthSyncService.requestPermissions();
+    }
+
+    if (!granted) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showPermissionDeniedDialog();
+      }
+      return;
+    }
+
+    widget.profile.isHealthConnectConnected = true;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile(widget.profile);
+
+    if (mounted) {
+      setState(() {
+        _isEnabled = true;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.healthSyncEnabledBmrHint),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> _disableHealthSync() async {
+    setState(() => _isLoading = true);
+
+    widget.profile.isHealthConnectConnected = false;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile(widget.profile);
+
+    if (mounted) {
+      setState(() {
+        _isEnabled = false;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.healthSyncDisabled),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.healthSyncPermissionDeniedTitle),
+        content: Text(L10n.of(context)!.healthSyncPermissionDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              HealthSyncService.openDeviceSettings();
+            },
+            child: Text(L10n.of(context)!.healthSyncGoToSettings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: AppRadius.md,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        leading: Container(
+          padding: AppSpacing.paddingSm,
+          decoration: BoxDecoration(
+            color: AppColors.error.withValues(alpha: isDark ? 0.2 : 0.1),
+            borderRadius: AppRadius.md,
+          ),
+          child: Icon(
+            Icons.favorite_rounded,
+            color: isDark
+                ? AppColors.error.withValues(alpha: 0.7)
+                : AppColors.error,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          L10n.of(context)!.healthSyncTitle,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          _isEnabled
+              ? L10n.of(context)!.healthSyncSubtitleOn
+              : L10n.of(context)!.healthSyncSubtitleOff,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+          ),
+        ),
+        trailing: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Switch(
+                value: _isEnabled,
+                onChanged: _toggle,
+              ),
+      ),
+    );
+  }
+}
+
+/// BMR setting tile — shown when Health Sync is enabled.
+class _BmrSettingTile extends ConsumerWidget {
+  final UserProfile profile;
+  const _BmrSettingTile({required this.profile});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: AppRadius.md,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        leading: Container(
+          padding: AppSpacing.paddingSm,
+          decoration: BoxDecoration(
+            color: AppColors.health.withValues(alpha: isDark ? 0.2 : 0.1),
+            borderRadius: AppRadius.md,
+          ),
+          child: Icon(
+            Icons.monitor_heart_outlined,
+            color: isDark
+                ? AppColors.health.withValues(alpha: 0.7)
+                : AppColors.health,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          L10n.of(context)!.bmrSettingTitle,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+        ),
+        subtitle: Text(
+          L10n.of(context)!.bmrSettingSubtitle,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+          ),
+        ),
+        trailing: Text(
+          '${profile.safeBmr.toInt()}',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+        ),
+        onTap: () => _showBmrDialog(context, ref),
+      ),
+    );
+  }
+
+  void _showBmrDialog(BuildContext context, WidgetRef ref) {
+    final controller =
+        TextEditingController(text: profile.safeBmr.toInt().toString());
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.bmrDialogTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              L10n.of(context)!.bmrDialogDescription,
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'BMR (kcal/day)',
+                hintText: '1500',
+                border: const OutlineInputBorder(),
+                suffixText: 'kcal',
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text);
+              if (value != null && value >= 800 && value <= 4000) {
+                profile.customBmr = value;
+                ref
+                    .read(profileNotifierProvider.notifier)
+                    .updateProfile(profile);
+                Navigator.pop(ctx);
+              }
+            },
+            child: Text(L10n.of(context)!.save),
+          ),
+        ],
+      ),
+    );
+  }
+}

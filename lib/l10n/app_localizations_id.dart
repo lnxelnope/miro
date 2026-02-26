@@ -3051,5 +3051,75 @@ class L10nId extends L10n {
   String get gallery => 'Gallery';
 
   @override
-  String get longPressToSelect => 'Long-press to select items';
+  String get longPressToSelect => 'Tekan lama untuk memilih';
+
+  @override
+  String get healthSyncSection => 'Sinkronisasi Kesehatan';
+
+  @override
+  String get healthSyncTitle => 'Sinkronkan dengan Aplikasi Kesehatan';
+
+  @override
+  String get healthSyncSubtitleOn =>
+      'Data makanan disinkronkan • Energi aktif termasuk';
+
+  @override
+  String get healthSyncSubtitleOff =>
+      'Ketuk untuk menghubungkan Apple Health / Health Connect';
+
+  @override
+  String get healthSyncEnabled => 'Sinkronisasi kesehatan diaktifkan';
+
+  @override
+  String get healthSyncDisabled => 'Sinkronisasi kesehatan dinonaktifkan';
+
+  @override
+  String get healthSyncPermissionDeniedTitle => 'Izin Diperlukan';
+
+  @override
+  String get healthSyncPermissionDeniedMessage =>
+      'Anda sebelumnya menolak akses data kesehatan.\nSilakan aktifkan di pengaturan perangkat.';
+
+  @override
+  String get healthSyncGoToSettings => 'Buka Pengaturan';
+
+  @override
+  String healthSyncActiveEnergyValue(String value) {
+    return '+$value kcal terbakar hari ini';
+  }
+
+  @override
+  String get healthSyncNotAvailable =>
+      'Health Connect tidak tersedia di perangkat ini. Silakan instal aplikasi Health Connect.';
+
+  @override
+  String get healthSyncFoodSynced =>
+      'Makanan disinkronkan ke Aplikasi Kesehatan';
+
+  @override
+  String get healthSyncFoodDeletedFromHealth =>
+      'Makanan dihapus dari Aplikasi Kesehatan';
+
+  @override
+  String get bmrSettingTitle => 'BMR (Tingkat Metabolisme Basal)';
+
+  @override
+  String get bmrSettingSubtitle => 'Digunakan untuk memperkirakan energi aktif';
+
+  @override
+  String get bmrDialogTitle => 'Atur BMR Anda';
+
+  @override
+  String get bmrDialogDescription =>
+      'MiRO menggunakan BMR untuk mengurangi energi istirahat dari total kalori yang terbakar, hanya menampilkan energi aktif Anda. Default adalah 1500 kcal/hari. Anda dapat menemukan BMR dari aplikasi fitness atau kalkulator online.';
+
+  @override
+  String get healthSyncEnabledBmrHint =>
+      'Sinkronisasi kesehatan diaktifkan. BMR default: 1500 kcal/hari — sesuaikan di Pengaturan.';
+
+  @override
+  String get privacyPolicySectionHealthData => 'Integrasi Data Kesehatan';
+
+  @override
+  String get termsSectionHealthDataSync => 'Sinkronisasi Data Kesehatan';
 }
