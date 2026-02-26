@@ -14,7 +14,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
   final void Function(FoodEntry entry) onTap;
   final void Function(List<FoodEntry> selected) onDeleteSelected;
   final void Function(List<FoodEntry> selected) onAnalyzeSelected;
-  final void Function(FoodEntry entry, DateTime newDate)? onMoveToDate;
+  final void Function(List<FoodEntry> selected, DateTime newDate)? onMoveToDate;
 
   const FoodSandbox({
     super.key,
@@ -42,70 +42,22 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
     });
   }
 
-  Future<void> _showLongPressMenu(FoodEntry entry) async {
-    HapticFeedback.mediumImpact();
-    final l10n = L10n.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Future<void> _moveSelectedToDate() async {
+    if (_selectedIds.isEmpty) return;
+    final selectedEntries = widget.entries
+        .where((e) => _selectedIds.contains(e.id))
+        .toList();
 
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        margin: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.surfaceDark : Colors.white,
-          borderRadius: AppRadius.lg,
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Container(
-                  width: 36, height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.calendar_today_rounded, color: AppColors.primary),
-                title: Text(l10n.moveToAnotherDate),
-                onTap: () => Navigator.pop(ctx, 'move_date'),
-              ),
-              ListTile(
-                leading: Icon(Icons.check_circle_outline_rounded,
-                    color: isDark ? Colors.white70 : AppColors.textSecondary),
-                title: Text(l10n.selectAll),
-                onTap: () => Navigator.pop(ctx, 'select'),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (!mounted || result == null) return;
-
-    if (result == 'move_date') {
-      _pickDateForEntry(entry);
-    } else if (result == 'select') {
-      _enterSelectionMode(entry.id);
-    }
-  }
-
-  Future<void> _pickDateForEntry(FoodEntry entry) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: entry.timestamp,
+      initialDate: selectedEntries.first.timestamp,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 1)),
     );
     if (picked == null || !mounted) return;
-    widget.onMoveToDate?.call(entry, picked);
+
+    widget.onMoveToDate?.call(selectedEntries, picked);
+    _exitSelectionMode();
   }
 
   void _exitSelectionMode() {
@@ -184,7 +136,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
                   },
                   onLongPress: () {
                     if (!_selectionMode) {
-                      _showLongPressMenu(entry);
+                      _enterSelectionMode(entry.id);
                     }
                   },
                 );
@@ -223,44 +175,43 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
 
           const Spacer(),
 
-          // Delete selected
-          GestureDetector(
+          // Deselect all (icon only)
+          _iconButton(
+            icon: Icons.deselect_rounded,
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            tooltip: l10n.deselectAll,
+            onTap: _exitSelectionMode,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+
+          // Delete (icon only)
+          _iconButton(
+            icon: Icons.delete_outline_rounded,
+            color: AppColors.error,
+            tooltip: l10n.deleteSelected,
             onTap: () {
               widget.onDeleteSelected(selectedEntries);
               _exitSelectionMode();
             },
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
-              decoration: BoxDecoration(
-                color: AppColors.error.withValues(alpha: 0.1),
-                borderRadius: AppRadius.sm,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.delete_outline_rounded,
-                      size: 16, color: AppColors.error),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    l10n.deleteSelected,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.error),
-                  ),
-                ],
-              ),
-            ),
           ),
+          const SizedBox(width: AppSpacing.xs),
 
-          // Analyze selected (only if some are unanalyzed)
-          if (unanalyzedSelected.isNotEmpty) ...[
-            const SizedBox(width: AppSpacing.sm),
+          // Move to date (icon only)
+          if (widget.onMoveToDate != null) ...[
+            _iconButton(
+              icon: Icons.calendar_today_rounded,
+              color: AppColors.info,
+              tooltip: l10n.moveToDate,
+              onTap: _moveSelectedToDate,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+
+          // Analyze selected (button with label — only if some are unanalyzed)
+          if (unanalyzedSelected.isNotEmpty)
             GestureDetector(
               onTap: () {
                 widget.onAnalyzeSelected(unanalyzedSelected);
@@ -290,17 +241,30 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
                 ),
               ),
             ),
-          ],
-
-          // Close selection
-          const SizedBox(width: AppSpacing.sm),
-          GestureDetector(
-            onTap: _exitSelectionMode,
-            child: Icon(Icons.close_rounded,
-                size: 20,
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _iconButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: AppRadius.sm,
+          ),
+          child: Icon(icon, size: 16, color: color),
+        ),
       ),
     );
   }

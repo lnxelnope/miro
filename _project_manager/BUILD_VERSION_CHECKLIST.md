@@ -6,13 +6,13 @@
 
 ---
 
-## ✅ Build 46 (v1.1.21) - Status: READY FOR PRODUCTION
+## ✅ Build 47 (v1.1.22) - Status: READY FOR PRODUCTION
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.21+46`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 46`, `versionName = "1.1.21"`)
-- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.21'`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.1.22+47`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 47`, `versionName = "1.1.22"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.1.22'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
@@ -21,9 +21,21 @@
 - [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
 
 ### ✨ Changes in this version:
-- **Basic Mode: Long Press to Move Date** - Long press food entry → date picker menu to move entry to another date (meal type preserved)
-- **Platform Tracking** - Auto-detect and store OS (android/ios) in user profile at app startup for future database migration support
-- **Bug Fix: Analyze Results Not Showing** - Fixed analyze completion not refreshing food list immediately (added `foodEntriesByDateProvider` invalidation)
+- **Basic Mode: Selection Bar UI Improvements** - Long press → selection mode with improved action bar
+  - Added **Unselect** button (icon-only) to clear all selections
+  - Converted Delete and Move Date buttons to **icon-only** (saves space)
+  - Analyze button retains text label (only button with text)
+  - All icon buttons have tooltips for better UX
+- **Delete Confirmation Dialog** - Added confirmation dialog before deleting selected entries in Basic mode
+  - Shows entry names in confirmation message
+  - Uses l10n for proper localization
+- **Bug Fix: Long Press Behavior** - Reverted from popup menu back to selection mode (matches original design)
+  - Selection bar now appears above food items when long pressing
+  - More intuitive and space-efficient UI
+
+---
+
+## ✅ Build 46 (v1.1.21) - Status: RELEASED
 
 ---
 
@@ -265,7 +277,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.1.21+46
+version: 1.1.22+47
 ```
 **Format:** `versionName+versionCode`
 - `1.1.14` = Version name (แสดงให้ user เห็น)
@@ -274,8 +286,8 @@ version: 1.1.21+46
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 46
-    versionName = "1.1.21"
+    versionCode = 47
+    versionName = "1.1.22"
 }
 ```
 **Format:**
@@ -287,7 +299,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.1.21',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.1.22',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -312,22 +324,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.20+45 → 1.1.21+46
-version: 1.1.21+46
+# ตัวอย่าง: จาก 1.1.21+46 → 1.1.22+47
+version: 1.1.22+47
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 46  // เพิ่มทีละ 1
-    versionName = "1.1.21"  // ตรงกับ pubspec
+    versionCode = 47  // เพิ่มทีละ 1
+    versionName = "1.1.22"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.1.21',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.1.22',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -354,7 +366,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 46 | 1.1.21 | 2026-02-26 | ✅ Current |
+| 47 | 1.1.22 | 2026-02-26 | ✅ Current |
+| 46 | 1.1.21 | 2026-02-26 | ✅ Released |
 | 45 | 1.1.20 | 2026-02-26 | ✅ Released |
 | 44 | 1.1.19 | 2026-02-26 | ✅ Released |
 | 43 | 1.1.18 | 2026-02-24 | ✅ Released |
@@ -387,14 +400,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.1.21+46`
-- `build.gradle.kts`: `versionCode = 46`, `versionName = "1.1.21"`
+- `pubspec.yaml`: `1.1.22+47`
+- `build.gradle.kts`: `versionCode = 47`, `versionName = "1.1.22"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.1.21',  // แก้ให้ตรงกับ versionName
+subtitle: '1.1.22',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 

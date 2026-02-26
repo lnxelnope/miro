@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.1.22+47] - 2026-02-26
+
+### ✨ UI Improvements
+- **Basic Mode: Selection Bar Redesign** - Improved selection action bar for better space efficiency
+  - Added **Unselect** button (icon-only) to quickly clear all selections
+  - Converted Delete and Move Date buttons to **icon-only** format (saves horizontal space)
+  - Analyze button retains text label (only button with text for clarity)
+  - All icon buttons include tooltips for better discoverability
+  - Selection bar now appears above food items when entering selection mode
+
+### 🐛 Bug Fixes
+- **Fixed: Long Press Behavior** - Reverted from popup menu back to selection mode
+  - Long press now directly enters selection mode (matches original design)
+  - More intuitive UX with selection bar appearing immediately
+  - Fixed space issues with truncated button text
+
+### 🔒 Safety Improvements
+- **Delete Confirmation Dialog** - Added confirmation dialog before deleting selected entries in Basic mode
+  - Shows all selected entry names in confirmation message
+  - Uses proper l10n localization (Thai/English support)
+  - Prevents accidental deletion of multiple entries
+
+### 🔧 Technical
+- Updated `food_sandbox.dart`: Selection bar UI improvements, icon-only buttons, unselect functionality
+- Updated `basic_mode_tab.dart`: Added delete confirmation dialog with l10n support
+
+---
+
 ## [1.1.21+46] - 2026-02-26
 
 ### ✨ New Features

@@ -32,8 +32,8 @@ android {
         applicationId = "com.tanabun.miro"
         minSdk = flutter.minSdkVersion  // Android 6.0+
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
-        versionCode = 46
-        versionName = "1.1.21"
+        versionCode = 47
+        versionName = "1.1.22"
     }
 
     signingConfigs {

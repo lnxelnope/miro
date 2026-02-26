@@ -125,7 +125,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onTap: (entry) => _showFoodDetail(entry),
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
-      onMoveToDate: _moveEntryToDate,
+      onMoveToDate: _moveEntriesToDate,
     );
   }
 
@@ -404,15 +404,16 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     }
   }
 
-  Future<void> _moveEntryToDate(FoodEntry entry, DateTime newDate) async {
-    final oldTime = entry.timestamp;
-    entry.timestamp = DateTime(
-      newDate.year, newDate.month, newDate.day,
-      oldTime.hour, oldTime.minute,
-    );
-    await ref
-        .read(foodEntriesNotifierProvider.notifier)
-        .updateFoodEntry(entry);
+  Future<void> _moveEntriesToDate(List<FoodEntry> entries, DateTime newDate) async {
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    for (final entry in entries) {
+      final oldTime = entry.timestamp;
+      entry.timestamp = DateTime(
+        newDate.year, newDate.month, newDate.day,
+        oldTime.hour, oldTime.minute,
+      );
+      await notifier.updateFoodEntry(entry);
+    }
 
     if (!mounted) return;
     refreshFoodProviders(ref, _selectedDate);
@@ -422,7 +423,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(L10n.of(context)!.movedEntriesToDate(1, fmt.format(newDate))),
+        content: Text(L10n.of(context)!.movedEntriesToDate(entries.length, fmt.format(newDate))),
         backgroundColor: AppColors.primary,
         duration: const Duration(seconds: 2),
       ),
@@ -439,6 +440,30 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   }
 
   Future<void> _deleteSelectedEntries(List<FoodEntry> entries) async {
+    final l10n = L10n.of(context)!;
+    final names = entries.map((e) => e.foodName).join(', ');
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.confirmDeleteMessage(names)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.deleteSelected),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     for (final entry in entries) {
       await notifier.deleteFoodEntry(entry.id);
