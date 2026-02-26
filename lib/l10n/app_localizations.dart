@@ -1585,7 +1585,7 @@ abstract class L10n {
   /// No description provided for @saveAndAnalyze.
   ///
   /// In en, this message translates to:
-  /// **'Save & Analyze'**
+  /// **'Analyze'**
   String get saveAndAnalyze;
 
   /// No description provided for @notFoundInDatabase.
@@ -5225,13 +5225,13 @@ abstract class L10n {
   /// No description provided for @saveAndAnalyzeButton.
   ///
   /// In en, this message translates to:
-  /// **'Save & Analyze'**
+  /// **'Analyze'**
   String get saveAndAnalyzeButton;
 
   /// No description provided for @saveWithoutAnalysis.
   ///
   /// In en, this message translates to:
-  /// **'Save without analysis'**
+  /// **'Save'**
   String get saveWithoutAnalysis;
 
   /// No description provided for @nutritionSection.

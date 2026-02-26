@@ -3024,10 +3024,10 @@ class L10nFr extends L10n {
   String get packagedProductDesc => 'Emballé avec étiquette nutritionnelle';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

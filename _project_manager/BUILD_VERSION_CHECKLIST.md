@@ -2,7 +2,7 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-02-26
+**อัปเดตล่าสุด:** 2026-02-26 (Build 48 - Ready for Play Store)
 
 ---
 
@@ -13,12 +13,12 @@
 - [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.0+48`)
 - [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 48`, `versionName = "1.2.0"`)
 - [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.0'`)
-- [ ] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ 7.1.1)
-- [ ] **Target SDK** - 35 (Android 15)
-- [ ] **Compile SDK** - 36 (Android 16)
-- [ ] **Version Naming** - ตาม Semantic Versioning
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว
-- [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.0`)
+- [x] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.0+48)
+- [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Major Feature: Health Sync (Apple Health / Google Health Connect)
 
@@ -48,12 +48,33 @@
 - User can disable anytime — no data leaves device without consent
 
 ### 🐛 Bug Fixes:
-- Fixed: NaN/Infinity error in BMR calculation causing crashes (`Unsupported operation: Infinity or NaN toInt`)
-  - Added `safeBmr` getter in UserProfile model
-  - Safety checks in all `.toInt()` calls for activeEnergy and goal calculations
-- Fixed: Active Energy not updating when BMR changed in settings
-  - Changed `activeEnergyProvider` to watch `profileNotifierProvider` instead of reading from database directly
-  - Provider now recalculates automatically when profile changes
+- **Fixed: NaN/Infinity Error in BMR Calculation** - Resolved crash when displaying BMR in settings (`Unsupported operation: Infinity or NaN toInt`)
+  - Root cause: Existing user profiles created before `customBmr` field was added returned NaN from Isar database
+  - Solution: Added `safeBmr` getter in UserProfile model with NaN/Infinity safety checks
+  - Added safety checks in all `.toInt()` calls for activeEnergy and goal calculations
+  - All NaN/Infinity values now default to 1,500 kcal
+
+- **Fixed: Active Energy Not Updating When BMR Changed** - Active Energy now recalculates immediately when BMR is changed in settings
+  - Root cause: `activeEnergyProvider` was reading profile directly from database instead of watching `profileNotifierProvider`
+  - Solution: Changed provider to watch `profileNotifierProvider` — automatically recalculates when profile changes
+  - Also fixed `effectiveCalorieGoalProvider` to watch profile changes
+
+- **Fixed: Product Mode Not Saved Correctly** - เมื่อเลือก Product mode แล้วกด Save without analysis จะบันทึกเป็น Food mode แทน
+  - Root cause: `_saveToDiary()` ใน `image_analysis_preview_screen.dart` ไม่ได้ set `searchMode` และใช้ชื่อ default เป็น `'food'` เสมอ
+  - Solution: เพิ่ม `..searchMode = _searchMode` และเปลี่ยนชื่อ default ตาม search mode (`'product'` เมื่อเป็น product mode, `'food'` เมื่อเป็น food mode)
+  - Applied to both `_saveAndAnalyze()` and `_saveToDiary()` methods
+
+- **UI Improvement: Button Labels** - ปรับปรุงข้อความปุ่มให้กระชับขึ้น
+  - "Save & Analyze" → **"Analyze"** (บันทึก & วิเคราะห์ → วิเคราะห์)
+  - "Save without analysis" → **"Save"** (บันทึกโดยไม่วิเคราะห์ → บันทึก)
+  - Updated localization files (EN & TH) and regenerated
+
+### 🔧 Technical Changes:
+- **image_analysis_preview_screen.dart**: 
+  - Fixed `_saveToDiary()`: Added `..searchMode = _searchMode` to preserve selected search mode
+  - Updated default name logic: `foodName.isEmpty ? (_searchMode == FoodSearchMode.product ? 'product' : 'food') : foodName`
+  - Applied same fix to `_saveAndAnalyze()` for consistency
+- **Localization**: Updated `app_en.arb` and `app_th.arb` button text, regenerated with `flutter gen-l10n`
 
 ---
 ## ✅ Build 47 (v1.1.22) - Status: RELEASED
@@ -466,12 +487,14 @@ subtitle: '1.2.0',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist:
-- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน
-- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า
-- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️
-- [ ] CHANGELOG.md อัปเดตแล้ว
-- [ ] AdMob: AD_ID (Android), ATT + SKAdNetwork (iOS), UMP Consent flow
+### Pre-flight Checklist (Build 48):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.0+48`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (47 → 48)
+- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.0'`)
+- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.0+48)
+- [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+- [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
+- [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)
 - [ ] Build และทดสอบ APK/AAB บนเครื่อง
 - [ ] Git commit และ push แล้ว
 

@@ -824,7 +824,7 @@ class L10nTh extends L10n {
   String get foundInDatabase => '✅ พบในฐานข้อมูล — ข้อมูลโภชนาการเติมอัตโนมัติ';
 
   @override
-  String get saveAndAnalyze => 'บันทึกและวิเคราะห์';
+  String get saveAndAnalyze => 'วิเคราะห์';
 
   @override
   String get notFoundInDatabase => 'ไม่พบในฐานข้อมูล — จะวิเคราะห์ในพื้นหลัง';
@@ -2920,10 +2920,10 @@ class L10nTh extends L10n {
   String get packagedProductDesc => 'สินค้าที่มีฉลากโภชนาการ';
 
   @override
-  String get saveAndAnalyzeButton => 'บันทึก & วิเคราะห์';
+  String get saveAndAnalyzeButton => 'วิเคราะห์';
 
   @override
-  String get saveWithoutAnalysis => 'บันทึกโดยไม่วิเคราะห์';
+  String get saveWithoutAnalysis => 'บันทึก';
 
   @override
   String get nutritionSection => 'โภชนาการ';

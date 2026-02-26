@@ -2990,10 +2990,10 @@ class L10nId extends L10n {
   String get packagedProductDesc => 'Kemasan dengan label nutrisi';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

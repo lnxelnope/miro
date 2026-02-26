@@ -2887,10 +2887,10 @@ class L10nZh extends L10n {
   String get packagedProductDesc => '带营养标签的包装产品';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

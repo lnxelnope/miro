@@ -2996,10 +2996,10 @@ class L10nVi extends L10n {
   String get packagedProductDesc => 'Đóng gói với nhãn dinh dưỡng';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

@@ -137,7 +137,9 @@ class _ImageAnalysisPreviewScreenState
       quantity = parsed;
     }
 
-    final effectiveName = foodName.isEmpty ? 'food' : foodName;
+    final effectiveName = foodName.isEmpty
+        ? (_searchMode == FoodSearchMode.product ? 'product' : 'food')
+        : foodName;
     final imagePath = _hasImage
         ? (_permanentImagePath ?? _currentImageFile!.path)
         : null;
@@ -206,8 +208,12 @@ class _ImageAnalysisPreviewScreenState
         ? (_permanentImagePath ?? _currentImageFile!.path)
         : null;
 
+    final effectiveName = foodName.isEmpty
+        ? (_searchMode == FoodSearchMode.product ? 'product' : 'food')
+        : foodName;
+
     final entry = FoodEntry()
-      ..foodName = foodName.isEmpty ? 'food' : foodName
+      ..foodName = effectiveName
       ..mealType = _selectedMealType
       ..timestamp = entryTimestamp
       ..imagePath = imagePath
@@ -218,7 +224,8 @@ class _ImageAnalysisPreviewScreenState
       ..carbs = 0
       ..fat = 0
       ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
-      ..isVerified = false;
+      ..isVerified = false
+      ..searchMode = _searchMode;
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);

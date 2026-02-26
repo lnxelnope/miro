@@ -3007,10 +3007,10 @@ class L10nPt extends L10n {
   String get packagedProductDesc => 'Embalado com etiqueta nutricional';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

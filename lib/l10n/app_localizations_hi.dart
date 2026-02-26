@@ -2981,10 +2981,10 @@ class L10nHi extends L10n {
   String get packagedProductDesc => 'पोषण लेबल के साथ पैकेज्ड';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';

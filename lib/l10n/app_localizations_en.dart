@@ -827,7 +827,7 @@ class L10nEn extends L10n {
       '✅ Found in database — nutrition data auto-filled';
 
   @override
-  String get saveAndAnalyze => 'Save & Analyze';
+  String get saveAndAnalyze => 'Analyze';
 
   @override
   String get notFoundInDatabase =>
@@ -2968,10 +2968,10 @@ class L10nEn extends L10n {
   String get packagedProductDesc => 'Packaged with nutrition label';
 
   @override
-  String get saveAndAnalyzeButton => 'Save & Analyze';
+  String get saveAndAnalyzeButton => 'Analyze';
 
   @override
-  String get saveWithoutAnalysis => 'Save without analysis';
+  String get saveWithoutAnalysis => 'Save';
 
   @override
   String get nutritionSection => 'Nutrition';
