@@ -390,34 +390,6 @@ class _FoodBubbleState extends State<_FoodBubble>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Product badge
-            if (isProduct && !isUnanalyzed)
-              Container(
-                margin: const EdgeInsets.only(bottom: 3),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.health.withValues(alpha: 0.2)
-                      : AppColors.health.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(FoodSearchMode.product.icon, size: 8,
-                        color: isDark ? AppColors.health : AppColors.health),
-                    const SizedBox(width: 2),
-                    Text(
-                      'Product',
-                      style: TextStyle(
-                        fontSize: 7,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.health : AppColors.health,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             // Image (แสดงเฉพาะเมื่อมีรูป)
             if (hasImage) ...[
               ClipRRect(
