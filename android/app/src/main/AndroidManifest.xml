@@ -29,9 +29,8 @@
     <!-- Features -->
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     
-    <!-- AD_ID Declaration: We do NOT use advertising ID (Android 13+) -->
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID"
-        tools:node="remove"/>
+    <!-- AD_ID for AdMob (Android 13+): Required for personalized ads -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     
     <!-- Queries for url_launcher (Android 11+) -->
     <queries>

@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'device_id_service.dart';
+import 'admob_consent_service.dart';
 
 class AdService {
   static const String _rewardedAdUnitId =
@@ -27,7 +28,7 @@ class AdService {
   int get remainingAds => maxAdsPerDay - _adsWatchedToday;
 
   Future<void> initialize() async {
-    await MobileAds.instance.initialize();
+    await AdmobConsentService.initializeWithConsent();
     await _loadRewardedAd();
     await _syncAdStatus();
   }

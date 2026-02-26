@@ -15,6 +15,7 @@ import 'core/services/energy_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/analytics_service.dart';
 import 'core/services/consent_service.dart';
+import 'core/services/admob_consent_service.dart';
 import 'core/ai/llm_service.dart';
 import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
@@ -134,6 +135,13 @@ void _initServicesInBackground() async {
       );
     } catch (e) {
       AppLogger.warn('⚠️ AnalyticsService: $e');
+    }
+
+    try {
+      await AdmobConsentService.initializeWithConsent()
+          .timeout(const Duration(seconds: 15), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ AdmobConsentService: $e');
     }
 
     AppLogger.info('✅ All background services initialized');

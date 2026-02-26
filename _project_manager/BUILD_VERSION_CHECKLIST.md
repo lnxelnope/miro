@@ -18,9 +18,14 @@
 - [ ] **Compile SDK** - 36 (Android 16)
 - [ ] **Version Naming** - ตาม Semantic Versioning
 - [ ] **CHANGELOG.md** - อัปเดตแล้ว
+- [ ] **AdMob Compliance** - AD_ID (Android), NSUserTrackingUsageDescription + SKAdNetworkItems (iOS), UMP Consent flow
 
 ### ✨ Changes in this version:
-- (เพิ่มรายละเอียดการเปลี่ยนแปลงที่นี่)
+- **AdMob Compliance (Android + iOS):**
+  - Android: เพิ่ม `com.google.android.gms.permission.AD_ID` ใน AndroidManifest.xml (แก้ Play Console warning)
+  - iOS: เพิ่ม `NSUserTrackingUsageDescription` + `SKAdNetworkItems` ใน Info.plist
+  - สร้าง `AdmobConsentService` — UMP Consent + iOS ATT flow ก่อน init AdMob
+  - ผู้ใช้ consent → Personalized Ads | ไม่ consent → Non-personalized Ads (fallback อัตโนมัติ)
 
 ---
 
@@ -365,6 +370,7 @@ subtitle: '1.1.19',  // แก้ให้ตรงกับ versionName
 - [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า
 - [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️
 - [ ] CHANGELOG.md อัปเดตแล้ว
+- [ ] AdMob: AD_ID (Android), ATT + SKAdNetwork (iOS), UMP Consent flow
 - [ ] Build และทดสอบ APK/AAB บนเครื่อง
 - [ ] Git commit และ push แล้ว
 
