@@ -93,8 +93,57 @@ class L10nTh extends L10n {
   String get todaySummary => 'สรุปวันนี้';
 
   @override
+  String get nutritionSummary => 'สรุปโภชนาการ';
+
+  @override
   String dateSummary(String date) {
     return 'สรุป $date';
+  }
+
+  @override
+  String get periodAll => 'ทั้งหมด';
+
+  @override
+  String get macroDistribution => 'การกระจายสารอาหารหลัก';
+
+  @override
+  String get calorieTrend => 'แนวโน้มแคลอรี่';
+
+  @override
+  String get calorieTrend7Days => 'แนวโน้มแคลอรี่ (7 วัน)';
+
+  @override
+  String get micronutrientTracker => 'ติดตามสารอาหารรอง';
+
+  @override
+  String get fatBreakdown => 'การแยกไขมัน';
+
+  @override
+  String get goal => 'เป้าหมาย';
+
+  @override
+  String get over => 'เกิน';
+
+  @override
+  String get saturated => 'อิ่มตัว';
+
+  @override
+  String get mono => 'โมโน';
+
+  @override
+  String get poly => 'โพลี';
+
+  @override
+  String get trans => 'ทรานส์';
+
+  @override
+  String noDataFor(String title) {
+    return 'ไม่มีข้อมูลสำหรับ $title';
+  }
+
+  @override
+  String errorColon(String error) {
+    return 'ข้อผิดพลาด: $error';
   }
 
   @override
@@ -1101,6 +1150,23 @@ class L10nTh extends L10n {
   String deletedEntries(int count) {
     return 'ลบ $count รายการแล้ว';
   }
+
+  @override
+  String deletedSingleEntry(String name) {
+    return 'ลบ $name แล้ว';
+  }
+
+  @override
+  String get intakeGoalLabel => 'การกิน';
+
+  @override
+  String get netEnergyLabel => 'พลังงานสุทธิ';
+
+  @override
+  String get underEatingWarning => 'กินน้อยเกินไป';
+
+  @override
+  String get surplusWarning => 'เกินเป้าหมาย';
 
   @override
   String movedEntriesToDate(int count, String date) {
@@ -2972,6 +3038,20 @@ class L10nTh extends L10n {
   String get quickAddHint => 'เช่น ผัดไทย, ข้าวสวย...';
 
   @override
+  String get quickCalButton => '+ cal';
+
+  @override
+  String get quickCalTitle => 'แคลอรี่ด่วน';
+
+  @override
+  String get quickCalHint => 'ใส่จำนวนแคลอรี่ (kcal)';
+
+  @override
+  String quickCalSaved(int kcal) {
+    return 'Quick Cal $kcal kcal';
+  }
+
+  @override
   String get quantity => 'ปริมาณ';
 
   @override
@@ -3049,4 +3129,94 @@ class L10nTh extends L10n {
 
   @override
   String get termsSectionHealthDataSync => 'การซิงค์ข้อมูลสุขภาพ';
+
+  @override
+  String get tdeeLabel => 'TDEE (พลังงานที่ใช้ต่อวัน)';
+
+  @override
+  String get tdeeHint =>
+      'ค่าประมาณพลังงานที่เผาผลาญต่อวัน ใช้เครื่องคำนวณด้านล่างหรือใส่เองได้';
+
+  @override
+  String get tdeeCalcTitle => 'เครื่องคำนวณ TDEE / BMR';
+
+  @override
+  String get tdeeCalcPrivacy =>
+      'นี่เป็นเพียงเครื่องคำนวณ — ระบบจะไม่เก็บข้อมูลส่วนนี้';
+
+  @override
+  String get tdeeCalcGender => 'เพศ';
+
+  @override
+  String get tdeeCalcMale => 'ชาย';
+
+  @override
+  String get tdeeCalcFemale => 'หญิง';
+
+  @override
+  String get tdeeCalcAge => 'อายุ';
+
+  @override
+  String get tdeeCalcWeight => 'น้ำหนัก (กก.)';
+
+  @override
+  String get tdeeCalcHeight => 'ส่วนสูง (ซม.)';
+
+  @override
+  String get tdeeCalcActivity => 'ระดับกิจกรรม';
+
+  @override
+  String get tdeeCalcActivitySedentary => 'นั่งทำงาน (ไม่ออกกำลัง)';
+
+  @override
+  String get tdeeCalcActivityLight => 'เบา (1-2 วัน/สัปดาห์)';
+
+  @override
+  String get tdeeCalcActivityModerate => 'ปานกลาง (3-5 วัน/สัปดาห์)';
+
+  @override
+  String get tdeeCalcActivityActive => 'หนัก (6-7 วัน/สัปดาห์)';
+
+  @override
+  String get tdeeCalcActivityVeryActive => 'หนักมาก (นักกีฬา)';
+
+  @override
+  String get tdeeCalcResult => 'ค่าประมาณของคุณ';
+
+  @override
+  String tdeeCalcBmrResult(int value) {
+    return 'BMR $value kcal/วัน';
+  }
+
+  @override
+  String tdeeCalcTdeeResult(int value) {
+    return 'TDEE $value kcal/วัน';
+  }
+
+  @override
+  String get tdeeCalcApplyTdee => 'ใช้ TDEE เป็นเป้าหมายแคลอรี่';
+
+  @override
+  String get tdeeCalcApplyBmr => 'ใช้ BMR สำหรับ Health Sync';
+
+  @override
+  String get tdeeCalcApplyBoth => 'ใช้ทั้งคู่';
+
+  @override
+  String get tdeeCalcApplied => 'นำไปใช้แล้ว!';
+
+  @override
+  String get tdeeCalcBmrExplain => 'BMR = พลังงานที่ร่างกายใช้ขณะพัก';
+
+  @override
+  String get tdeeCalcTdeeExplain => 'TDEE = BMR + กิจกรรมประจำวัน';
+
+  @override
+  String get dailyBalanceLabel => 'สมดุลพลังงาน';
+
+  @override
+  String get intakeLabel => 'ทาน';
+
+  @override
+  String get burnedLabel => 'เผาผลาญ';
 }

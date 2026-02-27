@@ -33,7 +33,36 @@
   "mealSnack": "ของว่าง",
 
   "todaySummary": "สรุปวันนี้",
+  "nutritionSummary": "สรุปโภชนาการ",
   "dateSummary": "สรุป {date}",
+  "periodAll": "ทั้งหมด",
+  "macroDistribution": "การกระจายสารอาหารหลัก",
+  "calorieTrend": "แนวโน้มแคลอรี่",
+  "calorieTrend7Days": "แนวโน้มแคลอรี่ (7 วัน)",
+  "micronutrientTracker": "ติดตามสารอาหารรอง",
+  "fatBreakdown": "การแยกไขมัน",
+  "goal": "เป้าหมาย",
+  "over": "เกิน",
+  "saturated": "อิ่มตัว",
+  "mono": "โมโน",
+  "poly": "โพลี",
+  "trans": "ทรานส์",
+  "noDataFor": "ไม่มีข้อมูลสำหรับ {title}",
+  "@noDataFor": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "errorColon": "ข้อผิดพลาด: {error}",
+  "@errorColon": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "@dateSummary": {
     "placeholders": {
       "date": {
@@ -787,6 +816,18 @@
       }
     }
   },
+  "deletedSingleEntry": "ลบ {name} แล้ว",
+  "@deletedSingleEntry": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "intakeGoalLabel": "การกิน",
+  "netEnergyLabel": "พลังงานสุทธิ",
+  "underEatingWarning": "กินน้อยเกินไป",
+  "surplusWarning": "เกินเป้าหมาย",
   "movedEntriesToDate": "ย้าย {count} รายการไป {date}",
   "@movedEntriesToDate": {
     "placeholders": {
@@ -1865,6 +1906,15 @@
   "saveChanges": "บันทึก",
   "quickAddTitle": "เพิ่มด่วน",
   "quickAddHint": "เช่น ผัดไทย, ข้าวสวย...",
+  "quickCalButton": "+ cal",
+  "quickCalTitle": "แคลอรี่ด่วน",
+  "quickCalHint": "ใส่จำนวนแคลอรี่ (kcal)",
+  "quickCalSaved": "Quick Cal {kcal} kcal",
+  "@quickCalSaved": {
+    "placeholders": {
+      "kcal": { "type": "int" }
+    }
+  },
   "quantity": "ปริมาณ",
   "addToSandbox": "เพิ่ม",
   "gallery": "แกลเลอรี",
@@ -1895,5 +1945,41 @@
   "bmrDialogDescription": "MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
   "healthSyncEnabledBmrHint": "เปิด Health Sync แล้ว BMR เริ่มต้น: 1500 kcal/วัน — ปรับได้ใน Settings",
   "privacyPolicySectionHealthData": "การเชื่อมต่อข้อมูลสุขภาพ",
-  "termsSectionHealthDataSync": "การซิงค์ข้อมูลสุขภาพ"
+  "termsSectionHealthDataSync": "การซิงค์ข้อมูลสุขภาพ",
+
+  "tdeeLabel": "TDEE (พลังงานที่ใช้ต่อวัน)",
+  "tdeeHint": "ค่าประมาณพลังงานที่เผาผลาญต่อวัน ใช้เครื่องคำนวณด้านล่างหรือใส่เองได้",
+  "tdeeCalcTitle": "เครื่องคำนวณ TDEE / BMR",
+  "tdeeCalcPrivacy": "นี่เป็นเพียงเครื่องคำนวณ — ระบบจะไม่เก็บข้อมูลส่วนนี้",
+  "tdeeCalcGender": "เพศ",
+  "tdeeCalcMale": "ชาย",
+  "tdeeCalcFemale": "หญิง",
+  "tdeeCalcAge": "อายุ",
+  "tdeeCalcWeight": "น้ำหนัก (กก.)",
+  "tdeeCalcHeight": "ส่วนสูง (ซม.)",
+  "tdeeCalcActivity": "ระดับกิจกรรม",
+  "tdeeCalcActivitySedentary": "นั่งทำงาน (ไม่ออกกำลัง)",
+  "tdeeCalcActivityLight": "เบา (1-2 วัน/สัปดาห์)",
+  "tdeeCalcActivityModerate": "ปานกลาง (3-5 วัน/สัปดาห์)",
+  "tdeeCalcActivityActive": "หนัก (6-7 วัน/สัปดาห์)",
+  "tdeeCalcActivityVeryActive": "หนักมาก (นักกีฬา)",
+  "tdeeCalcResult": "ค่าประมาณของคุณ",
+  "tdeeCalcBmrResult": "BMR {value} kcal/วัน",
+  "@tdeeCalcBmrResult": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "tdeeCalcTdeeResult": "TDEE {value} kcal/วัน",
+  "@tdeeCalcTdeeResult": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "tdeeCalcApplyTdee": "ใช้ TDEE เป็นเป้าหมายแคลอรี่",
+  "tdeeCalcApplyBmr": "ใช้ BMR สำหรับ Health Sync",
+  "tdeeCalcApplyBoth": "ใช้ทั้งคู่",
+  "tdeeCalcApplied": "นำไปใช้แล้ว!",
+  "tdeeCalcBmrExplain": "BMR = พลังงานที่ร่างกายใช้ขณะพัก",
+  "tdeeCalcTdeeExplain": "TDEE = BMR + กิจกรรมประจำวัน",
+
+  "dailyBalanceLabel": "สมดุลพลังงาน",
+  "intakeLabel": "ทาน",
+  "burnedLabel": "เผาผลาญ"
 }

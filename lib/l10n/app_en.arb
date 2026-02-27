@@ -33,7 +33,36 @@
   "mealSnack": "Snack",
 
   "todaySummary": "Today's Summary",
+  "nutritionSummary": "Nutrition Summary",
   "dateSummary": "Summary for {date}",
+  "periodAll": "All",
+  "macroDistribution": "Macro Distribution",
+  "calorieTrend": "Calorie Trend",
+  "calorieTrend7Days": "Calorie Trend (7 days)",
+  "micronutrientTracker": "Micronutrient Tracker",
+  "fatBreakdown": "Fat Breakdown",
+  "goal": "Goal",
+  "over": "OVER",
+  "saturated": "Saturated",
+  "mono": "Mono",
+  "poly": "Poly",
+  "trans": "Trans",
+  "noDataFor": "No data for {title}",
+  "@noDataFor": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "errorColon": "Error: {error}",
+  "@errorColon": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "@dateSummary": {
     "placeholders": {
       "date": {
@@ -787,6 +816,18 @@
       }
     }
   },
+  "deletedSingleEntry": "Deleted {name}",
+  "@deletedSingleEntry": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "intakeGoalLabel": "Intake Goal",
+  "netEnergyLabel": "Net Energy Balance",
+  "underEatingWarning": "Under-eating",
+  "surplusWarning": "Surplus",
   "movedEntriesToDate": "Moved {count} {count, plural, =1 {entry} other {entries}} to {date}",
   "@movedEntriesToDate": {
     "placeholders": {
@@ -2041,6 +2082,15 @@
   "saveChanges": "Save Changes",
   "quickAddTitle": "Quick Add",
   "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quickCalButton": "+ cal",
+  "quickCalTitle": "Quick Calorie",
+  "quickCalHint": "Enter calories (kcal)",
+  "quickCalSaved": "Quick Cal {kcal} kcal",
+  "@quickCalSaved": {
+    "placeholders": {
+      "kcal": { "type": "int" }
+    }
+  },
   "quantity": "Quantity",
   "addToSandbox": "Add",
   "gallery": "Gallery",
@@ -2071,5 +2121,41 @@
   "bmrDialogDescription": "MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.",
   "healthSyncEnabledBmrHint": "Health sync enabled. BMR default: 1500 kcal/day — adjust in Settings if needed.",
   "privacyPolicySectionHealthData": "Health Data Integration",
-  "termsSectionHealthDataSync": "Health Data Synchronization"
+  "termsSectionHealthDataSync": "Health Data Synchronization",
+
+  "tdeeLabel": "TDEE (Total Daily Energy Expenditure)",
+  "tdeeHint": "Your estimated daily burn. Use the calculator below or enter manually.",
+  "tdeeCalcTitle": "TDEE / BMR Calculator",
+  "tdeeCalcPrivacy": "This is a calculator only — your data is NOT stored.",
+  "tdeeCalcGender": "Gender",
+  "tdeeCalcMale": "Male",
+  "tdeeCalcFemale": "Female",
+  "tdeeCalcAge": "Age",
+  "tdeeCalcWeight": "Weight (kg)",
+  "tdeeCalcHeight": "Height (cm)",
+  "tdeeCalcActivity": "Activity Level",
+  "tdeeCalcActivitySedentary": "Sedentary (office work)",
+  "tdeeCalcActivityLight": "Light (1-2 days/week)",
+  "tdeeCalcActivityModerate": "Moderate (3-5 days/week)",
+  "tdeeCalcActivityActive": "Active (6-7 days/week)",
+  "tdeeCalcActivityVeryActive": "Very Active (athlete)",
+  "tdeeCalcResult": "Your estimated values",
+  "tdeeCalcBmrResult": "BMR {value} kcal/day",
+  "@tdeeCalcBmrResult": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "tdeeCalcTdeeResult": "TDEE {value} kcal/day",
+  "@tdeeCalcTdeeResult": {
+    "placeholders": { "value": { "type": "int" } }
+  },
+  "tdeeCalcApplyTdee": "Use TDEE as Calorie Goal",
+  "tdeeCalcApplyBmr": "Use BMR for Health Sync",
+  "tdeeCalcApplyBoth": "Apply Both",
+  "tdeeCalcApplied": "Applied!",
+  "tdeeCalcBmrExplain": "BMR = energy your body uses at rest",
+  "tdeeCalcTdeeExplain": "TDEE = BMR + daily activity",
+
+  "dailyBalanceLabel": "Daily Balance",
+  "intakeLabel": "Intake",
+  "burnedLabel": "Burned"
 }

@@ -285,11 +285,101 @@ abstract class L10n {
   /// **'Today\'s Summary'**
   String get todaySummary;
 
+  /// No description provided for @nutritionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition Summary'**
+  String get nutritionSummary;
+
   /// No description provided for @dateSummary.
   ///
   /// In en, this message translates to:
   /// **'Summary for {date}'**
   String dateSummary(String date);
+
+  /// No description provided for @periodAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get periodAll;
+
+  /// No description provided for @macroDistribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Macro Distribution'**
+  String get macroDistribution;
+
+  /// No description provided for @calorieTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie Trend'**
+  String get calorieTrend;
+
+  /// No description provided for @calorieTrend7Days.
+  ///
+  /// In en, this message translates to:
+  /// **'Calorie Trend (7 days)'**
+  String get calorieTrend7Days;
+
+  /// No description provided for @micronutrientTracker.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrient Tracker'**
+  String get micronutrientTracker;
+
+  /// No description provided for @fatBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat Breakdown'**
+  String get fatBreakdown;
+
+  /// No description provided for @goal.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get goal;
+
+  /// No description provided for @over.
+  ///
+  /// In en, this message translates to:
+  /// **'OVER'**
+  String get over;
+
+  /// No description provided for @saturated.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturated'**
+  String get saturated;
+
+  /// No description provided for @mono.
+  ///
+  /// In en, this message translates to:
+  /// **'Mono'**
+  String get mono;
+
+  /// No description provided for @poly.
+  ///
+  /// In en, this message translates to:
+  /// **'Poly'**
+  String get poly;
+
+  /// No description provided for @trans.
+  ///
+  /// In en, this message translates to:
+  /// **'Trans'**
+  String get trans;
+
+  /// No description provided for @noDataFor.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for {title}'**
+  String noDataFor(String title);
+
+  /// No description provided for @errorColon.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorColon(String error);
 
   /// No description provided for @savedSuccess.
   ///
@@ -2062,6 +2152,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Deleted {count} {count, plural, =1 {entry} other {entries}}'**
   String deletedEntries(int count);
+
+  /// No description provided for @deletedSingleEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted {name}'**
+  String deletedSingleEntry(String name);
+
+  /// No description provided for @intakeGoalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Intake Goal'**
+  String get intakeGoalLabel;
+
+  /// No description provided for @netEnergyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Energy Balance'**
+  String get netEnergyLabel;
+
+  /// No description provided for @underEatingWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Under-eating'**
+  String get underEatingWarning;
+
+  /// No description provided for @surplusWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Surplus'**
+  String get surplusWarning;
 
   /// No description provided for @movedEntriesToDate.
   ///
@@ -5324,6 +5444,30 @@ abstract class L10n {
   /// **'e.g. Pad Thai, Rice...'**
   String get quickAddHint;
 
+  /// No description provided for @quickCalButton.
+  ///
+  /// In en, this message translates to:
+  /// **'+ cal'**
+  String get quickCalButton;
+
+  /// No description provided for @quickCalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Calorie'**
+  String get quickCalTitle;
+
+  /// No description provided for @quickCalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter calories (kcal)'**
+  String get quickCalHint;
+
+  /// No description provided for @quickCalSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Cal {kcal} kcal'**
+  String quickCalSaved(int kcal);
+
   /// No description provided for @quantity.
   ///
   /// In en, this message translates to:
@@ -5467,6 +5611,174 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Health Data Synchronization'**
   String get termsSectionHealthDataSync;
+
+  /// No description provided for @tdeeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TDEE (Total Daily Energy Expenditure)'**
+  String get tdeeLabel;
+
+  /// No description provided for @tdeeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your estimated daily burn. Use the calculator below or enter manually.'**
+  String get tdeeHint;
+
+  /// No description provided for @tdeeCalcTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'TDEE / BMR Calculator'**
+  String get tdeeCalcTitle;
+
+  /// No description provided for @tdeeCalcPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'This is a calculator only — your data is NOT stored.'**
+  String get tdeeCalcPrivacy;
+
+  /// No description provided for @tdeeCalcGender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get tdeeCalcGender;
+
+  /// No description provided for @tdeeCalcMale.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get tdeeCalcMale;
+
+  /// No description provided for @tdeeCalcFemale.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get tdeeCalcFemale;
+
+  /// No description provided for @tdeeCalcAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get tdeeCalcAge;
+
+  /// No description provided for @tdeeCalcWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (kg)'**
+  String get tdeeCalcWeight;
+
+  /// No description provided for @tdeeCalcHeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (cm)'**
+  String get tdeeCalcHeight;
+
+  /// No description provided for @tdeeCalcActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Level'**
+  String get tdeeCalcActivity;
+
+  /// No description provided for @tdeeCalcActivitySedentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sedentary (office work)'**
+  String get tdeeCalcActivitySedentary;
+
+  /// No description provided for @tdeeCalcActivityLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light (1-2 days/week)'**
+  String get tdeeCalcActivityLight;
+
+  /// No description provided for @tdeeCalcActivityModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate (3-5 days/week)'**
+  String get tdeeCalcActivityModerate;
+
+  /// No description provided for @tdeeCalcActivityActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active (6-7 days/week)'**
+  String get tdeeCalcActivityActive;
+
+  /// No description provided for @tdeeCalcActivityVeryActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Very Active (athlete)'**
+  String get tdeeCalcActivityVeryActive;
+
+  /// No description provided for @tdeeCalcResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Your estimated values'**
+  String get tdeeCalcResult;
+
+  /// No description provided for @tdeeCalcBmrResult.
+  ///
+  /// In en, this message translates to:
+  /// **'BMR {value} kcal/day'**
+  String tdeeCalcBmrResult(int value);
+
+  /// No description provided for @tdeeCalcTdeeResult.
+  ///
+  /// In en, this message translates to:
+  /// **'TDEE {value} kcal/day'**
+  String tdeeCalcTdeeResult(int value);
+
+  /// No description provided for @tdeeCalcApplyTdee.
+  ///
+  /// In en, this message translates to:
+  /// **'Use TDEE as Calorie Goal'**
+  String get tdeeCalcApplyTdee;
+
+  /// No description provided for @tdeeCalcApplyBmr.
+  ///
+  /// In en, this message translates to:
+  /// **'Use BMR for Health Sync'**
+  String get tdeeCalcApplyBmr;
+
+  /// No description provided for @tdeeCalcApplyBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Both'**
+  String get tdeeCalcApplyBoth;
+
+  /// No description provided for @tdeeCalcApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied!'**
+  String get tdeeCalcApplied;
+
+  /// No description provided for @tdeeCalcBmrExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'BMR = energy your body uses at rest'**
+  String get tdeeCalcBmrExplain;
+
+  /// No description provided for @tdeeCalcTdeeExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'TDEE = BMR + daily activity'**
+  String get tdeeCalcTdeeExplain;
+
+  /// No description provided for @dailyBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Balance'**
+  String get dailyBalanceLabel;
+
+  /// No description provided for @intakeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Intake'**
+  String get intakeLabel;
+
+  /// No description provided for @burnedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Burned'**
+  String get burnedLabel;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

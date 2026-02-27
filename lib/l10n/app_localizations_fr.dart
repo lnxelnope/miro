@@ -93,8 +93,57 @@ class L10nFr extends L10n {
   String get todaySummary => 'Le résumé du jour';
 
   @override
+  String get nutritionSummary => 'Nutrition Summary';
+
+  @override
   String dateSummary(String date) {
     return 'Résumé pour $date';
+  }
+
+  @override
+  String get periodAll => 'All';
+
+  @override
+  String get macroDistribution => 'Macro Distribution';
+
+  @override
+  String get calorieTrend => 'Calorie Trend';
+
+  @override
+  String get calorieTrend7Days => 'Calorie Trend (7 days)';
+
+  @override
+  String get micronutrientTracker => 'Micronutrient Tracker';
+
+  @override
+  String get fatBreakdown => 'Fat Breakdown';
+
+  @override
+  String get goal => 'Goal';
+
+  @override
+  String get over => 'OVER';
+
+  @override
+  String get saturated => 'Saturated';
+
+  @override
+  String get mono => 'Mono';
+
+  @override
+  String get poly => 'Poly';
+
+  @override
+  String get trans => 'Trans';
+
+  @override
+  String noDataFor(String title) {
+    return 'No data for $title';
+  }
+
+  @override
+  String errorColon(String error) {
+    return 'Error: $error';
   }
 
   @override
@@ -1145,6 +1194,23 @@ class L10nFr extends L10n {
     );
     return 'Supprimé $count $_temp0';
   }
+
+  @override
+  String deletedSingleEntry(String name) {
+    return 'Deleted $name';
+  }
+
+  @override
+  String get intakeGoalLabel => 'Intake Goal';
+
+  @override
+  String get netEnergyLabel => 'Net Energy Balance';
+
+  @override
+  String get underEatingWarning => 'Under-eating';
+
+  @override
+  String get surplusWarning => 'Surplus';
 
   @override
   String movedEntriesToDate(int count, String date) {
@@ -3076,6 +3142,20 @@ class L10nFr extends L10n {
   String get quickAddHint => 'e.g. Pad Thai, Rice...';
 
   @override
+  String get quickCalButton => '+ cal';
+
+  @override
+  String get quickCalTitle => 'Quick Calorie';
+
+  @override
+  String get quickCalHint => 'Enter calories (kcal)';
+
+  @override
+  String quickCalSaved(int kcal) {
+    return 'Quick Cal $kcal kcal';
+  }
+
+  @override
   String get quantity => 'Quantity';
 
   @override
@@ -3157,4 +3237,94 @@ class L10nFr extends L10n {
   @override
   String get termsSectionHealthDataSync =>
       'Synchronisation des Données de Santé';
+
+  @override
+  String get tdeeLabel => 'TDEE (Total Daily Energy Expenditure)';
+
+  @override
+  String get tdeeHint =>
+      'Your estimated daily burn. Use the calculator below or enter manually.';
+
+  @override
+  String get tdeeCalcTitle => 'TDEE / BMR Calculator';
+
+  @override
+  String get tdeeCalcPrivacy =>
+      'This is a calculator only — your data is NOT stored.';
+
+  @override
+  String get tdeeCalcGender => 'Gender';
+
+  @override
+  String get tdeeCalcMale => 'Male';
+
+  @override
+  String get tdeeCalcFemale => 'Female';
+
+  @override
+  String get tdeeCalcAge => 'Age';
+
+  @override
+  String get tdeeCalcWeight => 'Weight (kg)';
+
+  @override
+  String get tdeeCalcHeight => 'Height (cm)';
+
+  @override
+  String get tdeeCalcActivity => 'Activity Level';
+
+  @override
+  String get tdeeCalcActivitySedentary => 'Sedentary (office work)';
+
+  @override
+  String get tdeeCalcActivityLight => 'Light (1-2 days/week)';
+
+  @override
+  String get tdeeCalcActivityModerate => 'Moderate (3-5 days/week)';
+
+  @override
+  String get tdeeCalcActivityActive => 'Active (6-7 days/week)';
+
+  @override
+  String get tdeeCalcActivityVeryActive => 'Very Active (athlete)';
+
+  @override
+  String get tdeeCalcResult => 'Your estimated values';
+
+  @override
+  String tdeeCalcBmrResult(int value) {
+    return 'BMR $value kcal/day';
+  }
+
+  @override
+  String tdeeCalcTdeeResult(int value) {
+    return 'TDEE $value kcal/day';
+  }
+
+  @override
+  String get tdeeCalcApplyTdee => 'Use TDEE as Calorie Goal';
+
+  @override
+  String get tdeeCalcApplyBmr => 'Use BMR for Health Sync';
+
+  @override
+  String get tdeeCalcApplyBoth => 'Apply Both';
+
+  @override
+  String get tdeeCalcApplied => 'Applied!';
+
+  @override
+  String get tdeeCalcBmrExplain => 'BMR = energy your body uses at rest';
+
+  @override
+  String get tdeeCalcTdeeExplain => 'TDEE = BMR + daily activity';
+
+  @override
+  String get dailyBalanceLabel => 'Daily Balance';
+
+  @override
+  String get intakeLabel => 'Intake';
+
+  @override
+  String get burnedLabel => 'Burned';
 }
