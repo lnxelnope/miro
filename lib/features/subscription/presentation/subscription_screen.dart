@@ -248,30 +248,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   Widget _buildSubscriptionPlans() {
-    // V3: แสดง 3 plans (Weekly, Monthly, Yearly)
     final plans = SubscriptionPlan.availablePlans();
-    
-    // Map plans to products (ใช้ productId เดียว: miro_normal_subscription)
-    // แต่ต้อง query base plans จาก Google Play Billing Library
-    // ตอนนี้ใช้ placeholder — จะต้อง query base plans แยกต่างหาก
-    
-    if (_products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            const SizedBox(height: AppSpacing.lg),
-            Text(L10n.of(context)!.subscriptionNoProductAvailable),
-            const SizedBox(height: AppSpacing.lg),
-            ElevatedButton(
-              onPressed: _loadProducts,
-              child: Text(L10n.of(context)!.subscriptionRetry),
-            ),
-          ],
-        ),
-      );
-    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -317,6 +294,40 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ),
 
           const SizedBox(height: AppSpacing.xxxl),
+
+          // Banner แจ้งเมื่อ store ดึงราคาไม่ได้ (sandbox / ยังไม่ configure)
+          if (_products.isEmpty) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.1),
+                borderRadius: AppRadius.md,
+                border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      'ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppColors.warning,
+                          ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _loadProducts,
+                    child: Text(
+                      L10n.of(context)!.subscriptionRetry,
+                      style: TextStyle(color: AppColors.warning, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // V3: แสดง 3 Plans
           ...plans.map((plan) => _buildPlanCard(plan)),

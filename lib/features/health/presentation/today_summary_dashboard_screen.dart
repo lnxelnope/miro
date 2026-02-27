@@ -15,6 +15,78 @@ import '../widgets/date_navigation_bar.dart';
 
 enum SummaryPeriod { day, week, month, year, all }
 
+// ── Range Key สำหรับ provider family ──
+class _RangeKey {
+  final DateTime date;
+  final SummaryPeriod period;
+  const _RangeKey(this.date, this.period);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _RangeKey &&
+      other.date.year == date.year &&
+      other.date.month == date.month &&
+      other.date.day == date.day &&
+      other.period == period;
+
+  @override
+  int get hashCode => Object.hash(date.year, date.month, date.day, period);
+}
+
+/// Provider รวม macros + fat breakdown สำหรับช่วงที่เลือก
+final _rangeDataProvider = FutureProvider.autoDispose
+    .family<Map<String, double>, _RangeKey>((ref, key) async {
+  final range = _computeRange(key.date, key.period);
+  double protein = 0, carbs = 0, fat = 0, calories = 0;
+  double saturated = 0, mono = 0, poly = 0, trans = 0;
+
+  final now = DateTime.now();
+  final days = range.end.difference(range.start).inDays + 1;
+  for (int i = 0; i < days; i++) {
+    final date = range.start.add(Duration(days: i));
+    if (date.isAfter(now)) break;
+    final entries = await ref.read(foodEntriesByDateProvider(date).future);
+    for (final e in entries) {
+      protein += e.protein;
+      carbs += e.carbs;
+      fat += e.fat;
+      calories += e.calories;
+      saturated += e.saturatedFat ?? 0;
+      mono += e.monounsaturatedFat ?? 0;
+      poly += e.polyunsaturatedFat ?? 0;
+      trans += e.transFat ?? 0;
+    }
+  }
+
+  return {
+    'protein': protein, 'carbs': carbs, 'fat': fat, 'calories': calories,
+    'saturated': saturated, 'mono': mono, 'poly': poly, 'trans': trans,
+  };
+});
+
+DateTimeRange _computeRange(DateTime base, SummaryPeriod period) {
+  final d = DateTime(base.year, base.month, base.day);
+  switch (period) {
+    case SummaryPeriod.day:
+      return DateTimeRange(start: d, end: d);
+    case SummaryPeriod.week:
+      final start = d.subtract(Duration(days: d.weekday - 1));
+      return DateTimeRange(start: start, end: start.add(const Duration(days: 6)));
+    case SummaryPeriod.month:
+      return DateTimeRange(
+        start: DateTime(base.year, base.month, 1),
+        end: DateTime(base.year, base.month + 1, 0),
+      );
+    case SummaryPeriod.year:
+      return DateTimeRange(
+        start: DateTime(base.year, 1, 1),
+        end: DateTime(base.year, 12, 31),
+      );
+    case SummaryPeriod.all:
+      return DateTimeRange(start: DateTime(2020), end: DateTime.now());
+  }
+}
+
 /// Top-level provider: calorie trend for last 7 days (lightweight)
 final _calorieTrendProvider = FutureProvider.autoDispose<List<FlSpot>>((ref) async {
   final now = DateTime.now();
@@ -70,6 +142,7 @@ class _TodaySummaryDashboardScreenState
             children: [
               DateNavigationBar(
                 selectedDate: _selectedDate,
+                period: _selectedPeriod,
                 onDateChanged: (date) {
                   setState(() {
                     _selectedDate = date;
@@ -161,18 +234,13 @@ class _TodaySummaryDashboardScreenState
     final l10n = L10n.of(context)!;
     return profileAsync.when(
       data: (profile) {
-        final entriesAsync = ref.watch(foodEntriesByDateProvider(
-          DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day),
-        ));
-        return entriesAsync.when(
-          data: (entries) {
-            double protein = 0, carbs = 0, fat = 0, calories = 0;
-            for (final entry in entries) {
-              protein += entry.protein;
-              carbs += entry.carbs;
-              fat += entry.fat;
-              calories += entry.calories;
-            }
+        final futureAsync = ref.watch(_rangeDataProvider(_RangeKey(_selectedDate, _selectedPeriod)));
+        return futureAsync.when(
+          data: (data) {
+            double protein = data['protein']!;
+            double carbs = data['carbs']!;
+            double fat = data['fat']!;
+            double calories = data['calories']!;
 
             final totalMacros = protein + carbs + fat;
             if (totalMacros == 0) {
@@ -619,18 +687,13 @@ class _TodaySummaryDashboardScreenState
   // ── Fat Breakdown ──
   Widget _buildFatBreakdown(bool isDark) {
     final l10n = L10n.of(context)!;
-    final entriesAsync = ref.watch(foodEntriesByDateProvider(
-      DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day),
-    ));
-    return entriesAsync.when(
-      data: (entries) {
-        double saturated = 0, mono = 0, poly = 0, trans = 0;
-        for (final entry in entries) {
-          saturated += entry.saturatedFat ?? 0;
-          mono += entry.monounsaturatedFat ?? 0;
-          poly += entry.polyunsaturatedFat ?? 0;
-          trans += entry.transFat ?? 0;
-        }
+    final rangeAsync = ref.watch(_rangeDataProvider(_RangeKey(_selectedDate, _selectedPeriod)));
+    return rangeAsync.when(
+      data: (data) {
+        double saturated = data['saturated']!;
+        double mono = data['mono']!;
+        double poly = data['poly']!;
+        double trans = data['trans']!;
 
         final maxFat = [saturated, mono, poly, trans].reduce((a, b) => a > b ? a : b);
         if (maxFat == 0) return _buildEmptyCard(isDark, l10n.fatBreakdown);
