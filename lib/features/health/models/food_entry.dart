@@ -49,6 +49,11 @@ class FoodEntry {
   double? sodium;
   double? cholesterol;
   double? saturatedFat;
+  double? transFat;
+  double? unsaturatedFat;
+  double? monounsaturatedFat;
+  double? polyunsaturatedFat;
+  double? potassium;
 
   // Metadata
   @enumerated

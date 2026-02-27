@@ -58,6 +58,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     final parsed = _parseIngredientsFromJson(entry);
     if (parsed.isNotEmpty) {
       _cachedIngredients = parsed;
+      _fixCaloriesIfMismatch(entry, parsed);
       return;
     }
 
@@ -66,6 +67,50 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
       _loadedFromMeal = true;
       _loadIngredientsFromMeal(entry.myMealId!);
     }
+  }
+
+  /// ถ้าผลรวม ingredients ไม่ตรงกับ entry.calories → แก้ไข entry ให้ตรง
+  void _fixCaloriesIfMismatch(FoodEntry entry, List<IngredientDetail> ingredients) {
+    if (ingredients.isEmpty) return;
+
+    double sumCal = 0, sumP = 0, sumC = 0, sumF = 0;
+    for (final ing in ingredients) {
+      sumCal += ing.calories;
+      sumP += ing.protein;
+      sumC += ing.carbs;
+      sumF += ing.fat;
+    }
+
+    if (sumCal <= 0) return;
+
+    final diff = (entry.calories - sumCal).abs();
+    if (diff < 1) return;
+
+    AppLogger.info(
+        '[DetailSheet] Fixing calories mismatch: entry=${entry.calories.toInt()} vs sum=${sumCal.toInt()} (diff=${diff.toInt()})');
+
+    entry.calories = sumCal;
+    entry.protein = sumP;
+    entry.carbs = sumC;
+    entry.fat = sumF;
+
+    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
+    entry.baseCalories = sumCal / serving;
+    entry.baseProtein = sumP / serving;
+    entry.baseCarbs = sumC / serving;
+    entry.baseFat = sumF / serving;
+
+    // fire-and-forget: update in DB
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry).then((_) {
+        final date = dateOnly(entry.timestamp);
+        ref.invalidate(foodEntriesByDateProvider(date));
+        ref.invalidate(healthTimelineProvider(date));
+        ref.invalidate(todayCaloriesProvider);
+        ref.invalidate(todayMacrosProvider);
+      });
+    });
   }
 
   Future<void> _loadIngredientsFromMeal(int mealId) async {
@@ -117,6 +162,16 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
         ),
         child: Icon(Icons.close, size: 20,
           color: isDark ? Colors.white70 : Colors.grey.shade600),
+      ),
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imagePath) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _FullScreenImageView(imagePath: imagePath),
+        fullscreenDialog: true,
       ),
     );
   }
@@ -174,20 +229,22 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === Image (if available) ===
+                  // === Image (if available) — tap to view full screen, tap again to close ===
                   if (hasImage) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Stack(
-                        children: [
-                          Image.file(
-                            File(entry.imagePath!),
-                            width: double.infinity,
-                            height: 220,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildImagePlaceholder(isDark),
-                          ),
+                    GestureDetector(
+                      onTap: () => _showFullScreenImage(context, entry.imagePath!),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Stack(
+                          children: [
+                            Image.file(
+                              File(entry.imagePath!),
+                              width: double.infinity,
+                              height: 220,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  _buildImagePlaceholder(isDark),
+                            ),
                           // Gradient overlay at bottom of image
                           Positioned(
                             bottom: 0,
@@ -216,6 +273,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                             ),
                         ],
                       ),
+                    ),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -1358,8 +1416,11 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                       ),
                       const SizedBox(height: 12),
 
-                      const Text('Unit',
-                          style: TextStyle(
+                      Text(
+                          _cachedIngredients != null && _cachedIngredients!.isNotEmpty
+                              ? 'Unit 🔒'
+                              : 'Unit',
+                          style: const TextStyle(
                               fontWeight: FontWeight.w600, fontSize: 13)),
                       const SizedBox(height: 4),
                       DropdownButtonFormField<String>(
@@ -1371,11 +1432,13 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                           isDense: true,
                         ),
                         items: UnitConverter.allDropdownItems,
-                        onChanged: (v) {
-                          if (v != null && v.isNotEmpty) {
-                            setDialogState(() => selectedUnit = v);
-                          }
-                        },
+                        onChanged: _cachedIngredients != null && _cachedIngredients!.isNotEmpty
+                            ? null
+                            : (v) {
+                                if (v != null && v.isNotEmpty) {
+                                  setDialogState(() => selectedUnit = v);
+                                }
+                              },
                       ),
                       const SizedBox(height: 16),
 
@@ -1441,6 +1504,38 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Full-screen image viewer. Tap anywhere to close.
+class _FullScreenImageView extends StatelessWidget {
+  final String imagePath;
+
+  const _FullScreenImageView({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        color: Colors.black,
+        child: Center(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.broken_image_rounded,
+                size: 64,
+                color: Colors.white54,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -879,7 +879,7 @@ Step 1 — PRODUCT IDENTIFICATION:
 Step 2 — NUTRITION LABEL EXTRACTION:
 - If a Nutrition Facts label is visible, extract EXACT values (do not estimate)
 - Note serving size as stated on label
-- Capture all available micronutrients (fiber, sugar, sodium, saturated fat, trans fat)
+- Capture all available micronutrients (fiber, sugar, sodium, cholesterol, saturated fat, trans fat, unsaturated fat, monounsaturated fat, polyunsaturated fat, potassium)
 
 Step 3 — INGREDIENT DECONSTRUCTION:
 - If ingredients list is visible on label, parse EVERY ingredient into specific entries
@@ -915,7 +915,14 @@ Respond in JSON format:
     "fat": 7,
     "fiber": 1,
     "sugar": 10,
-    "sodium": 200
+    "sodium": 200,
+    "cholesterol": 0,
+    "saturatedFat": 3,
+    "transFat": 0,
+    "unsaturatedFat": 3,
+    "monounsaturatedFat": 2,
+    "polyunsaturatedFat": 1,
+    "potassium": 150
   },
   "ingredients_detail": [
     {
@@ -1014,7 +1021,14 @@ Respond in JSON format:
     "fat": 7,
     "fiber": 1,
     "sugar": 10,
-    "sodium": 200
+    "sodium": 200,
+    "cholesterol": 0,
+    "saturatedFat": 3,
+    "transFat": 0,
+    "unsaturatedFat": 3,
+    "monounsaturatedFat": 2,
+    "polyunsaturatedFat": 1,
+    "potassium": 150
   },
   "ingredients_detail": [
     {
@@ -1384,7 +1398,14 @@ Example for "Kimchi Fried Rice with Pork":
     "fat": 25,
     "fiber": 3,
     "sugar": 6,
-    "sodium": 1100
+    "sodium": 1100,
+    "cholesterol": 0,
+    "saturatedFat": 3,
+    "transFat": 0,
+    "unsaturatedFat": 3,
+    "monounsaturatedFat": 2,
+    "polyunsaturatedFat": 1,
+    "potassium": 150
   },
   "ingredients_detail": [
     {
@@ -1773,7 +1794,7 @@ User-specified amount: $servingDesc$ingredientsHint
 
 CRITICAL — AMOUNT RULE:
 The user wants nutrition data for EXACTLY $servingDesc of "$foodName".
-You MUST calculate ALL nutrition values (calories, protein, carbs, fat, fiber, sugar, sodium) for this EXACT amount.
+You MUST calculate ALL nutrition values (calories, protein, carbs, fat, fiber, sugar, sodium, cholesterol, saturatedFat, transFat, unsaturatedFat, monounsaturatedFat, polyunsaturatedFat, potassium) for this EXACT amount.
 Do NOT override with a different serving size. Do NOT default to 100g unless the user specified 100g.
 Example: "1 egg" means 1 whole egg (~50g), NOT 100g of egg.
 
@@ -1881,7 +1902,14 @@ Respond in JSON only:
     "fat": 0,
     "fiber": 0,
     "sugar": 0,
-    "sodium": 0
+    "sodium": 0,
+    "cholesterol": 0,
+    "saturatedFat": 0,
+    "transFat": 0,
+    "unsaturatedFat": 0,
+    "monounsaturatedFat": 0,
+    "polyunsaturatedFat": 0,
+    "potassium": 0
   },
   "ingredients": ["ingredient1", "ingredient2"],
   "ingredients_detail": [
@@ -2415,6 +2443,13 @@ class NutritionData {
   final double? fiber;
   final double? sugar;
   final double? sodium;
+  final double? cholesterol;
+  final double? saturatedFat;
+  final double? transFat;
+  final double? unsaturatedFat;
+  final double? monounsaturatedFat;
+  final double? polyunsaturatedFat;
+  final double? potassium;
 
   NutritionData({
     required this.calories,
@@ -2424,6 +2459,13 @@ class NutritionData {
     this.fiber,
     this.sugar,
     this.sodium,
+    this.cholesterol,
+    this.saturatedFat,
+    this.transFat,
+    this.unsaturatedFat,
+    this.monounsaturatedFat,
+    this.polyunsaturatedFat,
+    this.potassium,
   });
 
   factory NutritionData.fromJson(Map<String, dynamic> json) {
@@ -2435,6 +2477,13 @@ class NutritionData {
       fiber: json['fiber']?.toDouble(),
       sugar: json['sugar']?.toDouble(),
       sodium: json['sodium']?.toDouble(),
+      cholesterol: json['cholesterol']?.toDouble(),
+      saturatedFat: json['saturatedFat']?.toDouble(),
+      transFat: json['transFat']?.toDouble(),
+      unsaturatedFat: json['unsaturatedFat']?.toDouble(),
+      monounsaturatedFat: json['monounsaturatedFat']?.toDouble(),
+      polyunsaturatedFat: json['polyunsaturatedFat']?.toDouble(),
+      potassium: json['potassium']?.toDouble(),
     );
   }
 }

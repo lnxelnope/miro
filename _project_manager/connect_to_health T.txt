@@ -1,0 +1,33 @@
+# Project Overview: Simple Calorie Tracker with Health Ecosystem Integration
+
+## Core Concept
+แอปพลิเคชันบันทึกแคลอรี่ที่เน้น "ความง่ายที่สุด" (Minimalist & Simple) โดยมีการเชื่อมต่อข้อมูลกับ Apple Health (iOS) และ Google Health Connect (Android) แบบ Two-way Sync เพื่อคำนวณโควตาการกินตามกิจกรรมจริงของผู้ใช้
+
+## Key Features for Developer
+### 1. Toggle: Include Exercise (Active Energy Sync)
+- **Feature:** ปุ่มเปิด/ปิดการรวมพลังงานจากการขยับร่างกาย (Default: ON)
+- **Logic:** - เมื่อเปิด: `Daily_Goal = BMR + Active_Energy_from_Health_App`
+  - เมื่อปิด: `Daily_Goal = BMR` (ค่าคงที่)
+- **Permission Flow:** ขอสิทธิ์ `Read` ข้อมูล `activeEnergyBurned` เฉพาะตอนที่ผู้ใช้กดเปิดปุ่มนี้ครั้งแรก
+
+### 2. Food Recording & Export (Dietary Energy Sync)
+- **Feature:** เมื่อบันทึกมื้ออาหารในแอป ข้อมูลต้องถูกส่งไปยัง Health App ของเครื่อง
+- **Data to Export:** Calories, Protein, Carbs, Fat
+- **Permission Flow:** ขอสิทธิ์ `Write` ข้อมูล `dietaryEnergy` และสารอาหารอื่นๆ
+- **Effect:** ข้อมูลจะไปปรากฏบน Apple Watch และแอป Fitness ของเครื่องทันที
+
+### 3. Data Synchronization & Integrity
+- **Handling Records:** - **Create:** เมื่อบันทึกอาหาร ให้เก็บ `External_ID` (UUID) ที่ได้รับจาก Health App ไว้ในฐานข้อมูลของแอปเรา
+  - **Update:** หากมีการแก้ไขมื้ออาหาร ให้ใช้ `UUID` นั้นไป Update ข้อมูลใน Health App
+  - **Delete:** หากมีการลบมื้ออาหารในแอป ให้ใช้ `UUID` นั้นสั่ง Delete ข้อมูลใน Health App ด้วย เพื่อป้องกันข้อมูลค้าง (Ghost Data)
+
+## Technical Stack Recommendations
+- **Frontend:** Flutter (Library: `flutter_health` or `health`) หรือ React Native (Library: `react-native-health`)
+- **Backend/Storage:** Local Storage (SQLite/Hive) สำหรับเก็บรายการอาหารและ UUID
+
+## Prompt for AI Programming
+"ช่วยเขียนโครงสร้างโปรแกรม (Code Structure) สำหรับแอปบันทึกแคลอรี่ที่เชื่อมต่อกับ [Apple HealthKit / Google Health Connect] โดยมีฟังก์ชันหลักคือ:
+1. ขอ Permission อ่าน Active Energy และเขียน Dietary Energy
+2. ฟังก์ชันเพิ่มมื้ออาหารที่ยิงข้อมูลเข้า Health App และเก็บ UUID ไว้
+3. ฟังก์ชันลบมื้ออาหารที่สั่งลบใน Health App โดยใช้ UUID ที่เก็บไว้
+4. หน้า UI Dashboard ที่มีปุ่ม Toggle เปิด/ปิดการนำ Active Energy มาบวกเพิ่มในโควตาวันนี้"

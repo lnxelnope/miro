@@ -123,13 +123,128 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         _baseIngredients = decoded
             .map((e) => Map<String, dynamic>.from(e as Map))
             .toList();
+
+        // Fix: ถ้าผลรวม ingredients ไม่ตรงกับ entry → recalculate
+        _fixCaloriesIfMismatch();
       } catch (_) {}
     }
+  }
+
+  /// ถ้าผลรวม ingredients ไม่ตรงกับ entry.calories → แก้ไขค่าแสดงผลและ update DB
+  void _fixCaloriesIfMismatch() {
+    if (_ingredients.isEmpty) return;
+
+    double sumCal = 0, sumP = 0, sumC = 0, sumF = 0;
+    for (final ing in _ingredients) {
+      sumCal += (ing['calories'] as num?)?.toDouble() ?? 0;
+      sumP += (ing['protein'] as num?)?.toDouble() ?? 0;
+      sumC += (ing['carbs'] as num?)?.toDouble() ?? 0;
+      sumF += (ing['fat'] as num?)?.toDouble() ?? 0;
+    }
+    if (sumCal <= 0) return;
+
+    final diff = (_calories - sumCal).abs();
+    if (diff < 1) return;
+
+    _calories = sumCal;
+    _protein = sumP;
+    _carbs = sumC;
+    _fat = sumF;
+
+    final entry = widget.entry;
+    entry.calories = sumCal;
+    entry.protein = sumP;
+    entry.carbs = sumC;
+    entry.fat = sumF;
+
+    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
+    entry.baseCalories = sumCal / serving;
+    entry.baseProtein = sumP / serving;
+    entry.baseCarbs = sumC / serving;
+    entry.baseFat = sumF / serving;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry).then((_) {
+        final date = dateOnly(entry.timestamp);
+        ref.invalidate(foodEntriesByDateProvider(date));
+        ref.invalidate(healthTimelineProvider(date));
+        ref.invalidate(todayCaloriesProvider);
+        ref.invalidate(todayMacrosProvider);
+      });
+    });
   }
 
   void _removeIngredient(int index) {
     setState(() {
       _ingredients.removeAt(index);
+      _recalculateNutrition();
+      _hasChanges = true;
+    });
+  }
+
+  void _editIngredientAmount(int index) {
+    final ing = _ingredients[index];
+    final oldAmount = (ing['amount'] as num?)?.toDouble() ?? 0;
+    final name = ing['name'] as String? ?? '';
+    final unit = ing['unit'] as String? ?? 'g';
+    final controller = TextEditingController(
+      text: oldAmount == oldAmount.roundToDouble()
+          ? oldAmount.toInt().toString()
+          : oldAmount.toStringAsFixed(1),
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
+          title: Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: '${L10n.of(context)!.quantity} ($unit)',
+              border: OutlineInputBorder(borderRadius: AppRadius.md),
+              isDense: true,
+            ),
+            onSubmitted: (_) {
+              _applyIngredientAmountChange(index, controller.text, oldAmount);
+              Navigator.pop(ctx);
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(L10n.of(context)!.cancel),
+            ),
+            FilledButton(
+              onPressed: () {
+                _applyIngredientAmountChange(index, controller.text, oldAmount);
+                Navigator.pop(ctx);
+              },
+              child: Text(L10n.of(context)!.ok),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _applyIngredientAmountChange(int index, String newText, double oldAmount) {
+    final newAmount = double.tryParse(newText);
+    if (newAmount == null || newAmount <= 0 || newAmount == oldAmount) return;
+    if (oldAmount <= 0) return;
+
+    final ratio = newAmount / oldAmount;
+    setState(() {
+      final ing = _ingredients[index];
+      ing['amount'] = newAmount;
+      ing['calories'] = ((ing['calories'] as num?)?.toDouble() ?? 0) * ratio;
+      ing['protein'] = ((ing['protein'] as num?)?.toDouble() ?? 0) * ratio;
+      ing['carbs'] = ((ing['carbs'] as num?)?.toDouble() ?? 0) * ratio;
+      ing['fat'] = ((ing['fat'] as num?)?.toDouble() ?? 0) * ratio;
       _recalculateNutrition();
       _hasChanges = true;
     });
@@ -222,6 +337,16 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
   bool get _hasNutrition => _calories > 0 || _protein > 0 || _carbs > 0 || _fat > 0;
 
+  void _showFullScreenImage(BuildContext context, String imagePath) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _FullScreenImageView(imagePath: imagePath),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
@@ -264,16 +389,19 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Image
+                  // 1. Image (tap to view full screen, tap again to close)
                   if (hasImage) ...[
-                    ClipRRect(
-                      borderRadius: AppRadius.lg,
-                      child: Image.file(
-                        File(entry.imagePath!),
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    GestureDetector(
+                      onTap: () => _showFullScreenImage(context, entry.imagePath!),
+                      child: ClipRRect(
+                        borderRadius: AppRadius.lg,
+                        child: Image.file(
+                          File(entry.imagePath!),
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -374,7 +502,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                           value: _selectedUnit,
                           isExpanded: true,
                           decoration: InputDecoration(
-                            labelText: l10n.servingUnit,
+                            labelText: _ingredients.isNotEmpty
+                                ? '${l10n.servingUnit} 🔒'
+                                : l10n.servingUnit,
                             border: OutlineInputBorder(
                               borderRadius: AppRadius.md,
                             ),
@@ -388,9 +518,11 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                               .map((u) => DropdownMenuItem(
                                   value: u, child: Text(u)))
                               .toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _selectedUnit = v);
-                          },
+                          onChanged: _ingredients.isNotEmpty
+                              ? null
+                              : (v) {
+                                  if (v != null) setState(() => _selectedUnit = v);
+                                },
                         ),
                       ),
                     ],
@@ -544,6 +676,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     final amount = (ing['amount'] as num?)?.toDouble();
     final unit = ing['unit'] as String? ?? 'g';
     final kcal = (ing['calories'] as num?)?.toInt();
+    final amountStr = amount != null && amount > 0
+        ? amount.toStringAsFixed(amount == amount.roundToDouble() ? 0 : 1)
+        : null;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
@@ -569,17 +704,49 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       color: isDark ? Colors.white : AppColors.textPrimary,
                     ),
                   ),
-                  if (amount != null && amount > 0) ...[
+                  if (amountStr != null) ...[
                     const SizedBox(height: 2),
-                    Text(
-                      kcal != null && kcal > 0
-                          ? '${amount.toStringAsFixed(amount == amount.roundToDouble() ? 0 : 1)} $unit · $kcal kcal'
-                          : '${amount.toStringAsFixed(amount == amount.roundToDouble() ? 0 : 1)} $unit',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? Colors.white54
-                            : AppColors.textSecondary,
+                    GestureDetector(
+                      onTap: () => _editIngredientAmount(index),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '$amountStr $unit',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                Icon(Icons.edit_rounded, size: 10, color: AppColors.primary),
+                              ],
+                            ),
+                          ),
+                          if (kcal != null && kcal > 0) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              '$kcal kcal',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white54 : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],
@@ -621,6 +788,38 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: color,
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-screen image viewer. Tap anywhere to close.
+class _FullScreenImageView extends StatelessWidget {
+  final String imagePath;
+
+  const _FullScreenImageView({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        color: Colors.black,
+        child: Center(
+          child: InteractiveViewer(
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.broken_image_rounded,
+                size: 64,
+                color: Colors.white54,
+              ),
+            ),
+          ),
         ),
       ),
     );

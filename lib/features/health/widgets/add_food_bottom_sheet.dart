@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
@@ -18,7 +17,6 @@ import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 import '../models/food_entry.dart';
 import '../models/ingredient.dart';
-import '../models/my_meal.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -190,6 +188,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   bool _isAnalyzing = false;
   bool _nutritionExpanded = false;
   bool _showDetails = false;
+  bool _quickCalMode = false;
+  final _quickCalController = TextEditingController();
+  final _quickCalFocusNode = FocusNode();
 
   double _baseCalories = 0;
   double _baseProtein = 0;
@@ -245,6 +246,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     _carbsController.dispose();
     _fatController.dispose();
     _nameFocusNode.dispose();
+    _quickCalController.dispose();
+    _quickCalFocusNode.dispose();
     for (final ing in _ingredients) {
       ing.dispose();
     }
@@ -683,6 +686,32 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       return;
     }
 
+    // ถามใช้ 100g ถ้าไม่กรอกปริมาณ
+    final currentAmount = double.tryParse(sub.amountController.text) ?? 0;
+    if (currentAmount <= 0) {
+      final action = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(L10n.of(context)!.amountNotSpecified),
+          content: Text(L10n.of(context)!.amountNotSpecifiedMessage(subName)),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'cancel'),
+                child: Text(L10n.of(context)!.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'default'),
+                child: Text(L10n.of(context)!.useDefault100g)),
+          ],
+        ),
+      );
+      if (action == 'default') {
+        sub.amountController.text = '100';
+        sub.unit = 'g';
+      } else {
+        return;
+      }
+    }
+
     setState(() => sub.isLoading = true);
 
     try {
@@ -875,7 +904,149 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             const SizedBox(height: AppSpacing.xl),
 
             // ===== Food Name with Autocomplete =====
-            _buildFoodNameField(),
+            if (!_quickCalMode) ...[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _buildFoodNameField()),
+                  const SizedBox(width: AppSpacing.sm),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: InkWell(
+                      onTap: _toggleQuickCalMode,
+                      borderRadius: AppRadius.md,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withValues(alpha: 0.1),
+                          borderRadius: AppRadius.md,
+                          border: Border.all(
+                            color: AppColors.warning.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bolt_rounded,
+                                size: 16, color: AppColors.warning),
+                            const SizedBox(width: 2),
+                            Text(
+                              L10n.of(context)!.quickCalButton,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              // ===== Quick Cal Inline Input =====
+              Container(
+                padding: AppSpacing.paddingLg,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.warning.withValues(alpha: 0.08),
+                      AppColors.warning.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  borderRadius: AppRadius.lg,
+                  border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.bolt_rounded, color: AppColors.warning, size: 20),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          L10n.of(context)!.quickCalTitle,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.warning,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: _toggleQuickCalMode,
+                          child: Icon(Icons.close, size: 18,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _quickCalController,
+                            focusNode: _quickCalFocusNode,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.warning,
+                            ),
+                            textAlign: TextAlign.center,
+                            onSubmitted: (_) => _saveQuickCal(),
+                            decoration: InputDecoration(
+                              hintText: '500',
+                              hintStyle: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.warning.withValues(alpha: 0.25),
+                              ),
+                              suffixText: 'kcal',
+                              suffixStyle: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.warning.withValues(alpha: 0.7),
+                              ),
+                              filled: true,
+                              fillColor: isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.md,
+                                borderSide: BorderSide(color: AppColors.warning.withValues(alpha: 0.3)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: AppRadius.md,
+                                borderSide: const BorderSide(color: AppColors.warning, width: 2),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        SizedBox(
+                          height: 52,
+                          child: FilledButton.icon(
+                            icon: const Icon(Icons.check_rounded, size: 20),
+                            label: Text(L10n.of(context)!.save),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.warning,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
+                            ),
+                            onPressed: _saveQuickCal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             if (_filledFromDb) ...[
               const SizedBox(height: AppSpacing.xs),
@@ -923,16 +1094,20 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _servingUnit,
                     decoration: InputDecoration(
-                      labelText: L10n.of(context)!.unitLabel,
+                      labelText: _hasIngredients
+                          ? '${L10n.of(context)!.unitLabel} 🔒'
+                          : L10n.of(context)!.unitLabel,
                       border: OutlineInputBorder(
                         borderRadius: AppRadius.md,
                       ),
                     ),
                     items: UnitConverter.allDropdownItems,
-                    onChanged: (value) {
-                      if (value == null || value.isEmpty) return;
-                      _onUnitChanged(value);
-                    },
+                    onChanged: _hasIngredients
+                        ? null
+                        : (value) {
+                            if (value == null || value.isEmpty) return;
+                            _onUnitChanged(value);
+                          },
                     style: TextStyle(color: isDark ? AppColors.textPrimaryDark : Colors.black),
                     dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   ),
@@ -2014,6 +2189,42 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   }
 
   // ============================================================
+  // Quick Cal (inline mode)
+  // ============================================================
+  void _toggleQuickCalMode() {
+    setState(() {
+      _quickCalMode = !_quickCalMode;
+      if (_quickCalMode) {
+        _quickCalController.clear();
+        _quickCalFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _saveQuickCal() {
+    final kcal = double.tryParse(_quickCalController.text.trim()) ?? 0;
+    if (kcal <= 0) return;
+
+    setState(() {
+      _quickCalMode = false;
+      _nameController.text = L10n.of(context)!.quickCalSaved(kcal.round());
+      _caloriesController.text = kcal.round().toString();
+      _proteinController.text = '0';
+      _carbsController.text = '0';
+      _fatController.text = '0';
+      _servingSizeController.removeListener(_onServingSizeChanged);
+      _servingSizeController.text = '1';
+      _servingSizeController.addListener(_onServingSizeChanged);
+      _servingUnit = 'serving';
+      _filledFromDb = false;
+      _selectedMyMealId = null;
+      _showDetails = false;
+      _ingredients.clear();
+    });
+    _save();
+  }
+
+  // ============================================================
   // Save & Analyze (save immediately, analyze in background)
   // ============================================================
   Future<void> _saveAndAnalyze() async {
@@ -2186,37 +2397,23 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               .map((e) => e as Map<String, dynamic>)
               .toList();
 
-      // Get unique name if duplicate
-      final all = await DatabaseService.myMeals.where().findAll();
-      final uniqueName = _getUniqueMealName(mealName, all);
-
       final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
       await ref
           .read(foodEntriesNotifierProvider.notifier)
           .saveIngredientsAndMeal(
-        mealName: uniqueName,
+        mealName: mealName,
         servingDescription: '$servingSize $_servingUnit',
         ingredientsData: ingredientsData,
+        overwriteIfExists: true,
       );
 
       ref.invalidate(allMyMealsProvider);
       ref.invalidate(allIngredientsProvider);
       AppLogger.info(
-          '[AddFood] Auto-saved "$uniqueName" → MyMeal + ${ingredientsData.length} ingredients');
+          '[AddFood] Auto-saved "$mealName" → MyMeal + ${ingredientsData.length} ingredients');
     } catch (e) {
       AppLogger.warn('[AddFood] Auto-save failed: $e');
     }
-  }
-
-  String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
-    final names = allMeals.map((m) => m.name).toSet();
-    if (!names.contains(baseName)) return baseName;
-    
-    int counter = 2;
-    while (names.contains('$baseName ($counter)')) {
-      counter++;
-    }
-    return '$baseName ($counter)';
   }
 }

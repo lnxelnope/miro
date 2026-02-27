@@ -57,108 +57,118 @@ const UserProfileSchema = CollectionSchema(
       name: r'cuisinePreference',
       type: IsarType.string,
     ),
-    r'dinnerBudget': PropertySchema(
+    r'customBmr': PropertySchema(
       id: 8,
+      name: r'customBmr',
+      type: IsarType.double,
+    ),
+    r'dinnerBudget': PropertySchema(
+      id: 9,
       name: r'dinnerBudget',
       type: IsarType.double,
     ),
     r'fatGoal': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'fatGoal',
       type: IsarType.double,
     ),
     r'gender': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'gender',
       type: IsarType.string,
     ),
     r'hasGeminiApiKey': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'hasGeminiApiKey',
       type: IsarType.bool,
     ),
     r'height': PropertySchema(
-      id: 12,
+      id: 13,
       name: r'height',
       type: IsarType.double,
     ),
     r'isDarkMode': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'isDarkMode',
       type: IsarType.bool,
     ),
     r'isGoogleCalendarConnected': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'isGoogleCalendarConnected',
       type: IsarType.bool,
     ),
     r'isHealthConnectConnected': PropertySchema(
-      id: 15,
+      id: 16,
       name: r'isHealthConnectConnected',
       type: IsarType.bool,
     ),
     r'locale': PropertySchema(
-      id: 16,
+      id: 17,
       name: r'locale',
       type: IsarType.string,
     ),
     r'lunchBudget': PropertySchema(
-      id: 17,
+      id: 18,
       name: r'lunchBudget',
       type: IsarType.double,
     ),
     r'mealSuggestionsEnabled': PropertySchema(
-      id: 18,
+      id: 19,
       name: r'mealSuggestionsEnabled',
       type: IsarType.bool,
     ),
     r'name': PropertySchema(
-      id: 19,
+      id: 20,
       name: r'name',
       type: IsarType.string,
     ),
     r'onboardingComplete': PropertySchema(
-      id: 20,
+      id: 21,
       name: r'onboardingComplete',
       type: IsarType.bool,
     ),
     r'platform': PropertySchema(
-      id: 21,
+      id: 22,
       name: r'platform',
       type: IsarType.string,
     ),
     r'proteinGoal': PropertySchema(
-      id: 22,
+      id: 23,
       name: r'proteinGoal',
       type: IsarType.double,
     ),
     r'snackBudget': PropertySchema(
-      id: 23,
+      id: 24,
       name: r'snackBudget',
       type: IsarType.double,
     ),
     r'suggestionThreshold': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'suggestionThreshold',
       type: IsarType.double,
     ),
     r'targetWeight': PropertySchema(
-      id: 25,
+      id: 26,
       name: r'targetWeight',
       type: IsarType.double,
     ),
+    r'tdee': PropertySchema(
+      id: 27,
+      name: r'tdee',
+      type: IsarType.double,
+    ),
     r'updatedAt': PropertySchema(
-      id: 26,
+      id: 28,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'waterGoal': PropertySchema(
-      id: 27,
+      id: 29,
       name: r'waterGoal',
       type: IsarType.double,
     ),
     r'weight': PropertySchema(
-      id: 28,
+      id: 30,
       name: r'weight',
       type: IsarType.double,
     )
@@ -237,27 +247,29 @@ void _userProfileSerialize(
   writer.writeDouble(offsets[5], object.carbGoal);
   writer.writeDateTime(offsets[6], object.createdAt);
   writer.writeString(offsets[7], object.cuisinePreference);
-  writer.writeDouble(offsets[8], object.dinnerBudget);
-  writer.writeDouble(offsets[9], object.fatGoal);
-  writer.writeString(offsets[10], object.gender);
-  writer.writeBool(offsets[11], object.hasGeminiApiKey);
-  writer.writeDouble(offsets[12], object.height);
-  writer.writeBool(offsets[13], object.isDarkMode);
-  writer.writeBool(offsets[14], object.isGoogleCalendarConnected);
-  writer.writeBool(offsets[15], object.isHealthConnectConnected);
-  writer.writeString(offsets[16], object.locale);
-  writer.writeDouble(offsets[17], object.lunchBudget);
-  writer.writeBool(offsets[18], object.mealSuggestionsEnabled);
-  writer.writeString(offsets[19], object.name);
-  writer.writeBool(offsets[20], object.onboardingComplete);
-  writer.writeString(offsets[21], object.platform);
-  writer.writeDouble(offsets[22], object.proteinGoal);
-  writer.writeDouble(offsets[23], object.snackBudget);
-  writer.writeDouble(offsets[24], object.suggestionThreshold);
-  writer.writeDouble(offsets[25], object.targetWeight);
-  writer.writeDateTime(offsets[26], object.updatedAt);
-  writer.writeDouble(offsets[27], object.waterGoal);
-  writer.writeDouble(offsets[28], object.weight);
+  writer.writeDouble(offsets[8], object.customBmr);
+  writer.writeDouble(offsets[9], object.dinnerBudget);
+  writer.writeDouble(offsets[10], object.fatGoal);
+  writer.writeString(offsets[11], object.gender);
+  writer.writeBool(offsets[12], object.hasGeminiApiKey);
+  writer.writeDouble(offsets[13], object.height);
+  writer.writeBool(offsets[14], object.isDarkMode);
+  writer.writeBool(offsets[15], object.isGoogleCalendarConnected);
+  writer.writeBool(offsets[16], object.isHealthConnectConnected);
+  writer.writeString(offsets[17], object.locale);
+  writer.writeDouble(offsets[18], object.lunchBudget);
+  writer.writeBool(offsets[19], object.mealSuggestionsEnabled);
+  writer.writeString(offsets[20], object.name);
+  writer.writeBool(offsets[21], object.onboardingComplete);
+  writer.writeString(offsets[22], object.platform);
+  writer.writeDouble(offsets[23], object.proteinGoal);
+  writer.writeDouble(offsets[24], object.snackBudget);
+  writer.writeDouble(offsets[25], object.suggestionThreshold);
+  writer.writeDouble(offsets[26], object.targetWeight);
+  writer.writeDouble(offsets[27], object.tdee);
+  writer.writeDateTime(offsets[28], object.updatedAt);
+  writer.writeDouble(offsets[29], object.waterGoal);
+  writer.writeDouble(offsets[30], object.weight);
 }
 
 UserProfile _userProfileDeserialize(
@@ -275,28 +287,30 @@ UserProfile _userProfileDeserialize(
   object.carbGoal = reader.readDouble(offsets[5]);
   object.createdAt = reader.readDateTime(offsets[6]);
   object.cuisinePreference = reader.readString(offsets[7]);
-  object.dinnerBudget = reader.readDouble(offsets[8]);
-  object.fatGoal = reader.readDouble(offsets[9]);
-  object.gender = reader.readStringOrNull(offsets[10]);
-  object.hasGeminiApiKey = reader.readBool(offsets[11]);
-  object.height = reader.readDoubleOrNull(offsets[12]);
+  object.customBmr = reader.readDouble(offsets[8]);
+  object.dinnerBudget = reader.readDouble(offsets[9]);
+  object.fatGoal = reader.readDouble(offsets[10]);
+  object.gender = reader.readStringOrNull(offsets[11]);
+  object.hasGeminiApiKey = reader.readBool(offsets[12]);
+  object.height = reader.readDoubleOrNull(offsets[13]);
   object.id = id;
-  object.isDarkMode = reader.readBool(offsets[13]);
-  object.isGoogleCalendarConnected = reader.readBool(offsets[14]);
-  object.isHealthConnectConnected = reader.readBool(offsets[15]);
-  object.locale = reader.readStringOrNull(offsets[16]);
-  object.lunchBudget = reader.readDouble(offsets[17]);
-  object.mealSuggestionsEnabled = reader.readBool(offsets[18]);
-  object.name = reader.readStringOrNull(offsets[19]);
-  object.onboardingComplete = reader.readBool(offsets[20]);
-  object.platform = reader.readStringOrNull(offsets[21]);
-  object.proteinGoal = reader.readDouble(offsets[22]);
-  object.snackBudget = reader.readDouble(offsets[23]);
-  object.suggestionThreshold = reader.readDouble(offsets[24]);
-  object.targetWeight = reader.readDoubleOrNull(offsets[25]);
-  object.updatedAt = reader.readDateTime(offsets[26]);
-  object.waterGoal = reader.readDouble(offsets[27]);
-  object.weight = reader.readDoubleOrNull(offsets[28]);
+  object.isDarkMode = reader.readBool(offsets[14]);
+  object.isGoogleCalendarConnected = reader.readBool(offsets[15]);
+  object.isHealthConnectConnected = reader.readBool(offsets[16]);
+  object.locale = reader.readStringOrNull(offsets[17]);
+  object.lunchBudget = reader.readDouble(offsets[18]);
+  object.mealSuggestionsEnabled = reader.readBool(offsets[19]);
+  object.name = reader.readStringOrNull(offsets[20]);
+  object.onboardingComplete = reader.readBool(offsets[21]);
+  object.platform = reader.readStringOrNull(offsets[22]);
+  object.proteinGoal = reader.readDouble(offsets[23]);
+  object.snackBudget = reader.readDouble(offsets[24]);
+  object.suggestionThreshold = reader.readDouble(offsets[25]);
+  object.targetWeight = reader.readDoubleOrNull(offsets[26]);
+  object.tdee = reader.readDouble(offsets[27]);
+  object.updatedAt = reader.readDateTime(offsets[28]);
+  object.waterGoal = reader.readDouble(offsets[29]);
+  object.weight = reader.readDoubleOrNull(offsets[30]);
   return object;
 }
 
@@ -328,42 +342,46 @@ P _userProfileDeserializeProp<P>(
     case 9:
       return (reader.readDouble(offset)) as P;
     case 10:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 11:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 12:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 13:
       return (reader.readBool(offset)) as P;
+    case 13:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 14:
       return (reader.readBool(offset)) as P;
     case 15:
       return (reader.readBool(offset)) as P;
     case 16:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 17:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 18:
-      return (reader.readBool(offset)) as P;
-    case 19:
-      return (reader.readStringOrNull(offset)) as P;
-    case 20:
-      return (reader.readBool(offset)) as P;
-    case 21:
-      return (reader.readStringOrNull(offset)) as P;
-    case 22:
       return (reader.readDouble(offset)) as P;
+    case 19:
+      return (reader.readBool(offset)) as P;
+    case 20:
+      return (reader.readStringOrNull(offset)) as P;
+    case 21:
+      return (reader.readBool(offset)) as P;
+    case 22:
+      return (reader.readStringOrNull(offset)) as P;
     case 23:
       return (reader.readDouble(offset)) as P;
     case 24:
       return (reader.readDouble(offset)) as P;
     case 25:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 26:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 27:
       return (reader.readDouble(offset)) as P;
     case 28:
+      return (reader.readDateTime(offset)) as P;
+    case 29:
+      return (reader.readDouble(offset)) as P;
+    case 30:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1224,6 +1242,72 @@ extension UserProfileQueryFilter
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'cuisinePreference',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      customBmrEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'customBmr',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      customBmrGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'customBmr',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      customBmrLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'customBmr',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
+      customBmrBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'customBmr',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -2501,6 +2585,68 @@ extension UserProfileQueryFilter
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> tdeeEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'tdee',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> tdeeGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'tdee',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> tdeeLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'tdee',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition> tdeeBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'tdee',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterFilterCondition>
       updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -2812,6 +2958,18 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByCustomBmr() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'customBmr', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByCustomBmrDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'customBmr', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByDinnerBudget() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dinnerBudget', Sort.asc);
@@ -3041,6 +3199,18 @@ extension UserProfileQuerySortBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByTdee() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tdee', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByTdeeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tdee', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -3177,6 +3347,18 @@ extension UserProfileQuerySortThenBy
       thenByCuisinePreferenceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'cuisinePreference', Sort.desc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByCustomBmr() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'customBmr', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByCustomBmrDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'customBmr', Sort.desc);
     });
   }
 
@@ -3421,6 +3603,18 @@ extension UserProfileQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByTdee() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tdee', Sort.asc);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByTdeeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tdee', Sort.desc);
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -3511,6 +3705,12 @@ extension UserProfileQueryWhereDistinct
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'cuisinePreference',
           caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByCustomBmr() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'customBmr');
     });
   }
 
@@ -3632,6 +3832,12 @@ extension UserProfileQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByTdee() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tdee');
+    });
+  }
+
   QueryBuilder<UserProfile, UserProfile, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -3706,6 +3912,12 @@ extension UserProfileQueryProperty
       cuisinePreferenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'cuisinePreference');
+    });
+  }
+
+  QueryBuilder<UserProfile, double, QQueryOperations> customBmrProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'customBmr');
     });
   }
 
@@ -3819,6 +4031,12 @@ extension UserProfileQueryProperty
   QueryBuilder<UserProfile, double?, QQueryOperations> targetWeightProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'targetWeight');
+    });
+  }
+
+  QueryBuilder<UserProfile, double, QQueryOperations> tdeeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tdee');
     });
   }
 

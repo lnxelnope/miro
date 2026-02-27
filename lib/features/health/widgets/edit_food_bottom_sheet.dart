@@ -395,6 +395,32 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       return;
     }
 
+    // ถามใช้ 100g ถ้าไม่กรอกปริมาณ
+    final currentAmount = double.tryParse(sub.amountController.text) ?? 0;
+    if (currentAmount <= 0) {
+      final action = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(L10n.of(context)!.amountNotSpecified),
+          content: Text(L10n.of(context)!.amountNotSpecifiedMessage(subName)),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'cancel'),
+                child: Text(L10n.of(context)!.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'default'),
+                child: Text(L10n.of(context)!.useDefault100g)),
+          ],
+        ),
+      );
+      if (action == 'default') {
+        sub.amountController.text = '100';
+        sub.unit = 'g';
+      } else {
+        return;
+      }
+    }
+
     setState(() => sub.isLoading = true);
 
     try {
@@ -876,15 +902,19 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _getValidUnit(_servingUnit),
                     decoration: InputDecoration(
-                      labelText: L10n.of(context)!.unitLabel,
+                      labelText: _hasIngredients
+                          ? '${L10n.of(context)!.unitLabel} 🔒'
+                          : L10n.of(context)!.unitLabel,
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
                     items: _buildUnitItems(),
-                    onChanged: (value) {
-                      if (value == null || value.isEmpty) return;
-                      _onUnitChanged(value);
-                    },
+                    onChanged: _hasIngredients
+                        ? null
+                        : (value) {
+                            if (value == null || value.isEmpty) return;
+                            _onUnitChanged(value);
+                          },
                     style: TextStyle(color: isDark ? AppColors.textPrimaryDark : Colors.black),
                     dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   ),

@@ -21,6 +21,7 @@ class HealthGoalsScreen extends ConsumerStatefulWidget {
 
 class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   late TextEditingController _calorieController;
+  late TextEditingController _tdeeController;
   late TextEditingController _proteinController;
   late TextEditingController _carbController;
   late TextEditingController _fatController;
@@ -53,6 +54,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   void initState() {
     super.initState();
     _calorieController = TextEditingController();
+    _tdeeController = TextEditingController();
     _proteinController = TextEditingController();
     _carbController = TextEditingController();
     _fatController = TextEditingController();
@@ -78,6 +80,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   @override
   void dispose() {
     _calorieController.dispose();
+    _tdeeController.dispose();
     _proteinController.dispose();
     _carbController.dispose();
     _fatController.dispose();
@@ -101,6 +104,9 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
     final cal = profile.calorieGoal as double;
     _calorieController.text = _safeInt(cal, 2000).toString();
+
+    final tdee = profile.tdee;
+    _tdeeController.text = tdee > 0 ? _safeInt(tdee, 0).toString() : '';
 
     // Load gram values from profile
     final pGram = profile.proteinGoal as double;
@@ -438,6 +444,33 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
 
+                // ===== TDEE / BMR Calculator =====
+                _TdeeCalculatorSection(
+                  onApplyTdee: (tdee) {
+                    setState(() {
+                      _calorieController.text = tdee.toInt().toString();
+                      _tdeeController.text = tdee.toInt().toString();
+                    });
+                    final profile = ref.read(profileNotifierProvider).valueOrNull;
+                    if (profile != null) {
+                      profile.tdee = tdee;
+                      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+                    }
+                  },
+                  onApplyBmr: (bmr) {
+                    final profile = ref.read(profileNotifierProvider).valueOrNull;
+                    if (profile != null) {
+                      profile.customBmr = bmr;
+                      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // ===== TDEE (editable) =====
+                _buildTdeeSection(),
+                const SizedBox(height: AppSpacing.xxl),
+
                 // ===== Calorie Goal =====
                 _buildCalorieSection(),
                 const SizedBox(height: AppSpacing.xxl),
@@ -511,6 +544,48 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           );
         },
       ),
+    );
+  }
+
+  // ========================================================
+  // TDEE Section (editable — calculator is helper only)
+  // ========================================================
+  Widget _buildTdeeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppIcons.iconWithLabel(
+          Icons.local_fire_department_rounded,
+          L10n.of(context)!.tdeeLabel,
+          iconColor: AppColors.health,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          L10n.of(context)!.tdeeHint,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: _tdeeController,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          decoration: InputDecoration(
+            hintText: '0',
+            suffixText: 'kcal/day',
+            suffixStyle: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            border: OutlineInputBorder(borderRadius: AppRadius.md),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: AppRadius.md,
+              borderSide: const BorderSide(color: AppColors.health, width: 2),
+            ),
+            contentPadding: AppSpacing.verticalLg,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1061,14 +1136,20 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   // ========================================================
   // Save Goals
   // ========================================================
+  // ========================================================
+  // TDEE / BMR Calculator is a separate stateful widget below
+  // ========================================================
+
   Future<void> _saveGoals() async {
     setState(() => _isLoading = true);
 
     try {
       final notifier = ref.read(profileNotifierProvider.notifier);
 
+      final tdeeVal = double.tryParse(_tdeeController.text);
       await notifier.updateHealthGoals(
         calorieGoal: _calories,
+        tdee: tdeeVal,
         proteinGoal: _proteinGrams.roundToDouble(),
         carbGoal: _carbGrams.roundToDouble(),
         fatGoal: _fatGrams.roundToDouble(),
@@ -1099,5 +1180,473 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+}
+
+// ================================================================
+// TDEE / BMR Calculator — stateful, local-only (no data stored)
+// Uses Mifflin-St Jeor equation:
+//   Male:   BMR = 10×weight + 6.25×height − 5×age + 5
+//   Female: BMR = 10×weight + 6.25×height − 5×age − 161
+//   TDEE = BMR × activity multiplier
+// ================================================================
+class _TdeeCalculatorSection extends StatefulWidget {
+  final ValueChanged<double> onApplyTdee;
+  final ValueChanged<double> onApplyBmr;
+
+  const _TdeeCalculatorSection({
+    required this.onApplyTdee,
+    required this.onApplyBmr,
+  });
+
+  @override
+  State<_TdeeCalculatorSection> createState() => _TdeeCalculatorSectionState();
+}
+
+class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
+  bool _expanded = false;
+  bool _isMale = true;
+  final _ageCtrl = TextEditingController();
+  final _weightCtrl = TextEditingController();
+  final _heightCtrl = TextEditingController();
+  int _activityIndex = 0;
+  bool _applied = false;
+
+  static const _activityMultipliers = [1.2, 1.375, 1.55, 1.725, 1.9];
+
+  @override
+  void dispose() {
+    _ageCtrl.dispose();
+    _weightCtrl.dispose();
+    _heightCtrl.dispose();
+    super.dispose();
+  }
+
+  double? get _bmr {
+    final age = int.tryParse(_ageCtrl.text);
+    final weight = double.tryParse(_weightCtrl.text);
+    final height = double.tryParse(_heightCtrl.text);
+    if (age == null || weight == null || height == null) return null;
+    if (age <= 0 || weight <= 0 || height <= 0) return null;
+    if (_isMale) {
+      return 10 * weight + 6.25 * height - 5 * age + 5;
+    } else {
+      return 10 * weight + 6.25 * height - 5 * age - 161;
+    }
+  }
+
+  double? get _tdee {
+    final bmr = _bmr;
+    if (bmr == null) return null;
+    return bmr * _activityMultipliers[_activityIndex];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.ai.withValues(alpha: 0.12),
+                  AppColors.primary.withValues(alpha: 0.08),
+                ]
+              : [
+                  AppColors.ai.withValues(alpha: 0.06),
+                  AppColors.primary.withValues(alpha: 0.04),
+                ],
+        ),
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: AppColors.ai.withValues(alpha: isDark ? 0.3 : 0.15),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header (tap to expand/collapse)
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: AppRadius.lg,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(Icons.calculate_rounded,
+                      color: AppColors.ai, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tdeeCalcTitle,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.shield_rounded,
+                                size: 11,
+                                color: AppColors.success.withValues(alpha: 0.8)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                l10n.tdeeCalcPrivacy,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.success.withValues(alpha: 0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white54 : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Body (expandable)
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 250),
+            crossFadeState:
+                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: _buildBody(l10n, isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(L10n l10n, bool isDark) {
+    final bmr = _bmr;
+    final tdee = _tdee;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 1),
+          const SizedBox(height: 14),
+
+          // Gender toggle
+          Text(l10n.tdeeCalcGender,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _genderChip(l10n.tdeeCalcMale, true, isDark),
+              const SizedBox(width: 10),
+              _genderChip(l10n.tdeeCalcFemale, false, isDark),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Age, Weight, Height in a row
+          Row(
+            children: [
+              Expanded(child: _miniField(l10n.tdeeCalcAge, _ageCtrl, isDark)),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _miniField(l10n.tdeeCalcWeight, _weightCtrl, isDark)),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _miniField(l10n.tdeeCalcHeight, _heightCtrl, isDark)),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Activity Level
+          Text(l10n.tdeeCalcActivity,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          _buildActivitySelector(l10n, isDark),
+
+          // Results
+          if (bmr != null && tdee != null) ...[
+            const SizedBox(height: 18),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.success.withValues(alpha: 0.12)
+                    : AppColors.success.withValues(alpha: 0.06),
+                borderRadius: AppRadius.md,
+                border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                children: [
+                  Text(l10n.tdeeCalcResult,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.success,
+                      )),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _resultCard(
+                          'BMR',
+                          bmr.toInt(),
+                          l10n.tdeeCalcBmrExplain,
+                          isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _resultCard(
+                          'TDEE',
+                          tdee.toInt(),
+                          l10n.tdeeCalcTdeeExplain,
+                          isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Apply buttons
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _applied
+                          ? null
+                          : () {
+                              widget.onApplyTdee(tdee);
+                              widget.onApplyBmr(bmr);
+                              setState(() => _applied = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'TDEE → ${tdee.toInt()} kcal, BMR → ${bmr.toInt()} kcal',
+                                  ),
+                                  backgroundColor: AppColors.success,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                      icon: Icon(_applied
+                          ? Icons.check_circle_rounded
+                          : Icons.auto_awesome_rounded),
+                      label: Text(
+                          _applied ? l10n.tdeeCalcApplied : l10n.tdeeCalcApplyBoth),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _applied
+                            ? AppColors.success.withValues(alpha: 0.3)
+                            : AppColors.success,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.md),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _genderChip(String label, bool isMale, bool isDark) {
+    final selected = _isMale == isMale;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _isMale = isMale;
+          _applied = false;
+        }),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.ai.withValues(alpha: 0.15)
+                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white),
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: selected
+                  ? AppColors.ai.withValues(alpha: 0.5)
+                  : (isDark ? Colors.white12 : AppColors.divider),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              '${isMale ? "♂" : "♀"}  $label',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? AppColors.ai
+                    : (isDark ? Colors.white70 : AppColors.textSecondary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _miniField(
+      String label, TextEditingController ctrl, bool isDark) {
+    return TextField(
+      controller: ctrl,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textAlign: TextAlign.center,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+      onChanged: (_) => setState(() => _applied = false),
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: isDark ? Colors.white : AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.white54 : AppColors.textSecondary,
+        ),
+        border: OutlineInputBorder(borderRadius: AppRadius.md),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppRadius.md,
+          borderSide: const BorderSide(color: AppColors.ai, width: 2),
+        ),
+        isDense: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildActivitySelector(L10n l10n, bool isDark) {
+    final labels = [
+      l10n.tdeeCalcActivitySedentary,
+      l10n.tdeeCalcActivityLight,
+      l10n.tdeeCalcActivityModerate,
+      l10n.tdeeCalcActivityActive,
+      l10n.tdeeCalcActivityVeryActive,
+    ];
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: List.generate(labels.length, (i) {
+        final selected = _activityIndex == i;
+        return GestureDetector(
+          onTap: () => setState(() {
+            _activityIndex = i;
+            _applied = false;
+          }),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.ai.withValues(alpha: 0.15)
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.white),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected
+                    ? AppColors.ai.withValues(alpha: 0.5)
+                    : (isDark ? Colors.white12 : AppColors.divider),
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Text(
+              labels[i],
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? AppColors.ai
+                    : (isDark ? Colors.white60 : AppColors.textSecondary),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _resultCard(
+      String title, int value, String subtitle, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.8),
+        borderRadius: AppRadius.sm,
+      ),
+      child: Column(
+        children: [
+          Text(title,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white54 : AppColors.textSecondary,
+              )),
+          const SizedBox(height: 4),
+          Text(
+            '$value',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.health,
+            ),
+          ),
+          Text('kcal/day',
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              )),
+          const SizedBox(height: 4),
+          Text(subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              )),
+        ],
+      ),
+    );
   }
 }

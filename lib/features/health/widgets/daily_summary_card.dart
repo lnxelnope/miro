@@ -6,8 +6,10 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/services/health_sync_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
+import '../presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../profile/models/user_profile.dart';
+import 'deficit_gauge.dart';
 
 class DailySummaryCard extends ConsumerWidget {
   final DateTime? selectedDate;
@@ -24,12 +26,21 @@ class DailySummaryCard extends ConsumerWidget {
     final foodsAsync = ref.watch(foodEntriesByDateProvider(date));
     final profileAsync = ref.watch(profileNotifierProvider);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const TodaySummaryDashboardScreen(),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -78,6 +89,7 @@ class DailySummaryCard extends ConsumerWidget {
             final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
             final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
 
+            final l10n = L10n.of(context)!;
             final isHealthOn = profile.isHealthConnectConnected;
             final activeEnergyAsync =
                 isToday && isHealthOn ? ref.watch(activeEnergyProvider) : null;
@@ -86,19 +98,26 @@ class DailySummaryCard extends ConsumerWidget {
                 (rawActive.isNaN || rawActive.isInfinite) ? 0.0 : rawActive;
 
             final baseGoal = profile.calorieGoal;
-            final goal =
-                (isHealthOn && isToday) ? baseGoal + activeEnergy : baseGoal;
-            final safeGoal = (goal.isNaN || goal.isInfinite) ? baseGoal : goal;
-            final percent =
-                safeGoal > 0 ? (calories / safeGoal).clamp(0.0, 1.0) : 0.0;
+            final tdee = profile.tdee > 0 ? profile.tdee : baseGoal.toDouble();
+
+            // Left ring: Intake vs Goal
+            final intakePercent =
+                baseGoal > 0 ? (calories / baseGoal).clamp(0.0, 1.5) : 0.0;
+            final intakeColor = intakePercent > 1.0
+                ? AppColors.error
+                : AppColors.health;
+
+            // Net Energy = Intake - TDEE - Active Burn
+            final netEnergy = calories - tdee - activeEnergy;
+
+            final showHealthSection = isHealthOn && isToday && tdee > 0;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Date navigation row
+                // ── Date navigation ──
                 Row(
                   children: [
-                    // Left arrow
                     if (onDateChanged != null)
                       _navArrow(
                         icon: Icons.chevron_left_rounded,
@@ -108,8 +127,6 @@ class DailySummaryCard extends ConsumerWidget {
                       ),
                     if (onDateChanged != null)
                       const SizedBox(width: AppSpacing.xs),
-
-                    // Date text (tap = date picker)
                     Expanded(
                       child: GestureDetector(
                         onTap: onDateChanged != null
@@ -145,8 +162,6 @@ class DailySummaryCard extends ConsumerWidget {
                         ),
                       ),
                     ),
-
-                    // Right arrow (disabled if today)
                     if (onDateChanged != null)
                       _navArrow(
                         icon: Icons.chevron_right_rounded,
@@ -161,11 +176,11 @@ class DailySummaryCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // Main content: Macros + Active Energy (left) + Circular kcal (right)
+                // ── Macros + Ring + Gauge ──
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Left: Macro bars + Active Energy row
+                    // Left: Macro bars + Health Sync toggle
                     Expanded(
                       child: Column(
                         children: [
@@ -202,76 +217,174 @@ class DailySummaryCard extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: AppSpacing.lg),
-
-                    // Right: Circular kcal (spans all 4 rows)
-                    SizedBox(
-                      width: 90,
-                      height: 90,
-                      child: Stack(
-                        alignment: Alignment.center,
+                    const SizedBox(width: AppSpacing.sm),
+                    // Right: Intake Ring + Gauge side by side
+                    if (showHealthSection) ...[
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: 90,
-                            height: 90,
-                            child: CircularProgressIndicator(
-                              value: percent,
-                              strokeWidth: 6,
-                              strokeCap: StrokeCap.round,
-                              backgroundColor: isDark
-                                  ? AppColors.surfaceVariantDark
-                                  : AppColors.divider,
-                              valueColor: AlwaysStoppedAnimation(
-                                percent >= 1.0
-                                    ? AppColors.error
-                                    : AppColors.health,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${calories.toInt()}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 18,
-                                  color: isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimary,
-                                ),
-                              ),
-                              Text(
-                                '/${safeGoal.toInt()}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textSecondary,
-                                ),
-                              ),
-                              Text(
-                                'kcal',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? AppColors.textSecondaryDark
-                                      : AppColors.textTertiary,
-                                ),
-                              ),
-                            ],
+                          _buildRing(
+                            size: 68,
+                            strokeWidth: 5,
+                            percent: intakePercent.clamp(0.0, 1.0),
+                            color: intakeColor,
+                            centerValue: '${calories.toInt()}',
+                            subText: '/${baseGoal.toInt()}',
+                            label: l10n.intakeGoalLabel,
+                            isDark: isDark,
                           ),
                         ],
+                      ),
+                      const SizedBox(width: 4),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DeficitGauge(
+                            netEnergy: netEnergy,
+                            isDark: isDark,
+                            width: 96,
+                          ),
+                        ],
+                      ),
+                    ] else
+                      _buildRing(
+                        size: 90,
+                        strokeWidth: 6,
+                        percent: intakePercent.clamp(0.0, 1.0),
+                        color: intakeColor,
+                        centerValue: '${calories.toInt()}',
+                        subText: '/${baseGoal.toInt()}',
+                        label: 'kcal',
+                        isDark: isDark,
+                      ),
+                  ],
+                ),
+
+                // ── 3 stats in a single row ──
+                if (showHealthSection) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _statInline(Icons.restaurant_rounded, '${calories.toInt()}', 'Eaten', isDark),
+                      _statInline(Icons.local_fire_department_rounded, '${activeEnergy.toInt()}', 'Exercise', isDark),
+                      _statInline(Icons.bolt_rounded, '${tdee.toInt()}', 'TDEE', isDark),
+                    ],
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+    );
+  }
+
+  Widget _statInline(IconData icon, String value, String label, bool isDark) {
+    final sub = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: sub),
+        const SizedBox(width: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: TextStyle(fontSize: 9, color: sub),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRing({
+    required double size,
+    required double strokeWidth,
+    required double percent,
+    required Color color,
+    required String centerValue,
+    required String subText,
+    required String label,
+    required bool isDark,
+  }) {
+    return SizedBox(
+      width: size,
+      height: size + 14,
+      child: Column(
+        children: [
+          SizedBox(
+            width: size,
+            height: size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: size,
+                  height: size,
+                  child: CircularProgressIndicator(
+                    value: percent,
+                    strokeWidth: strokeWidth,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.divider,
+                    valueColor: AlwaysStoppedAnimation(color),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      centerValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: size > 80 ? 18 : 14,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      subText,
+                      style: TextStyle(
+                        fontSize: size > 80 ? 10 : 8,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+          const SizedBox(height: 3),
+          SizedBox(
+            width: size,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textTertiary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -361,10 +474,12 @@ class DailySummaryCard extends ConsumerWidget {
         ),
         const SizedBox(width: AppSpacing.sm),
         SizedBox(
-          width: 58,
+          width: 68,
           child: Text(
             '${value.toInt()}/${goal.toInt()}g',
             textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -463,7 +578,6 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
     );
   }
 
-  static const _barMaxKcal = 500.0;
   static const _activeGreen = Color(0xFF4CAF50);
 
   @override
@@ -473,9 +587,6 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
         ? AppColors.textSecondaryDark
         : AppColors.textSecondary;
     final chipColor = isOn ? _activeGreen : offColor;
-    final progress = isOn
-        ? (widget.activeEnergy / _barMaxKcal).clamp(0.0, 1.0)
-        : 0.0;
 
     return GestureDetector(
       onTap: _isLoading ? null : _toggle,
@@ -497,48 +608,25 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
               color: chipColor,
             ),
             const SizedBox(width: 4),
-            // Green progress bar (fills toward 500 kcal)
             Expanded(
               child: _isLoading
                   ? SizedBox(
                       height: 6,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(3),
-                        child: const LinearProgressIndicator(
-                          minHeight: 6,
-                        ),
+                        child: const LinearProgressIndicator(minHeight: 6),
                       ),
                     )
-                  : ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: SizedBox(
-                        height: 6,
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 6,
-                          backgroundColor: widget.isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.divider,
-                          valueColor:
-                              AlwaysStoppedAnimation(chipColor),
-                        ),
+                  : Text(
+                      isOn ? 'Health Sync' : 'Health Sync off',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: chipColor,
                       ),
                     ),
             ),
-            const SizedBox(width: 6),
-            // Value text
-            Text(
-              isOn
-                  ? '+${widget.activeEnergy.toInt()}'
-                  : 'off',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: chipColor,
-              ),
-            ),
             const SizedBox(width: 4),
-            // Mini toggle
             Container(
               width: 22,
               height: 12,

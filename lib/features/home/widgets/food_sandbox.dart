@@ -82,9 +82,16 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
   Widget build(BuildContext context) {
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // Sort by timestamp ascending (oldest first = top-left)
+    // Sort: items with images first, then text-only; within each group by timestamp ascending
     final sorted = List<FoodEntry>.from(widget.entries)
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      ..sort((a, b) {
+        final aHasImage =
+            a.imagePath != null && File(a.imagePath!).existsSync();
+        final bHasImage =
+            b.imagePath != null && File(b.imagePath!).existsSync();
+        if (aHasImage != bHasImage) return aHasImage ? -1 : 1;
+        return a.timestamp.compareTo(b.timestamp);
+      });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

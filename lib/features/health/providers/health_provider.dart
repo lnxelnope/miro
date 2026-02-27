@@ -203,6 +203,16 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         fat: entry.fat,
         timestamp: entry.timestamp,
         mealType: entry.mealType,
+        fiber: entry.fiber,
+        sugar: entry.sugar,
+        sodium: entry.sodium,
+        cholesterol: entry.cholesterol,
+        saturatedFat: entry.saturatedFat,
+        transFat: entry.transFat,
+        unsaturatedFat: entry.unsaturatedFat,
+        monounsaturatedFat: entry.monounsaturatedFat,
+        polyunsaturatedFat: entry.polyunsaturatedFat,
+        potassium: entry.potassium,
       );
 
       if (syncKey != null) {
@@ -269,6 +279,13 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     double? fiber,
     double? sugar,
     double? sodium,
+    double? cholesterol,
+    double? saturatedFat,
+    double? transFat,
+    double? unsaturatedFat,
+    double? monounsaturatedFat,
+    double? polyunsaturatedFat,
+    double? potassium,
     String? notes,
     String? ingredientsJson,
   }) async {
@@ -293,6 +310,13 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     entry.fiber = fiber;
     entry.sugar = sugar;
     entry.sodium = sodium;
+    entry.cholesterol = cholesterol;
+    entry.saturatedFat = saturatedFat;
+    entry.transFat = transFat;
+    entry.unsaturatedFat = unsaturatedFat;
+    entry.monounsaturatedFat = monounsaturatedFat;
+    entry.polyunsaturatedFat = polyunsaturatedFat;
+    entry.potassium = potassium;
     entry.source = DataSource.aiAnalyzed;
     entry.aiConfidence = confidence;
     entry.isVerified = true;
@@ -308,20 +332,21 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
   }
 
   /// Save ingredients + meal from Gemini result
+  /// [overwriteIfExists] = true → ถ้ามี MyMeal ชื่อเดียวกัน จะ overwrite ทับ
+  ///                        false → ถ้าชื่อซ้ำจะสร้างใหม่ด้วยชื่อไม่ซ้ำ (append number)
   Future<void> saveIngredientsAndMeal({
     required String mealName,
     String? mealNameEn,
     required String servingDescription,
     String? imagePath,
     required List<Map<String, dynamic>> ingredientsData,
-    String source = 'gemini', // default 'gemini', can be 'manual'
+    String source = 'gemini',
+    bool overwriteIfExists = false,
   }) async {
     try {
       final notifier = MyMealNotifier();
 
-      // Helper function: parse ingredient แบบ recursive
       MealIngredientInput parseIngredient(Map<String, dynamic> data) {
-        // Parse sub_ingredients ถ้ามี
         List<MealIngredientInput>? subs;
         final subList = data['sub_ingredients'] as List<dynamic>?;
         if (subList != null && subList.isNotEmpty) {
@@ -333,20 +358,40 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         return MealIngredientInput(
           name: data['name'] as String,
           nameEn: data['name_en'] as String?,
-          detail: data['detail'] as String?, // NEW
+          detail: data['detail'] as String?,
           amount: (data['amount'] as num).toDouble(),
           unit: data['unit'] as String,
           calories: (data['calories'] as num).toDouble(),
           protein: (data['protein'] as num).toDouble(),
           carbs: (data['carbs'] as num).toDouble(),
           fat: (data['fat'] as num).toDouble(),
-          subIngredients: subs, // NEW
+          subIngredients: subs,
         );
       }
 
-      // Parse all ROOT ingredients (recursive parse จะ handle sub อัตโนมัติ)
       final inputs =
           ingredientsData.map((data) => parseIngredient(data)).toList();
+
+      if (overwriteIfExists) {
+        final allMeals = await DatabaseService.myMeals.where().findAll();
+        final existing = allMeals
+            .where((m) => m.name.toLowerCase() == mealName.toLowerCase())
+            .firstOrNull;
+
+        if (existing != null) {
+          await notifier.updateMeal(
+            mealId: existing.id,
+            name: mealName,
+            nameEn: mealNameEn,
+            baseServingDescription: servingDescription,
+            imagePath: imagePath,
+            ingredients: inputs,
+          );
+          AppLogger.info(
+              'Overwritten existing MyMeal: $mealName (id=${existing.id}) + ${inputs.length} ROOT ingredients');
+          return;
+        }
+      }
 
       await notifier.createMeal(
         name: mealName,
@@ -354,13 +399,12 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         baseServingDescription: servingDescription,
         imagePath: imagePath,
         ingredients: inputs,
-        source: source, // Pass source parameter
+        source: source,
       );
       AppLogger.info(
           'Auto-saved meal: $mealName (source=$source) + ${inputs.length} ROOT ingredients');
     } catch (e) {
       AppLogger.warn('Failed to auto-save', e);
-      // Don't throw - this is a bonus feature, shouldn't break main flow
     }
   }
 

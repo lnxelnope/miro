@@ -2,11 +2,33 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-02-26 (Build 48 - Ready for Play Store)
+**อัปเดตล่าสุด:** 2026-02-27 (Build 49 - Ready for Play Store)
 
 ---
 
-## ✅ Build 48 (v1.2.0) - Status: READY FOR PRODUCTION
+## ✅ Build 49 (v1.2.1) - Status: READY FOR PRODUCTION
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.1+49`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 49`, `versionName = "1.2.1"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.1'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.1`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.1+49)
+- [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+
+### ✨ Changes in this version:
+- **L10n Support for Nutrition Summary Dashboard** - เพิ่มการแปลภาษาไทยและภาษาอื่นๆ สำหรับหน้า Nutrition Summary Dashboard
+  - แปลข้อความทั้งหมดใน `today_summary_dashboard_screen.dart` เป็นระบบ L10n
+  - เพิ่ม keys ใหม่: `nutritionSummary`, `macroDistribution`, `calorieTrend`, `calorieTrend7Days`, `micronutrientTracker`, `fatBreakdown`, `goal`, `over`, `saturated`, `mono`, `poly`, `trans`, `noDataFor`, `errorColon`
+  - รองรับการแปลเป็น 12 ภาษา (EN, TH, และภาษาอื่นๆ)
+
+---
+
+## ✅ Build 48 (v1.2.0) - Status: RELEASED
 
 ### 📋 Checklist
 
@@ -348,7 +370,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.0+48
+version: 1.2.1+49
 ```
 **Format:** `versionName+versionCode`
 - `1.2.0` = Version name (แสดงให้ user เห็น)
@@ -357,8 +379,8 @@ version: 1.2.0+48
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 48
-    versionName = "1.2.0"
+    versionCode = 49
+    versionName = "1.2.1"
 }
 ```
 **Format:**
@@ -370,7 +392,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.1',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -395,22 +417,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.1.22+47 → 1.2.0+48
-version: 1.2.0+48
+# ตัวอย่าง: จาก 1.2.0+48 → 1.2.1+49
+version: 1.2.1+49
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 48  // เพิ่มทีละ 1
-    versionName = "1.2.0"  // ตรงกับ pubspec
+    versionCode = 49  // เพิ่มทีละ 1
+    versionName = "1.2.1"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.2.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.2.1',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -437,7 +459,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 48 | 1.2.0 | 2026-02-26 | ✅ Current |
+| 49 | 1.2.1 | 2026-02-27 | ✅ Current |
+| 48 | 1.2.0 | 2026-02-26 | ✅ Released |
 | 47 | 1.1.22 | 2026-02-26 | ✅ Released |
 | 46 | 1.1.21 | 2026-02-26 | ✅ Released |
 | 45 | 1.1.20 | 2026-02-26 | ✅ Released |
@@ -472,14 +495,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.2.0+48`
-- `build.gradle.kts`: `versionCode = 48`, `versionName = "1.2.0"`
+- `pubspec.yaml`: `1.2.1+49`
+- `build.gradle.kts`: `versionCode = 49`, `versionName = "1.2.1"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.2.0',  // แก้ให้ตรงกับ versionName
+subtitle: '1.2.1',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
@@ -487,11 +510,11 @@ subtitle: '1.2.0',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 48):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.0+48`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (47 → 48)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.0'`)
-- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.0+48)
+### Pre-flight Checklist (Build 49):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.1+49`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (48 → 49)
+- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.1'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.1+49)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)

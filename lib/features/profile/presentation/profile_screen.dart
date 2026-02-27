@@ -345,7 +345,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.2.0',
+                          subtitle: '1.2.1',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(

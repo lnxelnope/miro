@@ -72,12 +72,17 @@ class HealthSyncService {
     }
   }
 
-  /// Get today's estimated active energy (kcal).
+  /// Get today's **bonus** active energy (kcal) — the amount that justifies
+  /// eating more than the base calorie goal.
   ///
-  /// Strategy:
-  /// 1. If ACTIVE_ENERGY_BURNED data exists → use it directly.
-  /// 2. Otherwise fall back to TOTAL_CALORIES_BURNED minus BMR prorated
-  ///    to the current time of day: `max(0, TCB - BMR × hoursElapsed / 24)`.
+  /// **iOS** — HealthKit provides `ACTIVE_ENERGY_BURNED` which already
+  /// excludes BMR, so we use it directly as the bonus.
+  ///
+  /// **Android** — Health Connect only reliably gives
+  /// `TOTAL_CALORIES_BURNED` (BMR + active).  We subtract the user's
+  /// full-day BMR so only genuine surplus counts:
+  ///   • TBC ≤ BMR → Bonus = 0
+  ///   • TBC > BMR → Bonus = TBC − BMR
   static Future<double> getTodayActiveEnergy({double bmr = 1500}) async {
     final safeBmr = (bmr.isNaN || bmr.isInfinite || bmr <= 0) ? 1500.0 : bmr;
     try {
@@ -109,19 +114,23 @@ class HealthSyncService {
       }
 
       double result;
-      if (active > 0) {
+      if (Platform.isIOS && active > 0) {
+        // iOS HealthKit: ACTIVE_ENERGY_BURNED is pure exercise/movement
         result = active;
       } else if (total > 0) {
-        final hoursElapsed =
-            now.difference(startOfDay).inMinutes / 60.0;
-        final bmrSoFar = safeBmr * hoursElapsed / 24.0;
-        result = (total - bmrSoFar).clamp(0.0, double.infinity);
+        // Android / fallback: Bonus = max(0, TBC − full-day BMR)
+        result = (total - safeBmr).clamp(0.0, double.infinity);
+      } else if (active > 0) {
+        // Android with active data but no total
+        result = active;
       } else {
         result = 0;
       }
 
       AppLogger.info(
-          'Energy today — active: $active, total: $total, bmr: $safeBmr, result: ${result.toInt()} kcal');
+          'Energy today — active: $active, total: $total, bmr: $safeBmr, '
+          'platform: ${Platform.isIOS ? "iOS" : "Android"}, '
+          'bonus: ${result.toInt()} kcal');
       return result;
     } catch (e) {
       AppLogger.error('Failed to get active energy', e);
@@ -139,6 +148,16 @@ class HealthSyncService {
     required double fat,
     required DateTime timestamp,
     app_enums.MealType? mealType,
+    double? fiber,
+    double? sugar,
+    double? sodium,
+    double? cholesterol,
+    double? saturatedFat,
+    double? transFat,
+    double? unsaturatedFat,
+    double? monounsaturatedFat,
+    double? polyunsaturatedFat,
+    double? potassium,
   }) async {
     try {
       _ensureConfigured();
@@ -155,6 +174,16 @@ class HealthSyncService {
         fatTotal: fat,
         name: name,
         mealType: _mapMealType(mealType),
+        fiber: fiber,
+        sugar: sugar,
+        sodium: sodium,
+        cholesterol: cholesterol,
+        fatSaturated: saturatedFat,
+        fatTransMonoenoic: transFat,
+        fatUnsaturated: unsaturatedFat,
+        fatMonounsaturated: monounsaturatedFat,
+        fatPolyunsaturated: polyunsaturatedFat,
+        potassium: potassium,
       );
 
       if (!success) {
@@ -210,6 +239,16 @@ class HealthSyncService {
     required double fat,
     required DateTime timestamp,
     app_enums.MealType? mealType,
+    double? fiber,
+    double? sugar,
+    double? sodium,
+    double? cholesterol,
+    double? saturatedFat,
+    double? transFat,
+    double? unsaturatedFat,
+    double? monounsaturatedFat,
+    double? polyunsaturatedFat,
+    double? potassium,
   }) async {
     if (oldHealthSyncKey != null && oldHealthSyncKey.isNotEmpty) {
       await deleteFoodEntry(healthSyncKey: oldHealthSyncKey);
@@ -223,6 +262,16 @@ class HealthSyncService {
       fat: fat,
       timestamp: timestamp,
       mealType: mealType,
+      fiber: fiber,
+      sugar: sugar,
+      sodium: sodium,
+      cholesterol: cholesterol,
+      saturatedFat: saturatedFat,
+      transFat: transFat,
+      unsaturatedFat: unsaturatedFat,
+      monounsaturatedFat: monounsaturatedFat,
+      polyunsaturatedFat: polyunsaturatedFat,
+      potassium: potassium,
     );
   }
 

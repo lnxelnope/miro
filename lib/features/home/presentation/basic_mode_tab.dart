@@ -441,13 +441,15 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
 
   Future<void> _deleteSelectedEntries(List<FoodEntry> entries) async {
     final l10n = L10n.of(context)!;
-    final names = entries.map((e) => e.foodName).join(', ');
+    final displayName = entries.length == 1
+        ? entries.first.foodName
+        : '${entries.length} items';
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.confirmDelete),
-        content: Text(l10n.confirmDeleteMessage(names)),
+        content: Text(l10n.confirmDeleteMessage(displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -469,6 +471,19 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       await notifier.deleteFoodEntry(entry.id);
     }
     refreshFoodProviders(ref, _selectedDate);
+
+    if (!mounted) return;
+    final message = entries.length == 1
+        ? '✅ ${l10n.deletedSingleEntry(entries.first.foodName)}'
+        : '✅ ${l10n.deletedEntries(entries.length)}';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _analyzeSelectedEntries(List<FoodEntry> entries) {

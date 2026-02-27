@@ -43,6 +43,9 @@ class UserProfile {
   // Health Sync: BMR for estimating active energy from TCB
   double customBmr = 1500; // kcal/day
 
+  // TDEE (Total Daily Energy Expenditure) — calculated from TDEE calculator
+  double tdee = 0;
+
   @ignore
   double get safeBmr =>
       (customBmr.isNaN || customBmr.isInfinite || customBmr <= 0)

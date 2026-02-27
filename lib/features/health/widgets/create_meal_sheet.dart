@@ -293,13 +293,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _getValidUnit(_servingUnit),
                     items: UnitConverter.allDropdownItems,
-                    onChanged: (newUnit) {
-                      if (newUnit != null) {
-                        setState(() => _servingUnit = newUnit);
-                      }
-                    },
+                    onChanged: _ingredients.isNotEmpty
+                        ? null
+                        : (newUnit) {
+                            if (newUnit != null) {
+                              setState(() => _servingUnit = newUnit);
+                            }
+                          },
                     decoration: InputDecoration(
-                      labelText: L10n.of(context)!.unitRequired,
+                      labelText: _ingredients.isNotEmpty
+                          ? '${L10n.of(context)!.unitRequired} 🔒'
+                          : L10n.of(context)!.unitRequired,
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
@@ -1552,6 +1556,32 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         SnackBar(content: Text(L10n.of(context)!.pleaseEnterSubFirst)),
       );
       return;
+    }
+
+    // ถามใช้ 100g ถ้าไม่กรอกปริมาณ
+    final currentAmount = double.tryParse(sub.amountController.text) ?? 0;
+    if (currentAmount <= 0) {
+      final action = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(L10n.of(context)!.amountNotSpecified),
+          content: Text(L10n.of(context)!.amountNotSpecifiedMessage(subName)),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'cancel'),
+                child: Text(L10n.of(context)!.cancel)),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, 'default'),
+                child: Text(L10n.of(context)!.useDefault100g)),
+          ],
+        ),
+      );
+      if (action == 'default') {
+        sub.amountController.text = '100';
+        sub.unit = 'g';
+      } else {
+        return;
+      }
     }
 
     setState(() => sub.isLookingUp = true);

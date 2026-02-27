@@ -85,6 +85,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
 
   Future<void> updateHealthGoals({
     double? calorieGoal,
+    double? tdee,
     double? proteinGoal,
     double? carbGoal,
     double? fatGoal,
@@ -100,6 +101,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
     if (currentProfile == null) return;
 
     if (calorieGoal != null) currentProfile.calorieGoal = calorieGoal;
+    if (tdee != null) currentProfile.tdee = tdee;
     if (proteinGoal != null) currentProfile.proteinGoal = proteinGoal;
     if (carbGoal != null) currentProfile.carbGoal = carbGoal;
     if (fatGoal != null) currentProfile.fatGoal = fatGoal;

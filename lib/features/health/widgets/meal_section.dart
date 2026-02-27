@@ -137,6 +137,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
     );
 
     if (confirmed == true) {
+      final selectedFoods = widget.foods
+          .where((f) => _selectedIds.contains(f.id))
+          .toList();
       final notifier = ref.read(foodEntriesNotifierProvider.notifier);
       for (final id in _selectedIds) {
         await notifier.deleteFoodEntry(id);
@@ -148,9 +151,12 @@ class _MealSectionState extends ConsumerState<MealSection> {
       _exitSelectMode();
 
       if (!mounted) return;
+      final message = count == 1 && selectedFoods.isNotEmpty
+          ? '✅ ${L10n.of(context)!.deletedSingleEntry(selectedFoods.first.foodName)}'
+          : '✅ ${L10n.of(context)!.deletedEntries(count)}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(L10n.of(context)!.deletedEntries(count)),
+          content: Text(message),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape:

@@ -13,6 +13,7 @@ import '../services/greeting_service.dart';
 import '../widgets/message_bubble.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/models/food_entry.dart';
+import '../../health/presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/providers/energy_provider.dart';
 
@@ -373,7 +374,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         icon: AppIcons.statistics,
         iconColor: AppIcons.statisticsColor,
         label: L10n.of(context)!.summaryLabel,
-        action: () => _sendQuickMessage(L10n.of(context)!.howManyCaloriesToday),
+        action: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const TodaySummaryDashboardScreen(),
+            ),
+          );
+        },
         energyCost: 0,
       ),
       const SizedBox(width: AppSpacing.sm),

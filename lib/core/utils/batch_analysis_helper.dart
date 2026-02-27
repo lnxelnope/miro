@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import '../ai/gemini_service.dart';
-import '../database/database_service.dart';
 import '../services/usage_limiter.dart';
 import '../utils/logger.dart';
 import '../constants/enums.dart';
 import '../../features/health/models/food_entry.dart';
-import '../../features/health/models/my_meal.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/my_meal_provider.dart';
 import '../../features/energy/providers/energy_provider.dart';
@@ -83,22 +80,56 @@ class BatchAnalysisHelper {
   }
 
   /// Apply AI result ไปที่ FoodEntry
+  /// ถ้ามี ingredientsDetail → ใช้ผลรวม ingredients เป็น total (แม่นยำกว่า AI total)
   static void applyResultToEntry(FoodEntry entry, FoodAnalysisResult result) {
     entry.foodName = result.foodName;
     entry.foodNameEn = result.foodNameEn;
-    entry.calories = result.nutrition.calories;
-    entry.protein = result.nutrition.protein;
-    entry.carbs = result.nutrition.carbs;
-    entry.fat = result.nutrition.fat;
+
+    double cal = result.nutrition.calories;
+    double prot = result.nutrition.protein;
+    double carb = result.nutrition.carbs;
+    double fa = result.nutrition.fat;
+
+    // ถ้ามี ingredients detail → รวมจาก ROOT ingredients (แม่นยำกว่า AI total)
+    if (result.ingredientsDetail != null &&
+        result.ingredientsDetail!.isNotEmpty) {
+      double sumCal = 0, sumP = 0, sumC = 0, sumF = 0;
+      for (final ing in result.ingredientsDetail!) {
+        sumCal += ing.calories;
+        sumP += ing.protein;
+        sumC += ing.carbs;
+        sumF += ing.fat;
+      }
+      if (sumCal > 0) {
+        cal = sumCal;
+        prot = sumP;
+        carb = sumC;
+        fa = sumF;
+        AppLogger.info(
+            '[applyResult] Using ingredients sum ($sumCal kcal) instead of AI total (${result.nutrition.calories} kcal)');
+      }
+    }
+
+    entry.calories = cal;
+    entry.protein = prot;
+    entry.carbs = carb;
+    entry.fat = fa;
     entry.fiber = result.nutrition.fiber;
     entry.sugar = result.nutrition.sugar;
     entry.sodium = result.nutrition.sodium;
+    entry.cholesterol = result.nutrition.cholesterol;
+    entry.saturatedFat = result.nutrition.saturatedFat;
+    entry.transFat = result.nutrition.transFat;
+    entry.unsaturatedFat = result.nutrition.unsaturatedFat;
+    entry.monounsaturatedFat = result.nutrition.monounsaturatedFat;
+    entry.polyunsaturatedFat = result.nutrition.polyunsaturatedFat;
+    entry.potassium = result.nutrition.potassium;
 
     final serving = result.servingSize > 0 ? result.servingSize : 1.0;
-    entry.baseCalories = result.nutrition.calories / serving;
-    entry.baseProtein = result.nutrition.protein / serving;
-    entry.baseCarbs = result.nutrition.carbs / serving;
-    entry.baseFat = result.nutrition.fat / serving;
+    entry.baseCalories = cal / serving;
+    entry.baseProtein = prot / serving;
+    entry.baseCarbs = carb / serving;
+    entry.baseFat = fa / serving;
     entry.servingSize = result.servingSize;
     entry.servingUnit = result.servingUnit;
     entry.servingGrams = result.servingGrams?.toDouble();
@@ -115,6 +146,7 @@ class BatchAnalysisHelper {
   }
 
   /// Auto-save meal + ingredients ไป database
+  /// AI results จะ overwrite MyMeal ชื่อเดิมเสมอ (ไม่สร้างซ้ำ)
   static Future<void> autoSaveToDatabase(
     Ref ref,
     FoodEntry entry,
@@ -126,40 +158,27 @@ class BatchAnalysisHelper {
     }
 
     try {
-      final all = await DatabaseService.myMeals.where().findAll();
-      final uniqueName = _getUniqueMealName(result.foodName, all);
-
       final ingredientsData =
           result.ingredientsDetail!.map((e) => e.toJson()).toList();
 
       await ref
           .read(foodEntriesNotifierProvider.notifier)
           .saveIngredientsAndMeal(
-            mealName: uniqueName,
+            mealName: result.foodName,
             mealNameEn: result.foodNameEn,
             servingDescription: '${result.servingSize} ${result.servingUnit}',
             imagePath: entry.imagePath,
             ingredientsData: ingredientsData,
+            overwriteIfExists: true,
           );
 
       ref.invalidate(allMyMealsProvider);
       ref.invalidate(allIngredientsProvider);
       AppLogger.info(
-          '[AutoSave] Saved "$uniqueName" + ${ingredientsData.length} ingredients');
+          '[AutoSave] Saved "${result.foodName}" + ${ingredientsData.length} ingredients');
     } catch (e) {
       AppLogger.warn('[AutoSave] Failed for "${result.foodName}": $e');
     }
-  }
-
-  static String _getUniqueMealName(String baseName, List<MyMeal> allMeals) {
-    final names = allMeals.map((m) => m.name).toSet();
-    if (!names.contains(baseName)) return baseName;
-
-    int counter = 2;
-    while (names.contains('$baseName ($counter)')) {
-      counter++;
-    }
-    return '$baseName ($counter)';
   }
 
   /// Analyze รายการที่เลือก (ใช้ได้ทั้ง analyze all และ analyze selected)
