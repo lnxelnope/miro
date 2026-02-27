@@ -1325,8 +1325,36 @@
   "subscriptionWhatYouGet": "What You Get",
   "subscriptionPerMonth": "per month",
   "subscriptionSubscribeNow": "Subscribe Now",
+  "subscriptionSubscribe": "Subscribe",
   "subscriptionCancelAnytime": "Cancel anytime",
   "subscriptionAutoRenewTerms": "Your subscription will renew automatically. You can cancel anytime from Google Play.",
+  "subscriptionRenewsDate": "Renews: {date}",
+  "@subscriptionRenewsDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "BEST VALUE",
+
+  "energyStoreTitle": "Energy Store",
+  "energyPackages": "Energy Packages",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "BEST VALUE",
+  "energyBadgePopular": "POPULAR",
+  "energyBadgeBonus10": "+10% bonus",
+  "energyPassUnlimitedAI": "Unlimited AI Analysis",
+  "energyPassUnlimitedFromPrice": "Unlimited AI Analysis • from {price}/month",
+  "@energyPassUnlimitedFromPrice": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "energyPassActive": "ACTIVE",
+  "subscriptionDeal": "Subscription Deal",
+  "subscriptionViewDeal": "View Deal",
 
   "disclaimerHealthDisclaimer": "Health Disclaimer",
   "disclaimerImportantReminders": "Important Reminders:",

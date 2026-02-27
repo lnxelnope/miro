@@ -1325,8 +1325,36 @@
   "subscriptionWhatYouGet": "สิ่งที่คุณจะได้รับ",
   "subscriptionPerMonth": "ต่อเดือน",
   "subscriptionSubscribeNow": "สมัครสมาชิกเลย",
+  "subscriptionSubscribe": "สมัครสมาชิก",
   "subscriptionCancelAnytime": "ยกเลิกได้ทุกเมื่อ",
   "subscriptionAutoRenewTerms": "การสมัครสมาชิกของคุณจะต่ออายุอัตโนมัติ คุณสามารถยกเลิกได้ทุกเมื่อจาก Google Play",
+  "subscriptionRenewsDate": "ต่ออายุ: {date}",
+  "@subscriptionRenewsDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "subscriptionBestValue": "คุ้มที่สุด",
+
+  "energyStoreTitle": "ร้านพลังงาน",
+  "energyPackages": "แพ็คเกจพลังงาน",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "คุ้มที่สุด",
+  "energyBadgePopular": "ยอดนิยม",
+  "energyBadgeBonus10": "+10% โบนัส",
+  "energyPassUnlimitedAI": "วิเคราะห์ AI ไม่จำกัด",
+  "energyPassUnlimitedFromPrice": "วิเคราะห์ AI ไม่จำกัด • เริ่มต้น {price}/เดือน",
+  "@energyPassUnlimitedFromPrice": {
+    "placeholders": {
+      "price": {"type": "String"}
+    }
+  },
+  "energyPassActive": "ใช้งานอยู่",
+  "subscriptionDeal": "ดีลสมัครสมาชิก",
+  "subscriptionViewDeal": "ดูดีล",
 
   "disclaimerHealthDisclaimer": "ข้อจำกัดความรับผิด",
   "disclaimerImportantReminders": "ข้อควรระวังสำคัญ:",

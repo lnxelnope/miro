@@ -286,7 +286,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Energy Pass',
+                  L10n.of(context)!.subscriptionEnergyPass,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
@@ -294,7 +294,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Unlimited AI Analysis',
+                  L10n.of(context)!.energyPassUnlimitedAI,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
@@ -430,8 +430,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     color: AppColors.primary,
                     borderRadius: AppRadius.sm,
                   ),
-                  child: const Text(
-                    'BEST VALUE',
+                  child: Text(
+                    L10n.of(context)!.subscriptionBestValue,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -486,7 +486,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   : Text(
                       plan.isPopular
                           ? L10n.of(context)!.subscriptionSubscribeNow
-                          : 'Subscribe',
+                          : L10n.of(context)!.subscriptionSubscribe,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

@@ -1791,11 +1791,66 @@ class L10nKo extends L10n {
   String get subscriptionSubscribeNow => '지금 구독하세요';
 
   @override
+  String get subscriptionSubscribe => 'Subscribe';
+
+  @override
   String get subscriptionCancelAnytime => '언제든지 취소';
 
   @override
   String get subscriptionAutoRenewTerms =>
       '구독이 자동으로 갱신됩니다. Google Play에서 언제든지 취소할 수 있습니다.';
+
+  @override
+  String subscriptionRenewsDate(String date) {
+    return 'Renews: $date';
+  }
+
+  @override
+  String get subscriptionBestValue => 'BEST VALUE';
+
+  @override
+  String get energyStoreTitle => 'Energy Store';
+
+  @override
+  String get energyPackages => 'Energy Packages';
+
+  @override
+  String get energyPackageStarterKick => 'Starter Kick';
+
+  @override
+  String get energyPackageValuePack => 'Value Pack';
+
+  @override
+  String get energyPackagePowerUser => 'Power User';
+
+  @override
+  String get energyPackageUltimateSaver => 'Ultimate Saver';
+
+  @override
+  String get energyBadgeBestValue => 'BEST VALUE';
+
+  @override
+  String get energyBadgePopular => 'POPULAR';
+
+  @override
+  String get energyBadgeBonus10 => '+10% bonus';
+
+  @override
+  String get energyPassUnlimitedAI => 'Unlimited AI Analysis';
+
+  @override
+  String energyPassUnlimitedFromPrice(String price) {
+    return 'Unlimited AI Analysis • from $price/month';
+  }
+
+  @override
+  String get energyPassActive => 'ACTIVE';
+
+  @override
+  String get subscriptionDeal => 'Subscription Deal';
+
+  @override
+  String get subscriptionViewDeal => 'View Deal';
 
   @override
   String get disclaimerHealthDisclaimer => '건강 면책 조항';

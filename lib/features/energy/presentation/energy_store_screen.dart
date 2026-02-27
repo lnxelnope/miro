@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'package:miro_hybrid/core/services/purchase_service.dart';
 import 'package:miro_hybrid/core/services/device_id_service.dart';
@@ -190,7 +191,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: AppIcons.iconWithLabel(
           AppIcons.energy,
-          'Energy Store',
+          L10n.of(context)!.energyStoreTitle,
           iconColor: AppIcons.energyColor,
           iconSize: 24,
           fontSize: 18,
@@ -231,7 +232,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             // ────── Regular Packages ──────
             AppIcons.iconWithLabel(
               AppIcons.energy,
-              'Energy Packages',
+              L10n.of(context)!.energyPackages,
               iconColor: AppIcons.energyColor,
               iconSize: 24,
               fontSize: 22,
@@ -242,7 +243,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             _buildModernPackageCard(
               icon: AppIcons.target,
               iconColor: AppIcons.targetColor,
-              name: 'Starter Kick',
+              name: L10n.of(context)!.energyPackageStarterKick,
               energy: 100,
               price: 0.99,
               priceText: '\$0.99',
@@ -253,24 +254,24 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             _buildModernPackageCard(
               icon: AppIcons.subscription,
               iconColor: AppColors.primary,
-              name: 'Value Pack',
+              name: L10n.of(context)!.energyPackageValuePack,
               energy: 550,
               price: 4.99,
               priceText: '\$4.99',
               productId: PurchaseService.energy550,
-              badge: '+10% bonus',
+              badge: L10n.of(context)!.energyBadgeBonus10,
               gradient: [AppColors.premium.withValues(alpha: 0.6), AppColors.premium],
             ),
 
             _buildModernPackageCard(
               icon: AppIcons.streak,
               iconColor: AppIcons.streakColor,
-              name: 'Power User',
+              name: L10n.of(context)!.energyPackagePowerUser,
               energy: 1200,
               price: 7.99,
               priceText: '\$7.99',
               productId: PurchaseService.energy1200,
-              badge: 'POPULAR',
+              badge: L10n.of(context)!.energyBadgePopular,
               isPopular: true,
               gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
@@ -278,12 +279,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             _buildModernPackageCard(
               icon: AppIcons.milestone,
               iconColor: AppIcons.milestoneColor,
-              name: 'Ultimate Saver',
+              name: L10n.of(context)!.energyPackageUltimateSaver,
               energy: 2000,
               price: 9.99,
               priceText: '\$9.99',
               productId: PurchaseService.energy2000,
-              badge: 'BEST VALUE',
+              badge: L10n.of(context)!.energyBadgeBestValue,
               isBest: true,
               gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
@@ -949,9 +950,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     children: [
                       Row(
                         children: [
-                          const Text(
-                            'Energy Pass',
-                            style: TextStyle(
+                          Text(
+                            L10n.of(context)!.subscriptionEnergyPass,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -967,9 +968,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                               color: Colors.white.withOpacity(0.25),
                               borderRadius: AppRadius.sm,
                             ),
-                            child: const Text(
-                              'ACTIVE',
-                              style: TextStyle(
+                            child: Text(
+                              L10n.of(context)!.energyPassActive,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -981,7 +982,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Unlimited AI Analysis',
+                        L10n.of(context)!.energyPassUnlimitedAI,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 14,
@@ -1014,7 +1015,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Renews: $expiryText',
+                      L10n.of(context)!.subscriptionRenewsDate(expiryText),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 13,
@@ -1083,7 +1084,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     children: [
                       AppIcons.iconWithLabel(
                         AppIcons.energy,
-                        'Energy Pass',
+                        L10n.of(context)!.subscriptionEnergyPass,
                         iconColor: Colors.white,
                         iconSize: 24,
                         fontSize: 20,
@@ -1091,7 +1092,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Unlimited AI Analysis • from \$3.33/month',
+                        L10n.of(context)!.energyPassUnlimitedFromPrice('\$3.33'),
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 14,
@@ -1439,9 +1440,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
   /// Subscription Deal card — navigate to SubscriptionScreen
   Widget _buildSubscriptionDealCard(dynamic offer) {
-    final title = offer['title'] as String? ?? 'Subscription Deal';
+    final title = offer['title'] as String? ?? L10n.of(context)!.subscriptionDeal;
     final description = offer['description'] as String? ?? '';
-    final ctaText = offer['ctaText'] as String? ?? 'View Deal';
+    final ctaText = offer['ctaText'] as String? ?? L10n.of(context)!.subscriptionViewDeal;
     final icon = offer['icon'] as String? ?? '💎';
 
     return Container(

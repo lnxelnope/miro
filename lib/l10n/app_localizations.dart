@@ -3222,6 +3222,12 @@ abstract class L10n {
   /// **'Subscribe Now'**
   String get subscriptionSubscribeNow;
 
+  /// No description provided for @subscriptionSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get subscriptionSubscribe;
+
   /// No description provided for @subscriptionCancelAnytime.
   ///
   /// In en, this message translates to:
@@ -3233,6 +3239,102 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Your subscription will renew automatically. You can cancel anytime from Google Play.'**
   String get subscriptionAutoRenewTerms;
+
+  /// No description provided for @subscriptionRenewsDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews: {date}'**
+  String subscriptionRenewsDate(String date);
+
+  /// No description provided for @subscriptionBestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST VALUE'**
+  String get subscriptionBestValue;
+
+  /// No description provided for @energyStoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Store'**
+  String get energyStoreTitle;
+
+  /// No description provided for @energyPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Packages'**
+  String get energyPackages;
+
+  /// No description provided for @energyPackageStarterKick.
+  ///
+  /// In en, this message translates to:
+  /// **'Starter Kick'**
+  String get energyPackageStarterKick;
+
+  /// No description provided for @energyPackageValuePack.
+  ///
+  /// In en, this message translates to:
+  /// **'Value Pack'**
+  String get energyPackageValuePack;
+
+  /// No description provided for @energyPackagePowerUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Power User'**
+  String get energyPackagePowerUser;
+
+  /// No description provided for @energyPackageUltimateSaver.
+  ///
+  /// In en, this message translates to:
+  /// **'Ultimate Saver'**
+  String get energyPackageUltimateSaver;
+
+  /// No description provided for @energyBadgeBestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST VALUE'**
+  String get energyBadgeBestValue;
+
+  /// No description provided for @energyBadgePopular.
+  ///
+  /// In en, this message translates to:
+  /// **'POPULAR'**
+  String get energyBadgePopular;
+
+  /// No description provided for @energyBadgeBonus10.
+  ///
+  /// In en, this message translates to:
+  /// **'+10% bonus'**
+  String get energyBadgeBonus10;
+
+  /// No description provided for @energyPassUnlimitedAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Analysis'**
+  String get energyPassUnlimitedAI;
+
+  /// No description provided for @energyPassUnlimitedFromPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Analysis • from {price}/month'**
+  String energyPassUnlimitedFromPrice(String price);
+
+  /// No description provided for @energyPassActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get energyPassActive;
+
+  /// No description provided for @subscriptionDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Deal'**
+  String get subscriptionDeal;
+
+  /// No description provided for @subscriptionViewDeal.
+  ///
+  /// In en, this message translates to:
+  /// **'View Deal'**
+  String get subscriptionViewDeal;
 
   /// No description provided for @disclaimerHealthDisclaimer.
   ///

@@ -1837,11 +1837,66 @@ class L10nHi extends L10n {
   String get subscriptionSubscribeNow => 'अब सदस्यता लें';
 
   @override
+  String get subscriptionSubscribe => 'Subscribe';
+
+  @override
   String get subscriptionCancelAnytime => 'किसी भी समय रद्द करें';
 
   @override
   String get subscriptionAutoRenewTerms =>
       'आपकी सदस्यता स्वतः नवीनीकृत हो जाएगी. आप Google Play से कभी भी रद्द कर सकते हैं।';
+
+  @override
+  String subscriptionRenewsDate(String date) {
+    return 'Renews: $date';
+  }
+
+  @override
+  String get subscriptionBestValue => 'BEST VALUE';
+
+  @override
+  String get energyStoreTitle => 'Energy Store';
+
+  @override
+  String get energyPackages => 'Energy Packages';
+
+  @override
+  String get energyPackageStarterKick => 'Starter Kick';
+
+  @override
+  String get energyPackageValuePack => 'Value Pack';
+
+  @override
+  String get energyPackagePowerUser => 'Power User';
+
+  @override
+  String get energyPackageUltimateSaver => 'Ultimate Saver';
+
+  @override
+  String get energyBadgeBestValue => 'BEST VALUE';
+
+  @override
+  String get energyBadgePopular => 'POPULAR';
+
+  @override
+  String get energyBadgeBonus10 => '+10% bonus';
+
+  @override
+  String get energyPassUnlimitedAI => 'Unlimited AI Analysis';
+
+  @override
+  String energyPassUnlimitedFromPrice(String price) {
+    return 'Unlimited AI Analysis • from $price/month';
+  }
+
+  @override
+  String get energyPassActive => 'ACTIVE';
+
+  @override
+  String get subscriptionDeal => 'Subscription Deal';
+
+  @override
+  String get subscriptionViewDeal => 'View Deal';
 
   @override
   String get disclaimerHealthDisclaimer => 'स्वास्थ्य अस्वीकरण';

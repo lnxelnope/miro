@@ -1786,11 +1786,66 @@ class L10nTh extends L10n {
   String get subscriptionSubscribeNow => 'สมัครสมาชิกเลย';
 
   @override
+  String get subscriptionSubscribe => 'สมัครสมาชิก';
+
+  @override
   String get subscriptionCancelAnytime => 'ยกเลิกได้ทุกเมื่อ';
 
   @override
   String get subscriptionAutoRenewTerms =>
       'การสมัครสมาชิกของคุณจะต่ออายุอัตโนมัติ คุณสามารถยกเลิกได้ทุกเมื่อจาก Google Play';
+
+  @override
+  String subscriptionRenewsDate(String date) {
+    return 'ต่ออายุ: $date';
+  }
+
+  @override
+  String get subscriptionBestValue => 'คุ้มที่สุด';
+
+  @override
+  String get energyStoreTitle => 'ร้านพลังงาน';
+
+  @override
+  String get energyPackages => 'แพ็คเกจพลังงาน';
+
+  @override
+  String get energyPackageStarterKick => 'Starter Kick';
+
+  @override
+  String get energyPackageValuePack => 'Value Pack';
+
+  @override
+  String get energyPackagePowerUser => 'Power User';
+
+  @override
+  String get energyPackageUltimateSaver => 'Ultimate Saver';
+
+  @override
+  String get energyBadgeBestValue => 'คุ้มที่สุด';
+
+  @override
+  String get energyBadgePopular => 'ยอดนิยม';
+
+  @override
+  String get energyBadgeBonus10 => '+10% โบนัส';
+
+  @override
+  String get energyPassUnlimitedAI => 'วิเคราะห์ AI ไม่จำกัด';
+
+  @override
+  String energyPassUnlimitedFromPrice(String price) {
+    return 'วิเคราะห์ AI ไม่จำกัด • เริ่มต้น $price/เดือน';
+  }
+
+  @override
+  String get energyPassActive => 'ใช้งานอยู่';
+
+  @override
+  String get subscriptionDeal => 'ดีลสมัครสมาชิก';
+
+  @override
+  String get subscriptionViewDeal => 'ดูดีล';
 
   @override
   String get disclaimerHealthDisclaimer => 'ข้อจำกัดความรับผิด';
