@@ -410,6 +410,7 @@ class PurchaseService {
           'purchaseToken': purchaseToken,
           'productId': productId,
           'deviceId': deviceId,
+          'platform': Platform.isIOS ? 'ios' : 'android',
         }),
       )
           .timeout(

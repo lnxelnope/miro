@@ -14,6 +14,8 @@ class SubscriptionPlan {
   final List<String> benefits;
   final bool isPopular;
   final String? savingsText;
+  /// iOS: Product ID บน App Store (แต่ละ plan = 1 product)
+  final String iosProductId;
 
   const SubscriptionPlan({
     required this.productId,
@@ -25,6 +27,7 @@ class SubscriptionPlan {
     required this.benefits,
     this.isPopular = false,
     this.savingsText,
+    required this.iosProductId,
   });
 
   /// Google Play subscription product ID (single product with multiple base plans)
@@ -35,6 +38,11 @@ class SubscriptionPlan {
   static const String kMonthlyBasePlan = 'energy-pass-monthly';
   static const String kYearlyBasePlan = 'energy-pass-yearly';
 
+  /// iOS Product IDs (App Store: 3 separate products)
+  static const String kIosWeeklyProductId = 'miro_energy_pass_weekly';
+  static const String kIosMonthlyProductId = 'miro_energy_pass_monthly';
+  static const String kIosYearlyProductId = 'miro_energy_pass_yearly';
+
   /// Offer IDs
   static const String kFreeTrialOffer = 'first-month-free';
   static const String kWinbackOffer = 'winback-3usd';
@@ -43,6 +51,7 @@ class SubscriptionPlan {
     return const SubscriptionPlan(
       productId: kProductId,
       basePlanId: kWeeklyBasePlan,
+      iosProductId: kIosWeeklyProductId,
       name: 'Energy Pass Weekly',
       description: 'Weekly subscription',
       price: '\$1.99',
@@ -59,6 +68,7 @@ class SubscriptionPlan {
     return const SubscriptionPlan(
       productId: kProductId,
       basePlanId: kMonthlyBasePlan,
+      iosProductId: kIosMonthlyProductId,
       name: 'Energy Pass',
       description: 'Premium subscription with unlimited features',
       price: '\$4.99',
@@ -76,6 +86,7 @@ class SubscriptionPlan {
     return const SubscriptionPlan(
       productId: kProductId,
       basePlanId: kYearlyBasePlan,
+      iosProductId: kIosYearlyProductId,
       name: 'Energy Pass Yearly',
       description: 'Best value — save 62%',
       price: '\$39.99',
@@ -97,6 +108,7 @@ class SubscriptionPlan {
       energyPassYearly(),
     ];
   }
+
 
   /// Get display price with period
   String get displayPrice => '$price / $period';

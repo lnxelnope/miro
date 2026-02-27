@@ -29,6 +29,7 @@ const db = admin.firestore();
 
 // Secret from Firebase
 const GOOGLE_SERVICE_ACCOUNT = defineSecret("GOOGLE_SERVICE_ACCOUNT_JSON");
+const APPLE_SHARED_SECRET = defineSecret("APPLE_SHARED_SECRET");
 
 // ─── Product ID → Energy Amount Mapping ───
 // ⚠️ ต้องตรงกับที่กำหนดใน Client!
@@ -130,11 +131,12 @@ interface VerifyPurchaseRequest {
   purchaseToken: string;
   productId: string;
   deviceId: string;
+  platform?: "android" | "ios"; // optional for backward compat, default android
 }
 
 export const verifyPurchase = onRequest(
   {
-    secrets: [GOOGLE_SERVICE_ACCOUNT],
+    secrets: [GOOGLE_SERVICE_ACCOUNT, APPLE_SHARED_SECRET],
     timeoutSeconds: 30,
     memory: "512MiB",
     cors: "*",
@@ -148,7 +150,7 @@ export const verifyPurchase = onRequest(
 
     try {
       const body = req.body as VerifyPurchaseRequest;
-      const {purchaseToken, productId, deviceId} = body;
+      const {purchaseToken, productId, deviceId, platform = "android"} = body;
 
       // Validate required fields
       if (!purchaseToken || !productId || !deviceId) {
@@ -159,7 +161,8 @@ export const verifyPurchase = onRequest(
         return;
       }
 
-      console.log(`🛒 [verifyPurchase] Request: ${productId} for ${deviceId}`);
+      const isIos = platform === "ios";
+      console.log(`🛒 [verifyPurchase] Request: ${productId} for ${deviceId} (${platform})`);
 
       // ─── 1. Check if product is valid ───
       const energyAmount = ENERGY_PRODUCTS[productId];
@@ -172,25 +175,24 @@ export const verifyPurchase = onRequest(
         return;
       }
 
-      // ─── 2. Check duplicate purchase (by token hash) ───
-      const purchaseHash = hashPurchaseToken(purchaseToken);
-      const purchaseRecordRef = db
-        .collection("purchase_records")
-        .doc(purchaseHash);
-      const existingPurchase = await purchaseRecordRef.get();
-
-      if (existingPurchase.exists) {
-        console.log(`⚠️ [verifyPurchase] Duplicate purchase: ${purchaseHash}`);
-
-        const userDoc = await db.collection("users").doc(deviceId).get();
-        const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
-
-        res.status(409).json({
-          error: "Purchase already verified",
-          balance: currentBalance,
-          verified: true,
-        });
-        return;
+      // ─── 2. Check duplicate (Android: by token hash now; iOS: after verify) ───
+      let purchaseHash: string;
+      let purchaseRecordRef: admin.firestore.DocumentReference;
+      if (!isIos) {
+        purchaseHash = hashPurchaseToken(purchaseToken);
+        purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
+        const existingPurchase = await purchaseRecordRef.get();
+        if (existingPurchase.exists) {
+          console.log(`⚠️ [verifyPurchase] Duplicate purchase: ${purchaseHash}`);
+          const userDoc = await db.collection("users").doc(deviceId).get();
+          const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
+          res.status(409).json({
+            error: "Purchase already verified",
+            balance: currentBalance,
+            verified: true,
+          });
+          return;
+        }
       }
 
       // ─── 2b. One-time offer validation (template-based + legacy fallback) ───
@@ -229,56 +231,125 @@ export const verifyPurchase = onRequest(
         }
       }
 
-      // ─── 3. Verify with Google Play Developer API ───
-      console.log("🔍 [verifyPurchase] Verifying with Google Play API...");
+      // ─── 3. Verify purchase (Google Play or Apple) ───
+      let orderId: string;
+      let purchaseTimeMillis: string | undefined;
 
-      const serviceAccount = JSON.parse(GOOGLE_SERVICE_ACCOUNT.value());
-      const auth = new google.auth.GoogleAuth({
-        credentials: serviceAccount,
-        scopes: ["https://www.googleapis.com/auth/androidpublisher"],
-      });
+      if (isIos) {
+        // ─── iOS: Apple verifyReceipt API ───
+        console.log("🔍 [verifyPurchase] Verifying with Apple verifyReceipt...");
 
-      const androidPublisher = google.androidpublisher({
-        version: "v3",
-        auth,
-      });
+        const sharedSecret = APPLE_SHARED_SECRET.value();
+        const verifyBody = {
+          "receipt-data": purchaseToken,
+          password: sharedSecret,
+          "exclude-old-transactions": true,
+        };
 
-      // ⚠️ สำหรับ consumable products (ใช้แล้วหมด)
-      // ถ้าเป็น subscription ต้องใช้ androidPublisher.purchases.subscriptions.get()
-      const purchaseResponse = await androidPublisher.purchases.products.get({
-        packageName: PACKAGE_NAME,
-        productId,
-        token: purchaseToken,
-      });
-
-      const purchase = purchaseResponse.data;
-      console.log("📦 [verifyPurchase] Google Play response:", {
-        orderId: purchase.orderId,
-        purchaseState: purchase.purchaseState,
-        acknowledgementState: purchase.acknowledgementState,
-      });
-
-      // ─── 4. Check purchase state ───
-      // purchaseState: 0 = purchased, 1 = canceled, 2 = pending
-      if (purchase.purchaseState !== 0) {
-        console.log(`❌ [verifyPurchase] Purchase not completed: state=${purchase.purchaseState}`);
-        res.status(403).json({
-          error: "Purchase not completed",
-          purchaseState: purchase.purchaseState,
+        let appleRes = await fetch("https://buy.itunes.apple.com/verifyReceipt", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(verifyBody),
         });
-        return;
-      }
+        let appleData = await appleRes.json();
 
-      // ─── 5. Acknowledge purchase (required by Google Play) ───
-      // acknowledgementState: 0 = not acknowledged, 1 = acknowledged
-      if (purchase.acknowledgementState === 0) {
-        console.log("✅ [verifyPurchase] Acknowledging purchase...");
+        // 21007 = sandbox receipt sent to production → retry with sandbox
+        if (appleData.status === 21007) {
+          appleRes = await fetch("https://sandbox.itunes.apple.com/verifyReceipt", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(verifyBody),
+          });
+          appleData = await appleRes.json();
+        }
 
-        await androidPublisher.purchases.products.acknowledge({
+        if (appleData.status !== 0) {
+          console.log(`❌ [verifyPurchase] Apple verifyReceipt failed: status=${appleData.status}`);
+          res.status(403).json({
+            error: "Invalid receipt",
+            status: appleData.status,
+          });
+          return;
+        }
+
+        const receipt = appleData.receipt;
+        const inApp = receipt?.in_app || [];
+        const matchingTx = inApp.find((tx: any) => tx.product_id === productId);
+
+        if (!matchingTx) {
+          console.log(`❌ [verifyPurchase] Product ${productId} not found in receipt`);
+          res.status(403).json({error: "Product not found in receipt"});
+          return;
+        }
+
+        orderId = matchingTx.transaction_id;
+        purchaseTimeMillis = matchingTx.purchase_date_ms;
+        console.log("📦 [verifyPurchase] Apple receipt verified:", {orderId, productId});
+
+        // iOS: Check duplicate by transaction_id (receipt is shared across purchases)
+        purchaseHash = hashPurchaseToken(orderId);
+        purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
+        const iosExisting = await purchaseRecordRef.get();
+        if (iosExisting.exists) {
+          console.log(`⚠️ [verifyPurchase] Duplicate iOS purchase: ${purchaseHash}`);
+          const userDoc = await db.collection("users").doc(deviceId).get();
+          const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
+          res.status(409).json({
+            error: "Purchase already verified",
+            balance: currentBalance,
+            verified: true,
+          });
+          return;
+        }
+      } else {
+        // ─── Android: Google Play Developer API ───
+        purchaseHash = hashPurchaseToken(purchaseToken); // already set in step 2, but ensure for TS
+        console.log("🔍 [verifyPurchase] Verifying with Google Play API...");
+
+        const serviceAccount = JSON.parse(GOOGLE_SERVICE_ACCOUNT.value());
+        const auth = new google.auth.GoogleAuth({
+          credentials: serviceAccount,
+          scopes: ["https://www.googleapis.com/auth/androidpublisher"],
+        });
+
+        const androidPublisher = google.androidpublisher({
+          version: "v3",
+          auth,
+        });
+
+        const purchaseResponse = await androidPublisher.purchases.products.get({
           packageName: PACKAGE_NAME,
           productId,
           token: purchaseToken,
         });
+
+        const purchase = purchaseResponse.data;
+        console.log("📦 [verifyPurchase] Google Play response:", {
+          orderId: purchase.orderId,
+          purchaseState: purchase.purchaseState,
+          acknowledgementState: purchase.acknowledgementState,
+        });
+
+        if (purchase.purchaseState !== 0) {
+          console.log(`❌ [verifyPurchase] Purchase not completed: state=${purchase.purchaseState}`);
+          res.status(403).json({
+            error: "Purchase not completed",
+            purchaseState: purchase.purchaseState,
+          });
+          return;
+        }
+
+        if (purchase.acknowledgementState === 0) {
+          await androidPublisher.purchases.products.acknowledge({
+            packageName: PACKAGE_NAME,
+            productId,
+            token: purchaseToken,
+          });
+        }
+
+        orderId = purchase.orderId || "";
+        purchaseTimeMillis = purchase.purchaseTimeMillis ?? undefined;
+        purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
       }
 
       // ─── 6. Calculate Bonus Energy (tier + promotion + dynamic offers) ───
@@ -388,11 +459,11 @@ export const verifyPurchase = onRequest(
         baseEnergy,
         bonusEnergy,
         bonusRate,
-        // เก็บ token แค่ส่วนหน้า (security: don't store full token)
         purchaseTokenPreview: purchaseToken.substring(0, 20) + "...",
         verifiedAt: admin.firestore.FieldValue.serverTimestamp(),
-        orderId: purchase.orderId,
-        purchaseTimeMillis: purchase.purchaseTimeMillis,
+        orderId,
+        purchaseTimeMillis: purchaseTimeMillis ?? undefined,
+        platform: isIos ? "ios" : "android",
         status: "verified",
       });
 

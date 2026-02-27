@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -53,9 +54,11 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       }
 
       final products = await service.getProducts();
-      // V3: ดึงราคาจริงของแต่ละ base plan
+      // Android: ราคาจาก base plans | iOS: ราคาจากแต่ละ product
       final prices = products.isNotEmpty
-          ? SubscriptionService.extractBasePlanPrices(products.first)
+          ? (Platform.isIOS
+              ? SubscriptionService.extractProductPrices(products)
+              : SubscriptionService.extractBasePlanPrices(products.first))
           : <String, String>{};
       setState(() {
         _products = products;
@@ -348,13 +351,23 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   Widget _buildPlanCard(SubscriptionPlan plan) {
-    final product = _products.isNotEmpty ? _products.first : null;
-    // ใช้ราคาจริงจาก Google Play ถ้ามี ไม่งั้นใช้ fallback จาก model
-    final realPrice = _basePlanPrices[plan.basePlanId];
+    // Android: 1 product + basePlanId | iOS: แต่ละ plan = 1 product
+    ProductDetails? product;
+    if (Platform.isIOS) {
+      try {
+        product = _products.firstWhere((p) => p.id == plan.iosProductId);
+      } catch (_) {
+        product = null;
+      }
+    } else {
+      product = _products.isNotEmpty ? _products.first : null;
+    }
+    final priceKey = Platform.isIOS ? plan.iosProductId : plan.basePlanId;
+    final realPrice = _basePlanPrices[priceKey];
     final displayPrice = realPrice != null
         ? '$realPrice / ${plan.period}'
         : plan.displayPrice;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -422,7 +435,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             child: ElevatedButton(
               onPressed: _isPurchasing || product == null
                   ? null
-                  : () => _handlePurchase(product, basePlanId: plan.basePlanId),
+                  : () => _handlePurchase(
+                        product!,
+                        basePlanId: Platform.isAndroid ? plan.basePlanId : null,
+                      ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: plan.isPopular ? AppColors.primary : AppColors.textPrimary,
                 foregroundColor: Colors.white,

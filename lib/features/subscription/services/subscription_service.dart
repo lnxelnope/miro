@@ -21,8 +21,20 @@ class SubscriptionService {
   static const String _verifySubscriptionUrl =
       'https://us-central1-miro-d6856.cloudfunctions.net/verifySubscription';
 
-  // Product ID (single subscription product with multiple base plans)
+  // Android: single product with multiple base plans
   static const String kSubscriptionProductId = 'miro_normal_subscription';
+
+  // iOS: 3 separate products (App Store structure)
+  static const String kIosWeeklyProductId = 'miro_energy_pass_weekly';
+  static const String kIosMonthlyProductId = 'miro_energy_pass_monthly';
+  static const String kIosYearlyProductId = 'miro_energy_pass_yearly';
+
+  static Set<String> get _subscriptionProductIds {
+    if (Platform.isIOS) {
+      return {kIosWeeklyProductId, kIosMonthlyProductId, kIosYearlyProductId};
+    }
+    return {kSubscriptionProductId};
+  }
 
   /// Initialize the service
   Future<void> initialize() async {
@@ -51,15 +63,13 @@ class SubscriptionService {
   }
 
   /// Get available subscription products
+  /// Android: 1 product (miro_normal_subscription) with base plans
+  /// iOS: 3 products (miro_energy_pass_weekly, monthly, yearly)
   Future<List<ProductDetails>> getProducts() async {
     debugPrint('🔍 [SubscriptionService] Fetching products...');
 
-    final Set<String> productIds = {
-      kSubscriptionProductId,
-    };
-
     final ProductDetailsResponse response =
-        await _inAppPurchase.queryProductDetails(productIds);
+        await _inAppPurchase.queryProductDetails(_subscriptionProductIds);
 
     if (response.notFoundIDs.isNotEmpty) {
       debugPrint(
@@ -134,8 +144,7 @@ class SubscriptionService {
     }
   }
 
-  /// ดึง offer details สำหรับ base plan ที่ระบุ
-  /// ใช้สำหรับแสดงราคาจริงจาก Google Play
+  /// ดึง offer details สำหรับ base plan ที่ระบุ (Android only)
   static Map<String, String> extractBasePlanPrices(ProductDetails product) {
     final prices = <String, String>{};
     if (!Platform.isAndroid) return prices;
@@ -146,15 +155,22 @@ class SubscriptionService {
       if (offerDetails == null) return prices;
 
       for (final offer in offerDetails) {
-        // pricingPhases เป็น List<PricingPhaseWrapper> โดยตรง
         if (offer.pricingPhases.isNotEmpty) {
-          // ใช้ phase สุดท้าย = ราคาปกติ (หลังจบ trial/intro)
           final phase = offer.pricingPhases.last;
           prices[offer.basePlanId] = phase.formattedPrice;
         }
       }
     } catch (e) {
       debugPrint('⚠️ [SubscriptionService] extractBasePlanPrices error: $e');
+    }
+    return prices;
+  }
+
+  /// ดึงราคาจาก products (iOS: แต่ละ product มี price ของตัวเอง)
+  static Map<String, String> extractProductPrices(List<ProductDetails> products) {
+    final prices = <String, String>{};
+    for (final p in products) {
+      prices[p.id] = p.price;
     }
     return prices;
   }
@@ -205,6 +221,7 @@ class SubscriptionService {
           'deviceId': deviceId,
           'purchaseToken': purchase.verificationData.serverVerificationData,
           'productId': purchase.productID,
+          'platform': Platform.isIOS ? 'ios' : 'android',
         }),
       );
 
