@@ -108,25 +108,30 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final subscriptionState = ref.watch(subscriptionProvider);
     final hasActiveSubscription = subscriptionState.subscription.isActive;
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
         title: Text(L10n.of(context)!.subscriptionEnergyPass),
         centerTitle: true,
+        backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surface,
+        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+        elevation: 0,
       ),
       body: _isLoadingProducts
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildError()
+              ? _buildError(isDark)
               : hasActiveSubscription
-                  ? _buildActiveSubscription(subscriptionState.subscription)
-                  : _buildSubscriptionPlans(),
+                  ? _buildActiveSubscription(subscriptionState.subscription, isDark)
+                  : _buildSubscriptionPlans(isDark),
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
@@ -137,13 +142,17 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             const SizedBox(height: AppSpacing.lg),
             Text(
               L10n.of(context)!.subscriptionFailedToLoad,
-              style: Theme.of(context).textTheme.headlineSmall,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               _error ?? L10n.of(context)!.subscriptionUnknownError,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -157,7 +166,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
-  Widget _buildActiveSubscription(subscription) {
+  Widget _buildActiveSubscription(subscription, bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -204,18 +213,21 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             icon: Icons.calendar_today,
             title: L10n.of(context)!.subscriptionStatus,
             value: subscription.status.displayText,
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.access_time,
             title: L10n.of(context)!.subscriptionRenews,
             value: subscription.formattedExpiryDate,
+            isDark: isDark,
           ),
           const SizedBox(height: AppSpacing.md),
           _buildInfoCard(
             icon: Icons.payment,
             title: L10n.of(context)!.subscriptionPrice,
             value: '\$4.99/month',
+            isDark: isDark,
           ),
 
           const SizedBox(height: AppSpacing.xxxl),
@@ -225,21 +237,19 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             L10n.of(context)!.subscriptionYourBenefits,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
           ),
           const SizedBox(height: 16),
           ...SubscriptionPlan.energyPassMonthly().benefits.map(
-                (benefit) => _buildBenefitItem(benefit),
+                (benefit) => _buildBenefitItem(benefit, isDark),
               ),
 
           const SizedBox(height: AppSpacing.xxxl),
 
           // Manage Button
           OutlinedButton(
-            onPressed: () {
-              // Open Google Play subscription management
-              // TODO: Implement
-            },
+            onPressed: () {},
             child: Text(L10n.of(context)!.subscriptionManageSubscription),
           ),
         ],
@@ -247,7 +257,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
-  Widget _buildSubscriptionPlans() {
+  Widget _buildSubscriptionPlans(bool isDark) {
     final plans = SubscriptionPlan.availablePlans();
 
     return SingleChildScrollView(
@@ -261,8 +271,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppColors.primary.withValues(alpha: 0.1),
-                  AppColors.primary.withValues(alpha: 0.05),
+                  AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+                  AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
                 ],
               ),
               borderRadius: AppRadius.lg,
@@ -279,13 +289,14 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   'Energy Pass',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Unlimited AI Analysis',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                   textAlign: TextAlign.center,
                 ),
@@ -295,7 +306,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
           const SizedBox(height: AppSpacing.xxxl),
 
-          // Banner แจ้งเมื่อ store ดึงราคาไม่ได้ (sandbox / ยังไม่ configure)
+          // Banner แจ้งเมื่อ store ดึงราคาไม่ได้
           if (_products.isEmpty) ...[
             Container(
               margin: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -321,7 +332,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     onPressed: _loadProducts,
                     child: Text(
                       L10n.of(context)!.subscriptionRetry,
-                      style: TextStyle(color: AppColors.warning, fontSize: 12),
+                      style: const TextStyle(color: AppColors.warning, fontSize: 12),
                     ),
                   ),
                 ],
@@ -330,7 +341,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ],
 
           // V3: แสดง 3 Plans
-          ...plans.map((plan) => _buildPlanCard(plan)),
+          ...plans.map((plan) => _buildPlanCard(plan, isDark)),
 
           const SizedBox(height: 24),
 
@@ -339,11 +350,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             L10n.of(context)!.subscriptionWhatYouGet,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 ),
           ),
           const SizedBox(height: 16),
           ...plans.firstWhere((p) => p.isPopular).benefits.map(
-                (benefit) => _buildBenefitItem(benefit),
+                (benefit) => _buildBenefitItem(benefit, isDark),
               ),
 
           const SizedBox(height: 24),
@@ -352,7 +364,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           Text(
             L10n.of(context)!.subscriptionAutoRenewTerms,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -361,8 +373,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
-  Widget _buildPlanCard(SubscriptionPlan plan) {
-    // Android: 1 product + basePlanId | iOS: แต่ละ plan = 1 product
+  Widget _buildPlanCard(SubscriptionPlan plan, bool isDark) {
     ProductDetails? product;
     if (Platform.isIOS) {
       try {
@@ -379,18 +390,25 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         ? '$realPrice / ${plan.period}'
         : plan.displayPrice;
 
+    final cardBg = plan.isPopular
+        ? AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.05)
+        : (isDark ? AppColors.surfaceDark : AppColors.surface);
+
+    final borderColor = plan.isPopular
+        ? AppColors.primary.withValues(alpha: 0.5)
+        : (isDark ? AppColors.dividerDark : AppColors.divider);
+
+    final btnBg = plan.isPopular
+        ? AppColors.primary
+        : (isDark ? AppColors.surfaceVariantDark : AppColors.textPrimary);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: plan.isPopular ? AppColors.primary.withValues(alpha: 0.05) : AppColors.background,
+        color: cardBg,
         borderRadius: AppRadius.lg,
-        border: Border.all(
-          color: plan.isPopular
-              ? AppColors.primary.withValues(alpha: 0.5)
-              : AppColors.divider,
-          width: plan.isPopular ? 3 : 1,
-        ),
+        border: Border.all(color: borderColor, width: plan.isPopular ? 2.5 : 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,6 +420,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 plan.name,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
               ),
               if (plan.isPopular)
@@ -426,7 +445,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           Text(
             displayPrice,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
           ),
           if (plan.savingsText != null) ...[
@@ -451,11 +470,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                         basePlanId: Platform.isAndroid ? plan.basePlanId : null,
                       ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: plan.isPopular ? AppColors.primary : AppColors.textPrimary,
+                backgroundColor: btnBg,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppRadius.md,
-                ),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
               ),
               child: _isPurchasing
                   ? const SizedBox(
@@ -486,11 +503,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     required IconData icon,
     required String title,
     required String value,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
         borderRadius: AppRadius.md,
       ),
       child: Row(
@@ -504,7 +522,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                 ),
                 const SizedBox(height: 4),
@@ -512,6 +530,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   value,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                 ),
               ],
@@ -522,22 +541,20 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
-  Widget _buildBenefitItem(String benefit) {
+  Widget _buildBenefitItem(String benefit, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.check_circle,
-            color: AppColors.primary,
-            size: 24,
-          ),
+          const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               benefit,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
             ),
           ),
         ],
