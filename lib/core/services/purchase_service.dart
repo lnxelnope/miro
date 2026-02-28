@@ -628,6 +628,9 @@ class PurchaseService {
           final deviceId = await DeviceIdService.getDeviceId();
           final purchaseToken = purchase.verificationData.serverVerificationData;
 
+          debugPrint('[PurchaseService] 🔍 Subscription token preview: '
+              '${purchaseToken.length > 30 ? '${purchaseToken.substring(0, 30)}...' : purchaseToken}');
+
           try {
             final response = await http
                 .post(
@@ -679,17 +682,21 @@ class PurchaseService {
           break;
       }
 
-      // Complete purchase (acknowledge for subscriptions)
-      if (purchase.pendingCompletePurchase) {
+      // CRITICAL for iOS: ALWAYS call completePurchase regardless of pendingCompletePurchase
+      // StoreKit 2 will re-deliver unfinished transactions on every app launch,
+      // blocking new purchases of the same product.
+      if (Platform.isIOS) {
+        debugPrint('[PurchaseService] 🔄 iOS: finishing subscription transaction...');
+        await _iap.completePurchase(purchase);
+        debugPrint('[PurchaseService] ✅ Subscription transaction finished');
+      } else if (purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);
       }
     } catch (e) {
       debugPrint('[PurchaseService] ❌ _handleSubscriptionPurchase error: $e');
-      if (purchase.pendingCompletePurchase) {
-        try {
-          await _iap.completePurchase(purchase);
-        } catch (_) {}
-      }
+      try {
+        await _iap.completePurchase(purchase);
+      } catch (_) {}
     }
   }
 

@@ -2,7 +2,30 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-02-27 (Build 49 - Ready for Play Store)
+**อัปเดตล่าสุด:** 2026-02-28 (Build 50 - Ready for App Store)
+
+---
+
+## ✅ Build 50 (v1.2.1) - Status: READY FOR PRODUCTION
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.1+50`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 50`, `versionName = "1.2.1"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.1'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.1`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.1+50)
+- [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+
+### ✨ Changes in this version:
+- **iOS Energy Pass Fix** - แก้ไขปัญหา Energy Pass subscription ไม่ทำงานบน iOS
+  - Backend: เพิ่ม StoreKit 2 JWS token handling ใน `verifySubscription.ts` (รองรับ iOS 15+)
+  - Frontend: แก้ไข `_handleSubscriptionPurchase` ให้เรียก `completePurchase` เสมอบน iOS เพื่อป้องกัน transaction ค้าง
+  - StoreKit 2 detection: ตรวจสอบ JWS token format (`startsWith("eyJ")`) และ decode payload เพื่อดึง subscription status
+  - StoreKit 1 fallback: ยังคงใช้ Apple verifyReceipt API สำหรับ iOS เวอร์ชันเก่า
 
 ---
 
@@ -370,7 +393,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.1+49
+version: 1.2.1+50
 ```
 **Format:** `versionName+versionCode`
 - `1.2.0` = Version name (แสดงให้ user เห็น)
@@ -379,7 +402,7 @@ version: 1.2.1+49
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 49
+    versionCode = 50
     versionName = "1.2.1"
 }
 ```
@@ -417,14 +440,14 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.0+48 → 1.2.1+49
-version: 1.2.1+49
+# ตัวอย่าง: จาก 1.2.1+49 → 1.2.1+50
+version: 1.2.1+50
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 49  // เพิ่มทีละ 1
+    versionCode = 50  // เพิ่มทีละ 1
     versionName = "1.2.1"  // ตรงกับ pubspec
 ```
 
@@ -459,7 +482,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 49 | 1.2.1 | 2026-02-27 | ✅ Current |
+| 50 | 1.2.1 | 2026-02-28 | ✅ Current |
+| 49 | 1.2.1 | 2026-02-27 | ✅ Released |
 | 48 | 1.2.0 | 2026-02-26 | ✅ Released |
 | 47 | 1.1.22 | 2026-02-26 | ✅ Released |
 | 46 | 1.1.21 | 2026-02-26 | ✅ Released |
@@ -495,8 +519,8 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.2.1+49`
-- `build.gradle.kts`: `versionCode = 49`, `versionName = "1.2.1"`
+- `pubspec.yaml`: `1.2.1+50`
+- `build.gradle.kts`: `versionCode = 50`, `versionName = "1.2.1"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
@@ -510,11 +534,11 @@ subtitle: '1.2.1',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 49):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.1+49`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (48 → 49)
+### Pre-flight Checklist (Build 50):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.1+50`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (49 → 50)
 - [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.1'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.1+49)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.1+50)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)

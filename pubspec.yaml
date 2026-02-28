@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "Miro: The Offline Hybrid Life Assistant"
 publish_to: 'none'
-version: 1.2.1+49
+version: 1.2.1+50
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -71,6 +71,9 @@ dependencies:
   # In-App Purchase (Supports Billing Library 7.0+)
   in_app_purchase: ^3.2.3
   in_app_purchase_android: ^0.4.0
+  
+  # In-App Review (App Store / Play Store rating prompt)
+  in_app_review: ^2.0.9
   
   # V3: Confetti animation
   confetti: ^0.7.0

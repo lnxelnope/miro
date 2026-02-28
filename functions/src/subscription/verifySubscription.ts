@@ -73,92 +73,148 @@ export const verifySubscription = onRequest(
       let expiryTimestamp: admin.firestore.Timestamp;
 
       if (isIos) {
-        // ─── iOS: Apple verifyReceipt ───
-        const sharedSecret = APPLE_SHARED_SECRET.value();
-        const verifyBody = {
-          "receipt-data": purchaseToken,
-          password: sharedSecret,
-          "exclude-old-transactions": false,
-        };
+        // Detect StoreKit version: JWS token (SK2) starts with "eyJ", receipt (SK1) is raw base64
+        const isStoreKit2 = purchaseToken.startsWith("eyJ");
+        console.log(`🔍 [verifySubscription] iOS mode: ${isStoreKit2 ? "StoreKit 2 (JWS)" : "StoreKit 1 (receipt)"}`);
 
-        let appleRes = await fetch("https://buy.itunes.apple.com/verifyReceipt", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(verifyBody),
-        });
-        let appleData = await appleRes.json();
+        if (isStoreKit2) {
+          // ─── iOS StoreKit 2: JWS signed transaction ───
+          const parts = purchaseToken.split(".");
+          if (parts.length !== 3) {
+            console.log("❌ [verifySubscription] Invalid JWS token format");
+            res.status(403).json({error: "Invalid JWS token"});
+            return;
+          }
 
-        if (appleData.status === 21007) {
-          appleRes = await fetch("https://sandbox.itunes.apple.com/verifyReceipt", {
+          const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+          const payloadJson = Buffer.from(payloadBase64, "base64").toString("utf8");
+          const payload = JSON.parse(payloadJson);
+
+          console.log("📦 [verifySubscription] JWS payload:", {
+            transactionId: payload.transactionId,
+            productId: payload.productId,
+            type: payload.type,
+            expiresDate: payload.expiresDate,
+            environment: payload.environment,
+          });
+
+          if (!IOS_PRODUCT_IDS.includes(payload.productId)) {
+            console.log(`❌ [verifySubscription] Product mismatch: ${payload.productId}`);
+            res.status(403).json({error: "Product ID mismatch"});
+            return;
+          }
+
+          const expiryMs = payload.expiresDate || 0;
+          const startMs = payload.purchaseDate || 0;
+          expiryDate = new Date(expiryMs);
+          const isActive = expiryDate > new Date();
+
+          // StoreKit 2 JWS doesn't contain auto_renew_status directly;
+          // assume auto-renewing unless revoked or expired
+          const isRevoked = !!payload.revocationDate;
+          const autoRenewStatus = isActive && !isRevoked;
+
+          if (isActive && !isRevoked) {
+            status = "active";
+          } else if (isActive && isRevoked) {
+            status = "cancelled";
+          } else {
+            status = "expired";
+          }
+
+          autoRenewing = autoRenewStatus;
+          startDate = admin.firestore.Timestamp.fromMillis(startMs);
+          expiryTimestamp = admin.firestore.Timestamp.fromMillis(expiryMs);
+
+          console.log("✅ [verifySubscription] StoreKit 2 verified:", {
+            productId: payload.productId,
+            expiryDate: expiryDate.toISOString(),
+            status,
+            autoRenewing,
+          });
+        } else {
+          // ─── iOS StoreKit 1: Apple verifyReceipt ───
+          const sharedSecret = APPLE_SHARED_SECRET.value();
+          const verifyBody = {
+            "receipt-data": purchaseToken,
+            password: sharedSecret,
+            "exclude-old-transactions": false,
+          };
+
+          let appleRes = await fetch("https://buy.itunes.apple.com/verifyReceipt", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(verifyBody),
           });
-          appleData = await appleRes.json();
-        }
+          let appleData = await appleRes.json();
 
-        if (appleData.status !== 0) {
-          console.log(`❌ [verifySubscription] Apple verifyReceipt failed: ${appleData.status}`);
-          res.status(403).json({error: "Invalid receipt", status: appleData.status});
-          return;
-        }
+          if (appleData.status === 21007) {
+            appleRes = await fetch("https://sandbox.itunes.apple.com/verifyReceipt", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify(verifyBody),
+            });
+            appleData = await appleRes.json();
+          }
 
-        // Try latest_receipt_info first (auto-renewable subscriptions)
-        // Then fallback to receipt.in_app
-        const latestReceiptInfo = appleData.latest_receipt_info || appleData.receipt?.in_app || [];
+          if (appleData.status !== 0) {
+            console.log(`❌ [verifySubscription] Apple verifyReceipt failed: ${appleData.status}`);
+            res.status(403).json({error: "Invalid receipt", status: appleData.status});
+            return;
+          }
 
-        // Find the matching product with the latest expiry
-        const matchingTxList = latestReceiptInfo
-          .filter((tx: any) => IOS_PRODUCT_IDS.includes(tx.product_id));
+          const latestReceiptInfo = appleData.latest_receipt_info || appleData.receipt?.in_app || [];
 
-        // If exact product not found, try any subscription product
-        let matchingTx = matchingTxList
-          .filter((tx: any) => tx.product_id === productId)
-          .sort((a: any, b: any) => (b.expires_date_ms || 0) - (a.expires_date_ms || 0))[0];
+          const matchingTxList = latestReceiptInfo
+            .filter((tx: any) => IOS_PRODUCT_IDS.includes(tx.product_id));
 
-        if (!matchingTx && matchingTxList.length > 0) {
-          matchingTx = matchingTxList
+          let matchingTx = matchingTxList
+            .filter((tx: any) => tx.product_id === productId)
             .sort((a: any, b: any) => (b.expires_date_ms || 0) - (a.expires_date_ms || 0))[0];
-          console.log(`ℹ️ [verifySubscription] Using alt product: ${matchingTx.product_id} instead of ${productId}`);
+
+          if (!matchingTx && matchingTxList.length > 0) {
+            matchingTx = matchingTxList
+              .sort((a: any, b: any) => (b.expires_date_ms || 0) - (a.expires_date_ms || 0))[0];
+            console.log(`ℹ️ [verifySubscription] Using alt product: ${matchingTx.product_id} instead of ${productId}`);
+          }
+
+          if (!matchingTx) {
+            console.log(`❌ [verifySubscription] No subscription product found in receipt`);
+            console.log(`   Available products: ${latestReceiptInfo.map((tx: any) => tx.product_id).join(", ")}`);
+            res.status(403).json({error: "Product not found in receipt"});
+            return;
+          }
+
+          const expiryMs = parseInt(matchingTx.expires_date_ms || "0");
+          const startMs = parseInt(matchingTx.purchase_date_ms || "0");
+          expiryDate = new Date(expiryMs);
+          const isActive = expiryDate > new Date();
+
+          const pendingRenewals = appleData.pending_renewal_info || [];
+          const renewalInfo = pendingRenewals.find(
+            (r: any) => r.product_id === matchingTx.product_id
+          );
+          const autoRenewStatus = renewalInfo?.auto_renew_status === "1";
+
+          if (isActive && autoRenewStatus) {
+            status = "active";
+          } else if (isActive && !autoRenewStatus) {
+            status = "cancelled";
+          } else {
+            status = "expired";
+          }
+
+          autoRenewing = autoRenewStatus;
+          startDate = admin.firestore.Timestamp.fromMillis(startMs);
+          expiryTimestamp = admin.firestore.Timestamp.fromMillis(expiryMs);
+
+          console.log("📦 [verifySubscription] Apple receipt:", {
+            productId: matchingTx.product_id,
+            expiryDate: expiryDate.toISOString(),
+            status,
+            autoRenewing,
+          });
         }
-
-        if (!matchingTx) {
-          console.log(`❌ [verifySubscription] No subscription product found in receipt`);
-          console.log(`   Available products: ${latestReceiptInfo.map((tx: any) => tx.product_id).join(", ")}`);
-          res.status(403).json({error: "Product not found in receipt"});
-          return;
-        }
-
-        const expiryMs = parseInt(matchingTx.expires_date_ms || "0");
-        const startMs = parseInt(matchingTx.purchase_date_ms || "0");
-        expiryDate = new Date(expiryMs);
-        const isActive = expiryDate > new Date();
-
-        // Check auto_renew_status from pending_renewal_info
-        const pendingRenewals = appleData.pending_renewal_info || [];
-        const renewalInfo = pendingRenewals.find(
-          (r: any) => r.product_id === matchingTx.product_id
-        );
-        const autoRenewStatus = renewalInfo?.auto_renew_status === "1";
-
-        if (isActive && autoRenewStatus) {
-          status = "active";
-        } else if (isActive && !autoRenewStatus) {
-          status = "cancelled";
-        } else {
-          status = "expired";
-        }
-
-        autoRenewing = autoRenewStatus;
-        startDate = admin.firestore.Timestamp.fromMillis(startMs);
-        expiryTimestamp = admin.firestore.Timestamp.fromMillis(expiryMs);
-
-        console.log("📦 [verifySubscription] Apple receipt:", {
-          productId: matchingTx.product_id,
-          expiryDate: expiryDate.toISOString(),
-          status,
-          autoRenewing,
-        });
       } else {
         // ─── Android: Google Play Developer API ───
         const serviceAccount = JSON.parse(GOOGLE_SERVICE_ACCOUNT.value());
