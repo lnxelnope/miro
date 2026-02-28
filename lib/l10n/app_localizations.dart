@@ -5911,6 +5911,42 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Burned'**
   String get burnedLabel;
+
+  /// No description provided for @subscriptionAutoRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Renew'**
+  String get subscriptionAutoRenew;
+
+  /// No description provided for @subscriptionAutoRenewOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get subscriptionAutoRenewOn;
+
+  /// No description provided for @subscriptionAutoRenewOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — expires at end of period'**
+  String get subscriptionAutoRenewOff;
+
+  /// No description provided for @subscriptionManagedByAppStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription is managed through the App Store'**
+  String get subscriptionManagedByAppStore;
+
+  /// No description provided for @subscriptionManagedByPlayStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription is managed through Google Play'**
+  String get subscriptionManagedByPlayStore;
+
+  /// No description provided for @subscriptionCannotLoadPrices.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load prices from the Store right now'**
+  String get subscriptionCannotLoadPrices;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

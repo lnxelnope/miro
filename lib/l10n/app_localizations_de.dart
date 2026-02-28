@@ -3398,4 +3398,25 @@ class L10nDe extends L10n {
 
   @override
   String get burnedLabel => 'Burned';
+
+  @override
+  String get subscriptionAutoRenew => 'Auto-Renew';
+
+  @override
+  String get subscriptionAutoRenewOn => 'On';
+
+  @override
+  String get subscriptionAutoRenewOff => 'Off — expires at end of period';
+
+  @override
+  String get subscriptionManagedByAppStore =>
+      'Subscription is managed through the App Store';
+
+  @override
+  String get subscriptionManagedByPlayStore =>
+      'Subscription is managed through Google Play';
+
+  @override
+  String get subscriptionCannotLoadPrices =>
+      'Unable to load prices from the Store right now';
 }

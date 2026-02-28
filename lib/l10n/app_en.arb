@@ -2190,5 +2190,11 @@
 
   "dailyBalanceLabel": "Daily Balance",
   "intakeLabel": "Intake",
-  "burnedLabel": "Burned"
+  "burnedLabel": "Burned",
+  "subscriptionAutoRenew": "Auto-Renew",
+  "subscriptionAutoRenewOn": "On",
+  "subscriptionAutoRenewOff": "Off — expires at end of period",
+  "subscriptionManagedByAppStore": "Subscription is managed through the App Store",
+  "subscriptionManagedByPlayStore": "Subscription is managed through Google Play",
+  "subscriptionCannotLoadPrices": "Unable to load prices from the Store right now"
 }
