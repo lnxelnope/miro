@@ -98,6 +98,7 @@ class DailySummaryCard extends ConsumerWidget {
                 (rawActive.isNaN || rawActive.isInfinite) ? 0.0 : rawActive;
 
             final baseGoal = profile.calorieGoal;
+            final bmr = profile.safeBmr;
             final tdee = profile.tdee > 0 ? profile.tdee : baseGoal.toDouble();
 
             // Left ring: Intake vs Goal
@@ -241,6 +242,8 @@ class DailySummaryCard extends ConsumerWidget {
                         children: [
                           DeficitGauge(
                             netEnergy: netEnergy,
+                            bmr: bmr,
+                            tdee: tdee,
                             isDark: isDark,
                             width: 96,
                           ),
@@ -520,6 +523,8 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfile(widget.profile);
+      ref.invalidate(activeEnergyProvider);
+      ref.invalidate(effectiveCalorieGoalProvider);
       return;
     }
 
@@ -552,6 +557,8 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
     await ref
         .read(profileNotifierProvider.notifier)
         .updateProfile(widget.profile);
+    ref.invalidate(activeEnergyProvider);
+    ref.invalidate(effectiveCalorieGoalProvider);
     if (mounted) setState(() => _isLoading = false);
   }
 

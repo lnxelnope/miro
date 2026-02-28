@@ -49,11 +49,22 @@ final activeEnergyProvider = FutureProvider<double>((ref) async {
   try {
     final profileAsync = ref.watch(profileNotifierProvider);
     final profile = profileAsync.valueOrNull;
-    if (profile == null || !profile.isHealthConnectConnected) return 0;
+    if (profile == null) {
+      AppLogger.info('[activeEnergyProvider] profile is null → 0');
+      return 0;
+    }
+    if (!profile.isHealthConnectConnected) {
+      AppLogger.info('[activeEnergyProvider] Health Sync OFF → 0');
+      return 0;
+    }
 
-    return await HealthSyncService.getTodayActiveEnergy(
+    AppLogger.info('[activeEnergyProvider] fetching… bmr=${profile.safeBmr}');
+    final result = await HealthSyncService.getTodayActiveEnergy(
         bmr: profile.safeBmr);
-  } catch (_) {
+    AppLogger.info('[activeEnergyProvider] result = $result kcal');
+    return result;
+  } catch (e) {
+    AppLogger.error('[activeEnergyProvider] error', e);
     return 0;
   }
 });
@@ -462,4 +473,6 @@ void refreshFoodProviders(WidgetRef ref, DateTime date) {
   ref.invalidate(foodEntriesByDateProvider(d));
   ref.invalidate(todayCaloriesProvider);
   ref.invalidate(todayMacrosProvider);
+  ref.invalidate(activeEnergyProvider);
+  ref.invalidate(effectiveCalorieGoalProvider);
 }

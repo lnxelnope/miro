@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.3+51] - 2026-02-28
+
+### 🐛 Bug Fixes
+- **Fixed: iOS Active Energy Not Showing** - Active Energy (Exercise) now displays correctly from Apple Health
+  - Added HealthKit entitlements (`com.apple.developer.healthkit.access`) and SystemCapabilities in Xcode
+  - Fixed Riverpod provider caching: added `ref.invalidate(activeEnergyProvider)` on Health Sync toggle and pull-to-refresh
+  - Added debug logging in HealthSyncService for troubleshooting
+
+### ✨ Improvements
+- **Deficit Gauge Redesign** - Gauge scale now -TDEE to 0 (right = maintenance)
+  - Surplus (positive net energy): needle stays at rightmost, number shows +xxx in red
+  - Sweet spot zone more visible (~21% of gauge)
+  - Dynamic zones: Danger → Careful → Sweet Spot → Maintain
+
+---
+
 ## [1.2.0+48] - 2026-02-26
 
 ### 🎉 Major Feature: Health Sync (Apple Health / Google Health Connect)

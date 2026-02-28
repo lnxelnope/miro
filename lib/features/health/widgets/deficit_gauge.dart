@@ -1,22 +1,33 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-/// Compact semicircle gauge (Fear/Greed style) for Net Energy.
+/// Compact semicircle gauge for Net Energy (Intake − TDEE − Active).
 ///
-/// Zones (left → right):
-///   Surplus (+) → Maintain (0 to -300) → Sweet Spot (-300 to -1000)
-///   → Careful (-1000 to -1200) → Danger (< -1200)
+/// Scale: -TDEE (left) → 0 (right).
+/// If net energy is positive (surplus), needle stays at rightmost and
+/// the number displays the actual positive value.
+///
+/// Dynamic zones (left → right):
+///   Danger (-TDEE…-BMR) → Careful → Sweet Spot → Maintain (…0)
 class DeficitGauge extends StatelessWidget {
   final double netEnergy;
+  final double bmr;
+  final double tdee;
   final bool isDark;
   final double width;
 
   const DeficitGauge({
     super.key,
     required this.netEnergy,
+    required this.bmr,
+    required this.tdee,
     this.isDark = false,
     this.width = 110,
   });
+
+  double get _safeBmr => (bmr > 0) ? bmr : 1500.0;
+  double get _safeTdee => (tdee > _safeBmr) ? tdee : _safeBmr + 500;
+  double get _deficit => _safeTdee - _safeBmr;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +42,12 @@ class DeficitGauge extends StatelessWidget {
             height: gaugeHeight,
             child: CustomPaint(
               size: Size(width, gaugeHeight),
-              painter: _GaugePainter(netEnergy: netEnergy, isDark: isDark),
+              painter: _GaugePainter(
+                netEnergy: netEnergy,
+                bmr: _safeBmr,
+                tdee: _safeTdee,
+                isDark: isDark,
+              ),
             ),
           ),
           Text(
@@ -40,7 +56,7 @@ class DeficitGauge extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w800,
               height: 1.1,
-              color: statusColor,
+              color: _statusColor,
             ),
           ),
           Text(
@@ -65,52 +81,62 @@ class DeficitGauge extends StatelessWidget {
     );
   }
 
-  Color get statusColor {
+  Color get _statusColor {
     if (netEnergy > 0) return const Color(0xFFEF4444);
-    if (netEnergy >= -300) return const Color(0xFF1976D2);
-    if (netEnergy >= -1000) return const Color(0xFF4CAF50);
-    if (netEnergy >= -1200) return const Color(0xFFFFA726);
+    if (netEnergy >= -_deficit * 0.3) return const Color(0xFF1976D2);
+    if (netEnergy >= -_deficit * 0.8) return const Color(0xFF4CAF50);
+    if (netEnergy >= -_safeBmr) return const Color(0xFFFFA726);
     return const Color(0xFFEF4444);
   }
 }
 
 class _GaugePainter extends CustomPainter {
   final double netEnergy;
+  final double bmr;
+  final double tdee;
   final bool isDark;
 
-  _GaugePainter({required this.netEnergy, required this.isDark});
+  _GaugePainter({
+    required this.netEnergy,
+    required this.bmr,
+    required this.tdee,
+    required this.isDark,
+  });
 
-  static const double _maxSurplus = 500;
-  static const double _maxDeficit = -1500;
-  static const double _range = 2000;
   static const _arcWidth = 10.0;
-
-  static final _zones = [
-    _Zone(500, 0, const Color(0xFFEF4444)),
-    _Zone(0, -300, const Color(0xFF1976D2)),
-    _Zone(-300, -1000, const Color(0xFF4CAF50)),
-    _Zone(-1000, -1200, const Color(0xFFFFA726)),
-    _Zone(-1200, -1500, const Color(0xFFEF4444)),
-  ];
-
-  double _valueToNorm(double value) =>
-      ((_maxSurplus - value) / _range).clamp(0.0, 1.0);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Scale: -TDEE (left) to 0 (right)
+    final minVal = -tdee;
+    const maxVal = 0.0;
+    final range = maxVal - minVal; // = tdee
+    final deficit = tdee - bmr;
+
+    // 0.0 = left (-TDEE), 1.0 = right (0)
+    double valueToNorm(double value) =>
+        ((value - minVal) / range).clamp(0.0, 1.0);
+
+    // Zones: Danger → Careful → Sweet Spot → Maintain
+    final zones = [
+      _Zone(valueToNorm(minVal), valueToNorm(-bmr), const Color(0xFFEF4444)),
+      _Zone(valueToNorm(-bmr), valueToNorm(-deficit * 0.8), const Color(0xFFFFA726)),
+      _Zone(valueToNorm(-deficit * 0.8), valueToNorm(-deficit * 0.3), const Color(0xFF4CAF50)),
+      _Zone(valueToNorm(-deficit * 0.3), valueToNorm(maxVal), const Color(0xFF1976D2)),
+    ];
+
     final cx = size.width / 2;
     final cy = size.height - 1;
     final radius = min(size.width / 2 - 12, size.height - 6);
     final rect = Rect.fromCircle(center: Offset(cx, cy), radius: radius);
 
-    for (final zone in _zones) {
-      final sn = _valueToNorm(zone.from);
-      final en = _valueToNorm(zone.to);
-
+    for (final zone in zones) {
+      final startAngle = pi + zone.startNorm * pi;
+      final sweepAngle = (zone.endNorm - zone.startNorm) * pi;
       canvas.drawArc(
         rect,
-        pi + sn * pi,
-        (en - sn) * pi,
+        startAngle,
+        sweepAngle,
         false,
         Paint()
           ..color = zone.color.withValues(alpha: 0.55)
@@ -125,16 +151,19 @@ class _GaugePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = _arcWidth
       ..strokeCap = StrokeCap.round;
-    capPaint.color = _zones.first.color.withValues(alpha: 0.55);
+    capPaint.color = zones.first.color.withValues(alpha: 0.55);
     canvas.drawArc(rect, pi, 0.001, false, capPaint);
-    capPaint.color = _zones.last.color.withValues(alpha: 0.55);
+    capPaint.color = zones.last.color.withValues(alpha: 0.55);
     canvas.drawArc(rect, 2 * pi - 0.001, 0.001, false, capPaint);
 
-    // Needle
-    final clamped = netEnergy.clamp(_maxDeficit, _maxSurplus);
-    final needleAngle = pi + _valueToNorm(clamped) * pi;
+    // Needle — clamped to -TDEE..0, surplus stays at rightmost
+    final clamped = netEnergy.clamp(minVal, maxVal);
+    final needleAngle = pi + valueToNorm(clamped) * pi;
     final needleLen = radius - _arcWidth / 2 - 5;
-    final end = Offset(cx + needleLen * cos(needleAngle), cy + needleLen * sin(needleAngle));
+    final end = Offset(
+      cx + needleLen * cos(needleAngle),
+      cy + needleLen * sin(needleAngle),
+    );
 
     canvas.drawLine(
       Offset(cx, cy),
@@ -145,21 +174,30 @@ class _GaugePainter extends CustomPainter {
         ..strokeCap = StrokeCap.round,
     );
 
-    // Pivot
-    canvas.drawCircle(Offset(cx, cy), 3.5,
-        Paint()..color = isDark ? Colors.white : const Color(0xFF333333));
-    canvas.drawCircle(Offset(cx, cy), 1.5,
-        Paint()..color = isDark ? const Color(0xFF1F2937) : Colors.white);
+    // Pivot dot
+    canvas.drawCircle(
+      Offset(cx, cy),
+      3.5,
+      Paint()..color = isDark ? Colors.white : const Color(0xFF333333),
+    );
+    canvas.drawCircle(
+      Offset(cx, cy),
+      1.5,
+      Paint()..color = isDark ? const Color(0xFF1F2937) : Colors.white,
+    );
   }
 
   @override
   bool shouldRepaint(_GaugePainter old) =>
-      old.netEnergy != netEnergy || old.isDark != isDark;
+      old.netEnergy != netEnergy ||
+      old.bmr != bmr ||
+      old.tdee != tdee ||
+      old.isDark != isDark;
 }
 
 class _Zone {
-  final double from;
-  final double to;
+  final double startNorm;
+  final double endNorm;
   final Color color;
-  const _Zone(this.from, this.to, this.color);
+  const _Zone(this.startNorm, this.endNorm, this.color);
 }

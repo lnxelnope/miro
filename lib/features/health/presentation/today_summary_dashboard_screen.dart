@@ -134,6 +134,8 @@ class _TodaySummaryDashboardScreenState
           ref.invalidate(foodEntriesByDateProvider);
           ref.invalidate(micronutrientStatsProvider);
           ref.invalidate(_calorieTrendProvider);
+          ref.invalidate(activeEnergyProvider);
+          ref.invalidate(effectiveCalorieGoalProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
