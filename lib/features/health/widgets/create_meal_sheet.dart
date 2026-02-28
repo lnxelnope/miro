@@ -131,14 +131,14 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   void _addSubIngredient(_IngredientRow parentRow) {
     final newSub = _IngredientRow();
     newSub.nameController.text = '';
-    newSub.amountController.text = '0';
+    newSub.amountController.text = '';
     newSub.unit = 'g';
     
     setState(() {
       if (parentRow.subIngredients == null) {
         parentRow.subIngredients = [newSub];
       } else {
-        parentRow.subIngredients!.add(newSub);
+        parentRow.subIngredients!.insert(0, newSub);
       }
     });
   }
