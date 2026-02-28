@@ -19,5 +19,33 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "website/deploy",
+    "ignore": [
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      ".firebase/**"
+    ],
+    "cleanUrls": true,
+    "trailingSlash": true,
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/miro/",
+        "type": 302
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ]
   }
 }
