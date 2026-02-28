@@ -253,16 +253,15 @@ class _ImageAnalysisPreviewScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: true,
       child: Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(l10n.addFoodTitle),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text(l10n.addFoodTitle),
+          elevation: 0,
+        ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -271,7 +270,7 @@ class _ImageAnalysisPreviewScreenState
             if (_hasImage)
               Container(
                 height: 300,
-                color: Colors.grey[200],
+                color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -322,7 +321,12 @@ class _ImageAnalysisPreviewScreenState
                     Text(
                       l10n.foodNameQuantityAndModeImprovesAccuracy,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -375,19 +379,51 @@ class _ImageAnalysisPreviewScreenState
                   // Food Name Input (always visible)
                   Text(
                     l10n.foodNameLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _foodNameController,
                     autofocus: !_hasImage,
+                    style: TextStyle(
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
+                    ),
                     decoration: InputDecoration(
                       hintText: l10n.foodNameHint,
-                      prefixIcon: const Icon(Icons.search, size: 20),
+                      hintStyle: TextStyle(
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textTertiary,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        size: 20,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
+                      ),
+                      fillColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.surfaceVariant,
+                      filled: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.divider,
+                        ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -402,13 +438,21 @@ class _ImageAnalysisPreviewScreenState
                       padding: const EdgeInsets.only(top: 6, bottom: 4),
                       child: Row(
                         children: [
-                          Icon(Icons.lightbulb_outline, size: 14, color: Colors.grey[500]),
+                          Icon(
+                            Icons.lightbulb_outline,
+                            size: 14,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
+                          ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               l10n.foodNameQuantityAndModeImprovesAccuracy,
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
                                 fontSize: 11,
                               ),
                             ),
@@ -422,9 +466,13 @@ class _ImageAnalysisPreviewScreenState
                   // ===== Search Mode (visible by default) =====
                   Text(
                     l10n.searchModeLabel,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
+                      fontSize: 16,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   SearchModeSelector(
@@ -464,9 +512,13 @@ class _ImageAnalysisPreviewScreenState
                     // Quantity and Unit Row
                     Text(
                       l10n.quantityLabel,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -478,10 +530,32 @@ class _ImageAnalysisPreviewScreenState
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
+                            ),
                             decoration: InputDecoration(
                               hintText: '1',
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textTertiary,
+                              ),
+                              fillColor: isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.surfaceVariant,
+                              filled: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? AppColors.dividerDark
+                                      : AppColors.divider,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -494,15 +568,35 @@ class _ImageAnalysisPreviewScreenState
                         Expanded(
                           flex: 3,
                           child: DropdownButtonFormField<String>(
-                            initialValue: _selectedUnit,
+                            value: _selectedUnit,
                             decoration: InputDecoration(
+                              fillColor: isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.surfaceVariant,
+                              filled: true,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: isDark
+                                      ? AppColors.dividerDark
+                                      : AppColors.divider,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 12,
                               ),
+                            ),
+                            dropdownColor: isDark
+                                ? AppColors.surfaceDark
+                                : Colors.white,
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary,
                             ),
                             items: UnitConverter.allDropdownItems,
                             onChanged: (value) {
@@ -522,22 +616,32 @@ class _ImageAnalysisPreviewScreenState
                     // Meal Type
                     Text(
                       l10n.mealTypeTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       children: MealType.values.map((type) {
                         final isSelected = _selectedMealType == type;
+                        final labelColor = isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary;
                         return ChoiceChip(
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(type.icon, size: 16, color: type.iconColor),
                               const SizedBox(width: 6),
-                              Text(type.displayName),
+                              Text(
+                                type.displayName,
+                                style: TextStyle(color: labelColor),
+                              ),
                             ],
                           ),
                           selected: isSelected,
@@ -545,6 +649,14 @@ class _ImageAnalysisPreviewScreenState
                             if (selected) setState(() => _selectedMealType = type);
                           },
                           selectedColor: AppColors.health.withValues(alpha: 0.2),
+                          backgroundColor: isDark
+                              ? AppColors.surfaceVariantDark
+                              : AppColors.surfaceVariant,
+                          side: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.divider,
+                          ),
                         );
                       }).toList(),
                     ),
@@ -603,8 +715,14 @@ class _ImageAnalysisPreviewScreenState
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.textSecondary,
-                        side: BorderSide(color: Colors.grey[300]!),
+                        foregroundColor: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
+                        side: BorderSide(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.divider,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),

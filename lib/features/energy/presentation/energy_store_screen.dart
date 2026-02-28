@@ -183,9 +183,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   Widget _buildScaffold(BuildContext context, int balance) {
     final gamification = ref.watch(gamificationProvider);
     final isSubscriber = gamification.isSubscriber;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -230,13 +231,19 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             ..._buildOfferCards(),
 
             // ────── Regular Packages ──────
-            AppIcons.iconWithLabel(
-              AppIcons.energy,
-              L10n.of(context)!.energyPackages,
-              iconColor: AppIcons.energyColor,
-              iconSize: 24,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+            Builder(
+              builder: (context) {
+                final isDarkPkgs = Theme.of(context).brightness == Brightness.dark;
+                return AppIcons.iconWithLabel(
+                  AppIcons.energy,
+                  L10n.of(context)!.energyPackages,
+                  iconColor: AppIcons.energyColor,
+                  iconSize: 24,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  textColor: isDarkPkgs ? AppColors.textPrimaryDark : null,
+                );
+              },
             ),
             const SizedBox(height: 16),
 
@@ -722,8 +729,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             backgroundColor: AppColors.success,
           ),
         );
-        _loadOffers(); // Reload offer list
-        ref.invalidate(energyBalanceProvider); // Update balance display
+        _loadOffers();
+        ref.invalidate(energyBalanceProvider);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1135,15 +1142,18 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     final isPromoBonus = promoRate > tierRate;
     final bonusEnergy = (energy * bonusRate).round();
     final totalEnergy = energy + bonusEnergy;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? AppColors.surfaceDark : Colors.white;
+    final dividerColor = isDark ? AppColors.dividerDark : AppColors.divider;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBg,
         borderRadius: AppRadius.lg,
         border: Border.all(
           color: isPopular || isBest
               ? AppColors.warning.withValues(alpha: 0.7)
-              : AppColors.divider,
+              : dividerColor,
           width: isPopular || isBest ? 2.5 : 1.5,
         ),
         boxShadow: [
@@ -1218,10 +1228,11 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                         children: [
                           Text(
                             name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
                               letterSpacing: -0.3,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                             ),
                           ),
                       const SizedBox(height: 4),
@@ -1233,9 +1244,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             bonusEnergy > 0
                                 ? '$energy + $bonusEnergy Bonus = $totalEnergy Energy'
                                 : '$energy Energy',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -1299,9 +1310,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             if (originalPrice != null) ...[
                               Text(
                                 originalPrice,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.textSecondary,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                                   decoration: TextDecoration.lineThrough,
                                   decorationThickness: 2,
                                 ),
@@ -1378,10 +1389,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   }
 
   Widget _buildModernInfoCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.info.withValues(alpha: 0.1),
+        color: AppColors.info.withValues(alpha: isDark ? 0.15 : 0.1),
         borderRadius: AppRadius.lg,
         border: Border.all(color: AppColors.info.withValues(alpha: 0.3), width: 1.5),
       ),
@@ -1393,32 +1406,35 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withValues(alpha: 0.2),
+                  color: AppColors.info.withValues(alpha: isDark ? 0.25 : 0.2),
                   borderRadius: AppRadius.md,
                 ),
                 child: const Icon(AppIcons.info, size: 24, color: AppColors.info),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'About Energy',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(AppIcons.energy, AppIcons.energyColor, '1 Energy = 1 AI analysis'),
-          _buildInfoRow(AppIcons.infinity, AppIcons.infinityColor, 'Energy never expires'),
-          _buildInfoRow(AppIcons.device, AppIcons.deviceColor, 'One-time purchase, per device'),
-          _buildInfoRow(Icons.favorite_rounded, AppColors.success, 'Manual logging is always free'),
+          _buildInfoRow(AppIcons.energy, AppIcons.energyColor, '1 Energy = 1 AI analysis', textColor),
+          _buildInfoRow(AppIcons.infinity, AppIcons.infinityColor, 'Energy never expires', textColor),
+          _buildInfoRow(AppIcons.device, AppIcons.deviceColor, 'One-time purchase, per device', textColor),
+          _buildInfoRow(Icons.favorite_rounded, AppColors.success, 'Manual logging is always free', textColor),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, Color iconColor, String text) {
+  Widget _buildInfoRow(IconData icon, Color iconColor, String text, [Color? textColor]) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = textColor ?? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -1427,9 +1443,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
           const SizedBox(width: 12),
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: AppColors.textPrimary,
+              color: color,
               fontWeight: FontWeight.w500,
             ),
           ),

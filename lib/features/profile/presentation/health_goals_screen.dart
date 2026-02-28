@@ -22,6 +22,7 @@ class HealthGoalsScreen extends ConsumerStatefulWidget {
 class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   late TextEditingController _calorieController;
   late TextEditingController _tdeeController;
+  late TextEditingController _bmrController;
   late TextEditingController _proteinController;
   late TextEditingController _carbController;
   late TextEditingController _fatController;
@@ -55,6 +56,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     super.initState();
     _calorieController = TextEditingController();
     _tdeeController = TextEditingController();
+    _bmrController = TextEditingController();
     _proteinController = TextEditingController();
     _carbController = TextEditingController();
     _fatController = TextEditingController();
@@ -81,6 +83,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   void dispose() {
     _calorieController.dispose();
     _tdeeController.dispose();
+    _bmrController.dispose();
     _proteinController.dispose();
     _carbController.dispose();
     _fatController.dispose();
@@ -107,6 +110,9 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
     final tdee = profile.tdee;
     _tdeeController.text = tdee > 0 ? _safeInt(tdee, 0).toString() : '';
+
+    final bmr = profile.safeBmr;
+    _bmrController.text = _safeInt(bmr, 1500).toString();
 
     // Load gram values from profile
     final pGram = profile.proteinGoal as double;
@@ -422,28 +428,6 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ===== Info card =====
-                Container(
-                  padding: AppSpacing.paddingLg,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight.withValues(alpha: 0.2),
-                    borderRadius: AppRadius.md,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: AppColors.primary),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Text(
-                          L10n.of(context)!.healthGoalsInfo,
-                          style: const TextStyle(color: AppColors.primary, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-
                 // ===== TDEE / BMR Calculator =====
                 _TdeeCalculatorSection(
                   onApplyTdee: (tdee) {
@@ -474,6 +458,29 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                 // ===== Calorie Goal =====
                 _buildCalorieSection(),
                 const SizedBox(height: AppSpacing.xxl),
+
+                // ===== Macro info (สอนการใช้งาน lock) =====
+                Container(
+                  padding: AppSpacing.paddingLg,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          L10n.of(context)!.healthGoalsInfo,
+                          style: const TextStyle(color: AppColors.primary, fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
 
                 // ===== Macro Editors =====
                 _buildMacroEditor(
@@ -548,7 +555,7 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   }
 
   // ========================================================
-  // TDEE Section (editable — calculator is helper only)
+  // TDEE + BMR Section (editable — calculator is helper only)
   // ========================================================
   Widget _buildTdeeSection() {
     return Column(
@@ -567,23 +574,52 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
         const SizedBox(height: 10),
-        TextField(
-          controller: _tdeeController,
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            hintText: '0',
-            suffixText: 'kcal/day',
-            suffixStyle: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            border: OutlineInputBorder(borderRadius: AppRadius.md),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: AppRadius.md,
-              borderSide: const BorderSide(color: AppColors.health, width: 2),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _tdeeController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'TDEE',
+                  hintText: '0',
+                  suffixText: 'kcal/day',
+                  suffixStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  border: OutlineInputBorder(borderRadius: AppRadius.md),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.md,
+                    borderSide: const BorderSide(color: AppColors.health, width: 2),
+                  ),
+                  contentPadding: AppSpacing.verticalLg,
+                ),
+              ),
             ),
-            contentPadding: AppSpacing.verticalLg,
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _bmrController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'BMR',
+                  hintText: '1500',
+                  suffixText: 'kcal',
+                  suffixStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  border: OutlineInputBorder(borderRadius: AppRadius.md),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.md,
+                    borderSide: const BorderSide(color: AppColors.health, width: 2),
+                  ),
+                  contentPadding: AppSpacing.verticalLg,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -1147,9 +1183,11 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       final notifier = ref.read(profileNotifierProvider.notifier);
 
       final tdeeVal = double.tryParse(_tdeeController.text);
+      final bmrVal = double.tryParse(_bmrController.text);
       await notifier.updateHealthGoals(
         calorieGoal: _calories,
         tdee: tdeeVal,
+        customBmr: (bmrVal != null && bmrVal >= 800 && bmrVal <= 4000) ? bmrVal : null,
         proteinGoal: _proteinGrams.roundToDouble(),
         carbGoal: _carbGrams.roundToDouble(),
         fatGoal: _fatGrams.roundToDouble(),
@@ -1206,6 +1244,7 @@ class _TdeeCalculatorSection extends StatefulWidget {
 class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
   bool _expanded = false;
   bool _isMale = true;
+  bool _useMetric = true; // true = kg/cm, false = lbs/in
   final _ageCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   final _heightCtrl = TextEditingController();
@@ -1224,14 +1263,16 @@ class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
 
   double? get _bmr {
     final age = int.tryParse(_ageCtrl.text);
-    final weight = double.tryParse(_weightCtrl.text);
-    final height = double.tryParse(_heightCtrl.text);
-    if (age == null || weight == null || height == null) return null;
-    if (age <= 0 || weight <= 0 || height <= 0) return null;
+    final weightInput = double.tryParse(_weightCtrl.text);
+    final heightInput = double.tryParse(_heightCtrl.text);
+    if (age == null || weightInput == null || heightInput == null) return null;
+    if (age <= 0 || weightInput <= 0 || heightInput <= 0) return null;
+    final weightKg = _useMetric ? weightInput : weightInput / 2.205;
+    final heightCm = _useMetric ? heightInput : heightInput * 2.54;
     if (_isMale) {
-      return 10 * weight + 6.25 * height - 5 * age + 5;
+      return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
     } else {
-      return 10 * weight + 6.25 * height - 5 * age - 161;
+      return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
     }
   }
 
@@ -1370,16 +1411,38 @@ class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
           ),
           const SizedBox(height: 14),
 
+          // Unit toggle (Metric / Imperial)
+          Text(l10n.tdeeCalcUnit,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _genderChip(l10n.tdeeCalcUnitMetric, _useMetric, isDark, isUnit: true),
+              const SizedBox(width: 10),
+              _genderChip(l10n.tdeeCalcUnitImperial, !_useMetric, isDark, isUnit: true),
+            ],
+          ),
+          const SizedBox(height: 14),
+
           // Age, Weight, Height in a row
           Row(
             children: [
               Expanded(child: _miniField(l10n.tdeeCalcAge, _ageCtrl, isDark)),
               const SizedBox(width: 10),
               Expanded(
-                  child: _miniField(l10n.tdeeCalcWeight, _weightCtrl, isDark)),
+                  child: _miniField(
+                      _useMetric ? l10n.tdeeCalcWeight : l10n.tdeeCalcWeightLbs,
+                      _weightCtrl,
+                      isDark)),
               const SizedBox(width: 10),
               Expanded(
-                  child: _miniField(l10n.tdeeCalcHeight, _heightCtrl, isDark)),
+                  child: _miniField(
+                      _useMetric ? l10n.tdeeCalcHeight : l10n.tdeeCalcHeightIn,
+                      _heightCtrl,
+                      isDark)),
             ],
           ),
           const SizedBox(height: 14),
@@ -1483,12 +1546,16 @@ class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
     );
   }
 
-  Widget _genderChip(String label, bool isMale, bool isDark) {
-    final selected = _isMale == isMale;
+  Widget _genderChip(String label, bool isMale, bool isDark, {bool isUnit = false}) {
+    final selected = isUnit ? isMale : (_isMale == isMale);
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() {
-          _isMale = isMale;
+          if (isUnit) {
+            _useMetric = isMale;
+          } else {
+            _isMale = isMale;
+          }
           _applied = false;
         }),
         child: AnimatedContainer(
@@ -1508,7 +1575,7 @@ class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
           ),
           child: Center(
             child: Text(
-              '${isMale ? "♂" : "♀"}  $label',
+              isUnit ? label : '${isMale ? "♂" : "♀"}  $label',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,

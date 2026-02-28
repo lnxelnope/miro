@@ -69,7 +69,7 @@ class SearchModeSelector extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-              Icon(mode.icon, size: 18, color: isSelected ? Colors.white : AppColors.textSecondary),
+              Icon(mode.icon, size: 18, color: isSelected ? Colors.white : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
             const SizedBox(width: AppSpacing.xs + 2),
             Text(
               mode.displayName,

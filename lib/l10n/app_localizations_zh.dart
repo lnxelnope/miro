@@ -3182,6 +3182,21 @@ class L10nZh extends L10n {
   String get tdeeCalcHeight => 'Height (cm)';
 
   @override
+  String get tdeeCalcWeightLbs => 'Weight (lbs)';
+
+  @override
+  String get tdeeCalcHeightIn => 'Height (in)';
+
+  @override
+  String get tdeeCalcUnit => 'Unit';
+
+  @override
+  String get tdeeCalcUnitMetric => 'Metric';
+
+  @override
+  String get tdeeCalcUnitImperial => 'Imperial';
+
+  @override
   String get tdeeCalcActivity => 'Activity Level';
 
   @override

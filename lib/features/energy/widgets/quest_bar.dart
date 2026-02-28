@@ -781,9 +781,10 @@ class _QuestBarState extends ConsumerState<QuestBar> {
         ref.invalidate(energyBalanceProvider);
         ref.invalidate(currentEnergyProvider);
         if (mounted) {
+          final reward = (data['reward'] as num?)?.toInt() ?? 0;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('+${data['reward']}E!'),
+              content: Text('+${reward}E!'),
               backgroundColor: AppColors.success,
               duration: const Duration(seconds: 2),
             ),

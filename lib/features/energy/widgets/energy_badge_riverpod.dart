@@ -64,6 +64,7 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        constraints: const BoxConstraints(minWidth: 50),
         decoration: BoxDecoration(
           color: accentColor.withValues(alpha: 0.1),
           borderRadius: AppRadius.lg,
@@ -73,6 +74,7 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Tier icon always shown when user has a tier (non-starter)
             if (hasTier) ...[
@@ -86,16 +88,18 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
               color: accentColor,
             ),
             const SizedBox(width: 3),
-            Text(
-              displayText,
-              style: TextStyle(
-                fontSize: isSubscriber ? 14 : 15,
-                fontWeight: FontWeight.w800,
-                color: accentColor,
-                letterSpacing: -0.3,
+            Flexible(
+              child: Text(
+                displayText,
+                style: TextStyle(
+                  fontSize: isSubscriber ? 14 : 15,
+                  fontWeight: FontWeight.w800,
+                  color: accentColor,
+                  letterSpacing: -0.3,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

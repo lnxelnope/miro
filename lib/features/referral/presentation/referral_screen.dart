@@ -103,19 +103,23 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
     final gamification = ref.watch(gamificationProvider);
     final miroId = gamification.miroId;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: AppIcons.iconWithLabel(
           Icons.people_rounded,
           L10n.of(context)!.referralInviteFriends,
           iconColor: AppColors.primary,
+          textColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? AppColors.backgroundDark : AppColors.surface,
+        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
         elevation: 0,
       ),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
@@ -124,6 +128,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             // Your Referral Code Card
             Card(
               elevation: 2,
+              color: isDark ? AppColors.surfaceDark : null,
               shape: RoundedRectangleBorder(
                 borderRadius: AppRadius.lg,
               ),
@@ -134,28 +139,30 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                   children: [
                     Text(
                       L10n.of(context)!.referralYourReferralCode,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Container(
                       padding: AppSpacing.paddingLg,
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant,
+                        color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
                         borderRadius: AppRadius.md,
-                        border: Border.all(color: AppColors.divider),
+                        border: Border.all(color: isDark ? AppColors.dividerDark : AppColors.divider),
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: Text(
                               miroId.isEmpty ? L10n.of(context)!.referralLoading : miroId,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
+                                color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                               ),
                             ),
                           ),
@@ -172,9 +179,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       L10n.of(context)!.referralShareCodeDescription,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -187,6 +194,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             // Enter Referral Code Section
             Card(
               elevation: 2,
+              color: isDark ? AppColors.surfaceDark : null,
               shape: RoundedRectangleBorder(
                 borderRadius: AppRadius.lg,
               ),
@@ -197,20 +205,32 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                   children: [
                     Text(
                       L10n.of(context)!.referralEnterReferralCode,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     TextField(
                       controller: _referralCodeController,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      ),
                       decoration: InputDecoration(
                         hintText: L10n.of(context)!.referralCodeHint,
+                        hintStyle: TextStyle(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
+                        fillColor: isDark ? AppColors.surfaceVariantDark : null,
+                        filled: isDark,
                         border: OutlineInputBorder(
                           borderRadius: AppRadius.md,
                         ),
-                        prefixIcon: const Icon(Icons.person_add),
+                        prefixIcon: Icon(
+                          Icons.person_add,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
                       ),
                       textCapitalization: TextCapitalization.characters,
                     ),
@@ -276,6 +296,7 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             // How It Works
             Card(
               elevation: 2,
+              color: isDark ? AppColors.surfaceDark : null,
               shape: RoundedRectangleBorder(
                 borderRadius: AppRadius.lg,
               ),
@@ -286,9 +307,10 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
                   children: [
                     Text(
                       L10n.of(context)!.referralHowItWorks,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -326,6 +348,9 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
   }
 
   Widget _buildStep(String number, String title, String description) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final descColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -353,17 +378,18 @@ class _ReferralScreenState extends ConsumerState<ReferralScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: titleColor,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: descColor,
                 ),
               ),
             ],

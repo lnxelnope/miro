@@ -4509,7 +4509,7 @@ abstract class L10n {
   /// No description provided for @questBarShareText.
   ///
   /// In en, this message translates to:
-  /// **'Try MiRO! AI-powered food analysis 🍔\nUse this link and we both get +20 Energy free!\n\n{link}'**
+  /// **'Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}'**
   String questBarShareText(String link);
 
   /// No description provided for @questBarShareSubject.
@@ -5773,6 +5773,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Height (cm)'**
   String get tdeeCalcHeight;
+
+  /// No description provided for @tdeeCalcWeightLbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight (lbs)'**
+  String get tdeeCalcWeightLbs;
+
+  /// No description provided for @tdeeCalcHeightIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Height (in)'**
+  String get tdeeCalcHeightIn;
+
+  /// No description provided for @tdeeCalcUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get tdeeCalcUnit;
+
+  /// No description provided for @tdeeCalcUnitMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get tdeeCalcUnitMetric;
+
+  /// No description provided for @tdeeCalcUnitImperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial'**
+  String get tdeeCalcUnitImperial;
 
   /// No description provided for @tdeeCalcActivity.
   ///

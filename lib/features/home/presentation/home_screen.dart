@@ -278,7 +278,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: EnergyBadgeRiverpod(),
         ),
       ),
-      leadingWidth: 80,
+      leadingWidth: 100,
       actions: [
         const ModeToggle(),
         const SizedBox(width: 4),

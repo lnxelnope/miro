@@ -49,6 +49,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
         ref.read(gamificationProvider.notifier).refresh();
         if (mounted) {
           final data = jsonDecode(response.body);
+          final reward = data['reward'];
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -57,7 +58,7 @@ class _TierCelebrationCardState extends ConsumerState<TierCelebrationCard> {
                   const Icon(AppIcons.celebration,
                       size: 18, color: Colors.white),
                   const SizedBox(width: AppSpacing.sm),
-                  Text('+${data['reward']}E!'),
+                  Text('+${reward}E!'),
                 ],
               ),
               backgroundColor: AppColors.success,

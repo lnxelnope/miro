@@ -260,8 +260,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     child: Column(
                       children: [
                         _HealthSyncToggle(profile: profile),
-                        if (profile.isHealthConnectConnected)
-                          _BmrSettingTile(profile: profile),
+                        // BMR ย้ายไปอยู่กับ TDEE ใน Health Goals แล้ว
                       ],
                     ),
                   ),
@@ -480,13 +479,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ],
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.white,
                 child: Icon(
-                  Icons.person,
+                  gamification.tierIcon,
                   size: 50,
-                  color: AppColors.primary,
+                  color: gamification.tierColor,
                 ),
               ),
             ),
@@ -2770,116 +2769,4 @@ class _HealthSyncToggleState extends ConsumerState<_HealthSyncToggle> {
   }
 }
 
-/// BMR setting tile — shown when Health Sync is enabled.
-class _BmrSettingTile extends ConsumerWidget {
-  final UserProfile profile;
-  const _BmrSettingTile({required this.profile});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
-        borderRadius: AppRadius.md,
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
-        leading: Container(
-          padding: AppSpacing.paddingSm,
-          decoration: BoxDecoration(
-            color: AppColors.health.withValues(alpha: isDark ? 0.2 : 0.1),
-            borderRadius: AppRadius.md,
-          ),
-          child: Icon(
-            Icons.monitor_heart_outlined,
-            color: isDark
-                ? AppColors.health.withValues(alpha: 0.7)
-                : AppColors.health,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          L10n.of(context)!.bmrSettingTitle,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(
-          L10n.of(context)!.bmrSettingSubtitle,
-          style: TextStyle(
-            fontSize: 13,
-            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
-          ),
-        ),
-        trailing: Text(
-          '${profile.safeBmr.toInt()}',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-          ),
-        ),
-        onTap: () => _showBmrDialog(context, ref),
-      ),
-    );
-  }
-
-  void _showBmrDialog(BuildContext context, WidgetRef ref) {
-    final controller =
-        TextEditingController(text: profile.safeBmr.toInt().toString());
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(L10n.of(context)!.bmrDialogTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              L10n.of(context)!.bmrDialogDescription,
-              style: TextStyle(
-                fontSize: 13,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'BMR (kcal/day)',
-                hintText: '1500',
-                border: const OutlineInputBorder(),
-                suffixText: 'kcal',
-              ),
-              autofocus: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(L10n.of(context)!.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final value = double.tryParse(controller.text);
-              if (value != null && value >= 800 && value <= 4000) {
-                profile.customBmr = value;
-                ref
-                    .read(profileNotifierProvider.notifier)
-                    .updateProfile(profile);
-                Navigator.pop(ctx);
-              }
-            },
-            child: Text(L10n.of(context)!.save),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// BMR setting — ย้ายไปอยู่กับ TDEE ใน Health Goals แล้ว

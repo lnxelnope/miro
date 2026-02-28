@@ -4,6 +4,7 @@ import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/services/health_sync_service.dart';
+import '../../../core/services/rating_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
@@ -147,6 +148,13 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     if (await _isHealthSyncEnabled()) {
       _syncEntryToHealth(entry);
     }
+
+    // Check meal-count milestones for native review prompt
+    final totalMeals = await DatabaseService.foodEntries
+        .filter()
+        .isDeletedEqualTo(false)
+        .count();
+    RatingService.checkMealMilestone(totalMeals);
   }
 
   Future<void> updateFoodEntry(FoodEntry entry) async {

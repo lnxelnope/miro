@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/core/services/energy_service.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
+import 'package:miro_hybrid/core/services/rating_service.dart';
 import 'package:miro_hybrid/core/database/database_service.dart';
 
 final gamificationProvider =
@@ -233,6 +234,9 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
       tier: tier,
       energyBonus: energyBonus,
     );
+
+    // Check streak milestones for native review prompt
+    RatingService.checkStreakMilestone(currentStreak);
 
     if (streak?['tierUpgraded'] == true) {
       AnalyticsService.logStreakMilestone(

@@ -35,11 +35,11 @@ final ingredientSearchProvider = FutureProvider.autoDispose
 
 // ===== MY MEAL PROVIDERS =====
 
-/// ดึง meals ทั้งหมด
+/// ดึง meals ทั้งหมด — เรียงจากล่าสุดที่เปลี่ยนแปลง/บันทึกด้านบน
 final allMyMealsProvider =
     FutureProvider.autoDispose<List<MyMeal>>((ref) async {
   final all = await DatabaseService.myMeals.where().findAll();
-  all.sort((a, b) => b.usageCount.compareTo(a.usageCount));
+  all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   return all;
 });
 

@@ -2530,7 +2530,7 @@ class L10nEn extends L10n {
 
   @override
   String questBarShareText(String link) {
-    return 'Try MiRO! AI-powered food analysis 🍔\nUse this link and we both get +20 Energy free!\n\n$link';
+    return 'Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n$link';
   }
 
   @override
@@ -3266,6 +3266,21 @@ class L10nEn extends L10n {
 
   @override
   String get tdeeCalcHeight => 'Height (cm)';
+
+  @override
+  String get tdeeCalcWeightLbs => 'Weight (lbs)';
+
+  @override
+  String get tdeeCalcHeightIn => 'Height (in)';
+
+  @override
+  String get tdeeCalcUnit => 'Unit';
+
+  @override
+  String get tdeeCalcUnitMetric => 'Metric';
+
+  @override
+  String get tdeeCalcUnitImperial => 'Imperial';
 
   @override
   String get tdeeCalcActivity => 'Activity Level';

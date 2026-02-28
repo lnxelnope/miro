@@ -10,6 +10,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../health/models/food_entry.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/analysis_provider.dart';
+import '../../health/providers/fulfill_calorie_provider.dart';
 import '../../../core/widgets/analyze_bar.dart';
 import '../../health/widgets/daily_summary_card.dart';
 import '../../energy/widgets/quest_bar.dart';
@@ -18,7 +19,9 @@ import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/image_picker_service.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../widgets/food_sandbox.dart';
+import '../widgets/basic_meal_suggestion.dart';
 import '../widgets/simple_food_detail_sheet.dart';
 import '../../health/widgets/add_food_bottom_sheet.dart';
 
@@ -58,6 +61,11 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final suggestionsEnabled = profile?.mealSuggestionsEnabled ?? false;
+    final fulfillAsync = suggestionsEnabled
+        ? ref.watch(fulfillCalorieProvider(_selectedDate))
+        : const AsyncValue<FulfillCalorieState?>.data(null);
     final l10n = L10n.of(context)!;
 
     return Column(
@@ -85,6 +93,12 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
                   child: _buildSandbox(timelineAsync),
                 ),
 
+                // 4. Meal Suggestions (ghost style)
+                if (suggestionsEnabled)
+                  SliverToBoxAdapter(
+                    child: _buildBasicSuggestion(fulfillAsync),
+                  ),
+
                 // Bottom padding
                 const SliverToBoxAdapter(
                   child: SizedBox(height: AppSpacing.xxl),
@@ -106,6 +120,58 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
         // 6. Chat Input
         _buildChatInput(l10n),
       ],
+    );
+  }
+
+  // ============================================================
+  // BASIC MEAL SUGGESTION
+  // ============================================================
+  Widget _buildBasicSuggestion(AsyncValue<FulfillCalorieState?> fulfillAsync) {
+    final fulfill = fulfillAsync.valueOrNull;
+    if (fulfill == null) return const SizedBox.shrink();
+
+    return BasicMealSuggestion(
+      fulfillState: fulfill,
+      onTap: _quickAdd,
+      onSuggestionTap: (suggestion) =>
+          _showAddFoodDialogWithSuggestion(suggestion),
+    );
+  }
+
+  void _showAddFoodDialogWithSuggestion(FoodSuggestion suggestion) {
+    final hour = DateTime.now().hour;
+    MealType mealType;
+    if (hour >= 5 && hour < 11) {
+      mealType = MealType.breakfast;
+    } else if (hour >= 11 && hour < 15) {
+      mealType = MealType.lunch;
+    } else if (hour >= 15 && hour < 21) {
+      mealType = MealType.dinner;
+    } else {
+      mealType = MealType.snack;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => AddFoodBottomSheet(
+        mealType: mealType,
+        selectedDate: _selectedDate,
+        prefillName: suggestion.name,
+        prefillCalories: suggestion.calories,
+        prefillProtein: suggestion.protein,
+        prefillCarbs: suggestion.carbs,
+        prefillFat: suggestion.fat,
+        prefillServingSize: suggestion.servingSize,
+        prefillServingUnit: suggestion.servingUnit,
+        onSave: (entry) async {
+          await ref
+              .read(foodEntriesNotifierProvider.notifier)
+              .addFoodEntry(entry);
+          refreshFoodProviders(ref, _selectedDate);
+        },
+      ),
     );
   }
 

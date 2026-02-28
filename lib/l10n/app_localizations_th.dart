@@ -2484,7 +2484,7 @@ class L10nTh extends L10n {
 
   @override
   String questBarShareText(String link) {
-    return 'มาลองแอป MiRO กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ เราทั้งคู่ได้ +20 Energy ฟรี!\n\n$link';
+    return 'มาลองแอป MiRO กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n$link';
   }
 
   @override
@@ -3216,6 +3216,21 @@ class L10nTh extends L10n {
 
   @override
   String get tdeeCalcHeight => 'ส่วนสูง (ซม.)';
+
+  @override
+  String get tdeeCalcWeightLbs => 'น้ำหนัก (ปอนด์)';
+
+  @override
+  String get tdeeCalcHeightIn => 'ส่วนสูง (นิ้ว)';
+
+  @override
+  String get tdeeCalcUnit => 'หน่วย';
+
+  @override
+  String get tdeeCalcUnitMetric => 'เมตริก';
+
+  @override
+  String get tdeeCalcUnitImperial => 'อิมพีเรียล';
 
   @override
   String get tdeeCalcActivity => 'ระดับกิจกรรม';

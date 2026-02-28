@@ -4,6 +4,9 @@ import 'health_provider.dart';
 import 'my_meal_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 
+/// Minimal remaining kcal to show suggestions. Below this, hide ghost suggestions.
+const double minSuggestionRemainingKcal = 20;
+
 /// A single food suggestion to fulfill remaining calories
 ///
 /// Daily remaining kcal is always the hard cap:
@@ -209,8 +212,8 @@ final fulfillCalorieProvider =
   for (final slot in emptySlots) {
     final mealBudgetCal = mealBudget[slot]!;
 
-    // Daily remaining kcal is the hard cap — if daily is exceeded, don't suggest
-    if (remaining <= 0) {
+    // Don't suggest if remaining at or below minimal threshold (20 kcal)
+    if (remaining <= minSuggestionRemainingKcal) {
       suggestions[slot] = MealSlotSuggestion(
         mealType: slot,
         allocatedCalories: 0,

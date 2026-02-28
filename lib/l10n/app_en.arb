@@ -1679,7 +1679,7 @@
   "questBarClaimed": "Claimed!",
   "questBarHideOffer": "Hide",
   "questBarViewDetails": "View",
-  "questBarShareText": "Try MiRO! AI-powered food analysis 🍔\nUse this link and we both get +20 Energy free!\n\n{link}",
+  "questBarShareText": "Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}",
   "@questBarShareText": {
     "placeholders": {
       "link": {
@@ -2161,6 +2161,11 @@
   "tdeeCalcAge": "Age",
   "tdeeCalcWeight": "Weight (kg)",
   "tdeeCalcHeight": "Height (cm)",
+  "tdeeCalcWeightLbs": "Weight (lbs)",
+  "tdeeCalcHeightIn": "Height (in)",
+  "tdeeCalcUnit": "Unit",
+  "tdeeCalcUnitMetric": "Metric",
+  "tdeeCalcUnitImperial": "Imperial",
   "tdeeCalcActivity": "Activity Level",
   "tdeeCalcActivitySedentary": "Sedentary (office work)",
   "tdeeCalcActivityLight": "Light (1-2 days/week)",

@@ -886,16 +886,17 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 Expanded(
                   child: Text(
                     '🍽️ ${L10n.of(context)!.addFoodTitle}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close, size: 22),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black.withValues(alpha: 0.05),
+                    backgroundColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
                   ),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -1398,7 +1399,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primary
-                        : AppColors.divider,
+                        : (isDark ? AppColors.dividerDark : AppColors.divider),
                     width: isSelected ? 1.5 : 1,
                   ),
                 ),
@@ -1410,7 +1411,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       size: 18,
                       color: isSelected
                           ? AppColors.primary
-                          : AppColors.textSecondary,
+                          : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
@@ -1421,7 +1422,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                             isSelected ? FontWeight.w700 : FontWeight.w500,
                         color: isSelected
                             ? AppColors.primary
-                            : AppColors.textSecondary,
+                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -1513,13 +1514,29 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 });
               }
             });
+            final isDarkField = Theme.of(context).brightness == Brightness.dark;
             return TextField(
               controller: textController,
               focusNode: focusNode,
+              style: TextStyle(
+                color: isDarkField ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              ),
               decoration: InputDecoration(
                 labelText: L10n.of(context)!.foodNameHint,
+                labelStyle: TextStyle(
+                  color: isDarkField ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
                 hintText: L10n.of(context)!.foodNameHint,
-                prefixIcon: const Icon(Icons.search, size: 20),
+                hintStyle: TextStyle(
+                  color: isDarkField ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
+                fillColor: isDarkField ? AppColors.surfaceVariantDark : null,
+                filled: isDarkField,
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 20,
+                  color: isDarkField ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
                 suffixIcon: textController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, size: 18),
