@@ -82,6 +82,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           row.detail = ing.detail; // NEW
           // Save base values from existing data
           row.saveBaseValues();
+          row.snapshotBaseWithoutSubs();
           _ingredients.add(row);
 
           // NEW: โหลด sub-ingredients แบบ async
@@ -123,6 +124,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
       setState(() {
         parentRow.subIngredients = subRows;
+        parentRow.snapshotBaseWithoutSubs();
       });
     }
   }
@@ -965,7 +967,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             selection.proteinPerBase.toStringAsFixed(0);
         row.carbsController.text = selection.carbsPerBase.toStringAsFixed(0);
         row.fatController.text = selection.fatPerBase.toStringAsFixed(0);
+        row.subIngredients = null;
         row.saveBaseValues();
+        row.snapshotBaseWithoutSubs();
         setState(() {});
       },
       optionsViewBuilder: (context, onSelected, options) {
@@ -1199,6 +1203,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               return subRow;
             }).toList();
           }
+          
+          row.snapshotBaseWithoutSubs();
         });
 
         // ===== บันทึกลง Ingredient DB ทันที =====
@@ -1511,6 +1517,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               return subRow;
             }).toList();
           }
+          
+          row.snapshotBaseWithoutSubs();
         });
 
         // ===== บันทึกลง Ingredient DB ทันที =====
@@ -1689,26 +1697,33 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   }
 
   /// Recalculate parent ingredient's nutrition from its sub-ingredients
+  /// Parent nutrition = base nutrition (without subs) + sum(sub-ingredients)
   void _recalculateIngredientRow(_IngredientRow row) {
-    if (row.subIngredients == null || row.subIngredients!.isEmpty) return;
-    
-    double totalCal = 0;
-    double totalProtein = 0;
-    double totalCarbs = 0;
-    double totalFat = 0;
-    
-    for (final sub in row.subIngredients!) {
-      totalCal += double.tryParse(sub.calController.text) ?? 0;
-      totalProtein += double.tryParse(sub.proteinController.text) ?? 0;
-      totalCarbs += double.tryParse(sub.carbsController.text) ?? 0;
-      totalFat += double.tryParse(sub.fatController.text) ?? 0;
+    if (row.subIngredients == null || row.subIngredients!.isEmpty) {
+      // No sub-ingredients: restore base nutrition
+      setState(() {
+        row.calController.text = row.baseCalWithoutSubs.round().toString();
+        row.proteinController.text = row.baseProteinWithoutSubs.round().toString();
+        row.carbsController.text = row.baseCarbsWithoutSubs.round().toString();
+        row.fatController.text = row.baseFatWithoutSubs.round().toString();
+      });
+      return;
     }
     
+    double subCal = 0, subP = 0, subC = 0, subF = 0;
+    for (final sub in row.subIngredients!) {
+      subCal += double.tryParse(sub.calController.text) ?? 0;
+      subP += double.tryParse(sub.proteinController.text) ?? 0;
+      subC += double.tryParse(sub.carbsController.text) ?? 0;
+      subF += double.tryParse(sub.fatController.text) ?? 0;
+    }
+    
+    // Parent = base (without subs) + sum(subs)
     setState(() {
-      row.calController.text = totalCal.round().toString();
-      row.proteinController.text = totalProtein.round().toString();
-      row.carbsController.text = totalCarbs.round().toString();
-      row.fatController.text = totalFat.round().toString();
+      row.calController.text = (row.baseCalWithoutSubs + subCal).round().toString();
+      row.proteinController.text = (row.baseProteinWithoutSubs + subP).round().toString();
+      row.carbsController.text = (row.baseCarbsWithoutSubs + subC).round().toString();
+      row.fatController.text = (row.baseFatWithoutSubs + subF).round().toString();
     });
   }
   
@@ -1834,9 +1849,37 @@ class _IngredientRow {
   double baseProtein = 0;
   double baseCarbs = 0;
   double baseFat = 0;
+  
+  // Base nutrition without sub-ingredients (for additive calculation)
+  double baseCalWithoutSubs = 0;
+  double baseProteinWithoutSubs = 0;
+  double baseCarbsWithoutSubs = 0;
+  double baseFatWithoutSubs = 0;
 
   /// Has base values or not (if yes = can recalculate)
   bool get hasBaseValues => baseAmount > 0 && baseCal > 0;
+
+  /// Snapshot current nutrition as base (without sub-ingredients)
+  void snapshotBaseWithoutSubs() {
+    final cal = double.tryParse(calController.text) ?? 0;
+    final p = double.tryParse(proteinController.text) ?? 0;
+    final c = double.tryParse(carbsController.text) ?? 0;
+    final f = double.tryParse(fatController.text) ?? 0;
+    
+    double subCal = 0, subP = 0, subC = 0, subF = 0;
+    if (subIngredients != null) {
+      for (final sub in subIngredients!) {
+        subCal += double.tryParse(sub.calController.text) ?? 0;
+        subP += double.tryParse(sub.proteinController.text) ?? 0;
+        subC += double.tryParse(sub.carbsController.text) ?? 0;
+        subF += double.tryParse(sub.fatController.text) ?? 0;
+      }
+    }
+    baseCalWithoutSubs = cal - subCal;
+    baseProteinWithoutSubs = p - subP;
+    baseCarbsWithoutSubs = c - subC;
+    baseFatWithoutSubs = f - subF;
+  }
 
   /// Save base values from current values
   void saveBaseValues() {
@@ -1876,6 +1919,9 @@ class _IngredientRow {
         }
       }
     }
+    
+    // Update base nutrition without sub-ingredients
+    snapshotBaseWithoutSubs();
   }
 
   void dispose() {
