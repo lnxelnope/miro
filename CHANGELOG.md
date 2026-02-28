@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.3+53] - 2026-03-01
+
+### 📦 Build
+- **iOS Resubmit** - Bump build 51→53 for App Store resubmission (ITMS-90118: ลบ Routing App Coverage File ใน App Store Connect)
+
+---
+
 ## [1.2.3+51] - 2026-02-28
 
 ### 🐛 Bug Fixes

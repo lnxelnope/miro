@@ -53,7 +53,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
 
   // Ad Reward
   static const int _adRewardEnergy = 3;
-  final AdService _adService = AdService();
+  final AdService _adService = AdService.instance;
   bool _isAdLoading = false;
   bool _adInitialized = false;
 
@@ -80,7 +80,6 @@ class _QuestBarState extends ConsumerState<QuestBar> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
-    _adService.dispose();
     super.dispose();
   }
 

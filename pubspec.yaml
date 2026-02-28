@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "Miro: The Offline Hybrid Life Assistant"
 publish_to: 'none'
-version: 1.2.3+51
+version: 1.2.3+53
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -90,7 +90,6 @@ dependencies:
   
   # Google Mobile Ads
   google_mobile_ads: ^5.3.0
-  app_tracking_transparency: ^2.0.6+1
 
   # Health Integration (Apple HealthKit + Google Health Connect)
   health: ^13.3.1

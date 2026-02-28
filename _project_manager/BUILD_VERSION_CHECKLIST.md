@@ -2,27 +2,35 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-02-28 (Build 51 - Ready for Release)
+**อัปเดตล่าสุด:** 2026-03-01 (Build 53 - iOS Resubmit)
 
 ---
 
-## ✅ Build 51 (v1.2.3) - Status: READY FOR RELEASE
+## ✅ Build 53 (v1.2.3) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.3+51`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 51`, `versionName = "1.2.3"`)
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.3+53`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 53`, `versionName = "1.2.3"`)
 - [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.3'`)
 - [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
 - [x] **Target SDK** - 35 (Android 15)
 - [x] **Compile SDK** - 36 (Android 16)
 - [x] **Version Naming** - ตาม Semantic Versioning (`1.2.3`)
-- [x] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.3+51)
+- [x] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.3+53)
 - [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
+- **iOS Resubmit** - Bump build 51→53 (ITMS-90118: ลบ Routing App Coverage File ใน App Store Connect)
 - **iOS Active Energy Fix** - HealthKit entitlements, provider invalidation, debug logging
 - **Deficit Gauge** - Scale -TDEE to 0, surplus needle clamped at rightmost
+
+---
+
+## ✅ Build 51 (v1.2.3) - Status: REJECTED (iOS)
+
+### ✨ Changes in that version:
+- Same as Build 53 — Rejected due to ITMS-90118 (Routing App Coverage File)
 
 ---
 
@@ -399,16 +407,16 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.3+51
+version: 1.2.3+53
 ```
 **Format:** `versionName+versionCode`
 - `1.2.3` = Version name (แสดงให้ user เห็น)
-- `51` = Build number / Version code (internal)
+- `53` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 51
+    versionCode = 53
     versionName = "1.2.3"
 }
 ```
@@ -446,14 +454,14 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.2+50 → 1.2.3+51
-version: 1.2.3+51
+# ตัวอย่าง: จาก 1.2.2+50 → 1.2.3+53
+version: 1.2.3+53
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 51  // เพิ่มทีละ 1
+    versionCode = 53  // เพิ่มทีละ 1
     versionName = "1.2.3"  // ตรงกับ pubspec
 ```
 
@@ -488,7 +496,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 51 | 1.2.3 | 2026-02-28 | ✅ Current |
+| 53 | 1.2.3 | 2026-03-01 | ✅ Current |
+| 51 | 1.2.3 | 2026-02-28 | ❌ Rejected (iOS) |
 | 50 | 1.2.2 | 2026-02-28 | ✅ Released |
 | 49 | 1.2.1 | 2026-02-27 | ✅ Released |
 | 48 | 1.2.0 | 2026-02-26 | ✅ Released |
@@ -527,7 +536,7 @@ git commit -m "build: v1.1.18+43 - description here"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
 - `pubspec.yaml`: `1.2.2+50`
-- `build.gradle.kts`: `versionCode = 51`, `versionName = "1.2.3"`
+- `build.gradle.kts`: `versionCode = 53`, `versionName = "1.2.3"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
@@ -541,11 +550,11 @@ subtitle: '1.2.3',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 51):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.3+51`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (50 → 51)
+### Pre-flight Checklist (Build 53):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.3+53`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (51 → 53)
 - [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.3'`)
-- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.3+51)
+- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.3+53)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)
