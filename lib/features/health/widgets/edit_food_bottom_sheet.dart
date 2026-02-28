@@ -34,6 +34,12 @@ class _EditableIngredient {
   bool isLoading = false;
   bool isFromDb = false;
   
+  // Base nutrition without sub-ingredients (for additive calculation)
+  double baseCaloriesWithoutSubs = 0;
+  double baseProteinWithoutSubs = 0;
+  double baseCarbsWithoutSubs = 0;
+  double baseFatWithoutSubs = 0;
+  
   // Sub-ingredients (nested)
   List<_EditableIngredient> subIngredients = [];
 
@@ -56,7 +62,31 @@ class _EditableIngredient {
         baseProtein = amount > 0 ? protein / amount : protein,
         baseCarbs = amount > 0 ? carbs / amount : carbs,
         baseFat = amount > 0 ? fat / amount : fat,
-        subIngredients = subIngredients ?? [];
+        subIngredients = subIngredients ?? [] {
+    // Initialize base nutrition without sub-ingredients
+    // If no sub-ingredients, base = current calories
+    // If has sub-ingredients, calculate base by subtracting sub totals
+    final subs = subIngredients ?? [];
+    if (subs.isEmpty) {
+      baseCaloriesWithoutSubs = calories;
+      baseProteinWithoutSubs = protein;
+      baseCarbsWithoutSubs = carbs;
+      baseFatWithoutSubs = fat;
+    } else {
+      // If has sub-ingredients, calculate base by subtracting sub totals
+      double subCal = 0, subP = 0, subC = 0, subF = 0;
+      for (final sub in subs) {
+        subCal += sub.calories;
+        subP += sub.protein;
+        subC += sub.carbs;
+        subF += sub.fat;
+      }
+      baseCaloriesWithoutSubs = calories - subCal;
+      baseProteinWithoutSubs = protein - subP;
+      baseCarbsWithoutSubs = carbs - subC;
+      baseFatWithoutSubs = fat - subF;
+    }
+  }
 
   void saveBaseValues() {
     final amt = double.tryParse(amountController.text) ?? 0;
@@ -88,6 +118,26 @@ class _EditableIngredient {
         sub.carbs = sub.baseCarbs * newSubAmt;
         sub.fat = sub.baseFat * newSubAmt;
       }
+      
+      // Recalculate base nutrition without sub-ingredients
+      // baseCaloriesWithoutSubs should scale with amount
+      double subCal = 0, subP = 0, subC = 0, subF = 0;
+      for (final sub in subIngredients) {
+        subCal += sub.calories;
+        subP += sub.protein;
+        subC += sub.carbs;
+        subF += sub.fat;
+      }
+      baseCaloriesWithoutSubs = calories - subCal;
+      baseProteinWithoutSubs = protein - subP;
+      baseCarbsWithoutSubs = carbs - subC;
+      baseFatWithoutSubs = fat - subF;
+    } else {
+      // No sub-ingredients: base = current nutrition
+      baseCaloriesWithoutSubs = calories;
+      baseProteinWithoutSubs = protein;
+      baseCarbsWithoutSubs = carbs;
+      baseFatWithoutSubs = fat;
     }
   }
 
@@ -367,19 +417,31 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
   }
 
   /// Update parent ingredient totals from its sub-ingredients
+  /// Parent nutrition = base nutrition (without subs) + sum(sub-ingredients)
   void _recalculateParentFromSubs(_EditableIngredient parent) {
-    if (parent.subIngredients.isEmpty) return;
-    double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
-    for (final sub in parent.subIngredients) {
-      totalCal += sub.calories;
-      totalP += sub.protein;
-      totalC += sub.carbs;
-      totalF += sub.fat;
+    if (parent.subIngredients.isEmpty) {
+      // No sub-ingredients: use base nutrition only
+      parent.calories = parent.baseCaloriesWithoutSubs;
+      parent.protein = parent.baseProteinWithoutSubs;
+      parent.carbs = parent.baseCarbsWithoutSubs;
+      parent.fat = parent.baseFatWithoutSubs;
+      return;
     }
-    parent.calories = totalCal;
-    parent.protein = totalP;
-    parent.carbs = totalC;
-    parent.fat = totalF;
+    
+    // Calculate sum of sub-ingredients
+    double subCal = 0, subP = 0, subC = 0, subF = 0;
+    for (final sub in parent.subIngredients) {
+      subCal += sub.calories;
+      subP += sub.protein;
+      subC += sub.carbs;
+      subF += sub.fat;
+    }
+    
+    // Parent = base (without subs) + sum(subs)
+    parent.calories = parent.baseCaloriesWithoutSubs + subCal;
+    parent.protein = parent.baseProteinWithoutSubs + subP;
+    parent.carbs = parent.baseCarbsWithoutSubs + subC;
+    parent.fat = parent.baseFatWithoutSubs + subF;
   }
 
   /// AI lookup for a sub-ingredient
@@ -711,6 +773,20 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               );
             }).toList();
           }
+          
+          // Update base nutrition without sub-ingredients
+          // Calculate by subtracting sub totals from current nutrition
+          double subCal = 0, subP = 0, subC = 0, subF = 0;
+          for (final sub in row.subIngredients) {
+            subCal += sub.calories;
+            subP += sub.protein;
+            subC += sub.carbs;
+            subF += sub.fat;
+          }
+          row.baseCaloriesWithoutSubs = row.calories - subCal;
+          row.baseProteinWithoutSubs = row.protein - subP;
+          row.baseCarbsWithoutSubs = row.carbs - subC;
+          row.baseFatWithoutSubs = row.fat - subF;
         });
         _recalculateFromIngredients();
 
@@ -1392,6 +1468,13 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       row.isFromDb = true;
                       row.subIngredients = [];
                       row.saveBaseValues();
+                      
+                      // Update base nutrition without sub-ingredients
+                      // Since subIngredients is cleared, base = current nutrition
+                      row.baseCaloriesWithoutSubs = row.calories;
+                      row.baseProteinWithoutSubs = row.protein;
+                      row.baseCarbsWithoutSubs = row.carbs;
+                      row.baseFatWithoutSubs = row.fat;
                     });
                     _recalculateFromIngredients();
                   },
@@ -1513,6 +1596,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   onChanged: (_) {
                     setState(() {
                       row.recalculate();
+                      _recalculateParentFromSubs(row);
                     });
                     _recalculateFromIngredients();
                   },
