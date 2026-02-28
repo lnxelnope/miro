@@ -3289,4 +3289,25 @@ class L10nTh extends L10n {
 
   @override
   String get burnedLabel => 'เผาผลาญ';
+
+  @override
+  String get subscriptionAutoRenew => 'ต่ออายุอัตโนมัติ';
+
+  @override
+  String get subscriptionAutoRenewOn => 'เปิด';
+
+  @override
+  String get subscriptionAutoRenewOff => 'ปิด — หมดอายุเมื่อสิ้นสุดรอบ';
+
+  @override
+  String get subscriptionManagedByAppStore =>
+      'การสมัครสมาชิกจัดการผ่าน App Store';
+
+  @override
+  String get subscriptionManagedByPlayStore =>
+      'การสมัครสมาชิกจัดการผ่าน Google Play';
+
+  @override
+  String get subscriptionCannotLoadPrices =>
+      'ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้';
 }

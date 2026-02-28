@@ -2014,5 +2014,11 @@
 
   "dailyBalanceLabel": "สมดุลพลังงาน",
   "intakeLabel": "ทาน",
-  "burnedLabel": "เผาผลาญ"
+  "burnedLabel": "เผาผลาญ",
+  "subscriptionAutoRenew": "ต่ออายุอัตโนมัติ",
+  "subscriptionAutoRenewOn": "เปิด",
+  "subscriptionAutoRenewOff": "ปิด — หมดอายุเมื่อสิ้นสุดรอบ",
+  "subscriptionManagedByAppStore": "การสมัครสมาชิกจัดการผ่าน App Store",
+  "subscriptionManagedByPlayStore": "การสมัครสมาชิกจัดการผ่าน Google Play",
+  "subscriptionCannotLoadPrices": "ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้"
 }
