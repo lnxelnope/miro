@@ -42,34 +42,47 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
     try {
       final service = ref.read(subscriptionServiceProvider);
-      await service.initialize();
 
       final available = await service.isAvailable();
       if (!available) {
-        setState(() {
-          _error = L10n.of(context)!.subscriptionInAppPurchasesNotAvailable;
-          _isLoadingProducts = false;
-        });
+        if (mounted) {
+          setState(() {
+            _error = L10n.of(context)!.subscriptionInAppPurchasesNotAvailable;
+            _isLoadingProducts = false;
+          });
+        }
         return;
       }
 
       final products = await service.getProducts();
+
+      debugPrint('[SubscriptionScreen] Products loaded: ${products.length}');
+      for (final p in products) {
+        debugPrint('[SubscriptionScreen] Product: ${p.id} → ${p.price}');
+      }
+
       // Android: ราคาจาก base plans | iOS: ราคาจากแต่ละ product
       final prices = products.isNotEmpty
           ? (Platform.isIOS
               ? SubscriptionService.extractProductPrices(products)
               : SubscriptionService.extractBasePlanPrices(products.first))
           : <String, String>{};
-      setState(() {
-        _products = products;
-        _basePlanPrices = prices;
-        _isLoadingProducts = false;
-      });
+
+      if (mounted) {
+        setState(() {
+          _products = products;
+          _basePlanPrices = prices;
+          _isLoadingProducts = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoadingProducts = false;
-      });
+      debugPrint('[SubscriptionScreen] Error loading products: $e');
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoadingProducts = false;
+        });
+      }
     }
   }
 
@@ -226,7 +239,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           _buildInfoCard(
             icon: Icons.payment,
             title: L10n.of(context)!.subscriptionPrice,
-            value: '\$4.99/month',
+            value: subscription.productId != null
+                ? _getSubscriptionPriceLabel(subscription.productId!)
+                : '\$4.99/month',
             isDark: isDark,
           ),
 
@@ -376,10 +391,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Widget _buildPlanCard(SubscriptionPlan plan, bool isDark) {
     ProductDetails? product;
     if (Platform.isIOS) {
-      try {
-        product = _products.firstWhere((p) => p.id == plan.iosProductId);
-      } catch (_) {
-        product = null;
+      final match = _products.where((p) => p.id == plan.iosProductId);
+      product = match.isNotEmpty ? match.first : null;
+      if (product == null) {
+        debugPrint('[SubscriptionScreen] ⚠️ iOS product not found: ${plan.iosProductId}');
       }
     } else {
       product = _products.isNotEmpty ? _products.first : null;
@@ -497,6 +512,22 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         ],
       ),
     );
+  }
+
+  String _getSubscriptionPriceLabel(String productId) {
+    final plans = SubscriptionPlan.availablePlans();
+    for (final plan in plans) {
+      if (plan.basePlanId == productId ||
+          plan.iosProductId == productId ||
+          plan.productId == productId) {
+        final realPrice = _basePlanPrices[
+            Platform.isIOS ? plan.iosProductId : plan.basePlanId];
+        return realPrice != null
+            ? '$realPrice/${plan.period}'
+            : plan.displayPrice;
+      }
+    }
+    return '\$4.99/month';
   }
 
   Widget _buildInfoCard({

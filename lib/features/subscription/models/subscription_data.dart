@@ -88,7 +88,16 @@ class SubscriptionData {
   }
 
   /// Check if subscription is active
-  bool get isActive => status.isActive;
+  /// Includes cancelled-but-not-expired (user still has access until expiry)
+  bool get isActive {
+    if (status.isActive) return true;
+    if (status == SubscriptionStatus.cancelled &&
+        expiryDate != null &&
+        expiryDate!.isAfter(DateTime.now())) {
+      return true;
+    }
+    return false;
+  }
 
   /// Check if subscription will renew
   bool get willRenew => isActive && autoRenewing;

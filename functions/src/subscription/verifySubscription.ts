@@ -103,12 +103,28 @@ export const verifySubscription = onRequest(
           return;
         }
 
+        // Try latest_receipt_info first (auto-renewable subscriptions)
+        // Then fallback to receipt.in_app
         const latestReceiptInfo = appleData.latest_receipt_info || appleData.receipt?.in_app || [];
-        const matchingTx = latestReceiptInfo
+
+        // Find the matching product with the latest expiry
+        const matchingTxList = latestReceiptInfo
+          .filter((tx: any) => IOS_PRODUCT_IDS.includes(tx.product_id));
+
+        // If exact product not found, try any subscription product
+        let matchingTx = matchingTxList
           .filter((tx: any) => tx.product_id === productId)
           .sort((a: any, b: any) => (b.expires_date_ms || 0) - (a.expires_date_ms || 0))[0];
 
+        if (!matchingTx && matchingTxList.length > 0) {
+          matchingTx = matchingTxList
+            .sort((a: any, b: any) => (b.expires_date_ms || 0) - (a.expires_date_ms || 0))[0];
+          console.log(`ℹ️ [verifySubscription] Using alt product: ${matchingTx.product_id} instead of ${productId}`);
+        }
+
         if (!matchingTx) {
+          console.log(`❌ [verifySubscription] No subscription product found in receipt`);
+          console.log(`   Available products: ${latestReceiptInfo.map((tx: any) => tx.product_id).join(", ")}`);
           res.status(403).json({error: "Product not found in receipt"});
           return;
         }
@@ -117,15 +133,31 @@ export const verifySubscription = onRequest(
         const startMs = parseInt(matchingTx.purchase_date_ms || "0");
         expiryDate = new Date(expiryMs);
         const isActive = expiryDate > new Date();
-        status = isActive ? "active" : "expired";
-        autoRenewing = isActive;
+
+        // Check auto_renew_status from pending_renewal_info
+        const pendingRenewals = appleData.pending_renewal_info || [];
+        const renewalInfo = pendingRenewals.find(
+          (r: any) => r.product_id === matchingTx.product_id
+        );
+        const autoRenewStatus = renewalInfo?.auto_renew_status === "1";
+
+        if (isActive && autoRenewStatus) {
+          status = "active";
+        } else if (isActive && !autoRenewStatus) {
+          status = "cancelled";
+        } else {
+          status = "expired";
+        }
+
+        autoRenewing = autoRenewStatus;
         startDate = admin.firestore.Timestamp.fromMillis(startMs);
         expiryTimestamp = admin.firestore.Timestamp.fromMillis(expiryMs);
 
         console.log("📦 [verifySubscription] Apple receipt:", {
-          productId,
+          productId: matchingTx.product_id,
           expiryDate: expiryDate.toISOString(),
           status,
+          autoRenewing,
         });
       } else {
         // ─── Android: Google Play Developer API ───
@@ -160,12 +192,14 @@ export const verifySubscription = onRequest(
         const isActive = expiryDate > new Date();
         const paymentState = subscription.paymentState || 0;
 
-        if (isActive && paymentState === 1) {
-          status = "active";
-        } else if (isActive && paymentState === 0) {
-          status = "grace_period";
-        } else if (!subscription.autoRenewing) {
-          status = "cancelled";
+        if (isActive) {
+          if (!subscription.autoRenewing) {
+            status = "cancelled";
+          } else if (paymentState === 0) {
+            status = "grace_period";
+          } else {
+            status = "active";
+          }
         } else {
           status = "expired";
         }

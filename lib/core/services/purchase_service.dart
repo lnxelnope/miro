@@ -156,7 +156,7 @@ class PurchaseService {
       }
 
       // ────── Handle Subscription (Phase 5) ──────
-      if (purchase.productID == subscriptionProductId) {
+      if (_allSubscriptionProductIds.contains(purchase.productID)) {
         _handleSubscriptionPurchase(purchase).catchError((e, st) {
           debugPrint('[PurchaseService] ❌ Subscription handler error: $e');
           debugPrint('[PurchaseService] ❌ Stack: $st');
@@ -525,32 +525,39 @@ class PurchaseService {
     }
   }
 
+  /// Last error message (for debugging — แสดงให้ user เห็น)
+  static String? lastPurchaseError;
+
   /// ซื้อ Energy package
   ///
-  /// Example:
-  /// ```dart
-  /// await PurchaseService.purchaseEnergy('energy_550');
-  /// ```
-  static Future<bool> purchaseEnergy(String productId) async {
+  /// Returns (success, errorMessage). errorMessage มีค่าเมื่อ success=false
+  static Future<({bool success, String? errorMessage})> purchaseEnergyWithError(
+      String productId) async {
+    lastPurchaseError = null;
     try {
       final energyAmount = energyAmounts[productId];
       if (energyAmount == null) {
-        throw Exception('Invalid product ID: $productId');
+        lastPurchaseError = 'Invalid product ID: $productId';
+        return (success: false, errorMessage: lastPurchaseError);
       }
 
       debugPrint('[PurchaseService] 🛒 Querying energy product: $productId');
 
-      // เรียก in_app_purchase
       final response = await _iap.queryProductDetails({productId});
 
       if (response.error != null) {
-        debugPrint('[PurchaseService] ❌ Query error: ${response.error}');
-        throw Exception('Cannot load product: ${response.error!.message}');
+        final msg = 'Query error: ${response.error!.message}';
+        debugPrint('[PurchaseService] ❌ $msg');
+        lastPurchaseError = msg;
+        return (success: false, errorMessage: msg);
       }
 
       if (response.productDetails.isEmpty) {
-        debugPrint('[PurchaseService] ❌ Product not found: $productId');
-        throw Exception('Product not found: $productId');
+        final msg =
+            'Product not found: $productId. Check App Store Connect + Paid Agreements.';
+        debugPrint('[PurchaseService] ❌ $msg');
+        lastPurchaseError = msg;
+        return (success: false, errorMessage: msg);
       }
 
       final product = response.productDetails.first;
@@ -558,19 +565,31 @@ class PurchaseService {
 
       debugPrint('[PurchaseService] 🛒 Initiating energy purchase: $productId');
 
-      // ซื้อ (consumable product)
       final success = await _iap.buyConsumable(
         purchaseParam: purchaseParam,
-        autoConsume: false, // เราจะ consume เองใน _handleEnergyPurchase
+        autoConsume: false,
       );
 
       debugPrint('[PurchaseService] 🛒 Energy purchase initiated: $success');
-      return success;
+      if (!success) {
+        lastPurchaseError =
+            'Purchase dialog failed. Try: Sign Out App Store → use Sandbox account.';
+        return (success: false, errorMessage: lastPurchaseError);
+      }
+      return (success: true, errorMessage: null);
     } catch (e) {
+      final msg = e.toString().replaceFirst('Exception: ', '');
       debugPrint('[PurchaseService] ❌ Purchase error: $e');
       AppLogger.error('Energy purchase error', e);
-      return false;
+      lastPurchaseError = msg;
+      return (success: false, errorMessage: msg);
     }
+  }
+
+  /// ซื้อ Energy package (backward compat — returns bool only)
+  static Future<bool> purchaseEnergy(String productId) async {
+    final result = await purchaseEnergyWithError(productId);
+    return result.success;
   }
 
   /// Restore purchase (สำหรับเปลี่ยนเครื่อง)
@@ -582,53 +601,74 @@ class PurchaseService {
   // SUBSCRIPTION HANDLING (Phase 5)
   // ───────────────────────────────────────────────────────────
 
-  /// Product ID สำหรับ subscription (single product, multiple base plans)
+  /// Android: single product with multiple base plans
   static const String subscriptionProductId = 'miro_normal_subscription';
+
+  /// iOS: 3 separate products (App Store structure)
+  static const String iosWeeklyProductId = 'miro_energy_pass_weekly';
+  static const String iosMonthlyProductId = 'miro_energy_pass_monthly';
+  static const String iosYearlyProductId = 'miro_energy_pass_yearly';
+
+  /// All valid subscription product IDs (both platforms)
+  static const Set<String> _allSubscriptionProductIds = {
+    subscriptionProductId,
+    iosWeeklyProductId,
+    iosMonthlyProductId,
+    iosYearlyProductId,
+  };
 
   /// Handle Subscription purchase
   static Future<void> _handleSubscriptionPurchase(PurchaseDetails purchase) async {
+    final actualProductId = purchase.productID;
     try {
       switch (purchase.status) {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          debugPrint('[PurchaseService] ✅ Subscription purchased/restored');
+          debugPrint('[PurchaseService] ✅ Subscription purchased/restored: $actualProductId');
 
-          // Verify with backend
           final deviceId = await DeviceIdService.getDeviceId();
           final purchaseToken = purchase.verificationData.serverVerificationData;
 
           try {
-            final response = await http.post(
-              Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/verifySubscription'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'deviceId': deviceId,
-                'purchaseToken': purchaseToken,
-                'productId': subscriptionProductId,
-              }),
-            );
+            final response = await http
+                .post(
+                  Uri.parse(
+                      'https://us-central1-miro-d6856.cloudfunctions.net/verifySubscription'),
+                  headers: {'Content-Type': 'application/json'},
+                  body: jsonEncode({
+                    'deviceId': deviceId,
+                    'purchaseToken': purchaseToken,
+                    'productId': actualProductId,
+                    'platform': Platform.isIOS ? 'ios' : 'android',
+                  }),
+                )
+                .timeout(const Duration(seconds: 15));
 
             if (response.statusCode == 200) {
               final data = jsonDecode(response.body) as Map<String, dynamic>;
-              debugPrint('[PurchaseService] ✅ Subscription verified: ${data['status']}');
+              debugPrint(
+                  '[PurchaseService] ✅ Subscription verified: ${data['status']}');
 
-              // Analytics: subscription conversion event
               AnalyticsService.logSubscribe(
-                productId: subscriptionProductId,
-                price: 149.0,
-                currency: 'THB',
+                productId: actualProductId,
+                price: 0,
+                currency: 'USD',
               );
             } else {
-              debugPrint('[PurchaseService] ⚠️ Subscription verification failed');
+              debugPrint(
+                  '[PurchaseService] ⚠️ Subscription verification failed: ${response.statusCode}');
+              debugPrint('[PurchaseService] Body: ${response.body}');
             }
           } catch (e) {
-            debugPrint('[PurchaseService] ❌ Subscription verification error: $e');
+            debugPrint(
+                '[PurchaseService] ❌ Subscription verification error: $e');
           }
 
           break;
 
         case PurchaseStatus.error:
-          debugPrint('[PurchaseService] ❌ Subscription error: ${purchase.error}');
+          debugPrint(
+              '[PurchaseService] ❌ Subscription error: ${purchase.error}');
           break;
 
         case PurchaseStatus.pending:
@@ -640,46 +680,17 @@ class PurchaseService {
           break;
       }
 
-      // Complete purchase
+      // Complete purchase (acknowledge for subscriptions)
       if (purchase.pendingCompletePurchase) {
         await _iap.completePurchase(purchase);
       }
     } catch (e) {
       debugPrint('[PurchaseService] ❌ _handleSubscriptionPurchase error: $e');
-    }
-  }
-
-  /// ซื้อ Subscription
-  static Future<bool> purchaseSubscription(String productId) async {
-    try {
-      debugPrint('[PurchaseService] 🛒 Querying subscription: $productId');
-
-      final response = await _iap.queryProductDetails({productId});
-
-      if (response.error != null) {
-        debugPrint('[PurchaseService] ❌ Query error: ${response.error}');
-        throw Exception('Cannot load subscription: ${response.error!.message}');
+      if (purchase.pendingCompletePurchase) {
+        try {
+          await _iap.completePurchase(purchase);
+        } catch (_) {}
       }
-
-      if (response.productDetails.isEmpty) {
-        debugPrint('[PurchaseService] ❌ Subscription not found: $productId');
-        throw Exception('Subscription not found: $productId');
-      }
-
-      final product = response.productDetails.first;
-      final purchaseParam = PurchaseParam(productDetails: product);
-
-      debugPrint('[PurchaseService] 🛒 Initiating subscription purchase...');
-
-      // ซื้อ subscription (auto-renewable)
-      final success = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
-
-      debugPrint('[PurchaseService] 🛒 Subscription purchase initiated: $success');
-      return success;
-    } catch (e) {
-      debugPrint('[PurchaseService] ❌ Subscription purchase error: $e');
-      AppLogger.error('Subscription purchase error', e);
-      return false;
     }
   }
 

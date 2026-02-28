@@ -24,6 +24,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-6145254112451474~9703380291</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -33,18 +35,16 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Miro ต้องการเข้าถึงกล้องเพื่อสแกนบาร์โค้ดและวิเคราะห์อาหาร</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Miro ต้องการบันทึกรูปภาพที่วิเคราะห์แล้ว</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Miro ต้องการเข้าถึงรูปภาพเพื่อวิเคราะห์โภชนาการจากภาพอาหาร</string>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-6145254112451474~9703380291</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Miro ใช้ข้อมูลนี้เพื่อแสดงโฆษณาที่เกี่ยวข้องกับคุณมากขึ้น</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>MiRO ต้องการอ่านข้อมูลพลังงานที่เผาผลาญ เพื่อนำมาบวกเพิ่มในเป้าแคลอรี่ของคุณ</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>MiRO ต้องการบันทึกข้อมูลโภชนาการจากมื้ออาหารที่คุณบันทึก ไปยัง Apple Health</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Miro ต้องการบันทึกรูปภาพที่วิเคราะห์แล้ว</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Miro ต้องการเข้าถึงรูปภาพเพื่อวิเคราะห์โภชนาการจากภาพอาหาร</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Miro ใช้ข้อมูลนี้เพื่อแสดงโฆษณาที่เกี่ยวข้องกับคุณมากขึ้น</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
@@ -259,10 +259,10 @@
 				<dict>
 					<key>UISceneClassName</key>
 					<string>UIWindowScene</string>
-					<key>UISceneDelegateClassName</key>
-					<string>FlutterSceneDelegate</string>
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
 					<key>UISceneStoryboardFile</key>
 					<string>Main</string>
 				</dict>

@@ -1547,13 +1547,14 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   // ───────────────────────────────────────────────────────────
 
   Future<void> _purchasePackage(String productId, int energy) async {
-    final success = await PurchaseService.purchaseEnergy(productId);
-    if (success) {
+    final result = await PurchaseService.purchaseEnergyWithError(productId);
+    if (result.success) {
+      // Purchase dialog was shown — the actual purchase completes asynchronously
+      // via PurchaseService._onPurchaseUpdate → server verification → balance update.
+      // Invalidate providers so the UI refreshes when the balance changes.
       ref.invalidate(currentEnergyProvider);
       ref.invalidate(energyBalanceProvider);
 
-      // Remove used offers from local state immediately
-      // so user can't re-purchase before _loadOffers() completes
       if (mounted) {
         setState(() {
           _activeOffers.removeWhere((offer) {
@@ -1561,13 +1562,11 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             final type = offer['type'] as String?;
             final metadata = offer['metadata'] as Map<String, dynamic>?;
             final offerProductId = metadata?['productId'] as String?;
-            // Remove bonus_rate offers (one-time use per activation)
             if (rewardType == 'bonus_rate' ||
                 type == 'bonus_40' ||
                 type == 'tier_promo') {
               return true;
             }
-            // Remove special_product offers if productId matches
             if (rewardType == 'special_product' && offerProductId == productId) {
               return true;
             }
@@ -1577,27 +1576,18 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       }
 
       await _loadOffers();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ Purchased $energy Energy!'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
+        final errorMsg = result.errorMessage ??
+            PurchaseService.lastPurchaseError ??
+            L10n.of(context)!.subscriptionFailedToInitiatePurchase;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ Purchase failed. Please try again.'),
+          SnackBar(
+            content: Text(errorMsg),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 4),
           ),
         );
       }

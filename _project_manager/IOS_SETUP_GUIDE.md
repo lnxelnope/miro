@@ -391,10 +391,34 @@ cd functions && npm run build && firebase deploy --only functions
 |---|---|---|
 | `miro_normal_subscription` | Energy Pass Monthly | $4.99/month |
 
+
+ายการ Auto-Renewable Subscription (Energy Pass)
+#	Product ID (App Store)	Base Plan ID (Google Play)	ชื่อ	ราคา	ระยะเวลา
+1	miro_energy_pass_weekly	energy-pass-weekly	Energy Pass Weekly	$1.99	ต่อสัปดาห์
+2	miro_energy_pass_monthly	energy-pass-monthly	Energy Pass	$4.99	ต่อเดือน
+3	miro_energy_pass_yearly	energy-pass-yearly	Energy Pass Yearly	$39.99	ต่อปี
+
+
 **Subscription Group**: MiRO Energy Pass
 
 > **สำคัญ:** Product ID ต้องตรงกับที่ใช้ใน code!
 > ตรวจสอบใน `lib/core/services/purchase_service.dart` และ `subscription_service.dart`
+
+### Sandbox Tester สำหรับทดสอบ IAP:
+
+1. App Store Connect → **Users and Access** → **Sandbox** → **Testers**
+2. เพิ่ม Sandbox Tester: **lnxelnope2@gmail.com**
+3. บน iPhone: **Settings → App Store → Sign Out** (สำคัญ! ต้อง sign out ก่อน) → ตอนซื้อจะถาม Sandbox login
+
+### IAP ไม่ทำงานบน TestFlight?
+
+ดู **`_project_manager/IOS_IAP_TROUBLESHOOTING.md`** — เช็คลิสต์และวิธีแก้
+
+### IAP Localization (12 ภาษา):
+
+แอปรองรับ 12 ภาษา — ต้องกรอก Display Name + Description ให้ครบทุก product:
+- ดูรายการแปลครบใน **`_project_manager/IAP_APP_STORE_LOCALIZATION.md`**
+- คัดลอกไปวางใน App Store Connect → product → App Store Localization
 
 ### Review Information สำหรับ IAP:
 
@@ -447,13 +471,31 @@ flutter build ipa --release
 
 ### วิธี A: ใช้ Command Line (แนะนำ)
 
+**API Key = App Store Connect API credentials** (ไม่ใช่ API key ทั่วไป)
+
+#### สร้าง App Store Connect API Key:
+1. ไปที่ https://appstoreconnect.apple.com
+2. **Users and Access** → **Integrations** → **App Store Connect API**
+3. คลิก **Generate API Key** (หรือ **+**)
+4. ตั้งชื่อ (เช่น "MiRO Upload") → เลือก role **App Manager**
+5. **Download** ไฟล์ `.p8` — **ดาวน์โหลดได้ครั้งเดียวเท่านั้น!** เก็บไว้ปลอดภัย
+6. บันทึก **Key ID** (เช่น `2X9R4HXF34`) และ **Issuer ID** (UUID) จากหน้าเดียวกัน
+
+#### เก็บไฟล์ .p8:
+วางไฟล์ `AuthKey_<KEY_ID>.p8` ในหนึ่งในนี้:
+- `~/.private_keys/`
+- `~/.appstoreconnect/private_keys/`
+
+#### คำสั่ง Upload:
 ```bash
 xcrun altool --upload-app \
   --type ios \
   --file build/ios/ipa/*.ipa \
-  --apiKey YOUR_API_KEY \
+  --apiKey YOUR_KEY_ID \
   --apiIssuer YOUR_ISSUER_ID
 ```
+- `YOUR_KEY_ID` = Key ID จากขั้นตอน 5 (10 ตัวอักษร)
+- `YOUR_ISSUER_ID` = Issuer ID (UUID)
 
 ### วิธี B: ใช้ Transporter (ง่ายสุด)
 
@@ -650,4 +692,5 @@ export LANG=en_US.UTF-8
 - [ ] App Icon 1024x1024 (มีแล้วใน assets)
 - [ ] Apple Developer Account (มีแล้ว)
 - [ ] Sandbox Tester Account สำหรับ IAP testing
+  - **Email:** lnxelnope2@gmail.com (App Store Connect → Users and Access → Sandbox → Testers)
 - [ ] Bank Account ใน App Store Connect (สำหรับรับเงิน)
