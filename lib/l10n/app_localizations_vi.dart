@@ -2257,6 +2257,14 @@ class L10nVi extends L10n {
       'Tất cả dữ liệu sẽ bị xóa:\n• Mục món ăn\n• Bữa ăn của tôi\n• Thành phần\n• Mục tiêu\n• Thông tin cá nhân\n\nĐiều này không thể được hoàn tác!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Bao gồm: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Giống cài đặt mới — dùng cùng Factory Reset trong Admin Panel)';
+
+  @override
   String get allDataClearedSuccess => 'Tất cả dữ liệu đã được xóa thành công';
 
   @override

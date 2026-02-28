@@ -1739,8 +1739,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         content: Text(
           '${L10n.of(context)!.clearAllDataContent}\n\n'
-          'รวมถึง: Isar DB, SharedPreferences, SecureStorage\n'
-          '(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)',
+          '${L10n.of(context)!.clearAllDataStorageDetails}\n'
+          '${L10n.of(context)!.clearAllDataFactoryResetHint}',
         ),
         actions: [
           TextButton(

@@ -2190,6 +2190,14 @@ class L10nJa extends L10n {
       'すべてのデータが削除されます:\n• 食べ物のエントリー\n• 私の食事\n• 成分\n• 目標\n• 個人情報\n\nこれは取り消しできません!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      '含む: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(新規インストールと同様 — 管理パネルのFactory Resetと併用)';
+
+  @override
   String get allDataClearedSuccess => 'すべてのデータが正常に消去されました';
 
   @override

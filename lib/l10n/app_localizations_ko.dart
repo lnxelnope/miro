@@ -2192,6 +2192,14 @@ class L10nKo extends L10n {
       '모든 데이터가 삭제됩니다:\n• 음식 항목\n• 내 식사\n• 성분\n• 목표\n• 개인정보\n\n이 작업은 취소할 수 없습니다!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      '포함: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(새 설치와 같음 — 관리자 패널의 Factory Reset과 함께 사용)';
+
+  @override
   String get allDataClearedSuccess => '모든 데이터가 성공적으로 지워졌습니다.';
 
   @override

@@ -2268,6 +2268,14 @@ class L10nPt extends L10n {
       'Todos os dados serão excluídos:\n• Entradas de alimentação\n• Minhas refeições\n• Ingredientes\n• Metas\n• Informações pessoais\n\nIsso não pode ser desfeito!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Incluindo: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Como instalação nova — use junto com Factory Reset no Painel Admin)';
+
+  @override
   String get allDataClearedSuccess => 'Todos os dados apagados com sucesso';
 
   @override

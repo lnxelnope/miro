@@ -1335,6 +1335,8 @@
   "restoreFromBackupSubtitle": "बैकअप फ़ाइल से डेटा आयात करें",
   "clearAllDataTitle": "सारा डेटा साफ़ करें?",
   "clearAllDataContent": "सारा डेटा हटा दिया जाएगा:\n• खाद्य प्रविष्टियाँ\n• मेरा भोजन\n• सामग्री\n• लक्ष्य\n• व्यक्तिगत जानकारी\n\nइसे पूर्ववत नहीं किया जा सकता!",
+  "clearAllDataStorageDetails": "इसमें शामिल: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(नई इंस्टॉल की तरह — एडमिन पैनल में Factory Reset के साथ उपयोग करें)",
   "allDataClearedSuccess": "सभी डेटा सफलतापूर्वक साफ़ कर दिया गया",
   "aboutSection": "के बारे में",
   "version": "संस्करण",

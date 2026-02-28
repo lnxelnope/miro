@@ -1463,6 +1463,8 @@
   "restoreFromBackupSubtitle": "นำเข้าข้อมูลจากไฟล์สำรอง",
   "clearAllDataTitle": "ล้างข้อมูลทั้งหมด?",
   "clearAllDataContent": "ข้อมูลทั้งหมดจะถูกลบ:\n• รายการอาหาร\n• อาหารของฉัน\n• ส่วนผสม\n• เป้าหมาย\n• ข้อมูลส่วนตัว\n\nไม่สามารถกู้คืนได้!",
+  "clearAllDataStorageDetails": "รวมถึง: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)",
   "deleteAll": "ลบทั้งหมด",
   "allDataClearedSuccess": "ล้างข้อมูลทั้งหมดเรียบร้อย",
   "aboutSection": "เกี่ยวกับ",

@@ -2232,6 +2232,14 @@ class L10nEn extends L10n {
       'All data will be deleted:\n• Food entries\n• My Meals\n• Ingredients\n• Goals\n• Personal info\n\nThis cannot be undone!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Including: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Like a fresh install — use together with Factory Reset in Admin Panel)';
+
+  @override
   String get allDataClearedSuccess => 'All data cleared successfully';
 
   @override

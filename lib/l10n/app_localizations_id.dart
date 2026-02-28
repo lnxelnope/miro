@@ -2252,6 +2252,14 @@ class L10nId extends L10n {
       'Semua data akan dihapus:\n• Entri makanan\n• Makanan Saya\n• Bahan\n• Tujuan\n• Informasi pribadi\n\nHal ini tidak dapat dibatalkan!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Termasuk: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Seperti instal baru — gunakan bersama Factory Reset di Admin Panel)';
+
+  @override
   String get allDataClearedSuccess => 'Semua data berhasil dihapus';
 
   @override

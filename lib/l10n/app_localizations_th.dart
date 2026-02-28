@@ -2192,6 +2192,14 @@ class L10nTh extends L10n {
       'ข้อมูลทั้งหมดจะถูกลบ:\n• รายการอาหาร\n• อาหารของฉัน\n• ส่วนผสม\n• เป้าหมาย\n• ข้อมูลส่วนตัว\n\nไม่สามารถกู้คืนได้!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'รวมถึง: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)';
+
+  @override
   String get allDataClearedSuccess => 'ล้างข้อมูลทั้งหมดเรียบร้อย';
 
   @override

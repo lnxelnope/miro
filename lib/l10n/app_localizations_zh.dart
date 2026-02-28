@@ -2176,6 +2176,14 @@ class L10nZh extends L10n {
       '所有数据将被删除：\n• 食品条目\n• 我的膳食\n• 成分\n• 目标\n• 个人信息\n\n这无法撤销！';
 
   @override
+  String get clearAllDataStorageDetails =>
+      '包括：Isar DB、SharedPreferences、SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '（如同全新安装 — 与管理面板中的 Factory Reset 配合使用）';
+
+  @override
   String get allDataClearedSuccess => '全部数据清除成功';
 
   @override

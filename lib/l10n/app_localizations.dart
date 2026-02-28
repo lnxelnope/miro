@@ -3996,6 +3996,18 @@ abstract class L10n {
   /// **'All data will be deleted:\n• Food entries\n• My Meals\n• Ingredients\n• Goals\n• Personal info\n\nThis cannot be undone!'**
   String get clearAllDataContent;
 
+  /// No description provided for @clearAllDataStorageDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Including: Isar DB, SharedPreferences, SecureStorage'**
+  String get clearAllDataStorageDetails;
+
+  /// No description provided for @clearAllDataFactoryResetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'(Like a fresh install — use together with Factory Reset in Admin Panel)'**
+  String get clearAllDataFactoryResetHint;
+
   /// No description provided for @allDataClearedSuccess.
   ///
   /// In en, this message translates to:

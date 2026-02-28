@@ -2245,6 +2245,14 @@ class L10nHi extends L10n {
       'सारा डेटा हटा दिया जाएगा:\n• खाद्य प्रविष्टियाँ\n• मेरा भोजन\n• सामग्री\n• लक्ष्य\n• व्यक्तिगत जानकारी\n\nइसे पूर्ववत नहीं किया जा सकता!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'इसमें शामिल: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(नई इंस्टॉल की तरह — एडमिन पैनल में Factory Reset के साथ उपयोग करें)';
+
+  @override
   String get allDataClearedSuccess => 'सभी डेटा सफलतापूर्वक साफ़ कर दिया गया';
 
   @override

@@ -2284,6 +2284,14 @@ class L10nDe extends L10n {
       'Alle Daten werden gelöscht:\n• Lebensmitteleinträge\n• Meine Mahlzeiten\n• Zutaten\n• Ziele\n• Persönliche Informationen\n\nDies kann nicht rückgängig gemacht werden!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Einschließlich: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Wie eine Neuinstallation — zusammen mit Factory Reset im Admin-Panel verwenden)';
+
+  @override
   String get allDataClearedSuccess => 'Alle Daten erfolgreich gelöscht';
 
   @override

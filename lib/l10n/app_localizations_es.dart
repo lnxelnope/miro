@@ -2267,6 +2267,14 @@ class L10nEs extends L10n {
       'Todos los datos serán eliminados:\n• Entradas de alimentos\n• Mis comidas\n• Ingredientes\n• Metas\n• Información personal\n\n¡Esto no se puede deshacer!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'Incluyendo: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(Como instalación nueva — usar junto con Factory Reset en el Panel de administración)';
+
+  @override
   String get allDataClearedSuccess =>
       'Todos los datos se borraron exitosamente';
 

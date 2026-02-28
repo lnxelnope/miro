@@ -1335,6 +1335,8 @@
   "restoreFromBackupSubtitle": "Impor data dari file cadangan",
   "clearAllDataTitle": "Hapus semua data?",
   "clearAllDataContent": "Semua data akan dihapus:\n• Entri makanan\n• Makanan Saya\n• Bahan\n• Tujuan\n• Informasi pribadi\n\nHal ini tidak dapat dibatalkan!",
+  "clearAllDataStorageDetails": "Termasuk: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(Seperti instal baru — gunakan bersama Factory Reset di Admin Panel)",
   "allDataClearedSuccess": "Semua data berhasil dihapus",
   "aboutSection": "Tentang",
   "version": "Versi",

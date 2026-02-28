@@ -1335,6 +1335,8 @@
   "restoreFromBackupSubtitle": "从备份文件导入数据",
   "clearAllDataTitle": "清除所有数据？",
   "clearAllDataContent": "所有数据将被删除：\n• 食品条目\n• 我的膳食\n• 成分\n• 目标\n• 个人信息\n\n这无法撤销！",
+  "clearAllDataStorageDetails": "包括：Isar DB、SharedPreferences、SecureStorage",
+  "clearAllDataFactoryResetHint": "（如同全新安装 — 与管理面板中的 Factory Reset 配合使用）",
   "allDataClearedSuccess": "全部数据清除成功",
   "aboutSection": "关于",
   "version": "版本",

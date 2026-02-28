@@ -1335,6 +1335,8 @@
   "restoreFromBackupSubtitle": "Importar dados do arquivo de backup",
   "clearAllDataTitle": "Limpar todos os dados?",
   "clearAllDataContent": "Todos os dados serão excluídos:\n• Entradas de alimentação\n• Minhas refeições\n• Ingredientes\n• Metas\n• Informações pessoais\n\nIsso não pode ser desfeito!",
+  "clearAllDataStorageDetails": "Incluindo: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(Como instalação nova — use junto com Factory Reset no Painel Admin)",
   "allDataClearedSuccess": "Todos os dados apagados com sucesso",
   "aboutSection": "Sobre",
   "version": "Versão",

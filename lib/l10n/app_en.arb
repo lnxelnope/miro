@@ -1483,6 +1483,8 @@
   "restoreFromBackupSubtitle": "Import data from backup file",
   "clearAllDataTitle": "Clear all data?",
   "clearAllDataContent": "All data will be deleted:\n• Food entries\n• My Meals\n• Ingredients\n• Goals\n• Personal info\n\nThis cannot be undone!",
+  "clearAllDataStorageDetails": "Including: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(Like a fresh install — use together with Factory Reset in Admin Panel)",
   "deleteAll": "Delete All",
   "allDataClearedSuccess": "All data cleared successfully",
   "aboutSection": "About",
