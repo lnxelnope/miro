@@ -342,12 +342,14 @@ class PurchaseService {
     }
   }
 
-  /// ✅ Consume purchase บน Android (ทำให้ซื้อซ้ำได้)
+  /// ✅ Consume/finish purchase (platform-specific)
   ///
-  /// สำหรับ consumable products: ต้อง consume (ไม่ใช่แค่ acknowledge)
-  /// เพื่อบอก Google Play ว่าส่งของแล้ว → product ถูกปลดออก → ซื้อใหม่ได้
+  /// Android: consumePurchase (acknowledge + release product → re-purchasable)
+  /// iOS: completePurchase (finish transaction → remove from StoreKit queue)
   ///
-  /// Note: consumeAsync บน Android จะ acknowledge ให้ด้วยอัตโนมัติ
+  /// CRITICAL for iOS: ALWAYS call completePurchase regardless of pendingCompletePurchase
+  /// StoreKit 2 will re-deliver unfinished transactions on every app launch,
+  /// blocking new purchases of the same product.
   static Future<void> _consumeAndCompletePurchase(
       PurchaseDetails purchase) async {
     try {
@@ -363,25 +365,22 @@ class PurchaseService {
         if (result.responseCode == BillingResponse.ok) {
           debugPrint(
               '[PurchaseService] ✅ Purchase consumed — can be re-purchased');
-          return; // Consume สำเร็จ (acknowledge ด้วยแล้ว) → ไม่ต้อง completePurchase
+          return;
         }
 
-        // Consume ไม่สำเร็จ → fallthrough ไป completePurchase
         debugPrint(
             '[PurchaseService] ⚠️ Consume failed: ${result.responseCode} — falling back to completePurchase');
       }
 
-      // Fallback: completePurchase (สำหรับ non-Android หรือ consume ล้มเหลว)
-      if (purchase.pendingCompletePurchase) {
-        await _iap.completePurchase(purchase);
-      }
+      // iOS: ALWAYS finish transaction to prevent re-delivery
+      // Android fallback: completePurchase if consume failed
+      debugPrint('[PurchaseService] 🔄 Completing purchase (pendingComplete=${purchase.pendingCompletePurchase})...');
+      await _iap.completePurchase(purchase);
+      debugPrint('[PurchaseService] ✅ Purchase completed/finished');
     } catch (e) {
       debugPrint('[PurchaseService] ❌ Consume/complete error: $e');
-      // Last resort: try completePurchase
       try {
-        if (purchase.pendingCompletePurchase) {
-          await _iap.completePurchase(purchase);
-        }
+        await _iap.completePurchase(purchase);
       } catch (_) {}
     }
   }
