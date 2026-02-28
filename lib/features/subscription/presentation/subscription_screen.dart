@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/subscription_plan.dart';
 import '../services/subscription_service.dart';
 import '../providers/subscription_provider.dart';
@@ -43,7 +45,8 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     try {
       final service = ref.read(subscriptionServiceProvider);
 
-      final available = await service.isAvailable();
+      final available = await service.isAvailable()
+          .timeout(const Duration(seconds: 10), onTimeout: () => false);
       if (!available) {
         if (mounted) {
           setState(() {
@@ -54,14 +57,14 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         return;
       }
 
-      final products = await service.getProducts();
+      final products = await service.getProducts()
+          .timeout(const Duration(seconds: 15), onTimeout: () => <ProductDetails>[]);
 
       debugPrint('[SubscriptionScreen] Products loaded: ${products.length}');
       for (final p in products) {
         debugPrint('[SubscriptionScreen] Product: ${p.id} → ${p.price}');
       }
 
-      // Android: ราคาจาก base plans | iOS: ราคาจากแต่ละ product
       final prices = products.isNotEmpty
           ? (Platform.isIOS
               ? SubscriptionService.extractProductPrices(products)
@@ -264,12 +267,26 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
           // Manage Button
           OutlinedButton(
-            onPressed: () {},
+            onPressed: _openSubscriptionManagement,
             child: Text(L10n.of(context)!.subscriptionManageSubscription),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openSubscriptionManagement() async {
+    final Uri url;
+    if (Platform.isIOS) {
+      url = Uri.parse('https://apps.apple.com/account/subscriptions');
+    } else {
+      url = Uri.parse('https://play.google.com/store/account/subscriptions');
+    }
+    try {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('[SubscriptionScreen] Failed to open subscription management: $e');
+    }
   }
 
   Widget _buildSubscriptionPlans(bool isDark) {
