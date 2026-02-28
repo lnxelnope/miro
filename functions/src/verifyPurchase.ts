@@ -45,6 +45,14 @@ const ENERGY_PRODUCTS: Record<string, number> = {
   "energy_2000_welcome": 2000,
 };
 
+// Regular repeatable products — these can ALWAYS be re-purchased (consumable)
+const REGULAR_PRODUCTS = new Set([
+  "energy_100",
+  "energy_550",
+  "energy_1200",
+  "energy_2000",
+]);
+
 // Legacy one-time products (backward compat — ใช้คู่กับ template-based check)
 const ONE_TIME_PRODUCTS: Record<string, {
   claimField: string;
@@ -195,40 +203,45 @@ export const verifyPurchase = onRequest(
         }
       }
 
-      // ─── 2b. One-time offer validation (template-based + legacy fallback) ───
-      // Template-based check
-      const templateClaimed = await isOfferProductClaimed(deviceId, productId);
-      if (templateClaimed) {
-        console.log(
-          `🚫 [verifyPurchase] Offer product already claimed (template): ${productId} for ${deviceId}`
-        );
-        res.status(409).json({
-          error: "This offer has already been claimed",
-          alreadyClaimed: true,
-        });
-        return;
-      }
-
-      // Legacy fallback (for users not yet migrated)
+      // ─── 2b. One-time offer validation (ONLY for non-regular products) ───
+      // Regular products (energy_100, energy_550, etc.) are always re-purchasable
       const oneTimeConfig = ONE_TIME_PRODUCTS[productId];
-      if (oneTimeConfig) {
-        const userDoc = await db.collection("users").doc(deviceId).get();
-        if (!userDoc.exists) {
-          res.status(404).json({error: "User not found"});
-          return;
-        }
-
-        const offers = userDoc.data()?.offers || {};
-        if (offers[oneTimeConfig.claimField] === true) {
+      if (!REGULAR_PRODUCTS.has(productId)) {
+        // Template-based check (only for offer-specific products)
+        const templateClaimed = await isOfferProductClaimed(deviceId, productId);
+        if (templateClaimed) {
           console.log(
-            `🚫 [verifyPurchase] One-time offer already claimed (legacy): ${productId} for ${deviceId}`
+            `🚫 [verifyPurchase] Offer product already claimed (template): ${productId} for ${deviceId}`
           );
           res.status(409).json({
-            error: oneTimeConfig.errorMessage,
+            error: "This offer has already been claimed",
             alreadyClaimed: true,
           });
           return;
         }
+
+        // Legacy fallback (for users not yet migrated)
+        if (oneTimeConfig) {
+          const userDoc = await db.collection("users").doc(deviceId).get();
+          if (!userDoc.exists) {
+            res.status(404).json({error: "User not found"});
+            return;
+          }
+
+          const offers = userDoc.data()?.offers || {};
+          if (offers[oneTimeConfig.claimField] === true) {
+            console.log(
+              `🚫 [verifyPurchase] One-time offer already claimed (legacy): ${productId} for ${deviceId}`
+            );
+            res.status(409).json({
+              error: oneTimeConfig.errorMessage,
+              alreadyClaimed: true,
+            });
+            return;
+          }
+        }
+      } else {
+        console.log(`ℹ️ [verifyPurchase] Regular product "${productId}" — skipping one-time offer checks`);
       }
 
       // ─── 3. Verify purchase (Google Play or Apple) ───
@@ -236,70 +249,130 @@ export const verifyPurchase = onRequest(
       let purchaseTimeMillis: string | undefined;
 
       if (isIos) {
-        // ─── iOS: Apple verifyReceipt API ───
-        console.log("🔍 [verifyPurchase] Verifying with Apple verifyReceipt...");
+        // Detect StoreKit version: JWS token (SK2) starts with "eyJ", receipt (SK1) is raw base64
+        const isStoreKit2 = purchaseToken.startsWith("eyJ");
+        console.log(`🔍 [verifyPurchase] iOS verification mode: ${isStoreKit2 ? "StoreKit 2 (JWS)" : "StoreKit 1 (receipt)"}`);
 
-        const sharedSecret = APPLE_SHARED_SECRET.value();
-        const verifyBody = {
-          "receipt-data": purchaseToken,
-          password: sharedSecret,
-          "exclude-old-transactions": true,
-        };
+        if (isStoreKit2) {
+          // ─── iOS StoreKit 2: JWS signed transaction ───
+          const parts = purchaseToken.split(".");
+          if (parts.length !== 3) {
+            console.log("❌ [verifyPurchase] Invalid JWS token format");
+            res.status(403).json({error: "Invalid JWS token"});
+            return;
+          }
 
-        let appleRes = await fetch("https://buy.itunes.apple.com/verifyReceipt", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(verifyBody),
-        });
-        let appleData = await appleRes.json();
+          // Decode JWS payload (Apple-signed, trusted from StoreKit framework)
+          const payloadBase64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+          const payloadJson = Buffer.from(payloadBase64, "base64").toString("utf8");
+          const payload = JSON.parse(payloadJson);
 
-        // 21007 = sandbox receipt sent to production → retry with sandbox
-        if (appleData.status === 21007) {
-          appleRes = await fetch("https://sandbox.itunes.apple.com/verifyReceipt", {
+          console.log("📦 [verifyPurchase] JWS payload:", {
+            transactionId: payload.transactionId,
+            productId: payload.productId,
+            environment: payload.environment,
+            type: payload.type,
+          });
+
+          // Verify product ID matches
+          if (payload.productId !== productId) {
+            console.log(`❌ [verifyPurchase] Product mismatch: expected=${productId}, got=${payload.productId}`);
+            res.status(403).json({error: "Product ID mismatch"});
+            return;
+          }
+
+          // Verify transaction type is consumable purchase
+          if (payload.type && payload.type !== "Consumable") {
+            console.log(`⚠️ [verifyPurchase] Unexpected type: ${payload.type} (proceeding anyway)`);
+          }
+
+          orderId = payload.transactionId?.toString() || payload.originalTransactionId?.toString() || "";
+          purchaseTimeMillis = payload.purchaseDate?.toString();
+
+          // Check duplicate by transactionId
+          purchaseHash = hashPurchaseToken(orderId);
+          purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
+          const sk2Existing = await purchaseRecordRef.get();
+          if (sk2Existing.exists) {
+            console.log(`⚠️ [verifyPurchase] Duplicate iOS SK2 purchase: ${purchaseHash}`);
+            const userDoc = await db.collection("users").doc(deviceId).get();
+            const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
+            res.status(409).json({
+              error: "Purchase already verified",
+              balance: currentBalance,
+              verified: true,
+            });
+            return;
+          }
+
+          console.log(`✅ [verifyPurchase] StoreKit 2 JWS verified: txId=${orderId}, product=${productId}`);
+
+        } else {
+          // ─── iOS StoreKit 1: Apple verifyReceipt API ───
+          console.log("🔍 [verifyPurchase] Verifying with Apple verifyReceipt...");
+
+          const sharedSecret = APPLE_SHARED_SECRET.value();
+          const verifyBody = {
+            "receipt-data": purchaseToken,
+            password: sharedSecret,
+            "exclude-old-transactions": true,
+          };
+
+          let appleRes = await fetch("https://buy.itunes.apple.com/verifyReceipt", {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(verifyBody),
           });
-          appleData = await appleRes.json();
-        }
+          let appleData = await appleRes.json();
 
-        if (appleData.status !== 0) {
-          console.log(`❌ [verifyPurchase] Apple verifyReceipt failed: status=${appleData.status}`);
-          res.status(403).json({
-            error: "Invalid receipt",
-            status: appleData.status,
-          });
-          return;
-        }
+          // 21007 = sandbox receipt sent to production → retry with sandbox
+          if (appleData.status === 21007) {
+            appleRes = await fetch("https://sandbox.itunes.apple.com/verifyReceipt", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify(verifyBody),
+            });
+            appleData = await appleRes.json();
+          }
 
-        const receipt = appleData.receipt;
-        const inApp = receipt?.in_app || [];
-        const matchingTx = inApp.find((tx: any) => tx.product_id === productId);
+          if (appleData.status !== 0) {
+            console.log(`❌ [verifyPurchase] Apple verifyReceipt failed: status=${appleData.status}`);
+            res.status(403).json({
+              error: "Invalid receipt",
+              status: appleData.status,
+            });
+            return;
+          }
 
-        if (!matchingTx) {
-          console.log(`❌ [verifyPurchase] Product ${productId} not found in receipt`);
-          res.status(403).json({error: "Product not found in receipt"});
-          return;
-        }
+          const receipt = appleData.receipt;
+          const inApp = receipt?.in_app || [];
+          const matchingTx = inApp.find((tx: any) => tx.product_id === productId);
 
-        orderId = matchingTx.transaction_id;
-        purchaseTimeMillis = matchingTx.purchase_date_ms;
-        console.log("📦 [verifyPurchase] Apple receipt verified:", {orderId, productId});
+          if (!matchingTx) {
+            console.log(`❌ [verifyPurchase] Product ${productId} not found in receipt`);
+            res.status(403).json({error: "Product not found in receipt"});
+            return;
+          }
 
-        // iOS: Check duplicate by transaction_id (receipt is shared across purchases)
-        purchaseHash = hashPurchaseToken(orderId);
-        purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
-        const iosExisting = await purchaseRecordRef.get();
-        if (iosExisting.exists) {
-          console.log(`⚠️ [verifyPurchase] Duplicate iOS purchase: ${purchaseHash}`);
-          const userDoc = await db.collection("users").doc(deviceId).get();
-          const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
-          res.status(409).json({
-            error: "Purchase already verified",
-            balance: currentBalance,
-            verified: true,
-          });
-          return;
+          orderId = matchingTx.transaction_id;
+          purchaseTimeMillis = matchingTx.purchase_date_ms;
+          console.log("📦 [verifyPurchase] Apple receipt verified:", {orderId, productId});
+
+          // iOS: Check duplicate by transaction_id
+          purchaseHash = hashPurchaseToken(orderId);
+          purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
+          const iosExisting = await purchaseRecordRef.get();
+          if (iosExisting.exists) {
+            console.log(`⚠️ [verifyPurchase] Duplicate iOS purchase: ${purchaseHash}`);
+            const userDoc = await db.collection("users").doc(deviceId).get();
+            const currentBalance = userDoc.exists ? (userDoc.data()?.balance ?? 0) : 0;
+            res.status(409).json({
+              error: "Purchase already verified",
+              balance: currentBalance,
+              verified: true,
+            });
+            return;
+          }
         }
       } else {
         // ─── Android: Google Play Developer API ───
