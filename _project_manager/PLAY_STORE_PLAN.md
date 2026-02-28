@@ -81,7 +81,6 @@ FREE WITH OPTIONAL PRO
 • 3 AI food analyses per day
 • Unlimited manual food logging
 • Full nutrition dashboard (kcal, protein, carbs, fat)
-• Thai food database built-in
 • Personal meals & ingredients database
 • Chat with AI assistant
 

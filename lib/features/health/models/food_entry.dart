@@ -20,7 +20,7 @@ class FoodEntry {
   // Serving Size - ปริมาณที่กิน
   late double servingSize; // เช่น 1.0, 0.5, 2.0
   late String servingUnit; // e.g. "serving", "piece", "g", "lbs"
-  double? servingGrams;    // ปริมาณเป็นกรัม (ถ้าทราบ)
+  double? servingGrams; // ปริมาณเป็นกรัม (ถ้าทราบ)
 
   // ============================================
   // Nutrition ที่คำนวณแล้ว (= base * servingSize)
@@ -49,10 +49,17 @@ class FoodEntry {
   double? sodium;
   double? cholesterol;
   double? saturatedFat;
+  double? transFat;
+  double? unsaturatedFat;
+  double? monounsaturatedFat;
+  double? polyunsaturatedFat;
+  double? potassium;
 
   // Metadata
   @enumerated
   late DataSource source;
+  @enumerated
+  FoodSearchMode searchMode = FoodSearchMode.normal; // Food or Product type
   double? aiConfidence;
   bool isVerified = false;
   bool isDeleted = false; // Soft delete - ป้องกันการสแกนรูปซ้ำ
@@ -62,9 +69,9 @@ class FoodEntry {
   // Links สำหรับ Phase 2 (My Meal / Ingredient)
   // ยังไม่ใช้ตอนนี้ แต่เตรียมไว้ก่อน
   // ============================================
-  int? myMealId;          // link ไป MyMeal (ถ้ามา from My Meal)
-  int? ingredientId;      // link ไป Ingredient (ถ้าเป็นวัตถุดิบเดี่ยว)
-  String? groupId;        // group หลายรายการจากเมนูเดียวกัน
+  int? myMealId; // link ไป MyMeal (ถ้ามา from My Meal)
+  int? ingredientId; // link ไป Ingredient (ถ้าเป็นวัตถุดิบเดี่ยว)
+  String? groupId; // group หลายรายการจากเมนูเดียวกัน
   String? ingredientsJson; // snapshot ของ ingredients ที่ใช้จริง
 
   // Sync
@@ -105,8 +112,10 @@ class FoodEntry {
   }
 
   /// ตรวจสอบว่ามี base values หรือยัง
-  bool get hasBaseValues => baseCalories > 0 || baseProtein > 0 || baseCarbs > 0 || baseFat > 0;
+  bool get hasBaseValues =>
+      baseCalories > 0 || baseProtein > 0 || baseCarbs > 0 || baseFat > 0;
 
   /// ตรวจสอบว่ามีค่าโภชนาการหรือยัง (ยังไม่ได้วิเคราะห์ = ค่า 0 ทั้งหมด)
-  bool get hasNutritionData => calories > 0 || protein > 0 || carbs > 0 || fat > 0;
+  bool get hasNutritionData =>
+      calories > 0 || protein > 0 || carbs > 0 || fat > 0;
 }

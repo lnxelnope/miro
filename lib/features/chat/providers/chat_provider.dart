@@ -9,12 +9,27 @@ import '../../../core/ai/gemini_chat_service.dart';
 import '../../../core/constants/enums.dart';
 import '../models/chat_message.dart';
 import '../models/chat_ai_mode.dart';
-import '../../health/providers/my_meal_provider.dart';
 import '../services/intent_handler.dart';
+import '../services/food_lookup_service.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/models/food_entry.dart';
+import '../../health/models/my_meal.dart';
+import '../../health/models/ingredient.dart';
 import '../../energy/providers/energy_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+
+/// Result of saving chat food entries
+class _ChatSaveResult {
+  final int fromDbCount;
+  final int unanalyzedCount;
+  final List<String> itemNames;
+  int get totalCount => fromDbCount + unanalyzedCount;
+  const _ChatSaveResult({
+    required this.fromDbCount,
+    required this.unanalyzedCount,
+    required this.itemNames,
+  });
+}
 
 // Current session provider
 final currentSessionIdProvider = StateProvider<String>((ref) {
@@ -28,7 +43,7 @@ final activePageContextProvider = StateProvider<String>((ref) => 'health');
 // Messages for current session
 final chatMessagesProvider = FutureProvider<List<ChatMessage>>((ref) async {
   final sessionId = ref.watch(currentSessionIdProvider);
-  
+
   return await DatabaseService.chatMessages
       .filter()
       .sessionIdEqualTo(sessionId)
@@ -50,7 +65,8 @@ final chatSessionsProvider = FutureProvider<List<ChatSession>>((ref) async {
 });
 
 // Provider สำหรับดึง messages ของ session ที่เลือก
-final sessionMessagesProvider = FutureProvider.family<List<ChatMessage>, String>((ref, sessionId) async {
+final sessionMessagesProvider =
+    FutureProvider.family<List<ChatMessage>, String>((ref, sessionId) async {
   return await DatabaseService.chatMessages
       .filter()
       .sessionIdEqualTo(sessionId)
@@ -62,13 +78,17 @@ final sessionMessagesProvider = FutureProvider.family<List<ChatMessage>, String>
 class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   final Ref ref;
   final IntentHandler _intentHandler = IntentHandler();
-  
+
   ChatNotifier(this.ref) : super([]);
+
+  static double _safe(double? v, [double fallback = 0]) =>
+      (v == null || v.isNaN || v.isInfinite) ? fallback : v;
 
   Future<void> sendMessage(String content, {String? pageContext}) async {
     final sessionId = ref.read(currentSessionIdProvider);
-    final String activeContext = pageContext ?? ref.read(activePageContextProvider);
-    
+    final String activeContext =
+        pageContext ?? ref.read(activePageContextProvider);
+
     // 1. Create user message
     final userMessage = ChatMessage()
       ..sessionId = sessionId
@@ -89,34 +109,40 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
     // 4. Hide loading
     ref.read(chatLoadingProvider.notifier).state = false;
-    
+
     // 5. Update or create session
     await _updateSession(sessionId, content);
   }
 
-  Future<void> _generateAIResponse(String userMessage, {String pageContext = 'health'}) async {
+  Future<void> _generateAIResponse(String userMessage,
+      {String pageContext = 'health'}) async {
     final sessionId = ref.read(currentSessionIdProvider);
-    
+
     try {
       // Get current AI mode
       final aiMode = ref.read(chatAiModeProvider);
-      
+
       String replyMessage;
       String? detectedIntent;
-      
+
       if (aiMode == ChatAiMode.local) {
         // LOCAL AI — Free, use existing IntentHandler flow
-        final response = await _intentHandler.processMessage(userMessage, pageContext: pageContext);
+        final response = await _intentHandler.processMessage(userMessage,
+            pageContext: pageContext);
         replyMessage = response.replyMessage;
         detectedIntent = response.actionResult?.entryType ?? 'unknown';
-        
+
         // Refresh providers if food entry was created
-        if (response.actionResult != null && response.actionResult!.entryType == 'food') {
-          debugPrint('🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
+        if (response.actionResult != null &&
+            response.actionResult!.entryType == 'food') {
+          debugPrint(
+              '🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
           final today = dateOnly(DateTime.now());
           DateTime entryDate = today;
-          if (response.actionResult!.data != null && response.actionResult!.data!['date'] != null) {
-            final parsedDate = DateTime.tryParse(response.actionResult!.data!['date'] as String);
+          if (response.actionResult!.data != null &&
+              response.actionResult!.data!['date'] != null) {
+            final parsedDate = DateTime.tryParse(
+                response.actionResult!.data!['date'] as String);
             if (parsedDate != null) entryDate = dateOnly(parsedDate);
           }
           ref.invalidate(foodEntriesByDateProvider(entryDate));
@@ -132,7 +158,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         replyMessage = miroResponse;
         detectedIntent = 'food';
       }
-      
+
       // สร้าง assistant message
       final assistantMessage = ChatMessage()
         ..sessionId = sessionId
@@ -145,13 +171,27 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       });
 
       state = [...state, assistantMessage];
+    } on ChatContentTooLongException catch (_) {
+      // Use English fallback (l10n will be applied by UI layer if context available)
+      const fallbackMessage = 'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
       
-    } catch (e) {
-      // Error fallback
       final errorMessage = ChatMessage()
         ..sessionId = sessionId
         ..role = MessageRole.assistant
-        ..content = '❌ เกิดข้อผิดพลาด: $e\n\nลองใหม่อีกครั้งนะครับ'
+        ..content = '📝 $fallbackMessage'
+        ..detectedIntent = 'error';
+
+      await DatabaseService.isar.writeTxn(() async {
+        await DatabaseService.chatMessages.put(errorMessage);
+      });
+
+      state = [...state, errorMessage];
+    } catch (e) {
+      final errorText = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      final errorMessage = ChatMessage()
+        ..sessionId = sessionId
+        ..role = MessageRole.assistant
+        ..content = '❌ เกิดข้อผิดพลาด: $errorText\n\nลองใหม่อีกครั้งนะครับ'
         ..detectedIntent = 'error';
 
       await DatabaseService.isar.writeTxn(() async {
@@ -162,81 +202,214 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     }
   }
 
+  /// Gather local food context for AI prompt enhancement
+  /// Returns a map with MyMeal names, Ingredient names, recent history, and today's summary
+  Future<Map<String, dynamic>> _gatherFoodContext() async {
+    final context = <String, dynamic>{};
+
+    try {
+      // 1. MyMeal DB: top 50 by usage count
+      final myMeals = await DatabaseService.myMeals
+          .where()
+          .sortByUsageCountDesc()
+          .limit(50)
+          .findAll();
+      if (myMeals.isNotEmpty) {
+        context['savedMeals'] = myMeals.map((m) => m.name).toList();
+      }
+
+      // 2. Ingredient DB: top 50 by usage count
+      final ingredients = await DatabaseService.ingredients
+          .where()
+          .sortByUsageCountDesc()
+          .limit(50)
+          .findAll();
+      if (ingredients.isNotEmpty) {
+        context['savedIngredients'] = ingredients.map((i) => i.name).toList();
+      }
+
+      // 3. Recent food history: last 7 days
+      final now = DateTime.now();
+      final recentHistory = <String>[];
+      for (int i = 0; i < 7; i++) {
+        final date = dateOnly(now.subtract(Duration(days: i)));
+        final entriesAsync = ref.read(foodEntriesByDateProvider(date));
+        final entries = await entriesAsync.when(
+          data: (data) => Future.value(data),
+          loading: () => Future.value(<FoodEntry>[]),
+          error: (_, __) => Future.value(<FoodEntry>[]),
+        );
+        if (entries.isNotEmpty) {
+          final dateStr = '${date.month}/${date.day}';
+          final foodNames = entries.map((e) => e.foodName).take(5).join(', ');
+          recentHistory.add('$dateStr: $foodNames');
+        }
+      }
+      if (recentHistory.isNotEmpty) {
+        context['recentHistory'] = recentHistory;
+      }
+
+      // 4. Today's summary
+      final todayCaloriesAsync = ref.read(todayCaloriesProvider);
+      final todayMacrosAsync = ref.read(todayMacrosProvider);
+      
+      final todayCalories = await todayCaloriesAsync.when(
+        data: (data) => Future.value(data),
+        loading: () => Future.value(0.0),
+        error: (_, __) => Future.value(0.0),
+      );
+      
+      final todayMacros = await todayMacrosAsync.when(
+        data: (data) => Future.value(data),
+        loading: () => Future.value({'protein': 0.0, 'carbs': 0.0, 'fat': 0.0}),
+        error: (_, __) => Future.value({'protein': 0.0, 'carbs': 0.0, 'fat': 0.0}),
+      );
+
+      final profileAsync = ref.read(profileNotifierProvider);
+      final profile = await profileAsync.when(
+        data: (data) => Future.value(data),
+        loading: () => Future.value(null),
+        error: (_, __) => Future.value(null),
+      );
+
+      if (profile != null) {
+        final cal = _safe(todayCalories);
+        final pro = _safe(todayMacros['protein'] ?? 0);
+        final carb = _safe(todayMacros['carbs'] ?? 0);
+        final f = _safe(todayMacros['fat'] ?? 0);
+        final target = _safe(profile.calorieGoal, 2000);
+        context['todaySummary'] = {
+          'consumed': cal.toInt(),
+          'protein': pro.toInt(),
+          'carbs': carb.toInt(),
+          'fat': f.toInt(),
+          'target': target.toInt(),
+          'remaining': (target - cal).toInt(),
+        };
+      }
+
+      AppLogger.info('[ChatContext] Gathered context: ${context.keys.toList()}');
+      
+      // DEBUG: Show actual context data
+      if (context['savedMeals'] != null) {
+        final meals = context['savedMeals'] as List;
+        debugPrint('📊 Saved Meals (${meals.length}): ${meals.take(5).join(", ")}');
+      }
+      if (context['recentHistory'] != null) {
+        final history = context['recentHistory'] as List;
+        debugPrint('📊 Recent History (${history.length}): ${history.take(3).join(" | ")}');
+      }
+      if (context['todaySummary'] != null) {
+        debugPrint('📊 Today Summary: ${context['todaySummary']}');
+      }
+      
+      return context;
+    } catch (e) {
+      AppLogger.warn('[ChatContext] Failed to gather context: $e');
+      return {};
+    }
+  }
+
   /// Handle Miro AI (new flow with Gemini Backend)
   /// Returns reply message string
-  /// 
-  /// Energy pricing: base 2⚡ + 1⚡ per food item detected
-  /// Example: "ate rice, soup, salad, juice" → 2 + 4 = 6⚡
+  ///
+  /// Energy pricing: flat 1⚡ per chat request
+  /// Food entries are saved as unanalyzed (check DB first, 0 kcal if not found)
   Future<String> _handleMiroAi(String text) async {
-    // Check Energy balance (minimum 2 Energy required for base cost)
     final energyService = ref.read(energyServiceProvider);
     final balance = await energyService.getBalance();
-    
-    if (balance < 2) {
-      throw Exception('Not enough Energy (minimum 2⚡ required). Please purchase more from the store.');
+
+    if (balance < 1) {
+      throw Exception(
+          'Not enough Energy (minimum 1⚡ required). Please purchase more from the store.');
     }
-    
-    // Get user profile for personalization
+
     final profileAsync = ref.read(profileNotifierProvider);
     final profile = await profileAsync.when(
       data: (data) => Future.value(data),
       loading: () => Future.value(null),
       error: (_, __) => Future.value(null),
     );
-    
-    // Call Gemini Backend (backend calculates dynamic cost and deducts)
+
+    // Gather food context from local database
+    final foodContext = await _gatherFoodContext();
+
     final response = await GeminiChatService.analyzeChatMessage(
       message: text,
       energyService: energyService,
       userProfile: profile,
+      foodContext: foodContext,
     );
-    
-    // Note: Energy is deducted by backend (dynamic pricing), balance updated in GeminiChatService
-    
-    // Parse response and save food entries
-    await _parseMiroAiResponse(response);
-    
+
+    // Parse response: check DB first, save as unanalyzed if not found
+    final saveResult = await _parseMiroAiResponse(response);
+
     // Refresh providers
-    debugPrint('🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
+    debugPrint(
+        '🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
     final today = dateOnly(DateTime.now());
     ref.invalidate(foodEntriesByDateProvider(today));
     ref.invalidate(todayCaloriesProvider);
     ref.invalidate(todayMacrosProvider);
     ref.invalidate(healthTimelineProvider(today));
-    
-    // Build reply with actual energy cost breakdown
-    final reply = response['reply'] as String? ?? 'Message received';
-    final energyCost = response['energyCost'] as int? ?? 2;
-    final breakdown = response['energyBreakdown'] as Map<String, dynamic>?;
-    
-    String energyInfo;
-    if (breakdown != null) {
-      final baseCost = breakdown['baseCost'] as int? ?? 2;
-      final itemCount = breakdown['itemCount'] as int? ?? 0;
-      if (itemCount > 0) {
-        energyInfo = '⚡ -$energyCost Energy (base $baseCost + $itemCount items)';
-      } else {
-        energyInfo = '⚡ -$energyCost Energy';
+
+    final energyCost = response['energyCost'] as int? ?? 1;
+
+    // Build reply ourselves (don't use AI reply — it contains AI-calculated kcal
+    // that we no longer use since entries are saved as unanalyzed)
+    final buffer = StringBuffer();
+    if (saveResult != null && saveResult.totalCount > 0) {
+      buffer.write(
+          '✅ บันทึก ${saveResult.totalCount} รายการลง Timeline แล้ว!');
+
+      if (saveResult.fromDbCount > 0) {
+        buffer.write(
+            '\n📋 ${saveResult.fromDbCount} รายการพบใน Database (ใช้ค่าจาก DB)');
+      }
+      if (saveResult.unanalyzedCount > 0) {
+        buffer.write(
+            '\n⏳ ${saveResult.unanalyzedCount} รายการรอ Analyze (กด Analyze All ที่ Timeline)');
+      }
+
+      // Show item names with source icons
+      buffer.write('\n\n');
+      for (final name in saveResult.itemNames) {
+        buffer.write('$name\n');
       }
     } else {
-      energyInfo = '⚡ -$energyCost Energy';
+      final reply = response['reply'] as String? ?? 'Message received';
+      buffer.write(reply);
     }
-    
-    return '$reply\n\n$energyInfo';
+    buffer.write('\n⚡ -$energyCost Energy');
+
+    return buffer.toString();
   }
 
-  /// Parse Miro AI response and save food entries
-  /// Also saves ingredients and My Meal if backend returns them
-  Future<void> _parseMiroAiResponse(Map<String, dynamic> response) async {
-    if (response['type'] != 'food_log') return;
-    
+  /// Parse Miro AI response and save food entries to timeline
+  ///
+  /// Flow: AI parses food names → check DB (MyMeal/Ingredient) →
+  /// - Found: use DB nutrition, mark as verified
+  /// - Not found: save with 0 kcal, mark as unanalyzed (user can Analyze All later)
+  /// Does NOT auto-save to MyMeal/Ingredient database
+  Future<_ChatSaveResult?> _parseMiroAiResponse(
+      Map<String, dynamic> response) async {
+    if (response['type'] != 'food_log') return null;
+
     final items = response['items'] as List<dynamic>?;
-    if (items == null || items.isEmpty) return;
-    
+    if (items == null || items.isEmpty) return null;
+
+    // DEBUG: Log full response to see if ingredients_hint is present
+    AppLogger.info('🔍 [Chat] Full response items: ${jsonEncode(items)}');
+
     final foodNotifier = ref.read(foodEntriesNotifierProvider.notifier);
-    
+    int fromDbCount = 0;
+    int unanalyzedCount = 0;
+    final itemNames = <String>[];
+
     for (final item in items) {
-      // Map meal_type string to MealType enum
+      // DEBUG: Log each item to see structure
+      AppLogger.info('🔍 [Chat] Processing item: ${jsonEncode(item)}');
+      
       final mealTypeStr = item['meal_type'] as String? ?? 'snack';
       MealType mealType;
       switch (mealTypeStr.toLowerCase()) {
@@ -253,65 +426,146 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           mealType = MealType.snack;
       }
 
-      // Parse ingredients if backend returns them
-      String? ingredientsJsonStr;
-      final ingredientsList = item['ingredients_detail'] as List<dynamic>?;
-      if (ingredientsList != null && ingredientsList.isNotEmpty) {
-        ingredientsJsonStr = jsonEncode(ingredientsList);
+      final foodName =
+          item['food_name_local'] as String? ?? item['food_name'] as String;
+      final foodNameEn = item['food_name'] as String?;
+      final servingSize = (item['serving_size'] as num?)?.toDouble() ?? 1.0;
+      final servingUnit = item['serving_unit'] as String? ?? 'serving';
+
+      // Check if AI provided ingredients_hint for custom meal creation
+      final ingredientsHint = item['ingredients_hint'] as List<dynamic>?;
+      final ingredientsDetail = item['ingredients_detail'] as List<dynamic>?;
+      String? preliminaryIngredientsJson;
+      
+      debugPrint('🔍🔍🔍 RAW ITEM: ${item.toString()}');
+      debugPrint('🔍🔍🔍 INGREDIENTS_HINT: $ingredientsHint');
+      debugPrint('🔍🔍🔍 INGREDIENTS_DETAIL: ${ingredientsDetail != null ? "Present (${ingredientsDetail.length} items)" : "null"}');
+      
+      if (ingredientsHint != null && ingredientsHint.isNotEmpty) {
+        // Preferred path: AI sent ingredients_hint
+        // Support both old format (string array) and new format (object array with amounts)
+        final preliminaryIngredients = ingredientsHint
+            .map((item) {
+                  if (item is Map) {
+                    // New format: {"name": "ข้าว", "amount": 200, "unit": "g"}
+                    return {
+                      'name': (item['name'] ?? '').toString(),
+                      'name_en': (item['name_en'] ?? item['name'] ?? '').toString(),
+                      'detail': '',
+                      'amount': (item['amount'] as num?)?.toDouble() ?? 0,
+                      'unit': (item['unit'] ?? 'g').toString(),
+                      'calories': 0,
+                      'protein': 0,
+                      'carbs': 0,
+                      'fat': 0,
+                    };
+                  } else {
+                    // Old format: simple string name
+                    return {
+                      'name': item.toString(),
+                      'name_en': item.toString(),
+                      'detail': '',
+                      'amount': 0,
+                      'unit': 'g',
+                      'calories': 0,
+                      'protein': 0,
+                      'carbs': 0,
+                      'fat': 0,
+                    };
+                  }
+                })
+            .toList();
+        preliminaryIngredientsJson = jsonEncode(preliminaryIngredients);
+        debugPrint('✅✅✅ SAVED ${ingredientsHint.length} ingredients from ingredients_hint: $preliminaryIngredientsJson');
+        AppLogger.info(
+            'Chat: Custom meal "$foodName" with ${ingredientsHint.length} ingredients → saved as preliminary ingredientsJson');
+      } else if (ingredientsDetail != null && ingredientsDetail.isNotEmpty) {
+        // Fallback: AI sent full ingredients_detail — preserve amounts if available
+        final preliminaryIngredients = ingredientsDetail
+            .map((ingredient) {
+              final name = ingredient['name'] as String? ?? ingredient['name_en'] as String? ?? 'Unknown';
+              return {
+                'name': name,
+                'name_en': ingredient['name_en'] as String? ?? name,
+                'detail': ingredient['detail'] as String? ?? '',
+                'amount': (ingredient['amount'] as num?)?.toDouble() ?? 0,
+                'unit': ingredient['unit'] as String? ?? 'g',
+                'calories': (ingredient['calories'] as num?)?.toDouble() ?? 0,
+                'protein': (ingredient['protein'] as num?)?.toDouble() ?? 0,
+                'carbs': (ingredient['carbs'] as num?)?.toDouble() ?? 0,
+                'fat': (ingredient['fat'] as num?)?.toDouble() ?? 0,
+              };
+            })
+            .toList();
+        preliminaryIngredientsJson = jsonEncode(preliminaryIngredients);
+        debugPrint('⚠️⚠️⚠️ FALLBACK: Extracted ${ingredientsDetail.length} ingredients from ingredients_detail (with amounts): $preliminaryIngredientsJson');
+        AppLogger.warn(
+            'Chat: AI sent ingredients_detail instead of ingredients_hint for "$foodName" - extracted ${ingredientsDetail.length} ingredients with amounts');
+      } else {
+        debugPrint('❌❌❌ NO ingredients_hint or ingredients_detail found in response!');
       }
 
-      // Parse micronutrients if available
-      final fiber = (item['fiber'] as num?)?.toDouble();
-      final sugar = (item['sugar'] as num?)?.toDouble();
-      final sodium = (item['sodium'] as num?)?.toDouble();
-      
+      // Check DB first via FoodLookupService
+      final lookupResult = await FoodLookupService.lookup(
+        foodName: foodName,
+        servingSize: servingSize,
+        servingUnit: servingUnit,
+      );
+
       final foodEntry = FoodEntry()
-        ..foodName = item['food_name_local'] as String? ?? item['food_name'] as String
-        ..foodNameEn = item['food_name'] as String
-        ..servingSize = (item['serving_size'] as num?)?.toDouble() ?? 1.0
-        ..servingUnit = item['serving_unit'] as String? ?? 'serving'
-        ..calories = (item['calories'] as num?)?.toDouble() ?? 0
-        ..protein = (item['protein'] as num?)?.toDouble() ?? 0
-        ..carbs = (item['carbs'] as num?)?.toDouble() ?? 0
-        ..fat = (item['fat'] as num?)?.toDouble() ?? 0
+        ..foodName = foodName
+        ..foodNameEn = foodNameEn
+        ..servingSize = servingSize
+        ..servingUnit = servingUnit
         ..mealType = mealType
         ..timestamp = DateTime.now()
-        ..source = DataSource.aiAnalyzed
-        ..isVerified = true  // ✅ FIX: Chat AI ก็วิเคราะห์แล้ว → mark verified เพื่อเตือนก่อน re-analyze
-        ..baseCalories = (item['calories'] as num?)?.toDouble() ?? 0
-        ..baseProtein = (item['protein'] as num?)?.toDouble() ?? 0
-        ..baseCarbs = (item['carbs'] as num?)?.toDouble() ?? 0
-        ..baseFat = (item['fat'] as num?)?.toDouble() ?? 0
-        ..fiber = fiber
-        ..sugar = sugar
-        ..sodium = sodium
-        ..ingredientsJson = ingredientsJsonStr;
-      
-      await foodNotifier.addFoodEntry(foodEntry);
+        ..ingredientsJson = preliminaryIngredientsJson;
 
-      // Auto-save ingredients and My Meal if data available
-      if (ingredientsList != null && ingredientsList.isNotEmpty) {
-        try {
-          final ingredientsData = ingredientsList
-              .map((e) => e as Map<String, dynamic>)
-              .toList();
-          
-          await foodNotifier.saveIngredientsAndMeal(
-            mealName: item['food_name_local'] as String? ?? item['food_name'] as String,
-            mealNameEn: item['food_name'] as String?,
-            servingDescription: '${(item['serving_size'] as num?)?.toDouble() ?? 1.0} ${item['serving_unit'] as String? ?? 'serving'}',
-            ingredientsData: ingredientsData,
-          );
-          
-          ref.invalidate(allMyMealsProvider);
-          ref.invalidate(allIngredientsProvider);
-          
-          AppLogger.info('Chat: Auto-saved ${ingredientsList.length} ingredients + 1 meal');
-        } catch (e) {
-          AppLogger.warn('Chat: Could not auto-save meal: $e');
-        }
+      if (lookupResult.type != FoodLookupType.notFound) {
+        // Found in DB → use DB nutrition
+        foodEntry
+          ..calories = lookupResult.calories
+          ..protein = lookupResult.protein
+          ..carbs = lookupResult.carbs
+          ..fat = lookupResult.fat
+          ..baseCalories = lookupResult.calories
+          ..baseProtein = lookupResult.protein
+          ..baseCarbs = lookupResult.carbs
+          ..baseFat = lookupResult.fat
+          ..source = DataSource.database
+          ..isVerified = true;
+        fromDbCount++;
+        itemNames.add(
+            '🗄️ $foodName (${lookupResult.calories.toInt()} kcal)');
+        AppLogger.info(
+            'Chat: "$foodName" found in DB (${lookupResult.type.name}) → ${lookupResult.calories.toInt()} kcal');
+      } else {
+        // Not found → save as unanalyzed (0 kcal)
+        foodEntry
+          ..calories = 0
+          ..protein = 0
+          ..carbs = 0
+          ..fat = 0
+          ..baseCalories = 0
+          ..baseProtein = 0
+          ..baseCarbs = 0
+          ..baseFat = 0
+          ..source = DataSource.manual
+          ..isVerified = false;
+        unanalyzedCount++;
+        itemNames.add('✏️ $foodName (รอ Analyze)');
+        AppLogger.info(
+            'Chat: "$foodName" not in DB → saved as unanalyzed (0 kcal)');
       }
+
+      await foodNotifier.addFoodEntry(foodEntry);
     }
+
+    return _ChatSaveResult(
+      fromDbCount: fromDbCount,
+      unanalyzedCount: unanalyzedCount,
+      itemNames: itemNames,
+    );
   }
 
   /// Update or create session with title from first message
@@ -334,7 +588,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         final title = firstMessage.length > 30
             ? '${firstMessage.substring(0, 30)}...'
             : firstMessage;
-        
+
         final session = ChatSession()
           ..sessionId = sessionId
           ..title = title
@@ -344,10 +598,10 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.chatSessions.put(session);
         });
-        
+
         AppLogger.info('Created new session: $title');
       }
-      
+
       // Invalidate sessions provider to refresh list
       ref.invalidate(chatSessionsProvider);
     } catch (e) {
@@ -359,14 +613,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<void> loadSession(String sessionId) async {
     // Switch to the session
     ref.read(currentSessionIdProvider.notifier).state = sessionId;
-    
+
     // Load messages
     final messages = await DatabaseService.chatMessages
         .filter()
         .sessionIdEqualTo(sessionId)
         .sortByCreatedAt()
         .findAll();
-    
+
     state = messages;
     AppLogger.info('Loaded session with ${messages.length} messages');
   }
@@ -387,22 +641,22 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             .filter()
             .sessionIdEqualTo(sessionId)
             .deleteAll();
-        
+
         // Delete session
         await DatabaseService.chatSessions
             .filter()
             .sessionIdEqualTo(sessionId)
             .deleteAll();
       });
-      
+
       // If current session was deleted, start new one
       if (ref.read(currentSessionIdProvider) == sessionId) {
         startNewSession();
       }
-      
+
       // Refresh sessions list
       ref.invalidate(chatSessionsProvider);
-      
+
       AppLogger.info('Deleted session: $sessionId');
     } catch (e) {
       AppLogger.error('Error deleting session', e);
@@ -419,11 +673,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<void> addMessage(ChatMessage message) async {
     final sessionId = ref.read(currentSessionIdProvider);
     message.sessionId = sessionId;
-    
+
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.chatMessages.put(message);
     });
-    
+
     state = [...state, message];
   }
 
@@ -433,7 +687,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.chatMessages.delete(message.id);
     });
-    
+
     // Remove from state
     state = state.where((msg) => msg.id != message.id).toList();
   }

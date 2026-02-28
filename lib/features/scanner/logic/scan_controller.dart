@@ -17,7 +17,7 @@ class ScanController {
     this._visionProcessor,
     this._qrParser,
   );
-  
+
   /// กำหนดมื้ออาหารตามเวลา
   MealType _getMealTypeFromTime(DateTime time) {
     final hour = time.hour;
@@ -32,47 +32,54 @@ class ScanController {
     }
   }
 
-  Future<int> scanNewImages({DateTime? after}) async {
-    AppLogger.info('Starting scan for new images... ${after != null ? "after: ${after.toString()}" : "all"}');
-    
-    final images = await _galleryService.fetchNewImages(after: after);
+  Future<int> scanNewImages({DateTime? after, DateTime? specificDate}) async {
+    if (specificDate != null) {
+      AppLogger.info('Starting scan for images on specific date: ${specificDate.toString()}');
+    } else {
+      AppLogger.info(
+          'Starting scan for new images... ${after != null ? "after: ${after.toString()}" : "all"}');
+    }
+
+    final images = await _galleryService.fetchNewImages(
+      after: after,
+      specificDate: specificDate,
+    );
     AppLogger.info('Found images: ${images.length}');
-    
+
     if (images.isEmpty) {
       AppLogger.info('No new images found - ending scan');
       return 0;
     }
-    
+
     int processedCount = 0;
     int savedCount = 0;
     int skippedDuplicate = 0;
-    
+
     for (var asset in images) {
       processedCount++;
       AppLogger.info('Processing image $processedCount/${images.length}...');
-      
+
       final file = await _galleryService.getFile(asset);
       if (file == null) {
         AppLogger.warn('Cannot load image file - skipping');
         continue;
       }
-      
-      // ⭐ เช็คว่ารูปนี้ถูกสแกนไปแล้วหรือยัง (เช็คจาก imagePath)
-      // รวมถึงรูปที่ถูกลบออกจาก MIRO แล้ว (isDeleted = true)
+
+      // ⭐ เช็คว่ารูปนี้เคยถูกสแกนมาก่อนหรือไม่ (ไม่ว่าจะลบแล้วหรือยัง)
+      // ถ้าเคยสแกน → skip เสมอ ป้องกันรูปที่ผู้ใช้ลบแล้วกลับมาหลัง refresh
       final existingEntry = await DatabaseService.foodEntries
           .filter()
           .imagePathEqualTo(file.path)
           .findFirst();
-      
+
       if (existingEntry != null) {
-        if (existingEntry.isDeleted) {
-          AppLogger.info('Image was scanned before but user deleted it - skipping (ID: ${existingEntry.id})');
-        } else {
-          AppLogger.info('Image already scanned - skipping (ID: ${existingEntry.id})');
-        }
+        AppLogger.info(
+            'Image already scanned - skipping (ID: ${existingEntry.id}, deleted: ${existingEntry.isDeleted}, path: ${file.path})');
         skippedDuplicate++;
         continue;
       }
+      
+      AppLogger.info('Image not in database - processing (path: ${file.path})');
 
       final result = await _visionProcessor.processImage(file);
       if (result == null) {
@@ -94,11 +101,12 @@ class ScanController {
         savedCount++;
         AppLogger.info('FoodEntry saved successfully!');
       }
-      
+
       AppLogger.info('Saved successfully! ($savedCount/${images.length})');
     }
-    
-    AppLogger.info('Scan complete! Processed: $processedCount images, Saved: $savedCount entries, Skipped duplicates: $skippedDuplicate');
+
+    AppLogger.info(
+        'Scan complete! Processed: $processedCount images, Saved: $savedCount entries, Skipped duplicates: $skippedDuplicate');
     return savedCount;
   }
 
@@ -112,36 +120,36 @@ class ScanController {
     AppLogger.info('Creating FoodEntry...');
     AppLogger.info('Label: $label');
     AppLogger.info('All Labels: ${allLabels.join(", ")}');
-    
+
     // Determine meal type based on time
     final mealType = _getMealTypeFromTime(timestamp);
     AppLogger.info('Meal type: ${mealType.displayName}');
-    
+
     // Skip generic labels - don't search database for these
     final commonLabels = ['Food', 'Meal', 'Dish', 'Cuisine'];
     final isCommonLabel = commonLabels.contains(label);
-    
+
     if (isCommonLabel) {
       AppLogger.warn('Label is generic ("$label") - using as-is');
     }
-    
+
     // ⭐ ไม่ใช้ Global Food Database แล้ว - ให้บันทึกชื่อ label ที่ได้มา
     // My Meal และ Ingredient จะถูกค้นหาในขั้นตอนอื่นแทน
     double calories = 0;
     double protein = 0;
     double carbs = 0;
     double fat = 0;
-    
+
     double servingSize = 1.0;
     String servingUnit = 'serving';
     double? servingGrams;
-    
+
     // ถ้าเป็น label ทั่วไป ให้ใช้ "Food" เป็นชื่อ
     final displayName = isCommonLabel ? 'Food' : label;
     final displayNameEn = isCommonLabel ? 'Food' : label;
-    
+
     AppLogger.info('Saving entry with name: $displayName (from label: $label)');
-    
+
     final entry = FoodEntry()
       ..foodName = displayName
       ..foodNameEn = displayNameEn
@@ -161,18 +169,19 @@ class ScanController {
       ..notes = 'ML Kit: ${allLabels.isNotEmpty ? allLabels.join(", ") : label}'
       ..createdAt = DateTime.now()
       ..updatedAt = DateTime.now();
-    
+
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.foodEntries.put(entry);
     });
-    
+
     AppLogger.info('FoodEntry saved ID: ${entry.id}');
     AppLogger.info('   - Name: ${entry.foodName} ($label)');
     AppLogger.info('   - Calories: ${entry.calories} kcal');
-    AppLogger.info('   - P: ${entry.protein}g | C: ${entry.carbs}g | F: ${entry.fat}g');
+    AppLogger.info(
+        '   - P: ${entry.protein}g | C: ${entry.carbs}g | F: ${entry.fat}g');
     AppLogger.info('   - Meal: ${mealType.displayName}');
   }
-  
+
   void dispose() {
     _visionProcessor.dispose();
   }

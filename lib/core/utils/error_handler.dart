@@ -15,14 +15,14 @@ class ErrorHandler {
           ],
         ),
         backgroundColor: Colors.red[700],
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         action: SnackBarAction(
-          label: 'ปิด',
+          label: 'Dismiss',
           textColor: Colors.white,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -134,8 +134,8 @@ class ErrorHandler {
     BuildContext context, {
     required String title,
     required String message,
-    String confirmText = 'ยืนยัน',
-    String cancelText = 'ยกเลิก',
+    String confirmText = 'Confirm',
+    String cancelText = 'Cancel',
     bool isDanger = false,
   }) async {
     final result = await showDialog<bool>(

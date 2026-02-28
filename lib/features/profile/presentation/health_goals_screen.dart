@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/profile_provider.dart';
 
 // kcal ต่อ 1 กรัม ของแต่ละ macro
@@ -18,43 +21,84 @@ class HealthGoalsScreen extends ConsumerStatefulWidget {
 
 class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   late TextEditingController _calorieController;
-  late TextEditingController _waterController;
+  late TextEditingController _tdeeController;
+  late TextEditingController _bmrController;
   late TextEditingController _proteinController;
   late TextEditingController _carbController;
   late TextEditingController _fatController;
+
+  // Meal budget controllers
+  late TextEditingController _breakfastController;
+  late TextEditingController _lunchController;
+  late TextEditingController _dinnerController;
+  late TextEditingController _snackController;
+
+  // Suggestion threshold controller
+  late TextEditingController _thresholdController;
 
   // Lock states (can lock up to 2 macros)
   bool _proteinLocked = false;
   bool _carbLocked = false;
   bool _fatLocked = false;
 
+  // Meal lock states (can lock up to 3 meals)
+  bool _breakfastLocked = false;
+  bool _lunchLocked = false;
+  bool _dinnerLocked = false;
+  bool _snackLocked = false;
+
   bool _isLoading = false;
   bool _initialized = false;
+  bool _mealSuggestionsEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _calorieController = TextEditingController();
-    _waterController = TextEditingController();
+    _tdeeController = TextEditingController();
+    _bmrController = TextEditingController();
     _proteinController = TextEditingController();
     _carbController = TextEditingController();
     _fatController = TextEditingController();
-    
+    _breakfastController = TextEditingController();
+    _lunchController = TextEditingController();
+    _dinnerController = TextEditingController();
+    _snackController = TextEditingController();
+    _thresholdController = TextEditingController();
+
     // Listen for changes
     _calorieController.addListener(_onCalorieChanged);
     _proteinController.addListener(() => _onMacroChanged('protein'));
     _carbController.addListener(() => _onMacroChanged('carbs'));
     _fatController.addListener(() => _onMacroChanged('fat'));
+
+    // Meal budget listeners
+    _breakfastController.addListener(() => _onMealBudgetChanged('breakfast'));
+    _lunchController.addListener(() => _onMealBudgetChanged('lunch'));
+    _dinnerController.addListener(() => _onMealBudgetChanged('dinner'));
+    _snackController.addListener(() => _onMealBudgetChanged('snack'));
   }
 
   @override
   void dispose() {
     _calorieController.dispose();
-    _waterController.dispose();
+    _tdeeController.dispose();
+    _bmrController.dispose();
     _proteinController.dispose();
     _carbController.dispose();
     _fatController.dispose();
+    _breakfastController.dispose();
+    _lunchController.dispose();
+    _dinnerController.dispose();
+    _snackController.dispose();
+    _thresholdController.dispose();
     super.dispose();
+  }
+
+  /// Safely convert double to int, returning fallback for NaN/Infinity/zero
+  int _safeInt(double value, [int fallback = 0]) {
+    if (value.isNaN || value.isInfinite) return fallback;
+    return value.toInt();
   }
 
   void _initFromProfile(dynamic profile) {
@@ -62,22 +106,42 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     _initialized = true;
 
     final cal = profile.calorieGoal as double;
-    _calorieController.text = cal.toInt().toString();
-    _waterController.text = (profile.waterGoal as double).toInt().toString();
+    _calorieController.text = _safeInt(cal, 2000).toString();
+
+    final tdee = profile.tdee;
+    _tdeeController.text = tdee > 0 ? _safeInt(tdee, 0).toString() : '';
+
+    final bmr = profile.safeBmr;
+    _bmrController.text = _safeInt(bmr, 1500).toString();
 
     // Load gram values from profile
     final pGram = profile.proteinGoal as double;
     final cGram = profile.carbGoal as double;
     final fGram = profile.fatGoal as double;
 
-    _proteinController.text = pGram.toInt().toString();
-    _carbController.text = cGram.toInt().toString();
-    _fatController.text = fGram.toInt().toString();
-    
-    // ────── ถ้ามี 2 macros ล็อคอยู่แล้ว คำนวณ unlocked macro ทันที ──────
+    _proteinController.text = _safeInt(pGram, 120).toString();
+    _carbController.text = _safeInt(cGram, 250).toString();
+    _fatController.text = _safeInt(fGram, 65).toString();
+
+    // Load meal budgets (new fields — guard against NaN from Isar migration)
+    final calInt = _safeInt(cal, 2000);
+    _breakfastController.text = _safeMealBudget(profile.breakfastBudget, (calInt * 0.28).round()).toString();
+    _lunchController.text = _safeMealBudget(profile.lunchBudget, (calInt * 0.35).round()).toString();
+    _dinnerController.text = _safeMealBudget(profile.dinnerBudget, (calInt * 0.30).round()).toString();
+    _snackController.text = _safeMealBudget(profile.snackBudget, (calInt * 0.07).round()).toString();
+
+    _thresholdController.text = _safeMealBudget(profile.suggestionThreshold, 100).toString();
+    _mealSuggestionsEnabled = profile.mealSuggestionsEnabled;
+
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
     }
+  }
+
+  /// Safely read a meal budget, using fallback for NaN/Infinity/0
+  int _safeMealBudget(double value, int fallback) {
+    if (value.isNaN || value.isInfinite || value <= 0) return fallback;
+    return value.toInt();
   }
 
   // ===== Computed values =====
@@ -87,15 +151,19 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   double get _fatGrams => double.tryParse(_fatController.text) ?? 0;
 
   // ===== Lock helpers =====
-  int get _lockedCount => 
+  int get _lockedCount =>
       (_proteinLocked ? 1 : 0) + (_carbLocked ? 1 : 0) + (_fatLocked ? 1 : 0);
 
   bool _isLocked(String macro) {
     switch (macro) {
-      case 'protein': return _proteinLocked;
-      case 'carbs': return _carbLocked;
-      case 'fat': return _fatLocked;
-      default: return false;
+      case 'protein':
+        return _proteinLocked;
+      case 'carbs':
+        return _carbLocked;
+      case 'fat':
+        return _fatLocked;
+      default:
+        return false;
     }
   }
 
@@ -104,42 +172,57 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     if (_isLocked(macro)) {
       setState(() {
         switch (macro) {
-          case 'protein': _proteinLocked = false; break;
-          case 'carbs': _carbLocked = false; break;
-          case 'fat': _fatLocked = false; break;
+          case 'protein':
+            _proteinLocked = false;
+            break;
+          case 'carbs':
+            _carbLocked = false;
+            break;
+          case 'fat':
+            _fatLocked = false;
+            break;
         }
       });
       // หลังปลดล็อค ไม่ต้องคำนวณ (ให้ user แก้เอง)
       return;
     }
-    
+
     // Can only lock if less than 2 are locked
     if (_lockedCount >= 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Can only lock 2 macros at once'),
-          duration: Duration(seconds: 1),
+        SnackBar(
+          content: Text(L10n.of(context)!.canOnlyLockTwoMacros),
+          duration: const Duration(seconds: 1),
         ),
       );
       return;
     }
-    
+
     setState(() {
       switch (macro) {
-        case 'protein': _proteinLocked = true; break;
-        case 'carbs': _carbLocked = true; break;
-        case 'fat': _fatLocked = true; break;
+        case 'protein':
+          _proteinLocked = true;
+          break;
+        case 'carbs':
+          _carbLocked = true;
+          break;
+        case 'fat':
+          _fatLocked = true;
+          break;
       }
     });
-    
+
     // ────── หลังล็อค macro ที่ 2 ให้คำนวณ macro ที่ unlocked ทันที ──────
     _autoCalculateUnlocked();
   }
 
-  /// When calories change, recalculate unlocked macro to fit
+  /// When calories change, recalculate unlocked macro and meal budget
   void _onCalorieChanged() {
     if (_lockedCount == 2) {
       _autoCalculateUnlocked();
+    }
+    if (_mealLockedCount == 3) {
+      _autoCalculateUnlockedMeal();
     }
   }
 
@@ -150,21 +233,21 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
       _autoCalculateUnlocked();
       return;
     }
-    
+
     // If this is the unlocked macro and 2 are locked, don't trigger recalculation
     // (let user type freely)
     if (_lockedCount == 2) return;
-    
+
     setState(() {});
   }
 
   /// Auto-calculate the unlocked macro based on calories and locked macros
   void _autoCalculateUnlocked() {
     if (_lockedCount != 2) return;
-    
+
     final targetCalories = _calories;
     if (targetCalories <= 0) return;
-    
+
     // Find which macro is unlocked
     String? unlockedMacro;
     if (!_proteinLocked) {
@@ -174,16 +257,18 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     } else if (!_fatLocked) {
       unlockedMacro = 'fat';
     }
-    
+
     if (unlockedMacro == null) return;
-    
+
     // Calculate remaining calories
-    final lockedCalories = (_proteinLocked ? _proteinGrams * _kCalPerGramProtein : 0) +
-                           (_carbLocked ? _carbGrams * _kCalPerGramCarbs : 0) +
-                           (_fatLocked ? _fatGrams * _kCalPerGramFat : 0);
-    
-    final remainingCalories = (targetCalories - lockedCalories).clamp(0, targetCalories);
-    
+    final lockedCalories =
+        (_proteinLocked ? _proteinGrams * _kCalPerGramProtein : 0) +
+            (_carbLocked ? _carbGrams * _kCalPerGramCarbs : 0) +
+            (_fatLocked ? _fatGrams * _kCalPerGramFat : 0);
+
+    final remainingCalories =
+        (targetCalories - lockedCalories).clamp(0, targetCalories);
+
     // Calculate grams for unlocked macro
     double unlockedGrams;
     switch (unlockedMacro) {
@@ -200,7 +285,127 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
         _fatController.text = unlockedGrams.round().toString();
         break;
     }
-    
+
+    setState(() {});
+  }
+
+  // ===== Meal Budget Lock System =====
+  int get _mealLockedCount =>
+      (_breakfastLocked ? 1 : 0) +
+      (_lunchLocked ? 1 : 0) +
+      (_dinnerLocked ? 1 : 0) +
+      (_snackLocked ? 1 : 0);
+
+  bool _isMealLocked(String meal) {
+    switch (meal) {
+      case 'breakfast':
+        return _breakfastLocked;
+      case 'lunch':
+        return _lunchLocked;
+      case 'dinner':
+        return _dinnerLocked;
+      case 'snack':
+        return _snackLocked;
+      default:
+        return false;
+    }
+  }
+
+  TextEditingController _mealController(String meal) {
+    switch (meal) {
+      case 'breakfast':
+        return _breakfastController;
+      case 'lunch':
+        return _lunchController;
+      case 'dinner':
+        return _dinnerController;
+      case 'snack':
+        return _snackController;
+      default:
+        return _breakfastController;
+    }
+  }
+
+  void _toggleMealLock(String meal) {
+    if (_isMealLocked(meal)) {
+      setState(() {
+        switch (meal) {
+          case 'breakfast':
+            _breakfastLocked = false;
+          case 'lunch':
+            _lunchLocked = false;
+          case 'dinner':
+            _dinnerLocked = false;
+          case 'snack':
+            _snackLocked = false;
+        }
+      });
+      return;
+    }
+
+    if (_mealLockedCount >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.canOnlyLockThreeMeals),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      switch (meal) {
+        case 'breakfast':
+          _breakfastLocked = true;
+        case 'lunch':
+          _lunchLocked = true;
+        case 'dinner':
+          _dinnerLocked = true;
+        case 'snack':
+          _snackLocked = true;
+      }
+    });
+
+    _autoCalculateUnlockedMeal();
+  }
+
+  void _onMealBudgetChanged(String meal) {
+    if (_isMealLocked(meal) && _mealLockedCount == 3) {
+      _autoCalculateUnlockedMeal();
+      return;
+    }
+    if (_mealLockedCount == 3) return;
+    setState(() {});
+  }
+
+  void _autoCalculateUnlockedMeal() {
+    if (_mealLockedCount != 3) return;
+
+    final totalCalories = _calories;
+    if (totalCalories <= 0) return;
+
+    String? unlockedMeal;
+    if (!_breakfastLocked) {
+      unlockedMeal = 'breakfast';
+    } else if (!_lunchLocked) {
+      unlockedMeal = 'lunch';
+    } else if (!_dinnerLocked) {
+      unlockedMeal = 'dinner';
+    } else if (!_snackLocked) {
+      unlockedMeal = 'snack';
+    }
+
+    if (unlockedMeal == null) return;
+
+    final lockedSum =
+        (_breakfastLocked ? (double.tryParse(_breakfastController.text) ?? 0) : 0) +
+        (_lunchLocked ? (double.tryParse(_lunchController.text) ?? 0) : 0) +
+        (_dinnerLocked ? (double.tryParse(_dinnerController.text) ?? 0) : 0) +
+        (_snackLocked ? (double.tryParse(_snackController.text) ?? 0) : 0);
+
+    final remaining = (totalCalories - lockedSum).clamp(0, totalCalories);
+
+    _mealController(unlockedMeal).text = remaining.round().toString();
     setState(() {});
   }
 
@@ -210,67 +415,94 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health Goals'),
+        title: Text(L10n.of(context)!.healthGoalsTitle),
       ),
       body: profileAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('Error: $e')),
+        error: (e, st) => Center(child: Text('${L10n.of(context)!.error}: $e')),
         data: (profile) {
           _initFromProfile(profile);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppSpacing.paddingLg,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ===== Info card =====
+                // ===== TDEE / BMR Calculator =====
+                _TdeeCalculatorSection(
+                  onApplyTdee: (tdee) {
+                    setState(() {
+                      _calorieController.text = tdee.toInt().toString();
+                      _tdeeController.text = tdee.toInt().toString();
+                    });
+                    final profile = ref.read(profileNotifierProvider).valueOrNull;
+                    if (profile != null) {
+                      profile.tdee = tdee;
+                      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+                    }
+                  },
+                  onApplyBmr: (bmr) {
+                    final profile = ref.read(profileNotifierProvider).valueOrNull;
+                    if (profile != null) {
+                      profile.customBmr = bmr;
+                      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+                    }
+                  },
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // ===== TDEE (editable) =====
+                _buildTdeeSection(),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // ===== Calorie Goal =====
+                _buildCalorieSection(),
+                const SizedBox(height: AppSpacing.xxl),
+
+                // ===== Macro info (สอนการใช้งาน lock) =====
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppSpacing.paddingLg,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.primaryLight.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.md,
                   ),
-                  child: const Row(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.primary),
-                      SizedBox(width: 12),
+                      const Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                      const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          'Set your daily calorie goal, then enter macro values in grams.\n'
-                          '🔒 Lock up to 2 macros; the 3rd will auto-calculate to match calories.',
-                          style: TextStyle(color: AppColors.primary, fontSize: 13),
+                          L10n.of(context)!.healthGoalsInfo,
+                          style: const TextStyle(color: AppColors.primary, fontSize: 13),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // ===== Calorie Goal =====
-                _buildCalorieSection(),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
 
                 // ===== Macro Editors =====
                 _buildMacroEditor(
-                  label: 'Protein',
+                  label: L10n.of(context)!.proteinLabel,
                   icon: '🥩',
                   macroKey: 'protein',
                   controller: _proteinController,
                   color: AppColors.protein,
                   kcalPerGram: _kCalPerGramProtein,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 _buildMacroEditor(
-                  label: 'Carbs',
+                  label: L10n.of(context)!.carbsLabel,
                   icon: '🍚',
                   macroKey: 'carbs',
                   controller: _carbController,
                   color: AppColors.carbs,
                   kcalPerGram: _kCalPerGramCarbs,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 _buildMacroEditor(
-                  label: 'Fat',
+                  label: L10n.of(context)!.fatLabel,
                   icon: '🧈',
                   macroKey: 'fat',
                   controller: _fatController,
@@ -278,45 +510,15 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   kcalPerGram: _kCalPerGramFat,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxxl),
 
-                // ===== Water Goal =====
-                _buildWaterSection(),
-                const SizedBox(height: 28),
+                // ===== Meal Calorie Budget =====
+                _buildMealBudgetSection(),
+                const SizedBox(height: AppSpacing.xxl),
 
-                // ===== Quick Presets =====
-                const Text(
-                  '⚡ Quick Presets',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildPresetChip(
-                      label: 'Lose Weight',
-                      cal: 1500, pGram: 131, cGram: 150, fGram: 42,
-                    ),
-                    _buildPresetChip(
-                      label: 'Maintain',
-                      cal: 2000, pGram: 150, cGram: 225, fGram: 56,
-                    ),
-                    _buildPresetChip(
-                      label: 'Build Muscle',
-                      cal: 2500, pGram: 219, cGram: 281, fGram: 56,
-                    ),
-                    _buildPresetChip(
-                      label: 'Keto',
-                      cal: 1800, pGram: 113, cGram: 23, fGram: 140,
-                    ),
-                    _buildPresetChip(
-                      label: 'Balanced',
-                      cal: 2000, pGram: 150, cGram: 200, fGram: 67,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                // ===== Suggestion Threshold =====
+                _buildSuggestionThresholdSection(),
+                const SizedBox(height: AppSpacing.xxxl),
 
                 // ===== Save Button =====
                 SizedBox(
@@ -326,25 +528,100 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: AppRadius.md,
                       ),
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
-                        : const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        : Text(L10n.of(context)!.save,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  // ========================================================
+  // TDEE + BMR Section (editable — calculator is helper only)
+  // ========================================================
+  Widget _buildTdeeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppIcons.iconWithLabel(
+          Icons.local_fire_department_rounded,
+          L10n.of(context)!.tdeeLabel,
+          iconColor: AppColors.health,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          L10n.of(context)!.tdeeHint,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _tdeeController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'TDEE',
+                  hintText: '0',
+                  suffixText: 'kcal/day',
+                  suffixStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  border: OutlineInputBorder(borderRadius: AppRadius.md),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.md,
+                    borderSide: const BorderSide(color: AppColors.health, width: 2),
+                  ),
+                  contentPadding: AppSpacing.verticalLg,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _bmrController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                decoration: InputDecoration(
+                  labelText: 'BMR',
+                  hintText: '1500',
+                  suffixText: 'kcal',
+                  suffixStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  border: OutlineInputBorder(borderRadius: AppRadius.md),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: AppRadius.md,
+                    borderSide: const BorderSide(color: AppColors.health, width: 2),
+                  ),
+                  contentPadding: AppSpacing.verticalLg,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -355,9 +632,12 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '🔥 Daily Calorie Goal',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        AppIcons.iconWithLabel(
+          AppIcons.calories,
+          L10n.of(context)!.dailyCalorieGoal,
+          iconColor: AppIcons.caloriesColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
         const SizedBox(height: 10),
         TextField(
@@ -368,13 +648,13 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             suffixText: 'kcal',
-            suffixStyle: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            suffixStyle: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            border: OutlineInputBorder(borderRadius: AppRadius.md),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: AppRadius.md,
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+            contentPadding: AppSpacing.verticalLg,
           ),
         ),
       ],
@@ -395,17 +675,17 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     final grams = double.tryParse(controller.text) ?? 0;
     final kcal = grams * kcalPerGram;
     final isLocked = _isLocked(macroKey);
-    
+
     // แสดง "auto" badge ถ้า macro นี้ไม่ได้ล็อคและมี 2 macros ถูกล็อคแล้ว
     final isAutoCalculated = !isLocked && _lockedCount == 2;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: AppSpacing.paddingMd,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.md,
         border: Border.all(
-          color: isLocked ? color.withOpacity(0.6) : color.withOpacity(0.3),
+          color: isLocked ? color.withValues(alpha: 0.6) : color.withValues(alpha: 0.3),
           width: isLocked ? 2 : 1,
         ),
       ),
@@ -431,13 +711,14 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                     if (isAutoCalculated) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(4),
+                          color: color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(AppSpacing.xs), // Keep 4px for small badge
                         ),
                         child: Text(
-                          'auto',
+                          L10n.of(context)!.autoBadge,
                           style: TextStyle(
                             fontSize: 10,
                             color: color,
@@ -449,8 +730,8 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
                   ],
                 ),
                 Text(
-                  '${kcalPerGram.toInt()} kcal/g • ${kcal.round()} kcal',
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  L10n.of(context)!.kcalPerGram(kcalPerGram.toInt(), kcal.round()),
+                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -459,18 +740,18 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
           // Lock button
           InkWell(
             onTap: () => _toggleLock(macroKey),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: AppRadius.sm,
             child: Container(
               padding: const EdgeInsets.all(8),
               child: Icon(
                 isLocked ? Icons.lock : Icons.lock_open,
                 size: 20,
-                color: isLocked ? color : Colors.grey[400],
+                color: isLocked ? color : AppColors.textTertiary,
               ),
             ),
           ),
 
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.sm),
 
           // Gram input
           SizedBox(
@@ -484,20 +765,22 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isAutoCalculated ? Colors.grey[500] : color,
+                color: isAutoCalculated ? AppColors.textTertiary : color,
               ),
               decoration: InputDecoration(
                 suffixText: 'g',
                 suffixStyle: TextStyle(
                   fontSize: 12,
-                  color: isAutoCalculated ? Colors.grey[500] : Colors.grey[600],
+                  color: isAutoCalculated ? AppColors.textTertiary : AppColors.textSecondary,
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border:
+                    OutlineInputBorder(borderRadius: AppRadius.sm),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.sm,
                   borderSide: BorderSide(color: color, width: 2),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
               ),
             ),
           ),
@@ -507,32 +790,379 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   }
 
   // ========================================================
-  // Water Section
+  // Meal Calorie Budget Section
   // ========================================================
-  Widget _buildWaterSection() {
+  Widget _buildMealBudgetSection() {
+    final totalBudget =
+        (double.tryParse(_breakfastController.text) ?? 0) +
+        (double.tryParse(_lunchController.text) ?? 0) +
+        (double.tryParse(_dinnerController.text) ?? 0) +
+        (double.tryParse(_snackController.text) ?? 0);
+    final calGoal = _calories;
+    final diff = calGoal - totalBudget;
+    final isBalanced = diff.abs() < 1;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '💧 Daily Water Goal',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        AppIcons.iconWithLabel(
+          AppIcons.calories,
+          L10n.of(context)!.mealCalorieBudget,
+          iconColor: AppIcons.caloriesColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
         ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _waterController,
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
-            suffixText: 'ml',
-            suffixStyle: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
+        const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
+        Container(
+          padding: AppSpacing.paddingMd,
+          decoration: BoxDecoration(
+            color: isBalanced
+                ? AppColors.success.withValues(alpha: 0.08)
+                : AppColors.warning.withValues(alpha: 0.08),
+            borderRadius: AppRadius.md,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isBalanced ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                size: 18,
+                color: isBalanced ? AppColors.success : AppColors.warning,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  isBalanced
+                      ? L10n.of(context)!.mealBudgetBalanced(totalBudget.toInt(), calGoal.toInt())
+                      : L10n.of(context)!.mealBudgetRemaining(totalBudget.toInt(), calGoal.toInt(), diff.toInt()),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isBalanced ? AppColors.success : AppColors.warning,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          L10n.of(context)!.lockMealsHint,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _buildMealBudgetRow(
+          label: L10n.of(context)!.breakfastLabel,
+          mealKey: 'breakfast',
+          controller: _breakfastController,
+          color: AppColors.warning, // orange-400
+          icon: Icons.wb_sunny_rounded,
+        ),
+                const SizedBox(height: AppSpacing.sm),
+        _buildMealBudgetRow(
+          label: L10n.of(context)!.lunchLabel,
+          mealKey: 'lunch',
+          controller: _lunchController,
+          color: AppColors.warning, // amber-400
+          icon: Icons.wb_cloudy_rounded,
+        ),
+                const SizedBox(height: AppSpacing.sm),
+        _buildMealBudgetRow(
+          label: L10n.of(context)!.dinnerLabel,
+          mealKey: 'dinner',
+          controller: _dinnerController,
+          color: AppColors.ai, // indigo-400
+          icon: Icons.nightlight_round,
+        ),
+                const SizedBox(height: AppSpacing.sm),
+        _buildMealBudgetRow(
+          label: L10n.of(context)!.snackLabel,
+          mealKey: 'snack',
+          controller: _snackController,
+          color: AppColors.success, // emerald-400
+          icon: Icons.cookie_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMealBudgetRow({
+    required String label,
+    required String mealKey,
+    required TextEditingController controller,
+    required Color color,
+    required IconData icon,
+  }) {
+    final isLocked = _isMealLocked(mealKey);
+    final isAutoCalc = !isLocked && _mealLockedCount == 3;
+    final kcal = double.tryParse(controller.text) ?? 0;
+    final pct = _calories > 0 ? (kcal / _calories * 100) : 0;
+
+    return Container(
+      padding: AppSpacing.paddingMd,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: AppRadius.md,
+        border: Border.all(
+          color: isLocked ? color.withValues(alpha: 0.5) : color.withValues(alpha: 0.2),
+          width: isLocked ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color.withValues(alpha: 0.8), size: 22),
+          const SizedBox(width: AppSpacing.md), // 10 -> 12 closest
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: color,
+                        fontSize: 14,
+                      ),
+                    ),
+                    if (isAutoCalc) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(AppSpacing.xs), // Keep 4px for small badge
+                        ),
+                        child: Text(
+                          L10n.of(context)!.autoBadge,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                Text(
+                  L10n.of(context)!.percentOfDailyGoal(pct.toStringAsFixed(0)),
+                  style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                ),
+              ],
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          ),
+          InkWell(
+            onTap: () => _toggleMealLock(mealKey),
+            borderRadius: AppRadius.sm,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
+                isLocked ? Icons.lock : Icons.lock_open,
+                size: 20,
+                color: isLocked ? color : AppColors.textTertiary,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          SizedBox(
+            width: 80,
+            child: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              enabled: !isAutoCalc,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isAutoCalc ? AppColors.textTertiary : color,
+              ),
+              decoration: InputDecoration(
+                suffixText: 'kcal',
+                suffixStyle: TextStyle(
+                  fontSize: 9,
+                    color: isAutoCalc ? AppColors.textTertiary : AppColors.textSecondary,
+                ),
+                border: OutlineInputBorder(borderRadius: AppRadius.sm),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: AppRadius.sm,
+                  borderSide: BorderSide(color: color, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ========================================================
+  // Suggestion Threshold Section
+  // ========================================================
+  Widget _buildSuggestionThresholdSection() {
+    final threshold = double.tryParse(_thresholdController.text) ?? 100;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppIcons.iconWithLabel(
+          AppIcons.calories,
+          L10n.of(context)!.smartSuggestionRange,
+          iconColor: AppColors.primary,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+                const SizedBox(height: AppSpacing.sm),
+        // Explanation card
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(alpha: 0.06),
+                AppColors.health.withValues(alpha: 0.04),
+              ],
+            ),
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.15),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_awesome_rounded,
+                      size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      L10n.of(context)!.smartSuggestionHow,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                L10n.of(context)!.smartSuggestionDesc(
+                  threshold.toInt(),
+                  (700 - threshold).toInt(),
+                  (700 + threshold).toInt(),
+                ),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Threshold input
+        Container(
+          padding: AppSpacing.paddingMd,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.05),
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.restaurant_menu_rounded,
+                      color: AppColors.primary.withValues(alpha: 0.7), size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      L10n.of(context)!.mealSuggestionsToggle,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: _mealSuggestionsEnabled,
+                    onChanged: (v) => setState(() => _mealSuggestionsEnabled = v),
+                    activeThumbColor: AppColors.primary,
+                  ),
+                ],
+              ),
+              if (_mealSuggestionsEnabled) ...[
+                const Divider(height: 16),
+                Row(
+                  children: [
+                    Icon(Icons.tune_rounded,
+                        color: AppColors.primary.withValues(alpha: 0.7), size: 22),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            L10n.of(context)!.suggestionThreshold,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            L10n.of(context)!.suggestionThresholdDesc(threshold.toInt()),
+                            style: const TextStyle(fontSize: 10, color: AppColors.textTertiary),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: _thresholdController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        onChanged: (_) => setState(() {}),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                        decoration: InputDecoration(
+                          suffixText: 'kcal',
+                          suffixStyle: const TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textSecondary,
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius: AppRadius.sm),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: AppRadius.sm,
+                            borderSide:
+                                const BorderSide(color: AppColors.primary, width: 2),
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
           ),
         ),
       ],
@@ -540,50 +1170,41 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
   }
 
   // ========================================================
-  // Preset Chip
-  // ========================================================
-  Widget _buildPresetChip({
-    required String label,
-    required int cal,
-    required int pGram,
-    required int cGram,
-    required int fGram,
-  }) {
-    return ActionChip(
-      label: Text(label),
-      onPressed: () {
-        setState(() {
-          _calorieController.text = cal.toString();
-          _proteinController.text = pGram.toString();
-          _carbController.text = cGram.toString();
-          _fatController.text = fGram.toString();
-        });
-      },
-    );
-  }
-
-  // ========================================================
   // Save Goals
   // ========================================================
+  // ========================================================
+  // TDEE / BMR Calculator is a separate stateful widget below
+  // ========================================================
+
   Future<void> _saveGoals() async {
     setState(() => _isLoading = true);
 
     try {
       final notifier = ref.read(profileNotifierProvider.notifier);
 
+      final tdeeVal = double.tryParse(_tdeeController.text);
+      final bmrVal = double.tryParse(_bmrController.text);
       await notifier.updateHealthGoals(
         calorieGoal: _calories,
+        tdee: tdeeVal,
+        customBmr: (bmrVal != null && bmrVal >= 800 && bmrVal <= 4000) ? bmrVal : null,
         proteinGoal: _proteinGrams.roundToDouble(),
         carbGoal: _carbGrams.roundToDouble(),
         fatGoal: _fatGrams.roundToDouble(),
-        waterGoal: double.tryParse(_waterController.text),
+        breakfastBudget: double.tryParse(_breakfastController.text),
+        lunchBudget: double.tryParse(_lunchController.text),
+        dinnerBudget: double.tryParse(_dinnerController.text),
+        snackBudget: double.tryParse(_snackController.text),
+        suggestionThreshold: double.tryParse(_thresholdController.text),
+        mealSuggestionsEnabled: _mealSuggestionsEnabled,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Goals saved successfully!'),
+          SnackBar(
+            content: Text(L10n.of(context)!.goalsSavedSuccess),
             backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
           ),
         );
         Navigator.pop(context);
@@ -591,11 +1212,508 @@ class _HealthGoalsScreenState extends ConsumerState<HealthGoalsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+}
+
+// ================================================================
+// TDEE / BMR Calculator — stateful, local-only (no data stored)
+// Uses Mifflin-St Jeor equation:
+//   Male:   BMR = 10×weight + 6.25×height − 5×age + 5
+//   Female: BMR = 10×weight + 6.25×height − 5×age − 161
+//   TDEE = BMR × activity multiplier
+// ================================================================
+class _TdeeCalculatorSection extends StatefulWidget {
+  final ValueChanged<double> onApplyTdee;
+  final ValueChanged<double> onApplyBmr;
+
+  const _TdeeCalculatorSection({
+    required this.onApplyTdee,
+    required this.onApplyBmr,
+  });
+
+  @override
+  State<_TdeeCalculatorSection> createState() => _TdeeCalculatorSectionState();
+}
+
+class _TdeeCalculatorSectionState extends State<_TdeeCalculatorSection> {
+  bool _expanded = false;
+  bool _isMale = true;
+  bool _useMetric = true; // true = kg/cm, false = lbs/in
+  final _ageCtrl = TextEditingController();
+  final _weightCtrl = TextEditingController();
+  final _heightCtrl = TextEditingController();
+  int _activityIndex = 0;
+  bool _applied = false;
+
+  static const _activityMultipliers = [1.2, 1.375, 1.55, 1.725, 1.9];
+
+  @override
+  void dispose() {
+    _ageCtrl.dispose();
+    _weightCtrl.dispose();
+    _heightCtrl.dispose();
+    super.dispose();
+  }
+
+  double? get _bmr {
+    final age = int.tryParse(_ageCtrl.text);
+    final weightInput = double.tryParse(_weightCtrl.text);
+    final heightInput = double.tryParse(_heightCtrl.text);
+    if (age == null || weightInput == null || heightInput == null) return null;
+    if (age <= 0 || weightInput <= 0 || heightInput <= 0) return null;
+    final weightKg = _useMetric ? weightInput : weightInput / 2.205;
+    final heightCm = _useMetric ? heightInput : heightInput * 2.54;
+    if (_isMale) {
+      return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+    } else {
+      return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+    }
+  }
+
+  double? get _tdee {
+    final bmr = _bmr;
+    if (bmr == null) return null;
+    return bmr * _activityMultipliers[_activityIndex];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.ai.withValues(alpha: 0.12),
+                  AppColors.primary.withValues(alpha: 0.08),
+                ]
+              : [
+                  AppColors.ai.withValues(alpha: 0.06),
+                  AppColors.primary.withValues(alpha: 0.04),
+                ],
+        ),
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: AppColors.ai.withValues(alpha: isDark ? 0.3 : 0.15),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header (tap to expand/collapse)
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            borderRadius: AppRadius.lg,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(Icons.calculate_rounded,
+                      color: AppColors.ai, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.tdeeCalcTitle,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Icon(Icons.shield_rounded,
+                                size: 11,
+                                color: AppColors.success.withValues(alpha: 0.8)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                l10n.tdeeCalcPrivacy,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.success.withValues(alpha: 0.9),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isDark ? Colors.white54 : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Body (expandable)
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 250),
+            crossFadeState:
+                _expanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            firstChild: const SizedBox(width: double.infinity, height: 0),
+            secondChild: _buildBody(l10n, isDark),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(L10n l10n, bool isDark) {
+    final bmr = _bmr;
+    final tdee = _tdee;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 1),
+          const SizedBox(height: 14),
+
+          // Gender toggle
+          Text(l10n.tdeeCalcGender,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _genderChip(l10n.tdeeCalcMale, true, isDark),
+              const SizedBox(width: 10),
+              _genderChip(l10n.tdeeCalcFemale, false, isDark),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Unit toggle (Metric / Imperial)
+          Text(l10n.tdeeCalcUnit,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _genderChip(l10n.tdeeCalcUnitMetric, _useMetric, isDark, isUnit: true),
+              const SizedBox(width: 10),
+              _genderChip(l10n.tdeeCalcUnitImperial, !_useMetric, isDark, isUnit: true),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Age, Weight, Height in a row
+          Row(
+            children: [
+              Expanded(child: _miniField(l10n.tdeeCalcAge, _ageCtrl, isDark)),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _miniField(
+                      _useMetric ? l10n.tdeeCalcWeight : l10n.tdeeCalcWeightLbs,
+                      _weightCtrl,
+                      isDark)),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _miniField(
+                      _useMetric ? l10n.tdeeCalcHeight : l10n.tdeeCalcHeightIn,
+                      _heightCtrl,
+                      isDark)),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Activity Level
+          Text(l10n.tdeeCalcActivity,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          _buildActivitySelector(l10n, isDark),
+
+          // Results
+          if (bmr != null && tdee != null) ...[
+            const SizedBox(height: 18),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.success.withValues(alpha: 0.12)
+                    : AppColors.success.withValues(alpha: 0.06),
+                borderRadius: AppRadius.md,
+                border: Border.all(
+                    color: AppColors.success.withValues(alpha: 0.2)),
+              ),
+              child: Column(
+                children: [
+                  Text(l10n.tdeeCalcResult,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.success,
+                      )),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _resultCard(
+                          'BMR',
+                          bmr.toInt(),
+                          l10n.tdeeCalcBmrExplain,
+                          isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _resultCard(
+                          'TDEE',
+                          tdee.toInt(),
+                          l10n.tdeeCalcTdeeExplain,
+                          isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Apply buttons
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _applied
+                          ? null
+                          : () {
+                              widget.onApplyTdee(tdee);
+                              widget.onApplyBmr(bmr);
+                              setState(() => _applied = true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'TDEE → ${tdee.toInt()} kcal, BMR → ${bmr.toInt()} kcal',
+                                  ),
+                                  backgroundColor: AppColors.success,
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                      icon: Icon(_applied
+                          ? Icons.check_circle_rounded
+                          : Icons.auto_awesome_rounded),
+                      label: Text(
+                          _applied ? l10n.tdeeCalcApplied : l10n.tdeeCalcApplyBoth),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _applied
+                            ? AppColors.success.withValues(alpha: 0.3)
+                            : AppColors.success,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.md),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _genderChip(String label, bool isMale, bool isDark, {bool isUnit = false}) {
+    final selected = isUnit ? isMale : (_isMale == isMale);
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() {
+          if (isUnit) {
+            _useMetric = isMale;
+          } else {
+            _isMale = isMale;
+          }
+          _applied = false;
+        }),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.ai.withValues(alpha: 0.15)
+                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white),
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: selected
+                  ? AppColors.ai.withValues(alpha: 0.5)
+                  : (isDark ? Colors.white12 : AppColors.divider),
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              isUnit ? label : '${isMale ? "♂" : "♀"}  $label',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? AppColors.ai
+                    : (isDark ? Colors.white70 : AppColors.textSecondary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _miniField(
+      String label, TextEditingController ctrl, bool isDark) {
+    return TextField(
+      controller: ctrl,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textAlign: TextAlign.center,
+      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\d.]'))],
+      onChanged: (_) => setState(() => _applied = false),
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: isDark ? Colors.white : AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          fontSize: 12,
+          color: isDark ? Colors.white54 : AppColors.textSecondary,
+        ),
+        border: OutlineInputBorder(borderRadius: AppRadius.md),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: AppRadius.md,
+          borderSide: const BorderSide(color: AppColors.ai, width: 2),
+        ),
+        isDense: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      ),
+    );
+  }
+
+  Widget _buildActivitySelector(L10n l10n, bool isDark) {
+    final labels = [
+      l10n.tdeeCalcActivitySedentary,
+      l10n.tdeeCalcActivityLight,
+      l10n.tdeeCalcActivityModerate,
+      l10n.tdeeCalcActivityActive,
+      l10n.tdeeCalcActivityVeryActive,
+    ];
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: List.generate(labels.length, (i) {
+        final selected = _activityIndex == i;
+        return GestureDetector(
+          onTap: () => setState(() {
+            _activityIndex = i;
+            _applied = false;
+          }),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.ai.withValues(alpha: 0.15)
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.white),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected
+                    ? AppColors.ai.withValues(alpha: 0.5)
+                    : (isDark ? Colors.white12 : AppColors.divider),
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Text(
+              labels[i],
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                color: selected
+                    ? AppColors.ai
+                    : (isDark ? Colors.white60 : AppColors.textSecondary),
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _resultCard(
+      String title, int value, String subtitle, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.white.withValues(alpha: 0.8),
+        borderRadius: AppRadius.sm,
+      ),
+      child: Column(
+        children: [
+          Text(title,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white54 : AppColors.textSecondary,
+              )),
+          const SizedBox(height: 4),
+          Text(
+            '$value',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.health,
+            ),
+          ),
+          Text('kcal/day',
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              )),
+          const SizedBox(height: 4),
+          Text(subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 9,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              )),
+        ],
+      ),
+    );
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../models/my_meal.dart';
 import '../models/food_entry.dart';
@@ -46,10 +48,10 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
     );
 
     // คำนวณ base per 1 unit
-    _baseCalPerUnit  = meal.caloriesPerUnit;
+    _baseCalPerUnit = meal.caloriesPerUnit;
     _baseProtPerUnit = meal.proteinPerUnit;
     _baseCarbPerUnit = meal.carbsPerUnit;
-    _baseFatPerUnit  = meal.fatPerUnit;
+    _baseFatPerUnit = meal.fatPerUnit;
 
     _servingSizeController.addListener(() => setState(() {}));
   }
@@ -61,22 +63,45 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   }
 
   double get _servingSize => double.tryParse(_servingSizeController.text) ?? 0;
-  double get _calories => _baseCalPerUnit  * _servingSize;
-  double get _protein  => _baseProtPerUnit * _servingSize;
-  double get _carbs    => _baseCarbPerUnit * _servingSize;
-  double get _fat      => _baseFatPerUnit  * _servingSize;
+  double get _calories => _baseCalPerUnit * _servingSize;
+  double get _protein => _baseProtPerUnit * _servingSize;
+  double get _carbs => _baseCarbPerUnit * _servingSize;
+  double get _fat => _baseFatPerUnit * _servingSize;
+
+  Widget _buildCloseButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isDark
+              ? AppColors.surfaceVariantDark
+              : AppColors.surfaceVariant,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.close,
+          size: 20,
+          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: EdgeInsets.only(
-        left: 20, right: 20, top: 20,
+        left: 20,
+        right: 20,
+        top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.xl,
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -86,62 +111,107 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
             // Drag handle
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: AppColors.textTertiary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              '🍽️ ${widget.meal.name}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
-              style: const TextStyle(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 20),
-
-            // ปริมาณ + หน่วย
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _servingSizeController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Amount',
-                      helperText: 'Original ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
-                      helperStyle: TextStyle(fontSize: 11, color: Colors.purple.shade300),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.purple, width: 2),
+                  child: AppIcons.iconWithLabel(
+                    AppIcons.meal,
+                    widget.meal.name,
+                    iconColor: AppIcons.mealColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                _buildCloseButton(),
+              ],
+            ),
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              return Text(
+                'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
+                style: TextStyle(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondary,
+                ),
+              );
+            }),
+            const SizedBox(height: 20),
+
+            // ปริมาณ + หน่วย
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final surfaceColor = isDark
+                  ? AppColors.surfaceVariantDark
+                  : AppColors.surfaceVariant;
+              final borderColor = isDark
+                  ? AppColors.dividerDark
+                  : AppColors.divider;
+              final textColor = isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimary;
+              return Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _servingSizeController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      style: TextStyle(color: textColor, fontSize: 16),
+                      decoration: InputDecoration(
+                        labelText: 'Amount',
+                        labelStyle: TextStyle(color: textColor),
+                        helperText:
+                            'Original ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
+                        helperStyle: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.premium.withValues(alpha: 0.5)),
+                        fillColor: surfaceColor,
+                        filled: true,
+                        border: OutlineInputBorder(
+                            borderRadius: AppRadius.md),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.md,
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: AppRadius.md,
+                          borderSide:
+                              const BorderSide(color: AppColors.premium, width: 2),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Text(
-                      widget.meal.parsedServingUnit,
-                      style: const TextStyle(fontSize: 16),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 18, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: surfaceColor,
+                        borderRadius: AppRadius.md,
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Text(
+                        widget.meal.parsedServingUnit,
+                        style: TextStyle(fontSize: 16, color: textColor),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
             const SizedBox(height: 20),
 
             // Nutrition preview
@@ -150,12 +220,12 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.health.withOpacity(0.1),
-                    AppColors.health.withOpacity(0.05),
+                    AppColors.health.withValues(alpha: 0.1),
+                    AppColors.health.withValues(alpha: 0.05),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.health.withOpacity(0.3)),
+                borderRadius: AppRadius.lg,
+                border: Border.all(color: AppColors.health.withValues(alpha: 0.3)),
               ),
               child: Column(
                 children: [
@@ -163,49 +233,102 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('🔥', style: TextStyle(fontSize: 28)),
+                      const Icon(AppIcons.calories, size: 32, color: AppIcons.caloriesColor),
                       const SizedBox(width: 12),
                       Text(
                         '${_calories.toInt()}',
-                        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.health),
+                        style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.health),
                       ),
                       const SizedBox(width: 4),
-                      const Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: Text('kcal', style: TextStyle(fontSize: 16, color: AppColors.textSecondary)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          'kcal',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   // Macros
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _macroItem('Protein', _protein, AppColors.protein),
-                      _macroItem('Carbs', _carbs, AppColors.carbs),
-                      _macroItem('Fat', _fat, AppColors.fat),
-                    ],
-                  ),
+                  Builder(builder: (context) {
+                    final isDark =
+                        Theme.of(context).brightness == Brightness.dark;
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _macroItem(
+                            'Protein', _protein, AppColors.protein, isDark),
+                        _macroItem('Carbs', _carbs, AppColors.carbs, isDark),
+                        _macroItem('Fat', _fat, AppColors.fat, isDark),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
             // Meal type
-            const Text('Meal Type', style: TextStyle(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: MealType.values.map((type) {
-                final isSelected = _selectedMealType == type;
-                return ChoiceChip(
-                  label: Text('${type.icon} ${type.displayName}'),
-                  selected: isSelected,
-                  onSelected: (s) { if (s) setState(() => _selectedMealType = type); },
-                  selectedColor: AppColors.health.withOpacity(0.2),
-                );
-              }).toList(),
-            ),
+            Builder(builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final labelColor = isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimary;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Meal Type',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: labelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: MealType.values.map((type) {
+                      final isSelected = _selectedMealType == type;
+                      return ChoiceChip(
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(type.icon, size: 16, color: type.iconColor),
+                            const SizedBox(width: 6),
+                            Text(
+                              type.displayName,
+                              style: TextStyle(color: labelColor),
+                            ),
+                          ],
+                        ),
+                        selected: isSelected,
+                        onSelected: (s) {
+                          if (s) setState(() => _selectedMealType = type);
+                        },
+                        selectedColor: AppColors.health.withValues(alpha: 0.2),
+                        backgroundColor: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.surfaceVariant,
+                        side: BorderSide(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.divider,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              );
+            }),
             const SizedBox(height: 24),
 
             // Confirm button
@@ -217,10 +340,13 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   backgroundColor: AppColors.health,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.md),
                 ),
-                child: const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              ),
+                child: const Text('Save',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
             ),
           ],
         ),
@@ -228,20 +354,25 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
     );
   }
 
-  Widget _macroItem(String label, double value, Color color) {
+  Widget _macroItem(String label, double value, Color color, bool isDark) {
+    final labelColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: AppRadius.md,
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          Text(label,
+              style: TextStyle(fontSize: 11, color: labelColor)),
           const SizedBox(height: 4),
           Text(
             '${value.toStringAsFixed(1)}g',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold, color: color),
           ),
         ],
       ),
@@ -257,21 +388,50 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   }
 
   Future<void> _confirm() async {
-    // โหลด ingredients จาก MyMeal (ใช้ provider)
-    final mealIngredientsAsync = ref.read(mealIngredientsProvider(widget.meal.id));
-    final mealIngredients = mealIngredientsAsync.value ?? [];
+    // โหลด ingredients จาก MyMeal (ใช้ tree provider สำหรับ nested structure)
+    final treeAsync = ref.read(mealIngredientTreeProvider(widget.meal.id));
+    final tree = treeAsync.value ?? [];
 
-    // แปลงเป็น JSON สำหรับบันทึกลง FoodEntry
+    // แปลงเป็น JSON สำหรับบันทึกลง FoodEntry (รวม sub_ingredients)
     String? ingredientsJsonStr;
-    if (mealIngredients.isNotEmpty) {
-      final ingredientsData = mealIngredients.map((ing) => {
-        'name': ing.ingredientName,
-        'amount': ing.amount,
-        'unit': ing.unit,
-        'calories': ing.calories,
-        'protein': ing.protein,
-        'carbs': ing.carbs,
-        'fat': ing.fat,
+    if (tree.isNotEmpty) {
+      final ingredientsData = tree.map((node) {
+        final rootMap = <String, dynamic>{
+          'name': node.ingredient.ingredientName,
+          'amount': node.ingredient.amount,
+          'unit': node.ingredient.unit,
+          'calories': node.ingredient.calories,
+          'protein': node.ingredient.protein,
+          'carbs': node.ingredient.carbs,
+          'fat': node.ingredient.fat,
+        };
+
+        // เพิ่ม detail ถ้ามี
+        if (node.ingredient.detail != null &&
+            node.ingredient.detail!.isNotEmpty) {
+          rootMap['detail'] = node.ingredient.detail;
+        }
+
+        // เพิ่ม sub_ingredients ถ้ามี
+        if (node.children.isNotEmpty) {
+          rootMap['sub_ingredients'] = node.children.map((child) {
+            final subMap = <String, dynamic>{
+              'name': child.ingredientName,
+              'amount': child.amount,
+              'unit': child.unit,
+              'calories': child.calories,
+              'protein': child.protein,
+              'carbs': child.carbs,
+              'fat': child.fat,
+            };
+            if (child.detail != null && child.detail!.isNotEmpty) {
+              subMap['detail'] = child.detail;
+            }
+            return subMap;
+          }).toList();
+        }
+
+        return rootMap;
       }).toList();
       ingredientsJsonStr = jsonEncode(ingredientsData);
     }

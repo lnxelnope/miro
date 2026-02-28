@@ -8,35 +8,35 @@ import 'device_id_service.dart';
 class EnergyTokenService {
   // ⚠️ ต้องใช้ค่าเดียวกับ Backend!
   // จาก BACKEND_SETUP_COMPLETE.md: ENERGY_ENCRYPTION_SECRET
-  static const String _encryptionSecret = 
+  static const String _encryptionSecret =
       'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2';
-  
+
   /// สร้าง Energy Token สำหรับ authentication
-  /// 
+  ///
   /// ✅ PHASE 3: ไม่มี balance ใน token อีกต่อไป
   /// Token ใช้เพื่อพิสูจน์ว่า request มาจากแอปของเราเท่านั้น
   /// Backend จะอ่าน balance จาก Firestore เอง
   static Future<String> generateToken() async {
     final userId = await DeviceIdService.getDeviceId();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    
+
     // ✅ Payload ไม่มี balance แล้ว
     final payload = '$userId:$timestamp';
     final signature = _generateSignature(payload);
-    
+
     final token = {
       'userId': userId,
       'timestamp': timestamp,
       'signature': signature,
       // ไม่มี balance อีกต่อไป
     };
-    
+
     final encoded = base64Encode(utf8.encode(json.encode(token)));
-    
+
     debugPrint('[EnergyTokenService] ✅ Token generated (no balance)');
     return encoded;
   }
-  
+
   /// สร้าง HMAC-SHA256 signature
   static String _generateSignature(String payload) {
     final key = utf8.encode(_encryptionSecret);
@@ -45,7 +45,7 @@ class EnergyTokenService {
     final digest = hmac.convert(bytes);
     return digest.toString();
   }
-  
+
   /// Decode token เพื่อดูข้อมูลภายใน (ใช้สำหรับ debug)
   static Map<String, dynamic>? decodeToken(String token) {
     try {

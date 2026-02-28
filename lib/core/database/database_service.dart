@@ -29,14 +29,14 @@ class DatabaseService {
         IngredientSchema,
         MyMealSchema,
         MyMealIngredientSchema,
-        
+
         // Chat
         ChatMessageSchema,
         ChatSessionSchema,
-        
+
         // Profile
         UserProfileSchema,
-        
+
         // Energy
         EnergyTransactionSchema,
       ],
@@ -49,7 +49,8 @@ class DatabaseService {
   static IsarCollection<FoodEntry> get foodEntries => isar.foodEntrys;
   static IsarCollection<Ingredient> get ingredients => isar.ingredients;
   static IsarCollection<MyMeal> get myMeals => isar.myMeals;
-  static IsarCollection<MyMealIngredient> get myMealIngredients => isar.myMealIngredients;
+  static IsarCollection<MyMealIngredient> get myMealIngredients =>
+      isar.myMealIngredients;
 
   // Chat Queries
   static IsarCollection<ChatMessage> get chatMessages => isar.chatMessages;

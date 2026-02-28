@@ -1,37 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/services/energy_service.dart';
+import 'package:miro_hybrid/core/theme/app_icons.dart';
+import 'package:miro_hybrid/core/theme/app_colors.dart';
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/features/energy/presentation/energy_store_screen.dart';
+import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 
 /// Badge แสดง Energy ที่เหลือ (ติด AppBar)
-class EnergyBadge extends StatefulWidget {
+class EnergyBadge extends ConsumerWidget {
   final EnergyService? energyService;
-  
+
   const EnergyBadge({super.key, this.energyService});
 
   @override
-  State<EnergyBadge> createState() => _EnergyBadgeState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gamification = ref.watch(gamificationProvider);
+    final balance = gamification.balance;
 
-class _EnergyBadgeState extends State<EnergyBadge> {
-  int _balance = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBalance();
-  }
-
-  Future<void> _loadBalance() async {
-    if (widget.energyService != null) {
-      final balance = await widget.energyService!.getBalance();
-      if (mounted) {
-        setState(() => _balance = balance);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         // เปิด Energy Store
@@ -41,30 +27,39 @@ class _EnergyBadgeState extends State<EnergyBadge> {
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
         decoration: BoxDecoration(
-          color: _balance < 10 
-              ? Colors.red.withOpacity(0.1) 
-              : Colors.green.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
+          color: balance < 10
+              ? AppColors.error.withValues(alpha: 0.1)
+              : AppColors.success.withValues(alpha: 0.1),
+          borderRadius: AppRadius.xl,
           border: Border.all(
-            color: _balance < 10 ? Colors.red : Colors.green,
+            color: balance < 10 ? AppColors.error : AppColors.success,
             width: 1.5,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('⚡', style: TextStyle(fontSize: 16)),
-            const SizedBox(width: 4),
+            const Icon(AppIcons.energy, size: 18, color: AppIcons.energyColor),
+            const SizedBox(width: AppSpacing.xs),
             Text(
-              '$_balance',
+              '$balance',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _balance < 10 ? Colors.red : Colors.green,
+                color: balance < 10 ? AppColors.error : AppColors.success,
               ),
             ),
+            // Phase 5: Subscription badge หรือ Free AI indicator
+            if (gamification.isSubscriber) ...[
+              const SizedBox(width: AppSpacing.sm),
+              const Icon(
+                AppIcons.subscription,
+                size: 16,
+                color: AppIcons.subscriptionColor,
+              ),
+            ],
           ],
         ),
       ),

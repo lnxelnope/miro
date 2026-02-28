@@ -32,38 +32,58 @@ const MyMealIngredientSchema = CollectionSchema(
       name: r'carbs',
       type: IsarType.double,
     ),
-    r'fat': PropertySchema(
+    r'depth': PropertySchema(
       id: 3,
+      name: r'depth',
+      type: IsarType.long,
+    ),
+    r'detail': PropertySchema(
+      id: 4,
+      name: r'detail',
+      type: IsarType.string,
+    ),
+    r'fat': PropertySchema(
+      id: 5,
       name: r'fat',
       type: IsarType.double,
     ),
     r'ingredientId': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'ingredientId',
       type: IsarType.long,
     ),
     r'ingredientName': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'ingredientName',
       type: IsarType.string,
     ),
+    r'isComposite': PropertySchema(
+      id: 8,
+      name: r'isComposite',
+      type: IsarType.bool,
+    ),
     r'myMealId': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'myMealId',
       type: IsarType.long,
     ),
+    r'parentId': PropertySchema(
+      id: 10,
+      name: r'parentId',
+      type: IsarType.long,
+    ),
     r'protein': PropertySchema(
-      id: 7,
+      id: 11,
       name: r'protein',
       type: IsarType.double,
     ),
     r'sortOrder': PropertySchema(
-      id: 8,
+      id: 12,
       name: r'sortOrder',
       type: IsarType.long,
     ),
     r'unit': PropertySchema(
-      id: 9,
+      id: 13,
       name: r'unit',
       type: IsarType.string,
     )
@@ -88,6 +108,12 @@ int _myMealIngredientEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.detail;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.ingredientName.length * 3;
   bytesCount += 3 + object.unit.length * 3;
   return bytesCount;
@@ -102,13 +128,17 @@ void _myMealIngredientSerialize(
   writer.writeDouble(offsets[0], object.amount);
   writer.writeDouble(offsets[1], object.calories);
   writer.writeDouble(offsets[2], object.carbs);
-  writer.writeDouble(offsets[3], object.fat);
-  writer.writeLong(offsets[4], object.ingredientId);
-  writer.writeString(offsets[5], object.ingredientName);
-  writer.writeLong(offsets[6], object.myMealId);
-  writer.writeDouble(offsets[7], object.protein);
-  writer.writeLong(offsets[8], object.sortOrder);
-  writer.writeString(offsets[9], object.unit);
+  writer.writeLong(offsets[3], object.depth);
+  writer.writeString(offsets[4], object.detail);
+  writer.writeDouble(offsets[5], object.fat);
+  writer.writeLong(offsets[6], object.ingredientId);
+  writer.writeString(offsets[7], object.ingredientName);
+  writer.writeBool(offsets[8], object.isComposite);
+  writer.writeLong(offsets[9], object.myMealId);
+  writer.writeLong(offsets[10], object.parentId);
+  writer.writeDouble(offsets[11], object.protein);
+  writer.writeLong(offsets[12], object.sortOrder);
+  writer.writeString(offsets[13], object.unit);
 }
 
 MyMealIngredient _myMealIngredientDeserialize(
@@ -121,14 +151,18 @@ MyMealIngredient _myMealIngredientDeserialize(
   object.amount = reader.readDouble(offsets[0]);
   object.calories = reader.readDouble(offsets[1]);
   object.carbs = reader.readDouble(offsets[2]);
-  object.fat = reader.readDouble(offsets[3]);
+  object.depth = reader.readLong(offsets[3]);
+  object.detail = reader.readStringOrNull(offsets[4]);
+  object.fat = reader.readDouble(offsets[5]);
   object.id = id;
-  object.ingredientId = reader.readLong(offsets[4]);
-  object.ingredientName = reader.readString(offsets[5]);
-  object.myMealId = reader.readLong(offsets[6]);
-  object.protein = reader.readDouble(offsets[7]);
-  object.sortOrder = reader.readLong(offsets[8]);
-  object.unit = reader.readString(offsets[9]);
+  object.ingredientId = reader.readLong(offsets[6]);
+  object.ingredientName = reader.readString(offsets[7]);
+  object.isComposite = reader.readBool(offsets[8]);
+  object.myMealId = reader.readLong(offsets[9]);
+  object.parentId = reader.readLongOrNull(offsets[10]);
+  object.protein = reader.readDouble(offsets[11]);
+  object.sortOrder = reader.readLong(offsets[12]);
+  object.unit = reader.readString(offsets[13]);
   return object;
 }
 
@@ -146,18 +180,26 @@ P _myMealIngredientDeserializeProp<P>(
     case 2:
       return (reader.readDouble(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
-    case 4:
       return (reader.readLong(offset)) as P;
+    case 4:
+      return (reader.readStringOrNull(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 6:
       return (reader.readLong(offset)) as P;
     case 7:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
+      return (reader.readLongOrNull(offset)) as P;
+    case 11:
+      return (reader.readDouble(offset)) as P;
+    case 12:
+      return (reader.readLong(offset)) as P;
+    case 13:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -452,6 +494,216 @@ extension MyMealIngredientQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      depthEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'depth',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      depthGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'depth',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      depthLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'depth',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      depthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'depth',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'detail',
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'detail',
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'detail',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'detail',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'detail',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'detail',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      detailIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'detail',
+        value: '',
       ));
     });
   }
@@ -771,6 +1023,16 @@ extension MyMealIngredientQueryFilter
   }
 
   QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      isCompositeEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isComposite',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
       myMealIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -818,6 +1080,80 @@ extension MyMealIngredientQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'myMealId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'parentId',
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'parentId',
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'parentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'parentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'parentId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterFilterCondition>
+      parentIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'parentId',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1134,6 +1470,33 @@ extension MyMealIngredientQuerySortBy
     });
   }
 
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy> sortByDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'depth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByDepthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'depth', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByDetail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'detail', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByDetailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'detail', Sort.desc);
+    });
+  }
+
   QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy> sortByFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fat', Sort.asc);
@@ -1176,6 +1539,20 @@ extension MyMealIngredientQuerySortBy
   }
 
   QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByIsComposite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isComposite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByIsCompositeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isComposite', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
       sortByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.asc);
@@ -1186,6 +1563,20 @@ extension MyMealIngredientQuerySortBy
       sortByMyMealIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByParentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      sortByParentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentId', Sort.desc);
     });
   }
 
@@ -1274,6 +1665,33 @@ extension MyMealIngredientQuerySortThenBy
     });
   }
 
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy> thenByDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'depth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByDepthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'depth', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByDetail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'detail', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByDetailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'detail', Sort.desc);
+    });
+  }
+
   QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy> thenByFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fat', Sort.asc);
@@ -1329,6 +1747,20 @@ extension MyMealIngredientQuerySortThenBy
   }
 
   QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByIsComposite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isComposite', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByIsCompositeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isComposite', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
       thenByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.asc);
@@ -1339,6 +1771,20 @@ extension MyMealIngredientQuerySortThenBy
       thenByMyMealIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByParentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QAfterSortBy>
+      thenByParentIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'parentId', Sort.desc);
     });
   }
 
@@ -1407,6 +1853,20 @@ extension MyMealIngredientQueryWhereDistinct
     });
   }
 
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct>
+      distinctByDepth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'depth');
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct> distinctByDetail(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'detail', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct> distinctByFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fat');
@@ -1429,9 +1889,23 @@ extension MyMealIngredientQueryWhereDistinct
   }
 
   QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct>
+      distinctByIsComposite() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isComposite');
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct>
       distinctByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'myMealId');
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, MyMealIngredient, QDistinct>
+      distinctByParentId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'parentId');
     });
   }
 
@@ -1483,6 +1957,18 @@ extension MyMealIngredientQueryProperty
     });
   }
 
+  QueryBuilder<MyMealIngredient, int, QQueryOperations> depthProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'depth');
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, String?, QQueryOperations> detailProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'detail');
+    });
+  }
+
   QueryBuilder<MyMealIngredient, double, QQueryOperations> fatProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fat');
@@ -1502,9 +1988,21 @@ extension MyMealIngredientQueryProperty
     });
   }
 
+  QueryBuilder<MyMealIngredient, bool, QQueryOperations> isCompositeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isComposite');
+    });
+  }
+
   QueryBuilder<MyMealIngredient, int, QQueryOperations> myMealIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'myMealId');
+    });
+  }
+
+  QueryBuilder<MyMealIngredient, int?, QQueryOperations> parentIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'parentId');
     });
   }
 

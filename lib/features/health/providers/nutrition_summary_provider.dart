@@ -67,11 +67,11 @@ final timePeriodSummariesProvider = FutureProvider<List<TimePeriodSummary>>(
     final now = DateTime.now();
     
     final periods = [
-      _PeriodConfig('1 Day', 1),
-      _PeriodConfig('1 Week', 7),
-      _PeriodConfig('1 Month', 30),
-      _PeriodConfig('1 Year', 365),
-      _PeriodConfig('All Time', -1), // -1 means all available data
+      const _PeriodConfig('1 Day', 1),
+      const _PeriodConfig('1 Week', 7),
+      const _PeriodConfig('1 Month', 30),
+      const _PeriodConfig('1 Year', 365),
+      const _PeriodConfig('All Time', -1), // -1 means all available data
     ];
 
     final summaries = <TimePeriodSummary>[];

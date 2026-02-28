@@ -1,32 +1,30 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../features/energy/widgets/quest_bar.dart';
 import '../../../core/utils/logger.dart';
-import '../../../core/utils/unit_converter.dart';
-import '../../../core/constants/ai_loading_messages.dart';
 import '../providers/health_provider.dart';
-import '../providers/my_meal_provider.dart';
+import '../providers/fulfill_calorie_provider.dart';
+import '../../../core/widgets/analyze_bar.dart';
 import '../widgets/daily_summary_card.dart';
-import '../widgets/food_timeline_card.dart';
 import '../widgets/edit_food_bottom_sheet.dart';
-import '../widgets/food_detail_bottom_sheet.dart';
-import '../widgets/gemini_analysis_sheet.dart';
-import '../widgets/quick_add_section.dart';
+import '../widgets/log_from_meal_sheet.dart';
+import '../widgets/meal_section.dart';
+import '../../../core/database/database_service.dart';
 import '../models/food_entry.dart';
+import '../../../core/constants/enums.dart';
+import '../widgets/add_food_bottom_sheet.dart';
 import '../../scanner/providers/scanner_provider.dart';
-import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/services/purchase_service.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
-import '../../../features/energy/providers/energy_provider.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../providers/analysis_provider.dart';
 
 class HealthTimelineTab extends ConsumerStatefulWidget {
-  final Key? timelineKey;
-  
-  const HealthTimelineTab({super.key, this.timelineKey});
+  const HealthTimelineTab({super.key});
 
   @override
   ConsumerState<HealthTimelineTab> createState() => _HealthTimelineTabState();
@@ -34,159 +32,201 @@ class HealthTimelineTab extends ConsumerStatefulWidget {
 
 class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
   DateTime _selectedDate = dateOnly(DateTime.now());
-  
-  // ป้องกันการ analyze ซ้ำ
-  final Set<int> _analyzingEntryIds = {};
+
+  // Scanning state
+  bool _isScanning = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Auto-trigger disabled: entries stay at 0 kcal until user manually
+    // presses "Analyze All". Not every scanned image is food the user ate.
+  }
 
   @override
   Widget build(BuildContext context) {
     final timelineAsync = ref.watch(healthTimelineProvider(_selectedDate));
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    final suggestionsEnabled = profile?.mealSuggestionsEnabled ?? false;
+    final fulfillAsync = suggestionsEnabled
+        ? ref.watch(fulfillCalorieProvider(_selectedDate))
+        : const AsyncValue<FulfillCalorieState?>.data(null);
 
-    return RefreshIndicator(
-      key: widget.timelineKey,
-      onRefresh: () async {
-        AppLogger.info('Pull-to-refresh starting...');
-        
-        // 1. Trigger auto-scan for new images
-        try {
-          AppLogger.info('Starting to scan new images from Gallery...');
-          final count = await ref.read(galleryScanNotifierProvider.notifier).scanNewImages();
-          AppLogger.info('Scan complete - found: $count entries');
-        } catch (e) {
-          AppLogger.error('Scan failed', e);
-        }
-        
-        // 2. Refresh existing data
-        refreshFoodProviders(ref, _selectedDate);
-      },
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // Upsell Banner
-          SliverToBoxAdapter(
-            child: _buildUpsellBanner(),
-          ),
-
-          // Daily Summary Card
-          SliverToBoxAdapter(
-            child: DailySummaryCard(selectedDate: _selectedDate),
-          ),
-
-          // Date Selector
-          SliverToBoxAdapter(
-            child: _buildDateSelector(),
-          ),
-
-          // Quick Add Section (Favorite + Repeat Yesterday)
-          SliverToBoxAdapter(
-            child: QuickAddSection(selectedDate: _selectedDate),
-          ),
-
-          // Timeline Items
-          timelineAsync.when(
-            loading: () => const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (e, st) => SliverFillRemaining(
-              child: Center(child: Text('Error: $e')),
-            ),
-            data: (items) {
-              if (items.isEmpty) {
-                return SliverFillRemaining(
-                  child: _buildEmptyState(),
-                );
-              }
-
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final item = items[index];
-
-                    if (item.type == 'food') {
-                      return FoodTimelineCard(
-                        entry: item.data as FoodEntry,
-                        onTap: () => _showFoodDetail(item.data),
-                        onEdit: () => _editFoodEntry(item.data),
-                        onAnalyze: () => _analyzeFoodWithGemini(item.data),
-                        onDelete: () => _deleteFoodEntry(item.data),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                  childCount: items.length,
+    return Column(
+      children: [
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _scanForFood,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Upsell Banner
+                SliverToBoxAdapter(
+                  child: _buildUpsellBanner(),
                 ),
-              );
-            },
-          ),
 
-          // Bottom padding
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
+                // Quest Bar
+                const SliverToBoxAdapter(
+                  child: QuestBar(),
+                ),
+
+                // Daily Summary Card
+                SliverToBoxAdapter(
+                  child: DailySummaryCard(
+                    selectedDate: _selectedDate,
+                    onDateChanged: (date) {
+                      setState(() => _selectedDate = date);
+                    },
+                  ),
+                ),
+
+                // Meal Sections — always visible
+                SliverToBoxAdapter(
+                  child: Builder(builder: (context) {
+                    final items = timelineAsync.valueOrNull ?? [];
+                    final fulfill = fulfillAsync.valueOrNull;
+                    final foodEntries = items
+                        .where((i) => i.type == 'food')
+                        .map((i) => i.data as FoodEntry)
+                        .toList();
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: AppSpacing.sm),
+                        MealSection(
+                          mealType: MealType.breakfast,
+                          foods: foodEntries
+                              .where((f) => f.mealType == MealType.breakfast)
+                              .toList(),
+                          onAddFood: () =>
+                              _showAddFoodDialog(MealType.breakfast),
+                          onEditFood: _editFoodEntry,
+                          onDeleteFood: _deleteFoodEntry,
+                          selectedDate: _selectedDate,
+                          ghostSuggestion:
+                              fulfill?.suggestions[MealType.breakfast],
+                          onSuggestionTap: (s) =>
+                              _showAddFoodDialogWithSuggestion(
+                                  MealType.breakfast, s),
+                        ),
+                        MealSection(
+                          mealType: MealType.lunch,
+                          foods: foodEntries
+                              .where((f) => f.mealType == MealType.lunch)
+                              .toList(),
+                          onAddFood: () => _showAddFoodDialog(MealType.lunch),
+                          onEditFood: _editFoodEntry,
+                          onDeleteFood: _deleteFoodEntry,
+                          selectedDate: _selectedDate,
+                          ghostSuggestion: fulfill?.suggestions[MealType.lunch],
+                          onSuggestionTap: (s) =>
+                              _showAddFoodDialogWithSuggestion(
+                                  MealType.lunch, s),
+                        ),
+                        MealSection(
+                          mealType: MealType.dinner,
+                          foods: foodEntries
+                              .where((f) => f.mealType == MealType.dinner)
+                              .toList(),
+                          onAddFood: () => _showAddFoodDialog(MealType.dinner),
+                          onEditFood: _editFoodEntry,
+                          onDeleteFood: _deleteFoodEntry,
+                          selectedDate: _selectedDate,
+                          ghostSuggestion:
+                              fulfill?.suggestions[MealType.dinner],
+                          onSuggestionTap: (s) =>
+                              _showAddFoodDialogWithSuggestion(
+                                  MealType.dinner, s),
+                        ),
+                        MealSection(
+                          mealType: MealType.snack,
+                          foods: foodEntries
+                              .where((f) => f.mealType == MealType.snack)
+                              .toList(),
+                          onAddFood: () => _showAddFoodDialog(MealType.snack),
+                          onEditFood: _editFoodEntry,
+                          onDeleteFood: _deleteFoodEntry,
+                          selectedDate: _selectedDate,
+                          ghostSuggestion: fulfill?.suggestions[MealType.snack],
+                          onSuggestionTap: (s) =>
+                              _showAddFoodDialogWithSuggestion(
+                                  MealType.snack, s),
+                        ),
+                        if (timelineAsync.hasError)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.lg),
+                            child: Text(
+                              L10n.of(context)!
+                                  .errorLoading(timelineAsync.error.toString()),
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppColors.error),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+                ),
+
+                // Bottom padding
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: AppSpacing.xxxxl * 2.5),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+
+        // Analyze Bar — fixed at bottom, above tab bar
+        AnalyzeBar(
+          selectedDate: _selectedDate,
+          onAnalyze: _startBatchAnalysis,
+        ),
+      ],
     );
   }
 
-  Widget _buildDateSelector() {
-    final dateFormat = DateFormat('d MMM yyyy');
-    final isToday = _isToday(_selectedDate);
+  Future<void> _scanForFood() async {
+    if (_isScanning) return;
+    setState(() => _isScanning = true);
+    try {
+      AppLogger.info(
+          'Scanning for food images on date: ${_selectedDate.toString()}');
+      final count = await ref
+          .read(galleryScanNotifierProvider.notifier)
+          .scanNewImages(specificDate: _selectedDate);
+      AppLogger.info(
+          'Scan complete - found: $count entries for ${_selectedDate.toString()}');
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: () {
-              setState(() {
-                _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-              });
-            },
+      refreshFoodProviders(ref, _selectedDate);
+
+      if (!mounted) return;
+      if (count > 0) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.scanFoundNewImages(
+                count, DateFormat('d MMM yyyy').format(_selectedDate))),
+            duration: const Duration(seconds: 2),
           ),
-          GestureDetector(
-            onTap: _pickDate,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isToday
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '📅 ${isToday ? "Today" : dateFormat.format(_selectedDate)}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isToday ? AppColors.primary : AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_drop_down,
-                    color: isToday ? AppColors.primary : AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.scanNoNewImages(
+                DateFormat('d MMM yyyy').format(_selectedDate))),
+            duration: const Duration(seconds: 2),
           ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: isToday
-                ? null
-                : () {
-                    setState(() {
-                      _selectedDate = _selectedDate.add(const Duration(days: 1));
-                    });
-                  },
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Scan failed', e);
+    } finally {
+      if (mounted) setState(() => _isScanning = false);
+    }
   }
 
   Widget _buildUpsellBanner() {
@@ -201,38 +241,63 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
             final remaining = countSnapshot.data ?? 3;
 
             return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+              padding: AppSpacing.paddingLg,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.purple.shade50, Colors.blue.shade50],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purple.shade200),
+                color: AppColors.premiumLight,
+                borderRadius: AppRadius.lg,
+                border: Border.all(
+                    color: AppColors.premium.withValues(alpha: 0.3),
+                    width: 1.5),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.auto_awesome, color: Colors.purple),
-                  const SizedBox(width: 12),
+                  Container(
+                    padding: AppSpacing.paddingSm,
+                    decoration: BoxDecoration(
+                      color: AppColors.premium.withValues(alpha: 0.1),
+                      borderRadius: AppRadius.sm,
+                    ),
+                    child: const Icon(Icons.auto_awesome,
+                        color: AppColors.premium, size: 24),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AI Analysis: $remaining/${UsageLimiter.freeAiCallsPerDay} remaining today',
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          L10n.of(context)!.aiAnalysisRemaining(
+                              remaining, UsageLimiter.freeAiCallsPerDay),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppColors.premium,
+                          ),
                         ),
-                        const Text(
-                          'Upgrade to Pro for unlimited use',
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          L10n.of(context)!.upgradeToProUnlimited,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
-                  TextButton(
+                  ElevatedButton(
                     onPressed: () => PurchaseService.buyPro(),
-                    child: const Text('Upgrade',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.premium,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: AppRadius.xl,
+                      ),
+                    ),
+                    child: Text(L10n.of(context)!.upgrade,
+                        style: const TextStyle(fontSize: 13)),
                   ),
                 ],
               ),
@@ -243,95 +308,83 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            '📭',
-            style: TextStyle(fontSize: 64),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No data yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              children: [
-                Text(
-                  'Pull to refresh and I\'ll search for food photos you\'ve taken',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'or just tell me what you ate today :)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  void _showFoodDetail(FoodEntry entry) {
+  void _showAddFoodDialog(MealType mealType) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => FoodDetailBottomSheet(
-        entry: entry,
+      builder: (context) => AddFoodBottomSheet(
+        mealType: mealType,
         selectedDate: _selectedDate,
-        onAnalyze: (entry) async {
-          await _analyzeFoodWithGemini(entry);
+        onSave: (entry) async {
+          final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+          await notifier.addFoodEntry(entry);
+          if (!mounted) return;
+          refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
-    ).then((result) {
-      if (result != null && result is Map) {
-        if (result['action'] == 'edit') {
-          final foodEntry = result['entry'] as FoodEntry;
-          _editFoodEntry(foodEntry);
-        }
+    );
+  }
+
+  Future<void> _showAddFoodDialogWithSuggestion(
+      MealType mealType, FoodSuggestion suggestion) async {
+    // If from MyMeal → open LogFromMealSheet with full ingredients
+    if (suggestion.myMealId != null) {
+      final meal = await DatabaseService.myMeals.get(suggestion.myMealId!);
+      if (meal != null && mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => LogFromMealSheet(
+            meal: meal,
+            onConfirm: (entry) async {
+              entry.mealType = mealType;
+              entry.timestamp = DateTime(
+                _selectedDate.year,
+                _selectedDate.month,
+                _selectedDate.day,
+                DateTime.now().hour,
+                DateTime.now().minute,
+              );
+              final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+              await notifier.addFoodEntry(entry);
+              if (!mounted) return;
+              refreshFoodProviders(ref, _selectedDate);
+              ref.invalidate(fulfillCalorieProvider(_selectedDate));
+            },
+          ),
+        );
+        return;
       }
-    });
+    }
+
+    // Fallback: open AddFoodBottomSheet with prefilled data
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddFoodBottomSheet(
+        mealType: mealType,
+        selectedDate: _selectedDate,
+        prefillName: suggestion.name,
+        prefillCalories: suggestion.calories,
+        prefillProtein: suggestion.protein,
+        prefillCarbs: suggestion.carbs,
+        prefillFat: suggestion.fat,
+        prefillServingSize: suggestion.servingSize,
+        prefillServingUnit: suggestion.servingUnit,
+        prefillMyMealId: suggestion.myMealId,
+        onSave: (entry) async {
+          final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+          await notifier.addFoodEntry(entry);
+          if (!mounted) return;
+          refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
+        },
+      ),
+    );
   }
 
   void _editFoodEntry(FoodEntry entry) {
@@ -344,10 +397,10 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
         onSave: (updatedEntry) async {
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.updateFoodEntry(updatedEntry);
-          
-          // ────── เช็ค mounted ก่อน invalidate ──────
+
           if (!mounted) return;
           refreshFoodProviders(ref, _selectedDate);
+          ref.invalidate(fulfillCalorieProvider(_selectedDate));
         },
       ),
     );
@@ -358,19 +411,19 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: Text('Do you want to delete "${entry.foodName}"?'),
+        title: Text(L10n.of(context)!.confirmDelete),
+        content: Text(L10n.of(context)!.confirmDeleteMessage(entry.foodName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+              foregroundColor: AppColors.error,
             ),
-            child: const Text('Delete'),
+            child: Text(L10n.of(context)!.delete),
           ),
         ],
       ),
@@ -380,24 +433,25 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       try {
         final notifier = ref.read(foodEntriesNotifierProvider.notifier);
         await notifier.deleteFoodEntry(entry.id);
-        
-        // ────── เช็ค mounted ก่อน invalidate ──────
+
         if (!mounted) return;
         refreshFoodProviders(ref, _selectedDate);
-        
+        ref.invalidate(fulfillCalorieProvider(_selectedDate));
+
         if (!context.mounted) return;
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Entry deleted successfully'),
+          SnackBar(
+            content: Text(L10n.of(context)!.entryDeletedSuccess),
             backgroundColor: AppColors.success,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       } catch (e) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e'),
+            content: Text(L10n.of(context)!.entryDeleteError(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -405,427 +459,22 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
     }
   }
 
-  /// Analyze food with Gemini (supports both image and text-only)
-  Future<void> _analyzeFoodWithGemini(FoodEntry entry) async {
-    // ────── ป้องกันการกดซ้ำ (เช็คก่อนทุกอย่าง) ──────
-    if (_analyzingEntryIds.contains(entry.id)) {
-      AppLogger.info('[Timeline] Already analyzing entry ${entry.id}, skipping duplicate request');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('⏳ Analysis in progress - please wait'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.orange,
-          ),
+  // ===== Analyze All Batch Processing with Auto-Continue Queue =====
+
+  void _startBatchAnalysis(List<FoodEntry> initialEntries) {
+    if (initialEntries.isEmpty) return;
+    ref.read(analysisProvider.notifier).enqueue(
+          entries: initialEntries,
+          selectedDate: _selectedDate,
         );
-      }
-      return;
-    }
-    
-    // ────── ถ้า entry วิเคราะห์แล้ว ให้ถามยืนยันก่อน ──────
-    if (entry.isVerified && context.mounted) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.orange),
-              SizedBox(width: 12),
-              Expanded(child: Text('Re-analyze?')),
-            ],
-          ),
-          content: Text(
-            '"${entry.foodName}" has already been analyzed.\n\n'
-            'Analyzing again will use 1 Energy.\n\n'
-            'Continue?',
-            style: const TextStyle(fontSize: 15),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Re-analyze (1 Energy)'),
-            ),
-          ],
-        ),
-      );
-      
-      if (confirmed != true) return; // User cancelled
-    }
-    
-    // ────── แสดง Confirmation Dialog ──────
-    final analyzeParams = await _showAnalyzeConfirmation(entry);
-    if (analyzeParams == null) return; // User cancelled
-
-    final String confirmedFoodName = analyzeParams['foodName'] as String;
-    final double confirmedQuantity = analyzeParams['quantity'] as double;
-    final String confirmedUnit = analyzeParams['unit'] as String;
-    
-    // ────── เพิ่ม entry.id เข้า set ทันทีเพื่อป้องกันการกดซ้ำ ──────
-    _analyzingEntryIds.add(entry.id);
-    
-    final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
-
-    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy) {
-      _analyzingEntryIds.remove(entry.id);
-      
-      if (context.mounted) {
-        await NoEnergyDialog.show(context);
-      }
-      return;
-    }
-    
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              hasImage 
-                ? AILoadingMessages.getImageMessage(0)
-                : 'Estimating "${entry.foodName}" with AI...',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Please wait...',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      final notifier = ref.read(foodEntriesNotifierProvider.notifier);
-      FoodAnalysisResult? result;
-      if (hasImage) {
-        result = await notifier.analyzeImage(
-          File(entry.imagePath!),
-          foodName: confirmedFoodName.isNotEmpty ? confirmedFoodName : null,
-          quantity: confirmedQuantity > 0 ? confirmedQuantity : null,
-          unit: confirmedUnit,
-        );
-      } else {
-        result = await GeminiService.analyzeFoodByName(
-          confirmedFoodName.isNotEmpty ? confirmedFoodName : entry.foodName,
-          servingSize: confirmedQuantity > 0 ? confirmedQuantity : entry.servingSize,
-          servingUnit: confirmedUnit,
-        );
-      }
-
-      if (!context.mounted) return;
-      Navigator.pop(context); // Close loading dialog
-
-      if (result == null) {
-        _analyzingEntryIds.remove(entry.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ Unable to analyze'), backgroundColor: AppColors.error),
-        );
-        return;
-      }
-
-      await UsageLimiter.recordAiUsage();
-      
-      // === อัพเดท Energy Badge ===
-      if (!mounted) return;
-      ref.invalidate(energyBalanceProvider);
-      ref.invalidate(currentEnergyProvider);
-
-      if (!context.mounted) return;
-      
-      // ────── showModalBottomSheet แล้วรอให้ปิด (await) ──────
-      // จะไม่ลบ entry.id ออกจนกว่า sheet จะปิด
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => GeminiAnalysisSheet(
-          analysisResult: result!,
-          onConfirm: (confirmedData) async {
-            String? ingredientsJsonStr;
-            if (confirmedData.ingredientsDetail != null && confirmedData.ingredientsDetail!.isNotEmpty) {
-              ingredientsJsonStr = jsonEncode(confirmedData.ingredientsDetail);
-            }
-
-            await notifier.updateFromGeminiConfirmed(
-              entry.id,
-              foodName: confirmedData.foodName,
-              foodNameEn: confirmedData.foodNameEn,
-              calories: confirmedData.calories,
-              protein: confirmedData.protein,
-              carbs: confirmedData.carbs,
-              fat: confirmedData.fat,
-              baseCalories: confirmedData.baseCalories,
-              baseProtein: confirmedData.baseProtein,
-              baseCarbs: confirmedData.baseCarbs,
-              baseFat: confirmedData.baseFat,
-              servingSize: confirmedData.servingSize,
-              servingUnit: confirmedData.servingUnit,
-              servingGrams: confirmedData.servingGrams,
-              confidence: confirmedData.confidence,
-              fiber: confirmedData.fiber,
-              sugar: confirmedData.sugar,
-              sodium: confirmedData.sodium,
-              notes: confirmedData.notes,
-              ingredientsJson: ingredientsJsonStr,
-            );
-
-            if (!mounted) return;
-            refreshFoodProviders(ref, _selectedDate);
-
-            // Auto-save ingredients + meal
-            if (confirmedData.ingredientsDetail != null &&
-                confirmedData.ingredientsDetail!.isNotEmpty) {
-              try {
-                await notifier.saveIngredientsAndMeal(
-                  mealName: confirmedData.foodName,
-                  mealNameEn: confirmedData.foodNameEn,
-                  servingDescription: '${confirmedData.servingSize} ${confirmedData.servingUnit}',
-                  imagePath: entry.imagePath,
-                  ingredientsData: confirmedData.ingredientsDetail!,
-                );
-                
-                if (!mounted) return;
-                ref.invalidate(allMyMealsProvider);
-                ref.invalidate(allIngredientsProvider);
-                
-                AppLogger.info('Auto-saved: ${confirmedData.ingredientsDetail!.length} ingredients + 1 meal');
-                
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '✅ Updated + saved ${confirmedData.ingredientsDetail!.length} ingredients to My Meal',
-                      ),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              } catch (e) {
-                AppLogger.warn('Could not auto-save meal: $e');
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ Updated successfully'), backgroundColor: AppColors.success),
-                  );
-                }
-              }
-            } else {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('✅ Updated successfully'), backgroundColor: AppColors.success),
-                );
-              }
-            }
-          },
-        ),
-      );
-      
-      // ────── ลบ entry.id ออกจาก set หลัง sheet ปิดแล้ว ──────
-      _analyzingEntryIds.remove(entry.id);
-      
-    } catch (e, stackTrace) {
-      AppLogger.error('Error', e, stackTrace);
-      
-      // ────── ลบ entry.id ออกจาก set ──────
-      _analyzingEntryIds.remove(entry.id);
-      
-      if (!context.mounted) return;
-      Navigator.pop(context); // Close loading dialog
-      
-      // ตรวจสอบว่าเป็น Energy error หรือไม่
-      if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
-        return;
-      }
-      
-      String errorMessage = 'An error occurred';
-      if (e.toString().contains('parse JSON')) {
-        errorMessage = 'Could not read AI result - please try again';
-      } else {
-        errorMessage = e.toString().replaceAll('Exception: ', '');
-        if (errorMessage.length > 100) {
-          errorMessage = '${errorMessage.substring(0, 100)}...';
-        }
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('❌ $errorMessage'),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 4),
-        ),
-      );
-    }
   }
 
-  /// แสดง Confirmation Dialog ก่อนส่งวิเคราะห์
-  /// Return null = user cancelled
-  /// Return Map = { foodName, quantity, unit }
-  Future<Map<String, dynamic>?> _showAnalyzeConfirmation(FoodEntry entry) async {
-    final foodNameController = TextEditingController(
-      text: entry.foodName == 'food' ? '' : entry.foodName,
-    );
-    final quantityController = TextEditingController(
-      text: entry.servingSize > 0 ? entry.servingSize.toString() : '',
-    );
-    final entryUnit = entry.servingUnit.isNotEmpty ? entry.servingUnit : 'serving';
-    final validatedUnit = UnitConverter.ensureValid(entryUnit);
-    String selectedUnit = validatedUnit;
-
-    final hasImage = entry.imagePath != null && File(entry.imagePath!).existsSync();
-
-    return showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) {
-          final theme = Theme.of(ctx);
-          return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Row(
-                        children: [
-                          const Icon(Icons.auto_awesome, color: Colors.amber),
-                          const SizedBox(width: 8),
-                          Text('Analyze with AI', style: theme.textTheme.titleLarge),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Image Preview
-                      if (hasImage) ...[
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(entry.imagePath!),
-                            height: 150,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Food Name
-                      const Text('Food Name', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      TextField(
-                        controller: foodNameController,
-                        decoration: const InputDecoration(
-                          hintText: 'e.g. Pad Krapow, Salmon Sushi...',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Quantity
-                      const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      TextField(
-                        controller: quantityController,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: 'e.g. 300',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Unit
-                      const Text('Unit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      DropdownButtonFormField<String>(
-                        initialValue: selectedUnit,
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        items: UnitConverter.allDropdownItems,
-                        onChanged: (v) {
-                          if (v != null && v.isNotEmpty) setDialogState(() => selectedUnit = v);
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Info
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-                        ),
-                        child: const Row(
-                          children: [
-                            Text('⚡', style: TextStyle(fontSize: 16)),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'This will use 1 Energy.\nProviding food name & quantity improves accuracy.',
-                                style: TextStyle(fontSize: 12, color: Colors.grey),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Actions
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx, null),
-                            child: const Text('Cancel'),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.pop(ctx, {
-                                'foodName': foodNameController.text.trim(),
-                                'quantity': double.tryParse(quantityController.text.trim()) ?? 0.0,
-                                'unit': selectedUnit,
-                              });
-                            },
-                            icon: const Icon(Icons.auto_awesome, size: 18),
-                            label: const Text('Analyze'),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

@@ -4,6 +4,9 @@ import 'package:camera/camera.dart';
 import 'package:miro_hybrid/core/services/image_picker_service.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'package:miro_hybrid/core/theme/app_tokens.dart';
+import 'package:miro_hybrid/l10n/app_localizations.dart';
+
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -29,11 +32,15 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Handle app lifecycle to properly manage camera
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return;
-    }
     if (state == AppLifecycleState.inactive) {
+      // Mark as not initialized BEFORE disposing to prevent buildPreview() on disposed controller
+      if (mounted) {
+        setState(() {
+          _isInitialized = false;
+        });
+      }
       _cameraController?.dispose();
+      _cameraController = null;
     } else if (state == AppLifecycleState.resumed) {
       _initializeCamera();
     }
@@ -59,7 +66,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error initializing camera: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to initialize camera')),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToInitialize), duration: const Duration(seconds: 2)),
         );
         Navigator.of(context).pop();
       }
@@ -69,7 +76,10 @@ class _CameraScreenState extends State<CameraScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _cameraController?.dispose();
+    final controller = _cameraController;
+    _cameraController = null;
+    _isInitialized = false;
+    controller?.dispose();
     super.dispose();
   }
 
@@ -100,7 +110,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error taking picture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to capture photo')),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToCapture), duration: const Duration(seconds: 2)),
         );
       }
     } finally {
@@ -131,7 +141,7 @@ class _CameraScreenState extends State<CameraScreen>
       debugPrint('Error picking from gallery: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to pick image from gallery')),
+          SnackBar(content: Text(L10n.of(context)!.cameraFailedToPickFromGallery), duration: const Duration(seconds: 2)),
         );
         setState(() {
           _isProcessing = false;
@@ -154,24 +164,28 @@ class _CameraScreenState extends State<CameraScreen>
 
   /// Build camera preview with correct aspect ratio (fill screen, crop excess)
   Widget _buildCameraPreview() {
-    if (!_isInitialized || _cameraController == null) {
+    if (!_isInitialized ||
+        _cameraController == null ||
+        !_cameraController!.value.isInitialized) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
-    // previewSize จาก camera package อยู่ในรูปแบบ landscape เสมอ
-    // เช่น Size(1920, 1080) → width=1920(ยาว), height=1080(สั้น)
-    // เมื่อถือแนวตั้ง ต้องสลับ: portrait width = 1080, portrait height = 1920
-    final previewSize = _cameraController!.value.previewSize!;
+    final previewSize = _cameraController!.value.previewSize;
+    if (previewSize == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
 
     return SizedBox.expand(
       child: FittedBox(
         fit: BoxFit.cover,
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
-          width: previewSize.height,  // portrait width
-          height: previewSize.width,  // portrait height
+          width: previewSize.height, // portrait width
+          height: previewSize.width, // portrait height
           child: CameraPreview(_cameraController!),
         ),
       ),
@@ -197,10 +211,10 @@ class _CameraScreenState extends State<CameraScreen>
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.4),
+                      Colors.black.withValues(alpha: 0.4),
                       Colors.transparent,
                       Colors.transparent,
-                      Colors.black.withOpacity(0.6),
+                      Colors.black.withValues(alpha: 0.6),
                     ],
                     stops: const [0.0, 0.15, 0.75, 1.0],
                   ),
@@ -213,40 +227,24 @@ class _CameraScreenState extends State<CameraScreen>
           SafeArea(
             child: Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Close
-                  _buildTopButton(
-                    icon: Icons.close,
-                    onTap: () => Navigator.of(context).pop(),
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+              child: Center(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs + 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: AppRadius.xl,
                   ),
-
-                  // Title
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'Take a photo of your food',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  child: Text(
+                    L10n.of(context)!.cameraTakePhotoOfFood,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-
-                  // Flash
-                  _buildTopButton(
-                    icon: _flashOn ? Icons.flash_on : Icons.flash_off,
-                    onTap: _toggleFlash,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -264,14 +262,23 @@ class _CameraScreenState extends State<CameraScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Flash Button
+                    _buildBottomButton(
+                      icon: _flashOn ? Icons.flash_on : Icons.flash_off,
+                      onTap: _toggleFlash,
+                    ),
+
                     // Gallery Button
                     _buildGalleryButton(),
 
                     // Capture Button
                     _buildCaptureButton(),
 
-                    // Placeholder for alignment
-                    const SizedBox(width: 56),
+                    // Close Button
+                    _buildBottomButton(
+                      icon: Icons.close,
+                      onTap: () => Navigator.of(context).pop(),
+                    ),
                   ],
                 ),
               ),
@@ -283,15 +290,15 @@ class _CameraScreenState extends State<CameraScreen>
             Positioned.fill(
               child: Container(
                 color: Colors.black54,
-                child: const Center(
+                child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(color: Colors.white),
-                      SizedBox(height: 16),
+                      const CircularProgressIndicator(color: Colors.white),
+                      const SizedBox(height: AppSpacing.lg),
                       Text(
-                        'Processing...',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        L10n.of(context)!.cameraProcessing,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ],
                   ),
@@ -303,15 +310,17 @@ class _CameraScreenState extends State<CameraScreen>
     );
   }
 
-  Widget _buildTopButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildBottomButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.15),
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
         ),
         child: Icon(icon, color: Colors.white, size: 22),
       ),
@@ -351,7 +360,7 @@ class _CameraScreenState extends State<CameraScreen>
         height: 56,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: AppRadius.lg,
           border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
         ),
         child: const Icon(

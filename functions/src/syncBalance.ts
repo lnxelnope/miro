@@ -1,6 +1,6 @@
 /**
  * syncBalance Cloud Function
- * 
+ *
  * Purpose: Sync balance between Client and Server
  * Use cases:
  * 1. App startup — Client ดึง balance จาก Server
@@ -8,8 +8,9 @@
  * 3. Manual sync — เมื่อ Client สงสัยว่า balance ไม่ตรง
  */
 
-import { onRequest } from 'firebase-functions/v2/https';
-import * as admin from 'firebase-admin';
+import {onRequest} from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
+import {getActiveSeasonalQuests} from "./energy/seasonalQuest";
 
 // Initialize Firebase Admin (ถ้ายังไม่ได้ init ใน analyzeFood.ts)
 if (!admin.apps.length) {
@@ -21,99 +22,120 @@ const db = admin.firestore();
 interface SyncBalanceRequest {
   deviceId: string;
   localBalance?: number; // สำหรับ migration (optional)
-  type: 'startup' | 'migration' | 'manual';
+  type: "startup" | "migration" | "manual";
 }
 
 export const syncBalance = onRequest(
   {
     timeoutSeconds: 10,
-    memory: '256MiB',
-    cors: '*',
+    memory: "256MiB",
+    cors: "*",
   },
   async (req, res) => {
     // Validate request method
-    if (req.method !== 'POST') {
-      res.status(405).json({ error: 'Method not allowed' });
+    if (req.method !== "POST") {
+      res.status(405).json({error: "Method not allowed"});
       return;
     }
 
     try {
       const body = req.body as SyncBalanceRequest;
-      const { deviceId, localBalance, type } = body;
+      const {deviceId, type} = body;
 
       // Validate required fields
       if (!deviceId) {
-        res.status(400).json({ error: 'Missing deviceId' });
+        res.status(400).json({error: "Missing deviceId"});
         return;
       }
 
       console.log(`📡 [syncBalance] Request from ${deviceId} (type: ${type})`);
 
-      // ─── Check if user exists in Firestore ───
-      const docRef = db.collection('energy_balances').doc(deviceId);
-      const doc = await docRef.get();
+      // ─── Check if user exists in Firestore (users collection) ───
+      const userDoc = await db.collection("users").doc(deviceId).get();
 
-      if (!doc.exists) {
-        // ─── User ไม่มีใน Firestore ───
-        
-        // Case 1: Migration — เอา localBalance ไปใช้ (one-time)
-        if (localBalance !== undefined && localBalance > 0) {
-          const migratedBalance = localBalance;
-          
-          await docRef.set({
-            balance: migratedBalance,
-            lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            migratedFrom: 'local_storage',
-            migratedAt: admin.firestore.FieldValue.serverTimestamp(),
-            welcomeGiftClaimed: true, // ถือว่าได้ welcome gift แล้ว
-          });
-          
-          console.log(`🔄 [syncBalance] Migrated ${deviceId}: ${migratedBalance} from local`);
-          
-          res.status(200).json({
-            success: true,
-            balance: migratedBalance,
-            action: 'migrated',
-          });
-          return;
-        }
-        
-        // Case 2: New user — สร้างพร้อม welcome gift
-        const welcomeBalance = 100;
-        
-        await docRef.set({
-          balance: welcomeBalance,
-          lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          welcomeGiftClaimed: true,
-        });
-        
-        console.log(`🎁 [syncBalance] New user ${deviceId}: Welcome gift ${welcomeBalance}`);
-        
-        res.status(200).json({
-          success: true,
-          balance: welcomeBalance,
-          action: 'created_with_welcome_gift',
+      if (!userDoc.exists) {
+        // ─── User ไม่มีใน users collection ───
+        // ควรเรียก registerUser ก่อน
+        res.status(404).json({
+          error: "User not found. Please call registerUser first.",
         });
         return;
       }
 
       // ─── User มีใน Firestore แล้ว ───
-      const serverBalance = doc.data()?.balance ?? 0;
-      
+      const userData = userDoc.data()!;
+      const serverBalance = userData.balance ?? 0;
+
+      // Compute bonusRate from tier
+      let bonusRate = 0;
+      if (userData.tier === "gold") bonusRate = 0.1;
+      else if (userData.tier === "diamond") bonusRate = 0.2;
+
       console.log(`✅ [syncBalance] Existing user ${deviceId}: ${serverBalance}`);
-      
+
+      // คำนวณ canClaimToday (UTC+7 Thailand)
+      const nowUtc7 = new Date(Date.now() + 7 * 60 * 60 * 1000);
+      const todayStr = nowUtc7.toISOString().split("T")[0]; // 'YYYY-MM-DD'
+
+      // ─── Retroactive Tier Celebration Initialization ───
+      // Check if user has tier but missing tierCelebration for that tier
+      // (handles admin panel tier changes or existing users)
+      const currentTier = userData.tier ?? "none";
+      const tierCelebration = userData.tierCelebration || {};
+      const needsInit: string[] = [];
+
+      if (currentTier !== "none" && !tierCelebration[currentTier]) {
+        needsInit.push(currentTier);
+      }
+
+      // Also check starter if not initialized
+      if (!tierCelebration["starter"]) {
+        needsInit.push("starter");
+      }
+
+      if (needsInit.length > 0) {
+        console.log(`🎉 [syncBalance] Retroactively initializing celebrations: ${needsInit.join(", ")}`);
+        const updates: any = {};
+        for (const tier of needsInit) {
+          updates[`tierCelebration.${tier}`] = {
+            startDate: todayStr,
+            claimedDays: [],
+          };
+        }
+        await db.collection("users").doc(deviceId).update(updates);
+        // Re-fetch updated data
+        const updatedDoc = await db.collection("users").doc(deviceId).get();
+        Object.assign(userData, updatedDoc.data());
+      }
+
+      // Fetch active seasonal quests
+      const seasonalQuests = await getActiveSeasonalQuests(deviceId);
+
+      const lastCheckInDate = userData.lastCheckInDate || null;
+      const canClaimToday = lastCheckInDate !== todayStr;
+
       res.status(200).json({
         success: true,
         balance: serverBalance,
-        action: 'synced',
+        miroId: userData.miroId,
+        tier: userData.tier ?? "none",
+        currentStreak: userData.currentStreak ?? 0,
+        longestStreak: userData.longestStreak ?? 0,
+        lastCheckInDate,
+        canClaimToday,
+        challenges: userData.challenges ?? {},
+        milestones: userData.milestones ?? {},
+        totalSpent: userData.totalSpent ?? 0,
+        bonusRate: bonusRate,
+        subscription: userData.subscription ?? {},
+        tierCelebration: userData.tierCelebration ?? {},
+        seasonalQuests: seasonalQuests,
+        action: "synced",
       });
-
     } catch (error: any) {
-      console.error('❌ [syncBalance] Error:', error);
-      res.status(500).json({ 
-        error: 'Internal server error',
+      console.error("❌ [syncBalance] Error:", error);
+      res.status(500).json({
+        error: "Internal server error",
         message: error.message,
       });
     }

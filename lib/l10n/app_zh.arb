@@ -1,0 +1,1830 @@
+{
+  "@@locale": "zh",
+  "appName": "MiRO",
+  "save": "节省",
+  "cancel": "取消",
+  "delete": "删除",
+  "edit": "编辑",
+  "search": "搜索",
+  "loading": "加载中...",
+  "error": "发生错误",
+  "confirm": "确认",
+  "close": "关闭",
+  "done": "完毕",
+  "next": "下一个",
+  "skip": "跳过",
+  "retry": "重试",
+  "ok": "好的",
+  "foodName": "食品名称",
+  "calories": "卡路里",
+  "protein": "Pro泰因",
+  "carbs": "碳水化合物",
+  "fat": "胖的",
+  "servingSize": "份量",
+  "servingUnit": "单元",
+  "kcal": "kcal",
+  "mealBreakfast": "早餐",
+  "mealLunch": "午餐",
+  "mealDinner": "晚餐",
+  "mealSnack": "小吃",
+  "todaySummary": "今日总结",
+  "dateSummary": "{date} 的摘要",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSuccess": "保存成功",
+  "deletedSuccess": "删除成功",
+  "pleaseEnterFoodName": "请输入食物名称",
+  "noDataYet": "还没有数据",
+  "addFood": "添加食物",
+  "editFood": "编辑食物",
+  "deleteFood": "删除食物",
+  "deleteConfirm": "确认删除？",
+  "foodLoggedSuccess": "食物已记录！",
+  "noApiKey": "请设置Gemini API Key",
+  "noApiKeyDescription": "进入 Profile → API Settings 进行设置",
+  "apiKeyTitle": "设置 Gemini API Key",
+  "apiKeyRequired": "需要 API Key",
+  "apiKeyFreeNote": "Gemini API 可以免费使用",
+  "apiKeySetup": "设置 API Key",
+  "testConnection": "测试连接",
+  "connectionSuccess": "连接成功！准备使用",
+  "connectionFailed": "连接失败",
+  "pasteKey": "粘贴",
+  "deleteKey": "删除API Key",
+  "openAiStudio": "打开Google AI Studio",
+  "chatHint": "告诉 Miro 例如“原木炒饭”...",
+  "chatFoodSaved": "食物已记录！",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "抱歉，此功能暂不可用",
+  "goalCalories": "卡路里/天",
+  "goalProtein": "Pro斯坦/天",
+  "goalCarbs": "碳水化合物/天",
+  "goalFat": "脂肪/天",
+  "goalWater": "水/天",
+  "healthGoals": "健康目标",
+  "profile": "Pro文件",
+  "settings": "设置",
+  "privacyPolicy": "隐私政策",
+  "termsOfService": "服务条款",
+  "clearAllData": "清除所有数据",
+  "clearAllDataConfirm": "所有数据都将被删除。这无法撤销！",
+  "about": "关于",
+  "language": "语言",
+  "upgradePro": "升级到 Pro",
+  "proUnlocked": "MiRO Pro",
+  "proDescription": "无限AI食品分析",
+  "aiRemaining": "AI分析：今日剩余{remaining}/{total}",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "今天达到 AI 限制 (3/3)",
+  "restorePurchase": "恢复购买",
+  "myMeals": "我的饭菜：",
+  "createMeal": "创建膳食",
+  "ingredients": "原料",
+  "searchFood": "搜索食物",
+  "analyzing": "正在分析...",
+  "analyzeWithAi": "人工智能分析",
+  "analysisComplete": "分析完成",
+  "timeline": "时间轴",
+  "diet": "饮食",
+  "quickAdd": "快速添加",
+  "welcomeTitle": "MiRO",
+  "welcomeSubtitle": "利用人工智能轻松记录食物",
+  "onboardingFeature1": "拍张照片",
+  "onboardingFeature1Desc": "AI自动计算卡路里",
+  "onboardingFeature2": "输入要记录的内容",
+  "onboardingFeature2Desc": "说“吃了炒饭”就会被记录",
+  "onboardingFeature3": "每日总结",
+  "onboardingFeature3Desc": "追踪kcal、蛋白质、碳水化合物、脂肪",
+  "basicInfo": "基本信息",
+  "basicInfoDesc": "计算您推荐的每日卡路里摄入量",
+  "gender": "性别",
+  "male": "男性",
+  "female": "女性",
+  "age": "年龄",
+  "weight": "重量",
+  "height": "高度",
+  "activityLevel": "活动水平",
+  "tdeeResult": "您的 TDEE：{kcal} kcal/天",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "设置 Gemini AI",
+  "setupAiDesc": "拍摄照片，AI 自动分析",
+  "setupNow": "立即设置",
+  "skipForNow": "暂时跳过",
+  "errorTimeout": "连接超时 - 请重试",
+  "errorInvalidKey": "API Key 无效 — 检查您的设置",
+  "errorNoInternet": "没有互联网连接",
+  "errorGeneral": "发生错误 - 请重试",
+  "errorQuotaExceeded": "API 超出配额 — 请等待并重试",
+  "apiKeyScreenTitle": "设置 Gemini API Key",
+  "analyzeFoodWithAi": "用人工智能分析食物",
+  "analyzeFoodWithAiDesc": "拍照→AI自动计算卡路里\nGemini API 可以免费使用！",
+  "openGoogleAiStudio": "打开Google AI Studio",
+  "step1Title": "打开Google AI Studio",
+  "step1Desc": "单击下面的按钮创建 API Key",
+  "step2Title": "使用 Google 帐户登录",
+  "step2Desc": "使用您的 Gmail 或 Google 帐户（如果您没有，请免费创建一个）",
+  "step3Title": "单击“创建API Key”",
+  "step3Desc": "单击蓝色的“创建 API Key”按钮\n如果要求选择 Project → 单击“在新项目中创建 API 密钥”",
+  "step4Title": "复制密钥并粘贴到下面",
+  "step4Desc": "单击创建的密钥旁边的复制\n密钥看起来像：AIzaSyxxxx...",
+  "step5Title": "将 API Key 粘贴到此处",
+  "pasteApiKeyHint": "粘贴复制的 API Key",
+  "saveApiKey": "保存API Key",
+  "testingConnection": "测试...",
+  "deleteApiKey": "删除API Key",
+  "deleteApiKeyConfirm": "删除API Key？",
+  "deleteApiKeyConfirmDesc": "在重新设置之前，您将无法使用 AI 食物分析",
+  "apiKeySaved": "API Key 保存成功",
+  "apiKeyDeleted": "API Key 删除成功",
+  "pleasePasteApiKey": "请先粘贴API Key",
+  "apiKeyInvalidFormat": "无效 API Key — 必须以“AIza”开头",
+  "connectionSuccessMessage": "✅ 连接成功！准备使用",
+  "connectionFailedMessage": "❌ 连接失败",
+  "faqTitle": "常见问题解答",
+  "faqFreeQuestion": "真的免费吗？",
+  "faqFreeAnswer": "是的！ Gemini 2.0 Flash 免费用于每天 1,500 个请求\n食物记录（5-15次/天）→ 永久免费，无需付费",
+  "faqSafeQuestion": "安全吗？",
+  "faqSafeAnswer": "API Key 仅存储在您设备上的安全存储中\n应用程序未将密钥发送到我们的服务器\n如果密钥泄漏 → 删除并创建一个新密钥（这不是您的 Google 密码）",
+  "faqNoKeyQuestion": "如果我不创建密钥怎么办？",
+  "faqNoKeyAnswer": "您仍然可以使用该应用程序！但是：\n❌无法拍照→AI分析\n✅ 可以手动记录食物\n✅ 快速添加作品\n✅ 查看kcal/宏总结作品",
+  "faqCreditCardQuestion": "我需要信用卡吗？",
+  "faqCreditCardAnswer": "否 — 无需信用卡即可免费创建 API Key",
+  "navDashboard": "仪表板",
+  "navMyMeals": "我的饭菜",
+  "navCamera": "相机",
+  "navAiChat": "人工智能聊天",
+  "navProfile": "Pro文件",
+  "appBarTodayIntake": "今日摄入量",
+  "appBarMyMeals": "我的饭菜",
+  "appBarCamera": "相机",
+  "appBarAiChat": "人工智能聊天",
+  "appBarMiro": "米罗",
+  "permissionRequired": "需要许可",
+  "permissionRequiredDesc": "MIRO 需要访问以下内容：",
+  "permissionPhotos": "照片 — 扫描食物",
+  "permissionCamera": "相机——拍摄食物",
+  "permissionSkip": "跳过",
+  "permissionAllow": "允许",
+  "permissionAllGranted": "已授予所有权限",
+  "permissionDenied": "权限被拒绝：{denied}",
+  "@permissionDenied": {
+    "placeholders": {
+      "denied": {
+        "type": "String"
+      }
+    }
+  },
+  "openSettings": "打开设置",
+  "exitAppTitle": "退出应用程序？",
+  "exitAppMessage": "您确定要退出吗？",
+  "exit": "出口",
+  "healthGoalsTitle": "健康目标",
+  "healthGoalsInfo": "设置您的每日卡路里目标、宏指令和每餐预算。\n锁定自动计算：2 个宏或 3 餐。",
+  "dailyCalorieGoal": "每日卡路里目标",
+  "proteinLabel": "Pro泰因",
+  "carbsLabel": "碳水化合物",
+  "fatLabel": "胖的",
+  "autoBadge": "汽车",
+  "kcalPerGram": "{kcalPerGram} kcal/g • {kcal} __SW0__",
+  "@kcalPerGram": {
+    "placeholders": {
+      "kcalPerGram": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieBudget": "膳食热量预算",
+  "mealBudgetBalanced": "总计 {total} kcal = 目标 {goal} __SW0__",
+  "@mealBudgetBalanced": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealBudgetRemaining": "总计 {total} / {goal} kcal （剩余 {remaining}）",
+  "@mealBudgetRemaining": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "lockMealsHint": "锁定 3 餐以自动计算第 4 餐",
+  "breakfastLabel": "早餐",
+  "lunchLabel": "午餐",
+  "dinnerLabel": "晚餐",
+  "snackLabel": "小吃",
+  "percentOfDailyGoal": "每日目标的 {percent}%",
+  "@percentOfDailyGoal": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "smartSuggestionRange": "智能建议范围",
+  "smartSuggestionHow": "智能建议如何运作？",
+  "smartSuggestionDesc": "我们会从您的“我的餐食”、食材和昨天的餐食中推荐符合您每餐预算的食物。\n\n该阈值控制建议的灵活性。例如，如果您的午餐预算为 700 kcal，阈值为 {threshold} __SW0__，我们会建议 {min}–{max} __SW0__ 之间的食物。",
+  "@smartSuggestionDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionThreshold": "建议阈值",
+  "suggestionThresholdDesc": "允许食物 ± {threshold} kcal 超出膳食预算",
+  "@suggestionThresholdDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsSavedSuccess": "目标保存成功！",
+  "canOnlyLockTwoMacros": "一次只能锁定 2 个宏",
+  "canOnlyLockThreeMeals": "只能锁定3餐；第四个自动计算",
+  "tabMeals": "膳食",
+  "tabIngredients": "原料",
+  "searchMealsOrIngredients": "搜索餐食或配料...",
+  "createNewMeal": "创造新餐",
+  "addIngredient": "添加成分",
+  "noMealsYet": "还没吃饭",
+  "noMealsYetDesc": "利用人工智能分析食物以自动保存膳食\n或手动创建一个",
+  "noIngredientsYet": "还没有配料",
+  "noIngredientsYetDesc": "当你用人工智能分析食物时\n成分将自动保存",
+  "mealCreated": "创建了“{name}”",
+  "@mealCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogged": "记录“{name}”",
+  "@mealLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientAmount": "金额 ({unit})",
+  "@ingredientAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientLogged": "记录“{name}”{amount}{unit}",
+  "@ingredientLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNotFound": "未找到餐食",
+  "mealUpdated": "更新了“{name}”",
+  "@mealUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealTitle": "删除餐食？",
+  "deleteMealMessage": "“{name}”",
+  "@deleteMealMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealNote": "成分不会被删除。",
+  "mealDeleted": "餐食已删除",
+  "ingredientCreated": "创建了“{name}”",
+  "@ingredientCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientNotFound": "未找到成分",
+  "ingredientUpdated": "更新了“{name}”",
+  "@ingredientUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteIngredientTitle": "删除成分？",
+  "deleteIngredientMessage": "“{name}”",
+  "@deleteIngredientMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientDeleted": "成分已删除",
+  "noIngredientsData": "无成分数据",
+  "ingredientDetail": "{name} ({amount} {unit})",
+  "@ingredientDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientCalories": "{calories} kcal",
+  "@ingredientCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "useThisMeal": "使用这顿饭",
+  "errorLoading": "加载错误：{error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanFoundNewImages": "在 {date} 上找到 {count} 新图片",
+  "@scanFoundNewImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoNewImages": "在 {date} 上找不到新图像",
+  "@scanNoNewImages": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalysisRemaining": "AI 分析：今日剩余 {remaining}/{total}",
+  "@aiAnalysisRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "upgradeToProUnlimited": "升级到 Pro 无限使用",
+  "upgrade": "升级",
+  "confirmDelete": "确认删除",
+  "confirmDeleteMessage": "您想删除“{name}”吗？",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryDeletedSuccess": "✅ 条目删除成功",
+  "entryDeleteError": "❌错误：{error}",
+  "@entryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "batchAnalyzeItems": "{count} 项（批次）",
+  "@batchAnalyzeItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeCancelled": "已取消 — 成功分析 {success} 项",
+  "@analyzeCancelled": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessAll": "✅ 成功分析 {success} 项",
+  "@analyzeSuccessAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessPartial": "⚠️ 分析了 {success}/{total} 项（{failed} 失败）",
+  "@analyzeSuccessPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgress": "{item} ({current}/{total})",
+  "@analyzeProgress": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pullToScanMeal": "拉动扫描您的餐食",
+  "analyzeAll": "分析全部",
+  "addFoodTitle": "添加食物",
+  "foodNameRequired": "食品名称 *",
+  "foodNameHint": "输入搜索例如炒饭，木瓜沙拉",
+  "selectedFromMyMeal": "✅ 从我的膳食中选择 — 自动填充营养数据",
+  "foundInDatabase": "✅ 在数据库中找到 - 自动填充营养数据",
+  "saveAndAnalyze": "保存并分析",
+  "notFoundInDatabase": "在数据库中未找到 — 将在后台进行分析",
+  "amountLabel": "数量",
+  "unitLabel": "单元",
+  "nutritionAutoCalculated": "营养（按量自动计算）",
+  "nutritionEnterZero": "营养（如果未知，请输入 0）",
+  "caloriesLabel": "卡路里 (kcal)",
+  "proteinLabelShort": "Protein (克)",
+  "carbsLabelShort": "碳水化合物（克）",
+  "fatLabelShort": "脂肪（克）",
+  "mealTypeLabel": "膳食类型",
+  "pleaseEnterFoodNameFirst": "请先输入食物名称",
+  "savedAnalyzingBackground": "✅ 已保存 — 在后台分析",
+  "foodAdded": "✅ 添加食物",
+  "suggestionSourceMyMeal": "我的饭菜",
+  "suggestionSourceIngredient": "成分",
+  "suggestionSourceDatabase": "数据库",
+  "editFoodTitle": "编辑食物",
+  "foodNameLabel": "食品名称",
+  "changeAmountAutoUpdate": "改变量→卡路里自动更新",
+  "baseNutrition": "基数：{calories} kcal / 1 {unit}",
+  "@baseNutrition": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "calculatedFromIngredients": "根据以下成分计算",
+  "ingredientsEditable": "成分（可编辑）",
+  "addIngredientButton": "添加",
+  "noIngredientsAddHint": "没有成分 — 点击“添加”添加新成分",
+  "editIngredientsHint": "编辑名称/金额→点击搜索图标搜索数据库或AI",
+  "ingredientNameHint": "例如鸡蛋",
+  "searchDbOrAi": "搜索数据库/人工智能",
+  "amountHint": "数量",
+  "fromDatabase": "来自数据库",
+  "subIngredients": "子成分 ({count})",
+  "@subIngredients": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSubIngredient": "添加",
+  "subIngredientNameHint": "子成分名称",
+  "amountShort": "阿姆特",
+  "pleaseEnterSubIngredientName": "请先输入子成分名称",
+  "foundInDatabaseSub": "在数据库中找到“{name}”！",
+  "@foundInDatabaseSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalyzedSub": "AI 分析“{name}”（-1 能量）",
+  "@aiAnalyzedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotAnalyzeSub": "无法分析子成分",
+  "pleaseEnterIngredientName": "请输入成分名称",
+  "reAnalyzeTitle": "重新分析？",
+  "reAnalyzeMessage": "“{name}”已有营养数据。\n\n再次分析将消耗 1 点能量。\n\n继续？",
+  "@reAnalyzeMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzeButton": "重新分析（1 能量）",
+  "amountNotSpecified": "金额未指定",
+  "amountNotSpecifiedMessage": "请先指定“{name}”的金额\n还是使用默认的100克？",
+  "@amountNotSpecifiedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "useDefault100g": "使用100克",
+  "aiAnalyzedResult": "AI：“{name}”→ {calories} kcal",
+  "@aiAnalyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToAnalyze": "无法分析",
+  "today": "今天",
+  "savedSuccessfully": "✅ 保存成功",
+  "confirmFoodPhoto": "确认食物照片",
+  "photoSavedAutomatically": "照片自动保存",
+  "foodNameHintExample": "例如，烤鸡肉沙拉",
+  "quantityLabel": "数量",
+  "quantityHint": "1",
+  "optionalFoodInfo": "输入食物名称和数量是可选的，但提供它们将提高人工智能分析的准确性。",
+  "saveOnly": "仅保存",
+  "pleaseEnterValidQuantity": "请输入有效数量",
+  "analyzedResult": "✅ 分析：{name} — {calories} kcal",
+  "@analyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotAnalyzeSaved": "⚠️ 无法分析 — 已保存，稍后使用“分析全部”",
+  "savedAnalyzeLater": "✅ 已保存 — 稍后使用“分析全部”进行分析",
+  "editIngredientTitle": "编辑成分",
+  "ingredientNameRequired": "成分名称 *",
+  "baseAmountLabel": "基础金额",
+  "baseAmountHint": "100",
+  "nutritionPerBase": "每 {amount} {unit} 的营养",
+  "@nutritionPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionCalculatedPerBase": "按 {amount} {unit} 计算营养 — 系统将根据实际消耗量自动计算",
+  "@nutritionCalculatedPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "createIngredient": "创建成分",
+  "saveChanges": "保存更改",
+  "pleaseEnterIngredientNameFirst": "请先输入成分名称",
+  "aiAnalyzedIngredient": "AI：“{name}” {amount} {unit} → {calories} kcal",
+  "@aiAnalyzedIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToFindIngredient": "找不到这个成分",
+  "searchFailed": "搜索失败：{error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEntriesTitle": "删除 {count} {count, plural, =1 {Entry} other {Entries}}？",
+  "@deleteEntriesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteEntriesMessage": "删除 {count} 所选食物 {count, plural, =1 {entry} other {entries}}？",
+  "@deleteEntriesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAll": "全部删除",
+  "deletedEntries": "已删除 {count} {count, plural, =1 {entry} other {entries}}",
+  "@deletedEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedEntriesToDate": "将 {count} {count, plural, =1 {entry} other {entries}} 移至 {date}",
+  "@movedEntriesToDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "allSelectedAlreadyAnalyzed": "所有选定的条目均已分析",
+  "analyzeCancelledSelected": "已取消 — 分析了 {success}",
+  "@analyzeCancelledSelected": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesAll": "分析了 {success} {success, plural, =1 {entry} other {entries}}",
+  "@analyzedEntriesAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesPartial": "分析 {success}/{total}（{failed} 失败）",
+  "@analyzedEntriesPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgressSelected": "{current}/{total} {item}",
+  "@analyzeProgressSelected": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "noEntriesYet": "还没有条目",
+  "selectAll": "选择全部",
+  "deselectAll": "取消全选",
+  "moveToDate": "移至日期",
+  "analyzeSelected": "分析选定的",
+  "deleteTooltip": "删除",
+  "move": "移动",
+  "deleteTooltipAction": "删除",
+  "switchToModeTitle": "切换到 {mode} 模式？",
+  "@switchToModeTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToModeMessage": "该项目被分析为 {current}。\n\n重新分析 {newMode} 将使用 1 能量。\n\n继续？",
+  "@switchToModeMessage": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "newMode": {
+        "type": "String"
+      }
+    }
+  },
+  "analyzingAsMode": "分析为 {mode}...",
+  "@analyzingAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzedAsMode": "✅ 重新分析为 {mode}",
+  "@reAnalyzedAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisFailed": "❌ 分析失败",
+  "aiAnalysisComplete": "✅ AI分析并保存",
+  "changeMealType": "更改膳食类型",
+  "moveToAnotherDate": "移至另一个日期",
+  "currentDate": "当前：{date}",
+  "@currentDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDateChange": "取消更改日期",
+  "undo": "撤消",
+  "chatHistory": "聊天记录",
+  "newChat": "新聊天",
+  "quickActions": "快速行动",
+  "clear": "清除",
+  "helloImMiro": "你好！我是Miro",
+  "tellMeWhatYouAteToday": "告诉我你今天吃了什么！",
+  "tellMeWhatYouAte": "告诉我你吃了什么...",
+  "clearHistoryTitle": "清除历史记录？",
+  "clearHistoryMessage": "此会话中的所有消息都将被删除。",
+  "chatHistoryTitle": "聊天记录",
+  "newLabel": "新的",
+  "noChatHistoryYet": "还没有聊天记录",
+  "active": "积极的",
+  "deleteChatTitle": "删除聊天记录？",
+  "deleteChatMessage": "删除“{title}”？",
+  "@deleteChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklySummaryTitle": "📊 每周总结（{start} - {end}）",
+  "@weeklySummaryTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "daySummary": "📅{day}：{calories} kcal {emoji} ({diff})",
+  "@daySummary": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "overTarget": "{amount} 超过目标",
+  "@overTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTarget": "{amount} 低于目标",
+  "@underTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noFoodLoggedThisWeek": "本周尚未记录任何食物。",
+  "averageKcalPerDay": "🔥 平均：{average} kcal/天",
+  "@averageKcalPerDay": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "targetKcalPerDay": "🎯 目标：{target} kcal/天",
+  "@targetKcalPerDay": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "resultOverTarget": "📈 结果：{amount} kcal 超过目标",
+  "@resultOverTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resultUnderTarget": "📈 结果：{amount} kcal 低于目标 — 干得好！ 💪",
+  "@resultUnderTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadWeeklySummary": "❌ 无法加载每周摘要：{error}",
+  "@failedToLoadWeeklySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlySummaryTitle": "📊 每月总结 ({month} {year})",
+  "@monthlySummaryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "totalDays": "📅 总天数：{days}",
+  "@totalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "totalConsumed": "🔥 总消耗量：{calories} kcal",
+  "@totalConsumed": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "targetTotal": "🎯 目标总计：{target} kcal",
+  "@targetTotal": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "averageKcalPerDayShort": "📈 平均：{average} kcal/天",
+  "@averageKcalPerDayShort": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "overTargetThisMonth": "⚠️ {amount} kcal 超过本月目标",
+  "@overTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTargetThisMonth": "✅ {amount} kcal 低于目标 — 非常好！ 💪",
+  "@underTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadMonthlySummary": "❌ 无法加载每月摘要：{error}",
+  "@failedToLoadMonthlySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiHelpTitle": "🤖 本地人工智能帮助",
+  "localAiHelpFormat": "格式：[食物][数量][单位]",
+  "localAiHelpExamples": "示例：\n•鸡肉100克，米饭200克\n•披萨2片\n• 苹果1块，香蕉1块",
+  "localAiHelpNote": "注：仅限英文，基本解析\n切换到 Miro AI 以获得更好的结果！",
+  "hiNoFoodLogged": "🤖 嗨！今天尚未记录任何食物。\n   目标：{target} kcal — 准备好开始记录了吗？ 🍽️",
+  "@hiNoFoodLogged": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "hiKcalLeft": "🤖 嗨！您今天还有 {remaining} kcal 。\n   准备好记录您的膳食了吗？ 😊",
+  "@hiKcalLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "hiOverTarget": "🤖 嗨！您今天已消耗 {calories} kcal。\n   {over} __SW0__ 超出目标 — 让我们继续跟踪！ 💪",
+  "@hiOverTarget": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "hiReadyToLog": "🤖 嗨！准备好记录您的膳食了吗？ 😊",
+  "notEnoughEnergy": "能量不足",
+  "thinkingMealIdeas": "🤖 为您思考美味佳肴......",
+  "recentMeals": "最近的饭菜：",
+  "noRecentFood": "没有记录最近的食物。",
+  "remainingCaloriesToday": "。今天剩余卡路里：{remaining} kcal。",
+  "@remainingCaloriesToday": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToGetMenuSuggestions": "❌ 获取菜单建议失败：{error}",
+  "@failedToGetMenuSuggestions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionsTitle": "🤖 根据您的饮食记录，这里有 3 种膳食建议：",
+  "mealSuggestionItem": "{index}。 {emoji} {name} (~{calories} kcal)",
+  "@mealSuggestionItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionMacros": "P： {protein}g | C：{carbs}g | F：{fat}g",
+  "@mealSuggestionMacros": {
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
+  "pickOneAndLog": "选择一个，我会为您记录！ 😊",
+  "energyCost": "⚡ -{cost} 能源",
+  "@energyCost": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "giveMeTipsForHealthyEating": "给我健康饮食的建议",
+  "howManyCaloriesToday": "今天多少卡路里？",
+  "menuLabel": "菜单",
+  "weeklyLabel": "每周",
+  "monthlyLabel": "每月",
+  "tipsLabel": "尖端",
+  "summaryLabel": "概括",
+  "helpLabel": "帮助",
+  "onboardingWelcomeSubtitle": "轻松追踪卡路里\n借助人工智能分析",
+  "onboardingSnap": "折断",
+  "onboardingSnapDesc": "AI即时分析",
+  "onboardingType": "类型",
+  "onboardingTypeDesc": "登录秒数",
+  "onboardingEdit": "编辑",
+  "onboardingEditDesc": "微调精度",
+  "onboardingNext": "下一页 →",
+  "onboardingDisclaimer": "AI估计数据。不是医疗建议。",
+  "onboardingQuickSetup": "快速设置",
+  "onboardingHelpAiUnderstand": "帮助人工智能更好地理解你的食物",
+  "onboardingYourTypicalCuisine": "您的典型美食：",
+  "onboardingDailyCalorieGoal": "每日卡路里目标（可选）：",
+  "onboardingKcalPerDay": "kcal/天",
+  "onboardingCalorieGoalHint": "2000年",
+  "onboardingCanChangeAnytime": "您可以随时在 Pro 文件设置中更改此设置",
+  "onboardingYoureAllSet": "一切就绪！",
+  "onboardingStartTracking": "从今天开始记录您的膳食。\n拍张照片或输入你吃了什么。",
+  "onboardingWelcomeGift": "欢迎礼物",
+  "onboardingFreeEnergy": "10 免费能量",
+  "onboardingFreeEnergyDesc": "= 10 项人工智能分析入门",
+  "onboardingEnergyCost": "每次分析消耗 1 能量\n使用越多，赚得越多！",
+  "onboardingStartTrackingButton": "开始追踪！ →",
+  "onboardingNoCreditCard": "无需信用卡 • 无隐藏费用",
+  "cameraTakePhotoOfFood": "给你的食物拍张照片",
+  "cameraFailedToInitialize": "相机初始化失败",
+  "cameraFailedToCapture": "拍摄照片失败",
+  "cameraFailedToPickFromGallery": "无法从图库中选取图像",
+  "cameraProcessing": "Pro停止...",
+  "referralInviteFriends": "邀请好友",
+  "referralYourReferralCode": "您的推荐码",
+  "referralLoading": "加载中...",
+  "referralCopy": "复制",
+  "referralShareCodeDescription": "与朋友分享此代码！当他们使用 AI 3 次时，你们都会获得奖励！",
+  "referralEnterReferralCode": "输入推荐码",
+  "referralCodeHint": "米罗-XXXX-XXXX-XXXX",
+  "referralSubmitCode": "提交代码",
+  "referralPleaseEnterCode": "请输入推荐码",
+  "referralCodeAccepted": "接受推荐码！",
+  "referralCodeCopied": "推荐代码已复制到剪贴板！",
+  "referralEnergyBonus": "+{energy} 能量！",
+  "@referralEnergyBonus": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralHowItWorks": "它是如何运作的",
+  "referralStep1Title": "分享您的推荐代码",
+  "referralStep1Description": "复制并与朋友分享您的 MiRO ID",
+  "referralStep2Title": "朋友输入您的代码",
+  "referralStep2Description": "他们立即获得 +20 能量",
+  "referralStep3Title": "朋友使用AI 3次",
+  "referralStep3Description": "当他们完成 3 项人工智能分析时",
+  "referralStep4Title": "你会得到奖励！",
+  "referralStep4Description": "您获得+5 能量！",
+  "tierBenefitsTitle": "等级福利",
+  "tierBenefitsUnlockRewards": "解锁奖励\n每日连胜",
+  "tierBenefitsKeepStreakDescription": "保持你的连胜，解锁更高的等级并获得惊人的好处！",
+  "tierBenefitsHowItWorks": "它是如何运作的",
+  "tierBenefitsDailyEnergyReward": "每日能量奖励",
+  "tierBenefitsDailyEnergyDescription": "每天至少使用一次人工智能来赚取奖励能量。更高的等级=更多的日常能量！",
+  "tierBenefitsPurchaseBonus": "购买特典",
+  "tierBenefitsPurchaseBonusDescription": "黄金级和钻石级每次购买都会获得额外能量（多 10-20%！）",
+  "tierBenefitsGracePeriod": "宽限期",
+  "tierBenefitsGracePeriodDescription": "错过一天也不会失去连续记录。白银+等级获得保护！",
+  "tierBenefitsAllTiers": "所有级别",
+  "tierBenefitsNew": "新的",
+  "tierBenefitsPopular": "受欢迎的",
+  "tierBenefitsBest": "最好的",
+  "tierBenefitsDailyCheckIn": "每日签到",
+  "tierBenefitsProTips": "Pro 提示",
+  "tierBenefitsTip1": "每天使用人工智能来赚取免费能量并建立你的连胜纪录",
+  "tierBenefitsTip2": "钻石级每天赚取 +4 能量——即 120/月！",
+  "tierBenefitsTip3": "购买奖励适用于所有能量包！",
+  "tierBenefitsTip4": "如果您错过一天，宽限期可以保护您的连续记录",
+  "subscriptionEnergyPass": "能量通行证",
+  "subscriptionInAppPurchasesNotAvailable": "不支持应用内购买",
+  "subscriptionFailedToInitiatePurchase": "发起购买失败",
+  "subscriptionError": "错误：{error}",
+  "@subscriptionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailedToLoad": "加载订阅失败",
+  "subscriptionUnknownError": "未知错误",
+  "subscriptionRetry": "重试",
+  "subscriptionEnergyPassActive": "能量通行证激活",
+  "subscriptionUnlimitedAccess": "您有无限制的访问权限",
+  "subscriptionStatus": "地位",
+  "subscriptionRenews": "续订",
+  "subscriptionPrice": "价格",
+  "subscriptionYourBenefits": "您的好处",
+  "subscriptionManageSubscription": "管理订阅",
+  "subscriptionNoProductAvailable": "没有可用的订阅产品",
+  "subscriptionWhatYouGet": "你得到什么",
+  "subscriptionPerMonth": "每月",
+  "subscriptionSubscribeNow": "立即订阅",
+  "subscriptionCancelAnytime": "随时取消",
+  "subscriptionAutoRenewTerms": "您的订阅将自动续订。您可以随时从 Google Play 取消。",
+  "disclaimerHealthDisclaimer": "健康免责声明",
+  "disclaimerImportantReminders": "重要提醒：",
+  "disclaimerBullet1": "所有营养数据均为估算值",
+  "disclaimerBullet2": "AI分析可能存在错误",
+  "disclaimerBullet3": "不能替代专业建议",
+  "disclaimerBullet4": "向医疗保健提供者咨询医疗指导",
+  "disclaimerBullet5": "请自行决定使用并承担风险",
+  "disclaimerIUnderstand": "我明白",
+  "privacyPolicyTitle": "隐私政策",
+  "privacyPolicySubtitle": "MiRO — 我的摄入记录 Oracle",
+  "privacyPolicyHeaderNote": "您的食物数据保留在您的设备上。能量平衡通过 Firebase 安全同步。",
+  "privacyPolicySectionInformationWeCollect": "我们收集的信息",
+  "privacyPolicySectionDataStorage": "数据存储",
+  "privacyPolicySectionDataTransmission": "向第三方传输数据",
+  "privacyPolicySectionRequiredPermissions": "所需权限",
+  "privacyPolicySectionSecurity": "安全",
+  "privacyPolicySectionUserRights": "用户权利",
+  "privacyPolicySectionDataRetention": "数据保留",
+  "privacyPolicySectionChildrenPrivacy": "儿童隐私",
+  "privacyPolicySectionChangesToPolicy": "本政策的变更",
+  "privacyPolicySectionDataCollectionConsent": "数据收集同意书",
+  "privacyPolicySectionPDPACompliance": "PDPA 合规性（泰国个人数据Pro保护法）",
+  "privacyPolicySectionContactUs": "联系我们",
+  "privacyPolicyEffectiveDate": "生效日期：2026 年 2 月 18 日\n最后更新时间：2026 年 2 月 18 日",
+  "termsOfServiceTitle": "服务条款",
+  "termsSubtitle": "MiRO — 我的摄入记录 Oracle",
+  "termsSectionAcceptanceOfTerms": "接受条款",
+  "termsSectionServiceDescription": "服务说明",
+  "termsSectionDisclaimerOfWarranties": "免责声明",
+  "termsSectionEnergySystemTerms": "能源系统术语",
+  "termsSectionUserDataAndResponsibilities": "用户数据和责任",
+  "termsSectionBackupTransfer": "备份与传输",
+  "termsSectionInAppPurchases": "应用内购买",
+  "termsSectionProhibitedUses": "Pro禁止用途",
+  "termsSectionIntellectualProperty": "智力 Property",
+  "termsSectionLimitationOfLiability": "责任限制",
+  "termsSectionServiceTermination": "服务终止",
+  "termsSectionChangesToTerms": "条款变更",
+  "termsSectionGoverningLaw": "适用法律",
+  "termsSectionContactUs": "联系我们",
+  "termsAcknowledgment": "使用MiRO，即表示您承认您已阅读、理解并同意这些服务条款。",
+  "termsLastUpdated": "最后更新时间：2026 年 2 月 15 日",
+  "profileAndSettings": "Pro文件和设置",
+  "errorOccurred": "错误：{error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGoalsSection": "健康目标",
+  "dailyGoals": "每日目标",
+  "chatAiModeSection": "聊天人工智能模式",
+  "selectAiPowersChat": "选择哪个 AI 为您的聊天提供支持",
+  "miroAi": "Miro人工智能",
+  "miroAiSubtitle": "由Gemini 提供支持 • 多语言 • 高精度",
+  "localAi": "本地人工智能",
+  "localAiSubtitle": "设备上 • 仅英语 • 基本准确性",
+  "free": "自由的",
+  "cuisinePreferenceSection": "美食偏好",
+  "preferredCuisine": "首选美食",
+  "selectYourCuisine": "选择您的菜系",
+  "photoScanSection": "照片扫描",
+  "languageSection": "语言",
+  "languageTitle": "语言 / ภาษา",
+  "selectLanguage": "选择语言 / เลือกภาษา",
+  "systemDefault": "系统默认值",
+  "systemDefaultSublabel": "ตามระบบ",
+  "english": "英语",
+  "englishSublabel": "อังกฤษ",
+  "thai": "ไทย（泰语）",
+  "thaiSublabel": "ภาษาไทย",
+  "closeBilingual": "关闭 / ปิด",
+  "languageChangedTo": "语言更改为 {language}",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSection": "帐户",
+  "miroId": "MiRO ID",
+  "miroIdCopied": "MiRO ID 已复制！",
+  "inviteFriends": "邀请好友",
+  "inviteFriendsSubtitle": "分享您的推荐代码并赚取奖励！",
+  "unlimitedAiDoubleRewards": "无限AI+双倍奖励",
+  "plan": "计划",
+  "monthly": "每月",
+  "started": "开始",
+  "renews": "续订",
+  "expires": "过期",
+  "autoRenew": "自动续订",
+  "on": "在",
+  "off": "离开",
+  "tapToManageSubscription": "点击即可管理订阅",
+  "dataSection": "数据",
+  "backupData": "备份数据",
+  "backupDataSubtitle": "能量+食物历史→另存为文件",
+  "restoreFromBackup": "从备份恢复",
+  "restoreFromBackupSubtitle": "从备份文件导入数据",
+  "clearAllDataTitle": "清除所有数据？",
+  "clearAllDataContent": "所有数据将被删除：\n• 食品条目\n• 我的膳食\n• 成分\n• 目标\n• 个人信息\n\n这无法撤销！",
+  "allDataClearedSuccess": "全部数据清除成功",
+  "aboutSection": "关于",
+  "version": "版本",
+  "healthDisclaimer": "健康免责声明",
+  "importantLegalInformation": "重要法律信息",
+  "showTutorialAgain": "再次显示教程",
+  "viewFeatureTour": "查看特色导览",
+  "showTutorialDialogTitle": "显示教程",
+  "showTutorialDialogContent": "这将显示突出显示的功能导览：\n\n• 能源系统\n• 拉动刷新照片扫描\n• 与Miro AI 聊天\n\n您将返回主屏幕。",
+  "showTutorialButton": "显示教程",
+  "tutorialResetMessage": "教程重置！转到主屏幕即可查看。",
+  "foodAnalysisTutorial": "食品分析教程",
+  "foodAnalysisTutorialSubtitle": "了解如何使用食品分析功能",
+  "backupCreated": "备份已创建！",
+  "backupCreatedContent": "您的备份文件已成功创建。",
+  "backupChooseDestination": "您想在哪里保存备份？",
+  "backupSaveToDevice": "保存到设备",
+  "backupSaveToDeviceDesc": "保存到您在此设备上选择的文件夹",
+  "backupShareToOther": "分享到其他设备",
+  "backupShareToOtherDesc": "通过线路、电子邮件、Google 驱动器等发送。",
+  "backupSavedSuccess": "备份已保存！",
+  "backupSavedSuccessContent": "您的备份文件已保存到您选择的位置。",
+  "important": "重要的：",
+  "backupImportantNotes": "• 将此文件保存在安全的地方（Google 驱动器等）\n• 照片不包含在备份中\n• 转移密钥将在 30 天后过期\n• 钥匙只能使用一次",
+  "restoreBackup": "恢复备份？",
+  "backupFrom": "备份来源：",
+  "date": "日期：",
+  "energy": "活力：",
+  "foodEntries": "食品条目：",
+  "restoreImportant": "重要的",
+  "restoreImportantNotes": "• 该设备上的当前能量将替换为备用能量 ({energy})\n• 食品条目将被合并（不被替换）\n• 照片不包含在备份中\n• 将使用转移密钥（不能重复使用）",
+  "@restoreImportantNotes": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "恢复",
+  "restoreComplete": "恢复完成！",
+  "restoreCompleteContent": "您的数据已成功恢复。",
+  "newEnergyBalance": "新能源平衡：",
+  "foodEntriesImported": "进口食品条目：",
+  "myMealsImported": "我的进口餐食：",
+  "appWillRefresh": "您的应用程序将刷新以显示恢复的数据。",
+  "backupFailed": "备份失败",
+  "invalidBackupFile": "无效的备份文件",
+  "restoreFailed": "恢复失败",
+  "analyticsDataCollection": "分析数据收集",
+  "analyticsEnabled": "启用分析 - ขอบคุณที่ช่วยปรับปรุงแอป",
+  "analyticsDisabled": "分析已禁用 - ไม่เก็บข้อมูลการใช้งาน",
+  "enabled": "启用",
+  "enabledSubtitle": "启用 - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "disabled": "残疾人",
+  "disabledSubtitle": "已禁用 - ไม่เก็บข้อมูลการใช้งาน",
+  "imagesPerDay": "每天的图像数",
+  "scanUpToImagesPerDay": "每天最多扫描 {limit} 张图像",
+  "@scanUpToImagesPerDay": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "重置",
+  "resetScanHistory": "重置扫描历史记录",
+  "resetScanHistorySubtitle": "删除所有扫描条目并重新扫描",
+  "imagesPerDayDialog": "每天的图像数",
+  "maxImagesPerDayDescription": "每天扫描的最大图像数\n仅扫描选定的日期",
+  "scanLimitSetTo": "扫描限制设置为每天 {limit} 张图像",
+  "@scanLimitSetTo": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "resetScanHistoryDialog": "重置扫描历史记录？",
+  "resetScanHistoryContent": "所有画廊扫描的食品条目都将被删除。\n下拉任意日期即可重新扫描图像。",
+  "resetComplete": "重置完成 - {count} 条目已删除。向下拉重新扫描。",
+  "@resetComplete": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarStreak": "连续 {days} 天",
+  "@questBarStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarDaysToNextTier": "{days} 天 → {tier}",
+  "@questBarDaysToNextTier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarMaxTier": "最高等级！ 💎",
+  "questBarOfferDismissed": "优惠隐藏",
+  "questBarViewOffer": "查看优惠",
+  "questBarNoOffersNow": "• 目前没有优惠",
+  "questBarWeeklyChallenges": "🎯 每周挑战",
+  "questBarMilestones": "🏆 里程碑",
+  "questBarInviteFriends": "👥 邀请好友送20E",
+  "questBarTimeRemaining": "⏰ 剩余时间{time}",
+  "@questBarTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarClaimDailyEnergy": "+{energy}E",
+  "@questBarClaimDailyEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarShareReferralError": "错误分享：{error}",
+  "@questBarShareReferralError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationTitle": "{tier} 庆祝活动🎉",
+  "@tierCelebrationTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationDay": "日 {day}",
+  "@tierCelebrationDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tierCelebrationExpired": "已到期",
+  "tierCelebrationComplete": "完全的！",
+  "questBarWatchAd": "观看广告 +{energy}⚡",
+  "@questBarWatchAd": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdRemaining": "今天剩余 {remaining}/{total}",
+  "@questBarAdRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdSuccess": "广告看了！ +{energy} 能量输入...",
+  "@questBarAdSuccess": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdNotReady": "广告未准备好，请重试",
+  "questBarDailyChallenge": "每日挑战",
+  "questBarUseAi": "使用能源",
+  "questBarResetsMonday": "每周一重置",
+  "questBarClaimed": "声称！",
+  "questBarHideOffer": "隐藏",
+  "questBarViewDetails": "看法",
+  "questBarShareText": "尝试MiRO！人工智能驱动的食品分析🍔\n使用此链接，我们都可以免费获得 +20 能量！\n\n{link}",
+  "@questBarShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarShareSubject": "尝试MiRO",
+  "questBarCollapse": "收起",
+  "questBarExpand": "展开",
+  "claimButtonTitle": "索取每日能量",
+  "claimButtonReceived": "收到+{energy}E！",
+  "@claimButtonReceived": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "claimButtonAlreadyClaimed": "今天已经领取了",
+  "claimButtonError": "错误：{error}",
+  "@claimButtonError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonalQuestLimitedTime": "限时",
+  "seasonalQuestDaysLeft": "还剩 {days} 天",
+  "@seasonalQuestDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardDaily": "+{reward}E / 天",
+  "@seasonalQuestRewardDaily": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardOnce": "+{reward}E 一次性",
+  "@seasonalQuestRewardOnce": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestClaimed": "声称！",
+  "seasonalQuestClaimedToday": "今天领取",
+  "errorFailed": "失败的",
+  "errorFailedToClaim": "索赔失败",
+  "errorGeneric": "错误：{error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneNoMilestonesToClaim": "尚未取得任何里程碑",
+  "milestoneClaimedEnergy": "🎁 已领取 +{energy} 能量！",
+  "@milestoneClaimedEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTitle": "里程碑",
+  "milestoneUseEnergyComplete": "使用能量 {threshold}",
+  "@milestoneUseEnergyComplete": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneNext": "下一页： {threshold}E",
+  "@milestoneNext": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneAllComplete": "所有里程碑均已完成！",
+  "noEnergyTitle": "耗尽能量",
+  "noEnergyContent": "使用 AI 分析食物需要 1 能量",
+  "noEnergyTip": "您仍然可以免费手动记录食物（无需人工智能）",
+  "noEnergyLater": "之后",
+  "noEnergyWatchAd": "观看广告 ({remaining}/3)",
+  "@noEnergyWatchAd": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "noEnergyBuyEnergy": "购买能源",
+  "tierBronze": "青铜",
+  "tierSilver": "银",
+  "tierGold": "金子",
+  "tierDiamond": "钻石",
+  "tierStarter": "起动机",
+  "tierUpCongratulations": "🎉恭喜！",
+  "tierUpYouReached": "您已达到 {tier}！",
+  "@tierUpYouReached": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierUpMotivation": "像专业人士一样追踪卡路里\n你梦想的身材越来越近了！",
+  "tierUpReward": "+{reward}E 奖励！",
+  "@tierUpReward": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "referralAllLevelsClaimed": "所有级别均已领取！",
+  "referralLevel": "等级{level}：{subtitle}",
+  "@referralLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "subtitle": {
+        "type": "String"
+      }
+    }
+  },
+  "referralProgress": "[{current}/{target}]（级别 {level}/{total}）",
+  "@referralProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "referralClaimedLevel": "🎁 声称等级 {level}：+{reward} 能量！",
+  "@referralClaimedLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUseAi10": "使用能量 10",
+  "specifyIngredients": "指定已知成分",
+  "specifyIngredientsOptional": "指定已知成分（可选）",
+  "specifyIngredientsHint": "输入你知道的配料，人工智能就会为你发现隐藏的调味料、油和酱汁。",
+  "sendToAi": "发送至人工智能",
+  "reanalyzeWithIngredients": "添加成分并重新分析",
+  "reanalyzeButton": "重新分析（1 能量）",
+  "ingredientsSaved": "保存食材",
+  "pleaseAddAtLeastOneIngredient": "请添加至少 1 种成分",
+  "hiddenIngredientsDiscovered": "AI发现的隐藏成分",
+  "retroScanTitle": "扫描最近的照片？",
+  "retroScanDescription": "我们可以扫描您过去 7 天的照片，自动查找食物照片并将其添加到您的日记中。",
+  "retroScanNote": "仅检测到食物照片 - 其他照片将被忽略。没有照片离开您的设备。",
+  "retroScanStart": "扫描我的照片",
+  "retroScanSkip": "暂时跳过",
+  "retroScanInProgress": "扫描...",
+  "retroScanTagline": "MiRO 正在改变您的\n食物照片转化为健康数据。",
+  "retroScanFetchingPhotos": "正在获取最近的照片...",
+  "retroScanAnalyzing": "正在检测食物照片...",
+  "retroScanPhotosFound": "过去 7 天内找到的 {count} 照片",
+  "@retroScanPhotosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanCompleteTitle": "扫描完成！",
+  "retroScanCompleteDesc": "找到 {count} 食物照片！它们已添加到您的时间线中，准备进行 AI 分析。",
+  "@retroScanCompleteDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanNoResultsTitle": "未找到食物照片",
+  "retroScanNoResultsDesc": "过去 7 天内未检测到任何食物照片。尝试拍摄下一顿饭的照片！",
+  "retroScanAnalyzeHint": "点击时间线上的“全部分析”即可获取这些条目的人工智能营养分析。",
+  "retroScanDone": "知道了！",
+  "welcomeEndTitle": "欢迎来到MiRO！",
+  "welcomeEndMessage": "MiRO 竭诚为您服务。",
+  "welcomeEndJourney": "祝大家旅途愉快！！",
+  "welcomeEndStart": "让我们开始吧！",
+  "greetingCalorieSummary": "你好！今天我能为您提供什么帮助？您还剩下 {remaining} kcal。到目前为止：Protein {protein}g，碳水化合物{carbs}g，脂肪{fat}g。告诉我你吃了什么——按餐列出所有内容，我会为你全部记录下来。更详细更精准！！",
+  "@greetingCalorieSummary": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingCuisineTip": "您的首选美食设置为 {cuisine}。您可以随时在“设置”中更改它！",
+  "@greetingCuisineTip": {
+    "placeholders": {
+      "cuisine": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEnergyTip": "您有 {balance} 可用能量。不要忘记在能量徽章上领取每日连胜奖励！",
+  "@greetingEnergyTip": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingRenamePhotoTip": "提示：您可以重命名食物照片以帮助MiRO更准确地分析！",
+  "greetingAddIngredientsTip": "提示：您可以添加您确定的成分，然后发送到 MiRO 进行分析。我会为你找出所有无聊的小细节！",
+  "greetingBackupReminder": "嘿老板！您已经 {days} 天没有备份数据。我建议在“设置”中进行备份 - 您的数据存储在本地，如果发生问题我无法恢复！",
+  "@greetingBackupReminder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingFallback": "你好！今天我能为您提供什么帮助？告诉我你吃了什么！",
+  "searchModeLabel": "搜索模式",
+  "normalFood": "食物",
+  "normalFoodDesc": "普通家常食物",
+  "packagedProduct": "产品",
+  "packagedProductDesc": "带营养标签的包装产品",
+  "foodNameQuantityAndModeImprovesAccuracy": "提供食物名称、数量并选择是食物还是产品将提高AI准确性。",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "长按选择项目",
+
+  "healthSyncSection": "健康同步",
+  "healthSyncTitle": "与健康应用同步",
+  "healthSyncSubtitleOn": "食物记录已同步 • 包含活动能量",
+  "healthSyncSubtitleOff": "点击连接 Apple Health / Health Connect",
+  "healthSyncEnabled": "已开启健康同步",
+  "healthSyncDisabled": "已关闭健康同步",
+  "healthSyncPermissionDeniedTitle": "需要访问权限",
+  "healthSyncPermissionDeniedMessage": "您之前拒绝了健康数据访问权限。\n请在设备设置中开启。",
+  "healthSyncGoToSettings": "前往设置",
+  "healthSyncActiveEnergyValue": "+{value} kcal 今日活动消耗",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "此设备不支持 Health Connect，请安装 Health Connect 应用。",
+  "healthSyncFoodSynced": "食物已同步到健康应用",
+  "healthSyncFoodDeletedFromHealth": "已从健康应用中删除食物",
+  "bmrSettingTitle": "BMR（基础代谢率）",
+  "bmrSettingSubtitle": "用于估算活动消耗的能量",
+  "bmrDialogTitle": "设置您的BMR",
+  "bmrDialogDescription": "MiRO使用BMR从总消耗热量中减去基础代谢，仅显示您的运动消耗。默认为1500千卡/天。您可以通过健身应用或在线计算器查询您的BMR。",
+  "healthSyncEnabledBmrHint": "健康同步已启用。BMR默认：1500千卡/天 — 可在设置中调整。",
+  "privacyPolicySectionHealthData": "健康数据整合",
+  "termsSectionHealthDataSync": "健康数据同步"
+}

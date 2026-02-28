@@ -18,11 +18,7 @@ class TutorialStep {
 }
 
 enum TutorialStepType {
-  introduction,
-  editFoodName,
-  editQuantity,
-  analyzingWithAI,
-  viewingResults,
-  editingIngredients,
-  completion,
+  analyzeDemo, // Step 1: วิเคราะห์อาหาร + Search Mode toggle
+  editAndResearch, // Step 2: แก้ไข + ค้นหาซ้ำ (interactive)
+  completion, // Step 3: สรุป
 }

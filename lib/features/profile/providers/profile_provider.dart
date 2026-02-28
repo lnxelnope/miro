@@ -12,7 +12,7 @@ final userProfileProvider = FutureProvider<UserProfile>((ref) async {
       .idGreaterThan(0)
       .sortByCreatedAt()
       .findAll();
-  
+
   if (profiles.isEmpty) {
     // สร้าง default profile
     final profile = UserProfile()
@@ -22,14 +22,14 @@ final userProfileProvider = FutureProvider<UserProfile>((ref) async {
       ..carbGoal = AppConstants.defaultCarbGoal
       ..fatGoal = AppConstants.defaultFatGoal
       ..waterGoal = AppConstants.defaultWaterGoal;
-    
+
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.userProfiles.put(profile);
     });
-    
+
     return profile;
   }
-  
+
   return profiles.first;
 });
 
@@ -52,7 +52,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
           .idGreaterThan(0)
           .sortByCreatedAt()
           .findAll();
-      
+
       if (profiles.isEmpty) {
         final profile = UserProfile()
           ..name = 'User'
@@ -61,11 +61,11 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
           ..carbGoal = AppConstants.defaultCarbGoal
           ..fatGoal = AppConstants.defaultFatGoal
           ..waterGoal = AppConstants.defaultWaterGoal;
-        
+
         await DatabaseService.isar.writeTxn(() async {
           await DatabaseService.userProfiles.put(profile);
         });
-        
+
         state = AsyncValue.data(profile);
       } else {
         state = AsyncValue.data(profiles.first);
@@ -85,19 +85,35 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
 
   Future<void> updateHealthGoals({
     double? calorieGoal,
+    double? tdee,
+    double? customBmr,
     double? proteinGoal,
     double? carbGoal,
     double? fatGoal,
     double? waterGoal,
+    double? breakfastBudget,
+    double? lunchBudget,
+    double? dinnerBudget,
+    double? snackBudget,
+    double? suggestionThreshold,
+    bool? mealSuggestionsEnabled,
   }) async {
     final currentProfile = state.value;
     if (currentProfile == null) return;
 
     if (calorieGoal != null) currentProfile.calorieGoal = calorieGoal;
+    if (tdee != null) currentProfile.tdee = tdee;
+    if (customBmr != null) currentProfile.customBmr = customBmr;
     if (proteinGoal != null) currentProfile.proteinGoal = proteinGoal;
     if (carbGoal != null) currentProfile.carbGoal = carbGoal;
     if (fatGoal != null) currentProfile.fatGoal = fatGoal;
     if (waterGoal != null) currentProfile.waterGoal = waterGoal;
+    if (breakfastBudget != null) currentProfile.breakfastBudget = breakfastBudget;
+    if (lunchBudget != null) currentProfile.lunchBudget = lunchBudget;
+    if (dinnerBudget != null) currentProfile.dinnerBudget = dinnerBudget;
+    if (snackBudget != null) currentProfile.snackBudget = snackBudget;
+    if (suggestionThreshold != null) currentProfile.suggestionThreshold = suggestionThreshold;
+    if (mealSuggestionsEnabled != null) currentProfile.mealSuggestionsEnabled = mealSuggestionsEnabled;
 
     await updateProfile(currentProfile);
   }

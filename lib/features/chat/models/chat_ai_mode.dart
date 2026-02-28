@@ -4,7 +4,7 @@
 enum ChatAiMode {
   /// Local AI — Free, English only, Regex-based
   local,
-  
+
   /// Miro AI — 2⚡ base + 1⚡/item, Multi-language, Gemini-powered
   miroAi;
 

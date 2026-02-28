@@ -1,0 +1,1830 @@
+{
+  "@@locale": "id",
+  "appName": "MiRO",
+  "save": "Menyimpan",
+  "cancel": "Membatalkan",
+  "delete": "Menghapus",
+  "edit": "Sunting",
+  "search": "Mencari",
+  "loading": "Memuat...",
+  "error": "Terjadi kesalahan",
+  "confirm": "Mengonfirmasi",
+  "close": "Menutup",
+  "done": "Selesai",
+  "next": "Berikutnya",
+  "skip": "Melewati",
+  "retry": "Mencoba kembali",
+  "ok": "OKE",
+  "foodName": "Nama makanan",
+  "calories": "Kalori",
+  "protein": "Protein",
+  "carbs": "Karbohidrat",
+  "fat": "Gemuk",
+  "servingSize": "Ukuran porsi",
+  "servingUnit": "Satuan",
+  "kcal": "kcal",
+  "mealBreakfast": "Sarapan",
+  "mealLunch": "Makan siang",
+  "mealDinner": "Makan malam",
+  "mealSnack": "Camilan",
+  "todaySummary": "Ringkasan Hari Ini",
+  "dateSummary": "Ringkasan untuk {date}",
+  "@dateSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savedSuccess": "Berhasil disimpan",
+  "deletedSuccess": "Berhasil dihapus",
+  "pleaseEnterFoodName": "Silakan masukkan nama makanan",
+  "noDataYet": "Belum ada datanya",
+  "addFood": "Tambahkan makanan",
+  "editFood": "Sunting makanan",
+  "deleteFood": "Hapus makanan",
+  "deleteConfirm": "Konfirmasi penghapusan?",
+  "foodLoggedSuccess": "Makanan dicatat!",
+  "noApiKey": "Harap siapkan Gemini API Key",
+  "noApiKeyDescription": "Buka Profile → API Pengaturan untuk menyiapkan",
+  "apiKeyTitle": "Siapkan Gemini API Key",
+  "apiKeyRequired": "API Key diperlukan",
+  "apiKeyFreeNote": "Gemini API gratis untuk digunakan",
+  "apiKeySetup": "Siapkan API Key",
+  "testConnection": "Uji koneksi",
+  "connectionSuccess": "Berhasil terhubung! Siap digunakan",
+  "connectionFailed": "Koneksi gagal",
+  "pasteKey": "Pasta",
+  "deleteKey": "Hapus API Key",
+  "openAiStudio": "Buka Google AI Studio",
+  "chatHint": "Beritahu Miro mis. \"Log nasi goreng\"...",
+  "chatFoodSaved": "Makanan dicatat!",
+  "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
+  "@chatFoodSavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "serving": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "cal": {
+        "type": "String"
+      }
+    }
+  },
+  "featureNotAvailable": "Maaf, fitur ini belum tersedia",
+  "goalCalories": "Kalori/hari",
+  "goalProtein": "Protein/hari",
+  "goalCarbs": "Karbohidrat/hari",
+  "goalFat": "Lemak/hari",
+  "goalWater": "Air/hari",
+  "healthGoals": "Tujuan Kesehatan",
+  "profile": "Proberkas",
+  "settings": "Pengaturan",
+  "privacyPolicy": "Kebijakan Privasi",
+  "termsOfService": "Ketentuan Layanan",
+  "clearAllData": "Hapus semua data",
+  "clearAllDataConfirm": "Semua data akan dihapus. Hal ini tidak dapat dibatalkan!",
+  "about": "Tentang",
+  "language": "Bahasa",
+  "upgradePro": "Tingkatkan ke Pro",
+  "proUnlocked": "MiRO Pro",
+  "proDescription": "Analisis makanan AI tanpa batas",
+  "aiRemaining": "Analisis AI: {remaining}/{total} tersisa hari ini",
+  "@aiRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "aiLimitReached": "Batas AI tercapai hari ini (3/3)",
+  "restorePurchase": "Pulihkan pembelian",
+  "myMeals": "Makanan Saya:",
+  "createMeal": "Buat Makanan",
+  "ingredients": "Bahan-bahan",
+  "searchFood": "Cari makanan",
+  "analyzing": "Menganalisis...",
+  "analyzeWithAi": "Analisis dengan AI",
+  "analysisComplete": "Analisis selesai",
+  "timeline": "Garis Waktu",
+  "diet": "Diet",
+  "quickAdd": "Tambah Cepat",
+  "welcomeTitle": "MiRO",
+  "welcomeSubtitle": "Pencatatan makanan yang mudah dengan AI",
+  "onboardingFeature1": "Ambil foto",
+  "onboardingFeature1Desc": "AI menghitung kalori secara otomatis",
+  "onboardingFeature2": "Ketik untuk mencatat",
+  "onboardingFeature2Desc": "Ucapkan \"nasi goreng\" dan itu dicatat",
+  "onboardingFeature3": "Ringkasan harian",
+  "onboardingFeature3Desc": "Lacak kcal, protein, karbohidrat, lemak",
+  "basicInfo": "Info Dasar",
+  "basicInfoDesc": "Untuk menghitung kalori harian yang Anda rekomendasikan",
+  "gender": "Jenis kelamin",
+  "male": "Pria",
+  "female": "Perempuan",
+  "age": "Usia",
+  "weight": "Berat",
+  "height": "Tinggi",
+  "activityLevel": "Tingkat Aktivitas",
+  "tdeeResult": "TDEE Anda: {kcal} kcal/hari",
+  "@tdeeResult": {
+    "placeholders": {
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "setupAiTitle": "Siapkan Gemini AI",
+  "setupAiDesc": "Ambil foto dan AI menganalisisnya secara otomatis",
+  "setupNow": "Siapkan sekarang",
+  "skipForNow": "Lewati untuk saat ini",
+  "errorTimeout": "Batas waktu koneksi habis — silakan coba lagi",
+  "errorInvalidKey": "API Key tidak valid — periksa pengaturan Anda",
+  "errorNoInternet": "Tidak ada koneksi internet",
+  "errorGeneral": "Terjadi kesalahan — silakan coba lagi",
+  "errorQuotaExceeded": "Kuota API terlampaui — harap tunggu dan coba lagi",
+  "apiKeyScreenTitle": "Siapkan Gemini API Key",
+  "analyzeFoodWithAi": "Analisis makanan dengan AI",
+  "analyzeFoodWithAiDesc": "Ambil foto → AI menghitung kalori secara otomatis\nGemini API gratis untuk digunakan!",
+  "openGoogleAiStudio": "Buka Google AI Studio",
+  "step1Title": "Buka Google AI Studio",
+  "step1Desc": "Klik tombol di bawah untuk membuat API Key",
+  "step2Title": "Masuk dengan Akun Google",
+  "step2Desc": "Gunakan Akun Gmail atau Google Anda (buat gratis jika Anda belum punya)",
+  "step3Title": "Klik \"Buat API Key\"",
+  "step3Desc": "Klik tombol biru \"Buat API Key\".\nJika diminta untuk memilih Project → Klik \"Buat kunci API di proyek baru\"",
+  "step4Title": "Salin Kunci dan tempel di bawah",
+  "step4Desc": "Klik Salin di sebelah Kunci yang dibuat\nKuncinya akan terlihat seperti: AIzaSyxxxx...",
+  "step5Title": "Tempel API Key di sini",
+  "pasteApiKeyHint": "Tempelkan API Key yang disalin",
+  "saveApiKey": "Simpan API Key",
+  "testingConnection": "Menguji...",
+  "deleteApiKey": "Hapus API Key",
+  "deleteApiKeyConfirm": "Hapus API Key?",
+  "deleteApiKeyConfirmDesc": "Anda tidak akan dapat menggunakan analisis makanan AI sampai Anda menyiapkannya lagi",
+  "apiKeySaved": "API Key berhasil disimpan",
+  "apiKeyDeleted": "API Key berhasil dihapus",
+  "pleasePasteApiKey": "Silakan tempel API Key terlebih dahulu",
+  "apiKeyInvalidFormat": "API Key tidak valid — harus dimulai dengan \"AIza\"",
+  "connectionSuccessMessage": "✅ Berhasil terhubung! Siap digunakan",
+  "connectionFailedMessage": "❌ Koneksi gagal",
+  "faqTitle": "Pertanyaan yang Sering Diajukan",
+  "faqFreeQuestion": "Apakah ini benar-benar gratis?",
+  "faqFreeAnswer": "Ya! Gemini 2.0 Flash gratis untuk 1.500 permintaan/hari\nUntuk pencatatan makanan (5-15 kali/hari) → Gratis selamanya, tidak perlu pembayaran",
+  "faqSafeQuestion": "Apakah aman?",
+  "faqSafeAnswer": "API Key disimpan di Penyimpanan Aman di perangkat Anda saja\nAplikasi tidak mengirimkan Kunci ke server kami\nJika Kunci bocor → Hapus dan buat yang baru (itu bukan kata sandi Google Anda)",
+  "faqNoKeyQuestion": "Bagaimana jika saya tidak membuat Kunci?",
+  "faqNoKeyAnswer": "Anda masih dapat menggunakan aplikasi ini! Tapi:\n❌ Tidak dapat mengambil foto → Analisis AI\n✅ Dapat mencatat makanan secara manual\n✅ Tambah Cepat berfungsi\n✅ Lihat karya ringkasan kcal/makro",
+  "faqCreditCardQuestion": "Apakah saya memerlukan kartu kredit?",
+  "faqCreditCardAnswer": "Tidak — Buat API Key gratis tanpa kartu kredit",
+  "navDashboard": "Dasbor",
+  "navMyMeals": "Makananku",
+  "navCamera": "Kamera",
+  "navAiChat": "Obrolan AI",
+  "navProfile": "Proberkas",
+  "appBarTodayIntake": "Asupan hari ini",
+  "appBarMyMeals": "Makananku",
+  "appBarCamera": "Kamera",
+  "appBarAiChat": "Obrolan AI",
+  "appBarMiro": "MIRO",
+  "permissionRequired": "Izin Diperlukan",
+  "permissionRequiredDesc": "MIRO memerlukan akses ke hal-hal berikut:",
+  "permissionPhotos": "Foto — untuk memindai makanan",
+  "permissionCamera": "Kamera — untuk memotret makanan",
+  "permissionSkip": "Melewati",
+  "permissionAllow": "Mengizinkan",
+  "permissionAllGranted": "Semua izin diberikan",
+  "permissionDenied": "Izin ditolak: {denied}",
+  "@permissionDenied": {
+    "placeholders": {
+      "denied": {
+        "type": "String"
+      }
+    }
+  },
+  "openSettings": "Buka Pengaturan",
+  "exitAppTitle": "Keluar dari Aplikasi?",
+  "exitAppMessage": "Apakah Anda yakin ingin keluar?",
+  "exit": "KELUAR",
+  "healthGoalsTitle": "Tujuan Kesehatan",
+  "healthGoalsInfo": "Tetapkan sasaran kalori harian, makro, dan anggaran per makanan Anda.\nKunci untuk menghitung otomatis: 2 makro atau 3 kali makan.",
+  "dailyCalorieGoal": "Sasaran Kalori Harian",
+  "proteinLabel": "Protein",
+  "carbsLabel": "Karbohidrat",
+  "fatLabel": "Gemuk",
+  "autoBadge": "mobil",
+  "kcalPerGram": "{kcalPerGram} kcal/g • {kcal} __SW0__",
+  "@kcalPerGram": {
+    "placeholders": {
+      "kcalPerGram": {
+        "type": "int"
+      },
+      "kcal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealCalorieBudget": "Anggaran Kalori Makanan",
+  "mealBudgetBalanced": "Jumlah {total} kcal = Sasaran {goal} __SW0__",
+  "@mealBudgetBalanced": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      }
+    }
+  },
+  "mealBudgetRemaining": "Jumlah {total} / {goal} kcal ({remaining} tersisa)",
+  "@mealBudgetRemaining": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "goal": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "lockMealsHint": "Kunci 3 makanan untuk menghitung makanan ke-4 secara otomatis",
+  "breakfastLabel": "Sarapan",
+  "lunchLabel": "Makan siang",
+  "dinnerLabel": "Makan malam",
+  "snackLabel": "Camilan",
+  "percentOfDailyGoal": "{percent}% dari target harian",
+  "@percentOfDailyGoal": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "smartSuggestionRange": "Rentang Saran Cerdas",
+  "smartSuggestionHow": "Bagaimana cara kerja Saran Cerdas?",
+  "smartSuggestionDesc": "Kami menyarankan makanan dari Makanan Saya, bahan-bahan, dan makanan kemarin yang sesuai dengan anggaran makan Anda.\n\nAmbang batas ini mengontrol seberapa fleksibel saran tersebut. Misalnya, jika anggaran makan siang Anda adalah 700 kcal dan ambang batasnya adalah {threshold} __SW0__, kami akan menyarankan makanan antara {min}–{max} __SW0__.",
+  "@smartSuggestionDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      },
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionThreshold": "Ambang Saran",
+  "suggestionThresholdDesc": "Izinkan makanan ± {threshold} kcal dari anggaran makan",
+  "@suggestionThresholdDesc": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "goalsSavedSuccess": "Gol berhasil disimpan!",
+  "canOnlyLockTwoMacros": "Hanya bisa mengunci 2 makro sekaligus",
+  "canOnlyLockThreeMeals": "Hanya dapat mengunci 3 kali makan; perhitungan otomatis ke-4",
+  "tabMeals": "Makanan",
+  "tabIngredients": "Bahan-bahan",
+  "searchMealsOrIngredients": "Cari makanan atau bahan...",
+  "createNewMeal": "Buat Makanan Baru",
+  "addIngredient": "Tambahkan Bahan",
+  "noMealsYet": "Belum ada makanan",
+  "noMealsYetDesc": "Analisis makanan dengan AI untuk menyimpan makanan secara otomatis\natau buat secara manual",
+  "noIngredientsYet": "Belum ada bahan",
+  "noIngredientsYetDesc": "Saat Anda menganalisis makanan dengan AI\nbahan akan disimpan secara otomatis",
+  "mealCreated": "Dibuat \"{name}\"",
+  "@mealCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mealLogged": "Tercatat \"{name}\"",
+  "@mealLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientAmount": "Jumlah ({unit})",
+  "@ingredientAmount": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientLogged": "Tercatat \"{name}\" {amount}{unit}",
+  "@ingredientLogged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNotFound": "Makanan tidak ditemukan",
+  "mealUpdated": "Diperbarui \"{name}\"",
+  "@mealUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealTitle": "Hapus Makanan?",
+  "deleteMealMessage": "\"{name}\"",
+  "@deleteMealMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMealNote": "Bahan-bahannya tidak akan dihapus.",
+  "mealDeleted": "Makanan dihapus",
+  "ingredientCreated": "Dibuat \"{name}\"",
+  "@ingredientCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientNotFound": "Bahan tidak ditemukan",
+  "ingredientUpdated": "Diperbarui \"{name}\"",
+  "@ingredientUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteIngredientTitle": "Hapus Bahan?",
+  "deleteIngredientMessage": "\"{name}\"",
+  "@deleteIngredientMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientDeleted": "Bahan dihapus",
+  "noIngredientsData": "Tidak ada data bahan",
+  "ingredientDetail": "{name} ({amount} {unit})",
+  "@ingredientDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "ingredientCalories": "{calories} kcal",
+  "@ingredientCalories": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "useThisMeal": "Gunakan Makanan Ini",
+  "errorLoading": "Kesalahan saat memuat: {error}",
+  "@errorLoading": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "scanFoundNewImages": "Menemukan {count} gambar baru di {date}",
+  "@scanFoundNewImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNoNewImages": "Tidak ada gambar baru yang ditemukan di {date}",
+  "@scanNoNewImages": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalysisRemaining": "Analisis AI: {remaining}/{total} tersisa hari ini",
+  "@aiAnalysisRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "upgradeToProUnlimited": "Tingkatkan ke Pro untuk penggunaan tak terbatas",
+  "upgrade": "Meningkatkan",
+  "confirmDelete": "Konfirmasi Hapus",
+  "confirmDeleteMessage": "Apakah Anda ingin menghapus \"{name}\"?",
+  "@confirmDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "entryDeletedSuccess": "✅ Entri berhasil dihapus",
+  "entryDeleteError": "❌ Kesalahan: {error}",
+  "@entryDeleteError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "batchAnalyzeItems": "{count} item (kumpulan)",
+  "@batchAnalyzeItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeCancelled": "Dibatalkan — berhasil menganalisis item {success}",
+  "@analyzeCancelled": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessAll": "✅ Berhasil menganalisis item {success}",
+  "@analyzeSuccessAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeSuccessPartial": "⚠️ Menganalisis item {success}/{total} ({failed} gagal)",
+  "@analyzeSuccessPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgress": "{item} ({current}/{total})",
+  "@analyzeProgress": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      },
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pullToScanMeal": "Tarik untuk memindai makanan Anda",
+  "analyzeAll": "Analisis Semua",
+  "addFoodTitle": "Tambahkan Makanan",
+  "foodNameRequired": "Nama Makanan *",
+  "foodNameHint": "Ketik untuk mencari mis. nasi goreng, salad pepaya",
+  "selectedFromMyMeal": "✅ Dipilih dari Makanan Saya - data nutrisi terisi secara otomatis",
+  "foundInDatabase": "✅ Ditemukan di database — data nutrisi terisi secara otomatis",
+  "saveAndAnalyze": "Simpan & Analisis",
+  "notFoundInDatabase": "Tidak ditemukan di database — akan dianalisis di latar belakang",
+  "amountLabel": "Jumlah",
+  "unitLabel": "Satuan",
+  "nutritionAutoCalculated": "Nutrisi (dihitung otomatis berdasarkan jumlah)",
+  "nutritionEnterZero": "Nutrisi (masukkan 0 jika tidak diketahui)",
+  "caloriesLabel": "Kalori (kcal)",
+  "proteinLabelShort": "Protein (g)",
+  "carbsLabelShort": "Karbohidrat (g)",
+  "fatLabelShort": "Lemak (g)",
+  "mealTypeLabel": "Jenis Makanan",
+  "pleaseEnterFoodNameFirst": "Silakan masukkan nama makanan terlebih dahulu",
+  "savedAnalyzingBackground": "✅ Tersimpan - menganalisis di latar belakang",
+  "foodAdded": "✅ Makanan ditambahkan",
+  "suggestionSourceMyMeal": "Makananku",
+  "suggestionSourceIngredient": "Bahan",
+  "suggestionSourceDatabase": "Basis data",
+  "editFoodTitle": "Sunting Makanan",
+  "foodNameLabel": "Nama makanan",
+  "changeAmountAutoUpdate": "Ubah jumlah → pembaruan kalori secara otomatis",
+  "baseNutrition": "Basis: {calories} kcal / 1 {unit}",
+  "@baseNutrition": {
+    "placeholders": {
+      "calories": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "calculatedFromIngredients": "Dihitung dari bahan-bahan di bawah ini",
+  "ingredientsEditable": "Bahan (Dapat Diedit)",
+  "addIngredientButton": "Menambahkan",
+  "noIngredientsAddHint": "Tanpa bahan — ketuk \"Tambah\" untuk menambahkan bahan baru",
+  "editIngredientsHint": "Edit nama/jumlah → Ketuk ikon pencarian untuk mencari database atau AI",
+  "ingredientNameHint": "misalnya Telur Ayam",
+  "searchDbOrAi": "Cari DB / AI",
+  "amountHint": "Jumlah",
+  "fromDatabase": "Dari Basis Data",
+  "subIngredients": "Sub-bahan ({count})",
+  "@subIngredients": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addSubIngredient": "Menambahkan",
+  "subIngredientNameHint": "Nama sub-bahan",
+  "amountShort": "Amt",
+  "pleaseEnterSubIngredientName": "Silakan masukkan nama sub-bahan terlebih dahulu",
+  "foundInDatabaseSub": "Ditemukan \"{name}\" di database!",
+  "@foundInDatabaseSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "aiAnalyzedSub": "AI menganalisis \"{name}\" (-1 Energi)",
+  "@aiAnalyzedSub": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotAnalyzeSub": "Tidak dapat menganalisis sub-bahan",
+  "pleaseEnterIngredientName": "Silakan masukkan nama bahan",
+  "reAnalyzeTitle": "Analisis ulang?",
+  "reAnalyzeMessage": "\"{name}\" sudah memiliki data nutrisi.\n\nMenganalisis lagi akan menggunakan 1 Energi.\n\nMelanjutkan?",
+  "@reAnalyzeMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzeButton": "Analisis ulang (1 Energi)",
+  "amountNotSpecified": "Jumlah tidak ditentukan",
+  "amountNotSpecifiedMessage": "Harap tentukan jumlah untuk \"{name}\" terlebih dahulu\nAtau pakai bawaan 100 gr?",
+  "@amountNotSpecifiedMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "useDefault100g": "Gunakan 100 gram",
+  "aiAnalyzedResult": "AI: \"{name}\" → {calories} kcal",
+  "@aiAnalyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToAnalyze": "Tidak dapat menganalisis",
+  "today": "Hari ini",
+  "savedSuccessfully": "✅ Berhasil disimpan",
+  "confirmFoodPhoto": "Konfirmasi Foto Makanan",
+  "photoSavedAutomatically": "Foto disimpan secara otomatis",
+  "foodNameHintExample": "misalnya, salad ayam panggang",
+  "quantityLabel": "Kuantitas",
+  "quantityHint": "1",
+  "optionalFoodInfo": "Memasukkan nama dan kuantitas makanan bersifat opsional, namun memasukkannya akan meningkatkan akurasi analisis AI.",
+  "saveOnly": "Simpan saja",
+  "pleaseEnterValidQuantity": "Silakan masukkan jumlah yang valid",
+  "analyzedResult": "✅ Dianalisis: {name} — {calories} kcal",
+  "@analyzedResult": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotAnalyzeSaved": "⚠️ Tidak dapat menganalisis — disimpan, gunakan \"Analisis Semua\" nanti",
+  "savedAnalyzeLater": "✅ Tersimpan - analisis nanti dengan \"Analisis Semua\"",
+  "editIngredientTitle": "Sunting Bahan",
+  "ingredientNameRequired": "Nama Bahan *",
+  "baseAmountLabel": "Jumlah Dasar",
+  "baseAmountHint": "100",
+  "nutritionPerBase": "Nutrisi per {amount} {unit}",
+  "@nutritionPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "nutritionCalculatedPerBase": "Nutrisi dihitung per {amount} {unit} — sistem akan menghitung secara otomatis berdasarkan jumlah aktual yang dikonsumsi",
+  "@nutritionCalculatedPerBase": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "createIngredient": "Buat Bahan",
+  "saveChanges": "Simpan Perubahan",
+  "pleaseEnterIngredientNameFirst": "Silakan masukkan nama bahan terlebih dahulu",
+  "aiAnalyzedIngredient": "AI: \"{name}\" {amount} {unit} → {calories} kcal",
+  "@aiAnalyzedIngredient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "int"
+      }
+    }
+  },
+  "unableToFindIngredient": "Tidak dapat menemukan bahan ini",
+  "searchFailed": "Pencarian gagal: {error}",
+  "@searchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteEntriesTitle": "Hapus {count} {count, plural, =1 {Entry} other {Entries}}?",
+  "@deleteEntriesTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteEntriesMessage": "Hapus {count} makanan yang dipilih {count, plural, =1 {entry} other {entries}}?",
+  "@deleteEntriesMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteAll": "Hapus Semua",
+  "deletedEntries": "Dihapus {count} {count, plural, =1 {entry} other {entries}}",
+  "@deletedEntries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "movedEntriesToDate": "Memindahkan {count} {count, plural, =1 {entry} other {entries}} ke {date}",
+  "@movedEntriesToDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "allSelectedAlreadyAnalyzed": "Semua entri yang dipilih sudah dianalisis",
+  "analyzeCancelledSelected": "Dibatalkan — {success} dianalisis",
+  "@analyzeCancelledSelected": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesAll": "Menganalisis {success} {success, plural, =1 {entry} other {entries}}",
+  "@analyzedEntriesAll": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzedEntriesPartial": "Menganalisis {success}/{total} ({failed} gagal)",
+  "@analyzedEntriesPartial": {
+    "placeholders": {
+      "success": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "analyzeProgressSelected": "{current}/{total} {item}",
+  "@analyzeProgressSelected": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "noEntriesYet": "Belum ada entri",
+  "selectAll": "Pilih semua",
+  "deselectAll": "Batalkan pilihan semua",
+  "moveToDate": "Pindah ke tanggal",
+  "analyzeSelected": "Analisis yang dipilih",
+  "deleteTooltip": "Menghapus",
+  "move": "Bergerak",
+  "deleteTooltipAction": "Menghapus",
+  "switchToModeTitle": "Beralih ke mode {mode}?",
+  "@switchToModeTitle": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "switchToModeMessage": "Item ini dianalisis sebagai {current}.\n\nMenganalisis ulang sebagai {newMode} akan menggunakan 1 Energi.\n\nMelanjutkan?",
+  "@switchToModeMessage": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "newMode": {
+        "type": "String"
+      }
+    }
+  },
+  "analyzingAsMode": "Menganalisis sebagai {mode}...",
+  "@analyzingAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "reAnalyzedAsMode": "✅ Dianalisis ulang sebagai {mode}",
+  "@reAnalyzedAsMode": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "analysisFailed": "❌ Analisis gagal",
+  "aiAnalysisComplete": "✅ AI dianalisis dan disimpan",
+  "changeMealType": "Ubah Jenis Makanan",
+  "moveToAnotherDate": "Pindah ke Tanggal Lain",
+  "currentDate": "Saat ini: {date}",
+  "@currentDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "cancelDateChange": "Batalkan Perubahan Tanggal",
+  "undo": "Membuka",
+  "chatHistory": "Riwayat Obrolan",
+  "newChat": "Obrolan baru",
+  "quickActions": "Tindakan Cepat",
+  "clear": "Jernih",
+  "helloImMiro": "Halo! saya Miro",
+  "tellMeWhatYouAteToday": "Katakan padaku apa yang kamu makan hari ini!",
+  "tellMeWhatYouAte": "Katakan padaku apa yang kamu makan...",
+  "clearHistoryTitle": "Hapus riwayat?",
+  "clearHistoryMessage": "Semua pesan di sesi ini akan dihapus.",
+  "chatHistoryTitle": "Riwayat Obrolan",
+  "newLabel": "Baru",
+  "noChatHistoryYet": "Belum ada riwayat obrolan",
+  "active": "Aktif",
+  "deleteChatTitle": "Hapus obrolan?",
+  "deleteChatMessage": "Hapus \"{title}\"?",
+  "@deleteChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklySummaryTitle": "📊 Ringkasan Mingguan ({start} - {end})",
+  "@weeklySummaryTitle": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "daySummary": "📅 {day}: {calories} kcal {emoji} ({diff})",
+  "@daySummary": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "diff": {
+        "type": "String"
+      }
+    }
+  },
+  "overTarget": "{amount} melebihi target",
+  "@overTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTarget": "{amount} di bawah target",
+  "@underTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "noFoodLoggedThisWeek": "Belum ada makanan yang dicatat minggu ini.",
+  "averageKcalPerDay": "🔥 Rata-rata: {average} kcal/hari",
+  "@averageKcalPerDay": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "targetKcalPerDay": "🎯 Target: {target} kcal/hari",
+  "@targetKcalPerDay": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "resultOverTarget": "📈 Hasil: {amount} kcal melebihi target",
+  "@resultOverTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "resultUnderTarget": "📈 Hasil: {amount} kcal di bawah target — Kerja bagus! 💪",
+  "@resultUnderTarget": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadWeeklySummary": "❌ Gagal memuat ringkasan mingguan: {error}",
+  "@failedToLoadWeeklySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "monthlySummaryTitle": "📊 Ringkasan Bulanan ({month} {year})",
+  "@monthlySummaryTitle": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
+  "totalDays": "📅 Jumlah Hari: {days}",
+  "@totalDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "totalConsumed": "🔥 Jumlah yang Dikonsumsi: {calories} kcal",
+  "@totalConsumed": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "targetTotal": "🎯 Jumlah Sasaran: {target} kcal",
+  "@targetTotal": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "averageKcalPerDayShort": "📈 Rata-rata: {average} kcal/hari",
+  "@averageKcalPerDayShort": {
+    "placeholders": {
+      "average": {
+        "type": "String"
+      }
+    }
+  },
+  "overTargetThisMonth": "⚠️ {amount} kcal melebihi target bulan ini",
+  "@overTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "underTargetThisMonth": "✅ {amount} kcal di bawah target — Luar biasa! 💪",
+  "@underTargetThisMonth": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadMonthlySummary": "❌ Gagal memuat ringkasan bulanan: {error}",
+  "@failedToLoadMonthlySummary": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "localAiHelpTitle": "🤖 Bantuan AI Lokal",
+  "localAiHelpFormat": "Format: [makanan] [jumlah] [satuan]",
+  "localAiHelpExamples": "Contoh:\n• ayam 100g dan nasi 200g\n• pizza 2 potong\n• apel 1 buah, pisang 1 buah",
+  "localAiHelpNote": "Catatan: Hanya bahasa Inggris, penguraian dasar\nBeralih ke Miro AI untuk hasil yang lebih baik!",
+  "hiNoFoodLogged": "🤖 Hai! Belum ada makanan yang dicatat hari ini.\n   Target: {target} kcal — Siap memulai logging? 🍽️",
+  "@hiNoFoodLogged": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "hiKcalLeft": "🤖 Hai! Anda memiliki {remaining} kcal tersisa untuk hari ini.\n   Siap mencatat makanan Anda? 😊",
+  "@hiKcalLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "hiOverTarget": "🤖 Hai! Anda telah mengonsumsi {calories} kcal hari ini.\n   {over} __SW0__ melebihi target — Ayo terus lacak! 💪",
+  "@hiOverTarget": {
+    "placeholders": {
+      "calories": {
+        "type": "String"
+      },
+      "over": {
+        "type": "String"
+      }
+    }
+  },
+  "hiReadyToLog": "🤖 Hai! Siap mencatat makanan Anda? 😊",
+  "notEnoughEnergy": "Energi tidak cukup",
+  "thinkingMealIdeas": "🤖 Memikirkan ide makanan enak untuk Anda...",
+  "recentMeals": "Makanan terkini:",
+  "noRecentFood": "Tidak ada makanan terbaru yang dicatat.",
+  "remainingCaloriesToday": ". Sisa kalori hari ini: {remaining} kcal.",
+  "@remainingCaloriesToday": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToGetMenuSuggestions": "❌ Gagal mendapatkan saran menu: {error}",
+  "@failedToGetMenuSuggestions": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionsTitle": "🤖 Berdasarkan catatan makanan Anda, berikut 3 saran makan:",
+  "mealSuggestionItem": "{index}. {emoji} {name} (~{calories} kcal)",
+  "@mealSuggestionItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "mealSuggestionMacros": "P: {protein}g | C: {carbs}g | F: {fat}g",
+  "@mealSuggestionMacros": {
+    "placeholders": {
+      "protein": {
+        "type": "String"
+      },
+      "carbs": {
+        "type": "String"
+      },
+      "fat": {
+        "type": "String"
+      }
+    }
+  },
+  "pickOneAndLog": "Pilih satu dan saya akan mencatatnya untuk Anda! 😊",
+  "energyCost": "⚡ -{cost} Energi",
+  "@energyCost": {
+    "placeholders": {
+      "cost": {
+        "type": "int"
+      }
+    }
+  },
+  "giveMeTipsForHealthyEating": "Beri saya tip untuk makan sehat",
+  "howManyCaloriesToday": "Berapa banyak kalori hari ini?",
+  "menuLabel": "Menu",
+  "weeklyLabel": "Mingguan",
+  "monthlyLabel": "Bulanan",
+  "tipsLabel": "Kiat",
+  "summaryLabel": "Ringkasan",
+  "helpLabel": "Membantu",
+  "onboardingWelcomeSubtitle": "Lacak kalori dengan mudah\ndengan analisis bertenaga AI",
+  "onboardingSnap": "Patah",
+  "onboardingSnapDesc": "Analisis AI secara instan",
+  "onboardingType": "Jenis",
+  "onboardingTypeDesc": "Masuk dalam hitungan detik",
+  "onboardingEdit": "Sunting",
+  "onboardingEditDesc": "Sempurnakan akurasi",
+  "onboardingNext": "Selanjutnya →",
+  "onboardingDisclaimer": "Data perkiraan AI. Bukan nasihat medis.",
+  "onboardingQuickSetup": "Pengaturan Cepat",
+  "onboardingHelpAiUnderstand": "Bantu AI memahami makanan Anda dengan lebih baik",
+  "onboardingYourTypicalCuisine": "Masakan khas Anda:",
+  "onboardingDailyCalorieGoal": "Sasaran kalori harian (opsional):",
+  "onboardingKcalPerDay": "kcal/hari",
+  "onboardingCalorieGoalHint": "2000",
+  "onboardingCanChangeAnytime": "Anda dapat mengubahnya kapan saja di pengaturan Profile",
+  "onboardingYoureAllSet": "Anda sudah siap!",
+  "onboardingStartTracking": "Mulailah melacak makanan Anda hari ini.\nAmbil foto atau ketik apa yang Anda makan.",
+  "onboardingWelcomeGift": "Hadiah Selamat Datang",
+  "onboardingFreeEnergy": "10 Energi GRATIS",
+  "onboardingFreeEnergyDesc": "= 10 analisis AI untuk memulai",
+  "onboardingEnergyCost": "Setiap analisis membutuhkan 1 Energi\nSemakin banyak Anda menggunakan, semakin banyak penghasilan Anda!",
+  "onboardingStartTrackingButton": "Mulai Pelacakan! →",
+  "onboardingNoCreditCard": "Tanpa kartu kredit • Tanpa biaya tersembunyi",
+  "cameraTakePhotoOfFood": "Ambil foto makanan Anda",
+  "cameraFailedToInitialize": "Gagal menginisialisasi kamera",
+  "cameraFailedToCapture": "Gagal mengambil foto",
+  "cameraFailedToPickFromGallery": "Gagal mengambil gambar dari galeri",
+  "cameraProcessing": "Prosedang...",
+  "referralInviteFriends": "Undang Teman",
+  "referralYourReferralCode": "Kode Referensi Anda",
+  "referralLoading": "Memuat...",
+  "referralCopy": "Menyalin",
+  "referralShareCodeDescription": "Bagikan kode ini kepada teman-teman! Saat mereka menggunakan AI 3 kali, Anda berdua mendapat hadiah!",
+  "referralEnterReferralCode": "Masukkan Kode Referensi",
+  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralSubmitCode": "Kirim Kode",
+  "referralPleaseEnterCode": "Silakan masukkan kode referral",
+  "referralCodeAccepted": "Kode referensi diterima!",
+  "referralCodeCopied": "Kode referensi disalin ke clipboard!",
+  "referralEnergyBonus": "+{energy} Energi!",
+  "@referralEnergyBonus": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralHowItWorks": "Cara Kerjanya",
+  "referralStep1Title": "Bagikan kode referensi Anda",
+  "referralStep1Description": "Salin dan bagikan ID MiRO Anda dengan teman",
+  "referralStep2Title": "Teman memasukkan kode Anda",
+  "referralStep2Description": "Mereka segera mendapatkan +20 Energi",
+  "referralStep3Title": "Teman menggunakan AI sebanyak 3 kali",
+  "referralStep3Description": "Saat mereka menyelesaikan 3 analisis AI",
+  "referralStep4Title": "Anda mendapat imbalan!",
+  "referralStep4Description": "Anda menerima +5 Energi!",
+  "tierBenefitsTitle": "Manfaat Tingkat",
+  "tierBenefitsUnlockRewards": "Buka Hadiah\ndengan Coretan Harian",
+  "tierBenefitsKeepStreakDescription": "Pertahankan rekor Anda untuk membuka tingkatan yang lebih tinggi dan dapatkan manfaat luar biasa!",
+  "tierBenefitsHowItWorks": "Cara Kerjanya",
+  "tierBenefitsDailyEnergyReward": "Hadiah Energi Harian",
+  "tierBenefitsDailyEnergyDescription": "Gunakan AI setidaknya sekali sehari untuk mendapatkan energi bonus. Tingkat yang lebih tinggi = lebih banyak energi harian!",
+  "tierBenefitsPurchaseBonus": "Bonus Pembelian",
+  "tierBenefitsPurchaseBonusDescription": "Tingkatan Emas & Berlian mendapatkan energi ekstra pada setiap pembelian (10-20% lebih banyak!)",
+  "tierBenefitsGracePeriod": "Masa Tenggang",
+  "tierBenefitsGracePeriodDescription": "Lewatkan satu hari tanpa kehilangan pukulan Anda. Tingkatan Silver+ mendapat perlindungan!",
+  "tierBenefitsAllTiers": "Semua Tingkatan",
+  "tierBenefitsNew": "BARU",
+  "tierBenefitsPopular": "POPULER",
+  "tierBenefitsBest": "TERBAIK",
+  "tierBenefitsDailyCheckIn": "Check-in Harian",
+  "tierBenefitsProTips": "Pro Tip",
+  "tierBenefitsTip1": "Gunakan AI setiap hari untuk mendapatkan energi gratis dan meningkatkan rekor Anda",
+  "tierBenefitsTip2": "Tingkat berlian menghasilkan +4 Energi per hari — yaitu 120/bulan!",
+  "tierBenefitsTip3": "Bonus Pembelian berlaku untuk SEMUA paket energi!",
+  "tierBenefitsTip4": "Masa tenggang melindungi pukulan Anda jika Anda melewatkan satu hari",
+  "subscriptionEnergyPass": "Tiket Energi",
+  "subscriptionInAppPurchasesNotAvailable": "Pembelian dalam aplikasi tidak tersedia",
+  "subscriptionFailedToInitiatePurchase": "Gagal memulai pembelian",
+  "subscriptionError": "Kesalahan: {error}",
+  "@subscriptionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailedToLoad": "Gagal memuat langganan",
+  "subscriptionUnknownError": "Kesalahan tidak diketahui",
+  "subscriptionRetry": "Mencoba kembali",
+  "subscriptionEnergyPassActive": "Energi Lulus Aktif",
+  "subscriptionUnlimitedAccess": "Anda memiliki akses tak terbatas",
+  "subscriptionStatus": "Status",
+  "subscriptionRenews": "Memperbarui",
+  "subscriptionPrice": "Harga",
+  "subscriptionYourBenefits": "Keuntungan Anda",
+  "subscriptionManageSubscription": "Kelola Langganan",
+  "subscriptionNoProductAvailable": "Tidak ada produk berlangganan yang tersedia",
+  "subscriptionWhatYouGet": "Apa yang Anda Dapatkan",
+  "subscriptionPerMonth": "per bulan",
+  "subscriptionSubscribeNow": "Berlangganan Sekarang",
+  "subscriptionCancelAnytime": "Batalkan kapan saja",
+  "subscriptionAutoRenewTerms": "Langganan Anda akan diperpanjang secara otomatis. Anda dapat membatalkan kapan saja dari Google Play.",
+  "disclaimerHealthDisclaimer": "Penafian Kesehatan",
+  "disclaimerImportantReminders": "Pengingat Penting:",
+  "disclaimerBullet1": "Semua data nutrisi diperkirakan",
+  "disclaimerBullet2": "Analisis AI mungkin mengandung kesalahan",
+  "disclaimerBullet3": "Bukan pengganti nasihat profesional",
+  "disclaimerBullet4": "Konsultasikan dengan penyedia layanan kesehatan untuk mendapatkan panduan medis",
+  "disclaimerBullet5": "Gunakan atas kebijaksanaan dan risiko Anda sendiri",
+  "disclaimerIUnderstand": "Saya mengerti",
+  "privacyPolicyTitle": "Kebijakan Privasi",
+  "privacyPolicySubtitle": "MiRO — Oracle Catatan Penerimaan Saya",
+  "privacyPolicyHeaderNote": "Data makanan Anda tetap ada di perangkat Anda. Keseimbangan energi disinkronkan dengan aman melalui Firebase.",
+  "privacyPolicySectionInformationWeCollect": "Informasi yang Kami Kumpulkan",
+  "privacyPolicySectionDataStorage": "Penyimpanan Data",
+  "privacyPolicySectionDataTransmission": "Transmisi Data ke Pihak Ketiga",
+  "privacyPolicySectionRequiredPermissions": "Izin yang Diperlukan",
+  "privacyPolicySectionSecurity": "Keamanan",
+  "privacyPolicySectionUserRights": "Hak Pengguna",
+  "privacyPolicySectionDataRetention": "Retensi Data",
+  "privacyPolicySectionChildrenPrivacy": "Privasi Anak",
+  "privacyPolicySectionChangesToPolicy": "Perubahan pada Kebijakan Ini",
+  "privacyPolicySectionDataCollectionConsent": "Persetujuan Pengumpulan Data",
+  "privacyPolicySectionPDPACompliance": "Kepatuhan PDPA (Data Pribadi Thailand Protection Act)",
+  "privacyPolicySectionContactUs": "Hubungi kami",
+  "privacyPolicyEffectiveDate": "Tanggal Berlaku: 18 Februari 2026\nTerakhir Diperbarui: 18 Februari 2026",
+  "termsOfServiceTitle": "Ketentuan Layanan",
+  "termsSubtitle": "MiRO — Oracle Catatan Penerimaan Saya",
+  "termsSectionAcceptanceOfTerms": "Penerimaan Persyaratan",
+  "termsSectionServiceDescription": "Deskripsi Layanan",
+  "termsSectionDisclaimerOfWarranties": "Penafian Jaminan",
+  "termsSectionEnergySystemTerms": "Istilah Sistem Energi",
+  "termsSectionUserDataAndResponsibilities": "Data Pengguna dan Tanggung Jawab",
+  "termsSectionBackupTransfer": "Cadangan & Transfer",
+  "termsSectionInAppPurchases": "Pembelian Dalam Aplikasi",
+  "termsSectionProhibitedUses": "Promenghambat Penggunaan",
+  "termsSectionIntellectualProperty": "Intelektual Property",
+  "termsSectionLimitationOfLiability": "Batasan Tanggung Jawab",
+  "termsSectionServiceTermination": "Pengakhiran Layanan",
+  "termsSectionChangesToTerms": "Perubahan Ketentuan",
+  "termsSectionGoverningLaw": "Hukum yang Mengatur",
+  "termsSectionContactUs": "Hubungi kami",
+  "termsAcknowledgment": "Dengan menggunakan MiRO, Anda menyatakan bahwa Anda telah membaca, memahami, dan menyetujui Ketentuan Layanan ini.",
+  "termsLastUpdated": "Terakhir diperbarui: 15 Februari 2026",
+  "profileAndSettings": "Profile & Pengaturan",
+  "errorOccurred": "Kesalahan: {error}",
+  "@errorOccurred": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "healthGoalsSection": "Tujuan Kesehatan",
+  "dailyGoals": "Tujuan Harian",
+  "chatAiModeSection": "Mode AI Obrolan",
+  "selectAiPowersChat": "Pilih AI mana yang mendukung obrolan Anda",
+  "miroAi": "Miro AI",
+  "miroAiSubtitle": "Didukung oleh Gemini • Multi-bahasa • Akurasi tinggi",
+  "localAi": "AI lokal",
+  "localAiSubtitle": "Di perangkat • Hanya dalam bahasa Inggris • Akurasi dasar",
+  "free": "Bebas",
+  "cuisinePreferenceSection": "Preferensi Masakan",
+  "preferredCuisine": "Masakan Pilihan",
+  "selectYourCuisine": "Pilih Masakan Anda",
+  "photoScanSection": "Pemindaian Foto",
+  "languageSection": "Bahasa",
+  "languageTitle": "Bahasa / ภาษา",
+  "selectLanguage": "Pilih Bahasa / Bahasa",
+  "systemDefault": "Bawaan Sistem",
+  "systemDefaultSublabel": "ตามระบบ",
+  "english": "Bahasa inggris",
+  "englishSublabel": "อังกฤษ",
+  "thai": "ไทย (Thailand)",
+  "thaiSublabel": "ภาษาไทย",
+  "closeBilingual": "Tutup / ปิด",
+  "languageChangedTo": "Bahasa diubah menjadi {language}",
+  "@languageChangedTo": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSection": "Akun",
+  "miroId": "MiRO ID",
+  "miroIdCopied": "MiRO ID disalin!",
+  "inviteFriends": "Undang Teman",
+  "inviteFriendsSubtitle": "Bagikan kode referensi Anda dan dapatkan hadiah!",
+  "unlimitedAiDoubleRewards": "AI tanpa batas + Hadiah ganda",
+  "plan": "Rencana",
+  "monthly": "Bulanan",
+  "started": "Dimulai",
+  "renews": "Memperbarui",
+  "expires": "Kedaluwarsa",
+  "autoRenew": "Perpanjangan Otomatis",
+  "on": "Pada",
+  "off": "Mati",
+  "tapToManageSubscription": "Ketuk untuk mengelola langganan",
+  "dataSection": "Data",
+  "backupData": "Data Cadangan",
+  "backupDataSubtitle": "Energi + Riwayat Makanan → simpan sebagai file",
+  "restoreFromBackup": "Pulihkan dari Cadangan",
+  "restoreFromBackupSubtitle": "Impor data dari file cadangan",
+  "clearAllDataTitle": "Hapus semua data?",
+  "clearAllDataContent": "Semua data akan dihapus:\n• Entri makanan\n• Makanan Saya\n• Bahan\n• Tujuan\n• Informasi pribadi\n\nHal ini tidak dapat dibatalkan!",
+  "allDataClearedSuccess": "Semua data berhasil dihapus",
+  "aboutSection": "Tentang",
+  "version": "Versi",
+  "healthDisclaimer": "Penafian Kesehatan",
+  "importantLegalInformation": "Informasi hukum penting",
+  "showTutorialAgain": "Tampilkan Tutorial Lagi",
+  "viewFeatureTour": "Lihat tur fitur",
+  "showTutorialDialogTitle": "Tampilkan Tutorial",
+  "showTutorialDialogContent": "Ini akan menampilkan tur fitur yang menyoroti:\n\n• Sistem Energi\n• Pemindaian Foto Tarik untuk Menyegarkan\n• Ngobrol dengan Miro AI\n\nAnda akan kembali ke layar Beranda.",
+  "showTutorialButton": "Tampilkan Tutorial",
+  "tutorialResetMessage": "Penyetelan ulang tutorial! Buka layar Beranda untuk melihatnya.",
+  "foodAnalysisTutorial": "Tutorial Analisis Makanan",
+  "foodAnalysisTutorialSubtitle": "Pelajari cara menggunakan fitur analisis makanan",
+  "backupCreated": "Cadangan Dibuat!",
+  "backupCreatedContent": "File cadangan Anda telah berhasil dibuat.",
+  "backupChooseDestination": "Di mana Anda ingin menyimpan cadangan Anda?",
+  "backupSaveToDevice": "Simpan ke Perangkat",
+  "backupSaveToDeviceDesc": "Simpan ke folder yang Anda pilih di perangkat ini",
+  "backupShareToOther": "Bagikan ke Perangkat Lain",
+  "backupShareToOtherDesc": "Kirim melalui Line, Email, Google Drive, dll.",
+  "backupSavedSuccess": "Cadangan Tersimpan!",
+  "backupSavedSuccessContent": "File cadangan Anda telah disimpan ke lokasi pilihan Anda.",
+  "important": "Penting:",
+  "backupImportantNotes": "• Simpan file ini di tempat yang aman (Google Drive, dll.)\n• Foto TIDAK disertakan dalam cadangan\n• Masa berlaku Kunci Transfer akan habis dalam 30 hari\n• Kunci hanya dapat digunakan satu kali",
+  "restoreBackup": "Pulihkan Cadangan?",
+  "backupFrom": "Cadangan dari:",
+  "date": "Tanggal:",
+  "energy": "Energi:",
+  "foodEntries": "Entri makanan:",
+  "restoreImportant": "Penting",
+  "restoreImportantNotes": "• Energi Saat Ini pada perangkat ini akan DIGANTI dengan Energi dari cadangan ({energy})\n• Entri makanan akan DIGABUNG (tidak diganti)\n• Foto TIDAK disertakan dalam cadangan\n• Transfer Key akan digunakan (tidak dapat digunakan kembali)",
+  "@restoreImportantNotes": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "restore": "Memulihkan",
+  "restoreComplete": "Pemulihan Selesai!",
+  "restoreCompleteContent": "Data Anda telah berhasil dipulihkan.",
+  "newEnergyBalance": "Neraca Energi Baru:",
+  "foodEntriesImported": "Entri Makanan yang Diimpor:",
+  "myMealsImported": "Makanan Saya Diimpor:",
+  "appWillRefresh": "Aplikasi Anda akan disegarkan untuk menampilkan data yang dipulihkan.",
+  "backupFailed": "Pencadangan Gagal",
+  "invalidBackupFile": "File Cadangan Tidak Valid",
+  "restoreFailed": "Pemulihan Gagal",
+  "analyticsDataCollection": "Pengumpulan Data Analisis",
+  "analyticsEnabled": "Analytics diaktifkan -",
+  "analyticsDisabled": "Analytics dinonaktifkan - ไม่เก็บข้อมูลการใช้งาน",
+  "enabled": "Diaktifkan",
+  "enabledSubtitle": "Diaktifkan - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "disabled": "Dengan disabilitas",
+  "disabledSubtitle": "Disabilitas - ไม่เก็บข้อมูลการใช้งาน",
+  "imagesPerDay": "Gambar per hari",
+  "scanUpToImagesPerDay": "Pindai hingga {limit} gambar per hari",
+  "@scanUpToImagesPerDay": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reset": "Mengatur ulang",
+  "resetScanHistory": "Atur Ulang Riwayat Pemindaian",
+  "resetScanHistorySubtitle": "Hapus semua entri yang dipindai dan pindai ulang",
+  "imagesPerDayDialog": "Gambar per hari",
+  "maxImagesPerDayDescription": "Gambar maksimum untuk dipindai per hari\nHanya memindai tanggal yang dipilih",
+  "scanLimitSetTo": "Batas pemindaian disetel ke {limit} gambar per hari",
+  "@scanLimitSetTo": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "resetScanHistoryDialog": "Setel Ulang Riwayat Pemindaian?",
+  "resetScanHistoryContent": "Semua entri makanan yang dipindai di galeri akan dihapus.\nTarik ke bawah pada tanggal mana saja untuk memindai ulang gambar.",
+  "resetComplete": "Reset selesai - {count} entri dihapus. Tarik ke bawah untuk memindai ulang.",
+  "@resetComplete": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarStreak": "Garis {days} hari",
+  "@questBarStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarDaysToNextTier": "{days} hari → {tier}",
+  "@questBarDaysToNextTier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarMaxTier": "Tingkat Maks! 💎",
+  "questBarOfferDismissed": "Penawaran disembunyikan",
+  "questBarViewOffer": "Lihat Penawaran",
+  "questBarNoOffersNow": "• Tidak ada penawaran saat ini",
+  "questBarWeeklyChallenges": "🎯 Tantangan Mingguan",
+  "questBarMilestones": "🏆 Tonggak sejarah",
+  "questBarInviteFriends": "👥 Undang teman & dapatkan 20E",
+  "questBarTimeRemaining": "⏰ Waktu tersisa {time}",
+  "@questBarTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarClaimDailyEnergy": "+{energy}E",
+  "@questBarClaimDailyEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarShareReferralError": "Kesalahan berbagi: {error}",
+  "@questBarShareReferralError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationTitle": "{tier} Perayaan 🎉",
+  "@tierCelebrationTitle": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierCelebrationDay": "Hari {day}",
+  "@tierCelebrationDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "tierCelebrationExpired": "Kedaluwarsa",
+  "tierCelebrationComplete": "Menyelesaikan!",
+  "questBarWatchAd": "Tonton Iklan +{energy}⚡",
+  "@questBarWatchAd": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdRemaining": "{remaining}/{total} tersisa hari ini",
+  "@questBarAdRemaining": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdSuccess": "Iklan ditonton! +{energy} Energi masuk...",
+  "@questBarAdSuccess": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "questBarAdNotReady": "Iklan belum siap, silakan coba lagi",
+  "questBarDailyChallenge": "Tantangan Harian",
+  "questBarUseAi": "Gunakan Energi",
+  "questBarResetsMonday": "Reset setiap hari Senin",
+  "questBarClaimed": "Diklaim!",
+  "questBarHideOffer": "Bersembunyi",
+  "questBarViewDetails": "Melihat",
+  "questBarShareText": "Coba MiRO! Analisis makanan bertenaga AI 🍔\nGunakan tautan ini dan kita berdua mendapatkan +20 Energi gratis!\n\n{link}",
+  "@questBarShareText": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "questBarShareSubject": "Coba MiRO",
+  "questBarCollapse": "Ciutkan",
+  "questBarExpand": "Perluas",
+  "claimButtonTitle": "Klaim Energi Harian",
+  "claimButtonReceived": "Diterima +{energy}E!",
+  "@claimButtonReceived": {
+    "placeholders": {
+      "energy": {
+        "type": "String"
+      }
+    }
+  },
+  "claimButtonAlreadyClaimed": "Sudah diklaim hari ini",
+  "claimButtonError": "Kesalahan: {error}",
+  "@claimButtonError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonalQuestLimitedTime": "WAKTU TERBATAS",
+  "seasonalQuestDaysLeft": "{days} hari tersisa",
+  "@seasonalQuestDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardDaily": "+{reward}E / hari",
+  "@seasonalQuestRewardDaily": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestRewardOnce": "+{reward}E satu kali",
+  "@seasonalQuestRewardOnce": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonalQuestClaimed": "Diklaim!",
+  "seasonalQuestClaimedToday": "Diklaim hari ini",
+  "errorFailed": "Gagal",
+  "errorFailedToClaim": "Gagal mengklaim",
+  "errorGeneric": "Kesalahan: {error}",
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "milestoneNoMilestonesToClaim": "Belum ada pencapaian yang dapat diklaim",
+  "milestoneClaimedEnergy": "🎁 Diklaim +{energy} Energi!",
+  "@milestoneClaimedEnergy": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneTitle": "Tonggak sejarah",
+  "milestoneUseEnergyComplete": "Gunakan Energi {threshold}",
+  "@milestoneUseEnergyComplete": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneNext": "Berikutnya: {threshold}E",
+  "@milestoneNext": {
+    "placeholders": {
+      "threshold": {
+        "type": "int"
+      }
+    }
+  },
+  "milestoneAllComplete": "Semua pencapaian selesai!",
+  "noEnergyTitle": "Kehabisan Energi",
+  "noEnergyContent": "Anda membutuhkan 1 Energi untuk menganalisis makanan dengan AI",
+  "noEnergyTip": "Anda masih bisa mencatat makanan secara manual (tanpa AI) secara gratis",
+  "noEnergyLater": "Nanti",
+  "noEnergyWatchAd": "Tonton Iklan ({remaining}/3)",
+  "@noEnergyWatchAd": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "noEnergyBuyEnergy": "Beli Energi",
+  "tierBronze": "Perunggu",
+  "tierSilver": "Perak",
+  "tierGold": "Emas",
+  "tierDiamond": "Berlian",
+  "tierStarter": "Starter",
+  "tierUpCongratulations": "🎉 Selamat!",
+  "tierUpYouReached": "Anda mencapai {tier}!",
+  "@tierUpYouReached": {
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "tierUpMotivation": "Lacak kalori seperti seorang profesional\nTubuh impian Anda semakin dekat!",
+  "tierUpReward": "+{reward}E Hadiah!",
+  "@tierUpReward": {
+    "placeholders": {
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "referralAllLevelsClaimed": "Semua level diklaim!",
+  "referralLevel": "Tingkat {level}: {subtitle}",
+  "@referralLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "subtitle": {
+        "type": "String"
+      }
+    }
+  },
+  "referralProgress": "[{current}/{target}] (Tingkat {level}/{total})",
+  "@referralProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
+      },
+      "level": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "referralClaimedLevel": "🎁 Level yang Diklaim {level}: +{reward} Energi!",
+  "@referralClaimedLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      },
+      "reward": {
+        "type": "int"
+      }
+    }
+  },
+  "challengeUseAi10": "Gunakan Energi 10",
+  "specifyIngredients": "Tentukan Bahan yang Diketahui",
+  "specifyIngredientsOptional": "Tentukan bahan-bahan yang diketahui (opsional)",
+  "specifyIngredientsHint": "Masukkan bahan-bahan yang Anda tahu, dan AI akan menemukan bumbu, minyak, dan saus tersembunyi untuk Anda.",
+  "sendToAi": "Kirim ke AI",
+  "reanalyzeWithIngredients": "Tambahkan Bahan & Analisis Ulang",
+  "reanalyzeButton": "Analisis ulang (1 Energi)",
+  "ingredientsSaved": "Bahan-bahannya disimpan",
+  "pleaseAddAtLeastOneIngredient": "Silakan tambahkan setidaknya 1 bahan",
+  "hiddenIngredientsDiscovered": "Bahan tersembunyi ditemukan oleh AI",
+  "retroScanTitle": "Pindai Foto Terbaru?",
+  "retroScanDescription": "Kami dapat memindai foto Anda dari 7 hari terakhir untuk secara otomatis menemukan foto makanan dan menambahkannya ke buku harian Anda.",
+  "retroScanNote": "Hanya foto makanan yang terdeteksi — foto lainnya diabaikan. Tidak ada foto yang keluar dari perangkat Anda.",
+  "retroScanStart": "Pindai Foto Saya",
+  "retroScanSkip": "Lewati untuk saat ini",
+  "retroScanInProgress": "Memindai...",
+  "retroScanTagline": "MiRO mengubah Anda\nfoto makanan menjadi data kesehatan.",
+  "retroScanFetchingPhotos": "Mengambil foto terbaru...",
+  "retroScanAnalyzing": "Mendeteksi foto makanan...",
+  "retroScanPhotosFound": "{count} foto ditemukan dalam 7 hari terakhir",
+  "@retroScanPhotosFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanCompleteTitle": "Pemindaian Selesai!",
+  "retroScanCompleteDesc": "Menemukan {count} foto makanan! Mereka telah ditambahkan ke timeline Anda, siap untuk analisis AI.",
+  "@retroScanCompleteDesc": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retroScanNoResultsTitle": "Tidak Ada Foto Makanan Ditemukan",
+  "retroScanNoResultsDesc": "Tidak ada foto makanan yang terdeteksi dalam 7 hari terakhir. Coba ambil foto makanan Anda berikutnya!",
+  "retroScanAnalyzeHint": "Ketuk \"Analisis Semua\" di timeline Anda untuk mendapatkan analisis nutrisi AI untuk entri ini.",
+  "retroScanDone": "Mengerti!",
+  "welcomeEndTitle": "Selamat datang di MiRO!",
+  "welcomeEndMessage": "MiRO siap melayani Anda.",
+  "welcomeEndJourney": "Semoga perjalananmu menyenangkan bersama!!",
+  "welcomeEndStart": "Ayo Mulai!",
+  "greetingCalorieSummary": "Hai! Apa yang bisa saya bantu hari ini? Anda masih memiliki {remaining} kcal tersisa. Sejauh ini: Protein {protein}g, Karbohidrat {carbs}g, Lemak {fat}g. Beri tahu saya apa yang Anda makan — daftarkan semuanya berdasarkan makanan dan saya akan mencatat semuanya untuk Anda. Lebih Detail lebih tepat!!",
+  "@greetingCalorieSummary": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "protein": {
+        "type": "int"
+      },
+      "carbs": {
+        "type": "int"
+      },
+      "fat": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingCuisineTip": "Masakan pilihan Anda disetel ke {cuisine}. Anda dapat mengubahnya di Pengaturan kapan saja!",
+  "@greetingCuisineTip": {
+    "placeholders": {
+      "cuisine": {
+        "type": "String"
+      }
+    }
+  },
+  "greetingEnergyTip": "Anda memiliki {balance} Energi yang tersedia. Jangan lupa untuk mengklaim hadiah pukulan harian Anda pada lencana Energi!",
+  "@greetingEnergyTip": {
+    "placeholders": {
+      "balance": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingRenamePhotoTip": "Tip: Anda dapat mengganti nama foto makanan untuk membantu MiRO menganalisis dengan lebih akurat!",
+  "greetingAddIngredientsTip": "Tip: Anda dapat menambahkan bahan-bahan yang Anda yakini sebelum mengirim ke MiRO untuk dianalisis. Saya akan memikirkan semua detail kecil yang membosankan untuk Anda!",
+  "greetingBackupReminder": "Hai bos! Anda belum mencadangkan data Anda selama {days} hari. Saya sarankan membuat cadangan di Pengaturan — data Anda disimpan secara lokal dan saya tidak dapat memulihkannya jika terjadi sesuatu!",
+  "@greetingBackupReminder": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "greetingFallback": "Hai! Apa yang bisa saya bantu hari ini? Katakan padaku apa yang kamu makan!",
+  "searchModeLabel": "Mode Pencarian",
+  "normalFood": "Makanan",
+  "normalFoodDesc": "Makanan rumahan biasa",
+  "packagedProduct": "Produk",
+  "packagedProductDesc": "Kemasan dengan label nutrisi",
+  "foodNameQuantityAndModeImprovesAccuracy": "Memberikan nama makanan, jumlah, dan memilih apakah itu makanan atau produk akan meningkatkan akurasi AI.",
+  "basicMode": "Basic",
+  "proMode": "Pro",
+  "sandboxEmpty": "No food items yet. Chat, snap a photo, or tap + to add!",
+  "deleteSelected": "Delete",
+  "analyzeSelected": "Analyze",
+  "useProModeForDetail": "For detailed editing, switch to Pro mode.",
+  "saveChanges": "Save Changes",
+  "quickAddTitle": "Quick Add",
+  "quickAddHint": "e.g. Pad Thai, Rice...",
+  "quantity": "Quantity",
+  "addToSandbox": "Add",
+  "gallery": "Gallery",
+  "ingredients": "Ingredients",
+  "longPressToSelect": "Tekan lama untuk memilih",
+
+  "healthSyncSection": "Sinkronisasi Kesehatan",
+  "healthSyncTitle": "Sinkronkan dengan Aplikasi Kesehatan",
+  "healthSyncSubtitleOn": "Data makanan disinkronkan • Energi aktif termasuk",
+  "healthSyncSubtitleOff": "Ketuk untuk menghubungkan Apple Health / Health Connect",
+  "healthSyncEnabled": "Sinkronisasi kesehatan diaktifkan",
+  "healthSyncDisabled": "Sinkronisasi kesehatan dinonaktifkan",
+  "healthSyncPermissionDeniedTitle": "Izin Diperlukan",
+  "healthSyncPermissionDeniedMessage": "Anda sebelumnya menolak akses data kesehatan.\nSilakan aktifkan di pengaturan perangkat.",
+  "healthSyncGoToSettings": "Buka Pengaturan",
+  "healthSyncActiveEnergyValue": "+{value} kcal terbakar hari ini",
+  "@healthSyncActiveEnergyValue": {
+    "placeholders": {
+      "value": { "type": "String" }
+    }
+  },
+  "healthSyncNotAvailable": "Health Connect tidak tersedia di perangkat ini. Silakan instal aplikasi Health Connect.",
+  "healthSyncFoodSynced": "Makanan disinkronkan ke Aplikasi Kesehatan",
+  "healthSyncFoodDeletedFromHealth": "Makanan dihapus dari Aplikasi Kesehatan",
+  "bmrSettingTitle": "BMR (Tingkat Metabolisme Basal)",
+  "bmrSettingSubtitle": "Digunakan untuk memperkirakan energi aktif",
+  "bmrDialogTitle": "Atur BMR Anda",
+  "bmrDialogDescription": "MiRO menggunakan BMR untuk mengurangi energi istirahat dari total kalori yang terbakar, hanya menampilkan energi aktif Anda. Default adalah 1500 kcal/hari. Anda dapat menemukan BMR dari aplikasi fitness atau kalkulator online.",
+  "healthSyncEnabledBmrHint": "Sinkronisasi kesehatan diaktifkan. BMR default: 1500 kcal/hari — sesuaikan di Pengaturan.",
+  "privacyPolicySectionHealthData": "Integrasi Data Kesehatan",
+  "termsSectionHealthDataSync": "Sinkronisasi Data Kesehatan"
+}

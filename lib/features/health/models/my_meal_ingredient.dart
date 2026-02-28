@@ -4,7 +4,7 @@ part 'my_meal_ingredient.g.dart';
 
 /// วัตถุดิบในเมนู (Junction Table)
 /// เชื่อม MyMeal กับ Ingredient พร้อมปริมาณ
-/// 
+///
 /// ตัวอย่าง: ผัดกระเพราไข่ดาว (myMealId=1)
 ///   ingredientId=1 (ข้าว),   amount=200, unit="g"  → cal=260
 ///   ingredientId=2 (หมูสับ), amount=80,  unit="g"  → cal=170
@@ -24,7 +24,7 @@ class MyMealIngredient {
 
   /// ปริมาณที่ใช้ในเมนูนี้
   late double amount;
-  
+
   /// หน่วย
   late String unit;
 
@@ -36,4 +36,18 @@ class MyMealIngredient {
 
   /// ลำดับ (สำหรับ display)
   int sortOrder = 0;
+
+  // ===== NEW: Nested/Sub-division fields =====
+
+  /// Parent ingredient ID (null = root level, counted in total)
+  int? parentId;
+
+  /// Nesting depth (0 = root, 1 = sub-ingredient, 2 = sub-sub, etc.)
+  int depth = 0;
+
+  /// Whether this item has children (for quick checks without querying)
+  bool isComposite = false;
+
+  /// Detail/description about preparation or composition
+  String? detail;
 }

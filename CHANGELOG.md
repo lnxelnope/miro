@@ -1,5 +1,489 @@
 # Changelog
 
+## [1.2.0+48] - 2026-02-26
+
+### 🎉 Major Feature: Health Sync (Apple Health / Google Health Connect)
+
+#### Two-Way Health Data Integration:
+- **Outbound Sync:** Every food entry logged in MiRO automatically syncs to Apple Health (iOS) and Google Health Connect (Android)
+  - Full ingredient-level breakdown: Calories, Protein, Carbs, Fat, Meal Type
+  - Works seamlessly with smartwatches (Apple Watch, Samsung Galaxy Watch), fitness apps (Google Fit, Fitbit, Garmin)
+  - Delete food in MiRO → automatically removed from Health app too
+  - One log, visible everywhere — your smartwatch, fitness dashboard, and health ecosystem all stay in sync
+
+- **Inbound Sync:** Active Energy (calories burned from movement) pulled from Health apps
+  - Real-time bonus calories added to your daily calorie goal
+  - Green progress bar fills as you move throughout the day
+  - Toggle on/off directly from home screen (available in both Basic & Pro modes)
+  - Customizable BMR (default 1,500 kcal/day) for accurate active energy calculation
+  - Example: Goal = 2,000 kcal. You burned 350 active kcal by afternoon → MiRO shows your goal as 2,350 kcal
+
+#### Privacy & Permissions:
+- Single permission request for both read (Active Energy) and write (Nutrition) permissions
+- Permission requested only when user enables Health Sync
+- User can disable anytime — no data leaves device without consent
+- Updated Terms of Service and Privacy Policy with Health Data Integration sections
+- Full localization (l10n) for all 12 supported languages
+
+#### Technical Implementation:
+- **iOS:** Apple HealthKit integration with proper entitlements (`Runner.entitlements`) and Info.plist permissions
+- **Android:** Google Health Connect integration (minSdk 26, `FlutterFragmentActivity`, manifest declarations)
+- **Data Models:** Added `customBmr` field to UserProfile, `healthConnectId` to FoodEntry
+- **Services:** `HealthSyncService` handles all health data operations
+- **UI:** Compact Active Energy row with green progress bar, mini toggle, fire icon
+
+### 🐛 Bug Fixes:
+- **Fixed: NaN/Infinity Error in BMR Calculation** - Resolved crash when displaying BMR in settings (`Unsupported operation: Infinity or NaN toInt`)
+  - Root cause: Existing user profiles created before `customBmr` field was added returned NaN from Isar database
+  - Solution: Added `safeBmr` getter in UserProfile model with NaN/Infinity safety checks
+  - Added safety checks in all `.toInt()` calls for activeEnergy and goal calculations
+  - All NaN/Infinity values now default to 1,500 kcal
+
+- **Fixed: Active Energy Not Updating When BMR Changed** - Active Energy now recalculates immediately when BMR is changed in settings
+  - Root cause: `activeEnergyProvider` was reading profile directly from database instead of watching `profileNotifierProvider`
+  - Solution: Changed provider to watch `profileNotifierProvider` — automatically recalculates when profile changes
+  - Also fixed `effectiveCalorieGoalProvider` to watch profile changes
+
+### 🔧 Technical:
+- Updated `user_profile.dart`: Added `safeBmr` getter for NaN safety
+- Updated `health_provider.dart`: Changed to watch `profileNotifierProvider` for real-time updates
+- Updated `health_sync_service.dart`: Added BMR parameter validation
+- Updated `daily_summary_card.dart`: Added safety checks for NaN/Infinity in goal and activeEnergy
+- Updated `profile_screen.dart`: BMR setting tile uses `safeBmr` getter
+
+---
+
+## [1.1.22+47] - 2026-02-26
+
+### ✨ UI Improvements
+- **Basic Mode: Selection Bar Redesign** - Improved selection action bar for better space efficiency
+  - Added **Unselect** button (icon-only) to quickly clear all selections
+  - Converted Delete and Move Date buttons to **icon-only** format (saves horizontal space)
+  - Analyze button retains text label (only button with text for clarity)
+  - All icon buttons include tooltips for better discoverability
+  - Selection bar now appears above food items when entering selection mode
+
+### 🐛 Bug Fixes
+- **Fixed: Long Press Behavior** - Reverted from popup menu back to selection mode
+  - Long press now directly enters selection mode (matches original design)
+  - More intuitive UX with selection bar appearing immediately
+  - Fixed space issues with truncated button text
+
+### 🔒 Safety Improvements
+- **Delete Confirmation Dialog** - Added confirmation dialog before deleting selected entries in Basic mode
+  - Shows all selected entry names in confirmation message
+  - Uses proper l10n localization (Thai/English support)
+  - Prevents accidental deletion of multiple entries
+
+### 🔧 Technical
+- Updated `food_sandbox.dart`: Selection bar UI improvements, icon-only buttons, unselect functionality
+- Updated `basic_mode_tab.dart`: Added delete confirmation dialog with l10n support
+
+---
+
+## [1.1.21+46] - 2026-02-26
+
+### ✨ New Features
+- **Basic Mode: Long Press to Move Date** - Long press any food entry in Basic mode → shows menu with "Move to Another Date" option
+  - Opens date picker to select new date
+  - Moves entry to selected date (preserves meal type and all data)
+  - Shows confirmation snackbar after moving
+- **Platform Tracking** - Automatically detects and stores OS platform (android/ios) in user profile at app startup
+  - Added `platform` field to UserProfile model
+  - Used for future database migration support (e.g., iOS China market separation)
+
+### 🐛 Bug Fixes
+- **Fixed: Analyze Results Not Showing Immediately** - Fixed analyze completion not refreshing food list
+  - Root cause: Missing `foodEntriesByDateProvider` invalidation in batch analysis helper
+  - Solution: Added proper provider invalidation with `dateOnly()` normalization
+  - Results now appear immediately after analyze completes (no refresh needed)
+  - Applied to both Pro and Basic mode analyze flows
+
+### 🔧 Technical
+- Updated `batch_analysis_helper.dart`: Added `foodEntriesByDateProvider` invalidation
+- Updated `UserProfile` model: Added `platform` field (Isar schema regenerated)
+- Updated `main.dart`: Auto-detect and save platform on first launch
+
+---
+
+## [1.1.20+45] - 2026-02-26
+
+### 🔧 Build Update
+- Version bump to 1.1.20+45
+- ads declare
+---
+
+## [1.1.18+43] - 2026-02-24
+
+### ✨ New Features
+- Default app mode to Basic for new users (first-time after onboarding)
+
+### 🐛 Bug Fixes
+- Fixed: Calories (kcal) not updating when changing quantity in Basic mode food detail sheet
+  - Added real-time nutrition recalculation based on baseCalories × quantity
+  - Values now update immediately when user edits quantity field
+
+---
+
+## [1.1.14+39] - 2026-02-21
+
+### 🔧 Build Update
+- Version bump to 1.1.14+39
+
+---
+
+## [1.1.13+38] - 2026-02-21
+
+### 🐛 Critical Bug Fixes
+
+#### Fixed: Bonus Rate Offers Not Disappearing After Purchase
+- **Issue**: Bonus rate offers (40% bonus, tier promo) not disappearing after purchase
+  - Root cause: `markOfferClaimed()` only checked `productId` match, but `bonus_rate` offers don't have `productId`
+  - Solution: Track `offerBonusTemplateId` and mark `claimed=true` after purchase completes
+  - Frontend: Remove offers from local state immediately after purchase (UX improvement)
+
+#### Fixed: Inactive Offers Still Visible
+- **Issue**: `getActiveOffers()` not checking `template.isActive` flag
+  - Admin-deactivated offers were still visible to users
+  - Solution: Added `isActive === false` check in `getActiveOffers()` filter
+
+### 🔧 Backend Changes
+- Updated `verifyPurchase.ts`: Added bonus_rate offer claiming logic
+- Updated `offersV2.ts`: Added `template.isActive` check in `getActiveOffers()`
+- Updated `energy_store_screen.dart`: Immediate offer removal from local state
+- Cleanup: Removed legacy code in `verifyPurchase.ts` (duplicate welcome bonus trigger)
+
+---
+
+## [1.1.12+37] - 2026-02-20
+
+### ✨ New Feature: Enhanced Add Food (Timeline)
+
+#### Add Food = Mini Create Meal
+- **Ingredient editing**: Add food now supports main-ingredients and sub-ingredients, same as Create Meal
+- **Autocomplete search**: Search from My Meal and Ingredient database while typing
+- **AI search per ingredient**: Tap AI icon to analyze individual ingredients via Gemini
+- **AI search per sub-ingredient**: Search DB first, fallback to AI for sub-ingredients
+- **Auto-save to DB**: AI lookup results saved to Ingredient DB immediately
+- **Auto-save meal**: When saving with ingredients, auto-creates MyMeal + Ingredient entries
+- **Load from MyMeal**: Selecting a MyMeal suggestion auto-loads its ingredient tree for editing
+
+#### Quick Add & Flexible Save
+- **Quick Add**: Save without food name if kcal is provided → auto-names "Quick Add"
+- **Name-only save**: Save with just a name (no kcal) → ready for Analyze All later
+- **Ingredients-only**: Save with only ingredients, no name → auto-names "Quick Add"
+- Only blocks save when there's truly nothing entered (no name, no kcal, no ingredients)
+
+### 🐛 Critical Bug Fix: Energy Not Deducted
+
+#### Fixed: AI usage not recording energy cost in batch operations
+- **Issue**: Analyze All and Analyze Selected were using AI without deducting energy
+  - Users could analyze unlimited items without spending energy points
+  - 7 code paths were missing `UsageLimiter.recordAiUsage()` calls
+  
+- **Affected functions**:
+  - `health_timeline_tab.dart` → `_startBatchAnalysis()` (3 paths: batch, fallback, image)
+  - `meal_section.dart` → `_analyzeSelected()` (3 paths: batch, fallback, image)
+  - `meal_section.dart` → `_analyzeSingleEntry()` (1 path: re-analyze)
+  
+- **Solution**: Added `UsageLimiter.recordAiUsage()` + energy provider invalidation after every successful AI call
+
+- **Files Changed**:
+  - `lib/features/health/widgets/add_food_bottom_sheet.dart`: Complete rewrite with ingredient system
+  - `lib/features/health/presentation/health_timeline_tab.dart`: +3 energy recording points
+  - `lib/features/health/widgets/meal_section.dart`: +4 energy recording points, +import
+
+---
+
+## [1.1.11+36] - 2026-02-20
+
+### 🐛 Critical Bug Fix (Continued)
+
+#### Fixed: Build Compilation Errors (Follow-up to 1.1.10)
+- **Issue**: v1.1.10+35 failed to build due to Android SDK compatibility issues
+  - Error: `android:attr/lStar not found`
+  - Error: `BAKLAVA constant not found` in sqflite_android
+  - Build failed before reaching production
+  
+- **Root Cause**: Dependency requirements changed
+  - `sqflite_android:2.4.2+` requires compileSdk 36 (Android 16) for new Java APIs
+  - `isar_flutter_libs` also needs compileSdk 36
+  - Previous build used compileSdk 35 (Android 15)
+  
+- **Solution**: Upgraded Android build configuration
+  - **compileSdk**: 35 → 36 (Android 16 / API 36)
+  - Force all subprojects to use compileSdk 36
+  - targetSdk remains 35 (Play Store requirement)
+  
+- **All NaN fixes from v1.1.10 are included**:
+  - 3-layer NaN sanitization (profile guard + food guard + JSON guard)
+  - All NaN/Infinity values converted to 0 before JSON encoding
+  - Tested successfully on production device
+
+- **Files Changed**:
+  - `android/app/build.gradle.kts`: `compileSdk = 36`
+  - `android/build.gradle.kts`: Force subprojects to compileSdk 36
+  - `lib/core/ai/gemini_chat_service.dart`: NaN sanitization (from 1.1.10)
+  - `lib/features/chat/providers/chat_provider.dart`: Safe conversions (from 1.1.10)
+
+---
+
+## [1.1.10+35] - 2026-02-20
+
+### 🐛 Critical Bug Fix
+
+#### Fixed: Chat NaN Error on Production Devices
+- **Issue**: "Converting object to an encodable object failed: NaN" error when using Chat
+  - Occurred only on production (Google Play Store) builds, not in development
+  - Caused by NaN (Not a Number) values in user profile or food data being sent to JSON encoder
+  - JSON standard does not support NaN/Infinity values
+
+- **Root Cause**: Legacy data from database migrations containing NaN values
+  - Profile fields: `calorieGoal`, `weight`, `height`, `meal budgets`
+  - Food context: `todayCalories`, `todayMacros`
+  - No validation before `jsonEncode()` call
+
+- **Solution**: 3-layer defense against NaN values
+  1. **Profile Context Guard**: Added `_safeDouble()` helper to sanitize all profile fields
+  2. **Food Context Guard**: Added `_safe()` validation before `.toInt()` conversions
+  3. **JSON Encoding Guard**: Added `_sanitizeForJson()` recursive sanitizer before all `jsonEncode()` calls
+  - All NaN/Infinity values now converted to 0 (or specified fallback)
+  - Applied to both `analyzeChatMessage` and `getMenuSuggestions` flows
+
+- **Files Changed**:
+  - `lib/core/ai/gemini_chat_service.dart`: Added sanitization helpers
+  - `lib/features/chat/providers/chat_provider.dart`: Added safe conversions
+
+---
+
+## [1.1.9+34] - 2026-02-20
+
+### ✨ New Features
+
+#### Smart Chat Context-Aware AI
+- **AI Database Knowledge**: Miro AI now knows your MyMeal and Ingredient database
+  - Suggests meals from your saved collection
+  - Smart food matching (e.g., "ไข่ 2 ลูก" auto-matches "ไข่ต้ม" in DB)
+  - Uses DB nutrition for instant logging (no energy cost!)
+
+- **Custom Meal Creation via Chat**: Create meals with ingredients through chat
+  - Example: "สร้างเมนู keto bread มี almond flour, butter, milk"
+  - Saves as preliminary entry → use "Analyze All" for full nutrition
+  - Auto-saves to MyMeal database after analysis
+
+- **Data-Driven Responses**: Ask questions about your eating habits
+  - "วันนี้กินไปกี่แคล?" → Shows consumed vs target
+  - "เดือนนี้กินอะไรเยอะสุด?" → Analyzes recent history
+  - "แนะนำเมนูประมาณ 500 kcal" → Suggests from your saved meals
+
+- **Enhanced AI Context**: AI now knows your full nutrition profile
+  - Carb/Fat goals (not just protein/calories)
+  - Meal budgets (Breakfast/Lunch/Dinner/Snack)
+  - Micronutrient targets (Fiber, Sugar, Sodium)
+
+#### UI Improvements
+- **Data Source Status Icons**: New visual indicators for food entries
+  - 🗄️ Database icon (purple) = From MyMeal/Ingredient DB
+  - ✨ Sparkle icon (green) = AI Verified
+  - ✏️ Edit icon (orange) = Pending Analyze
+  - Shows on food card (40x40 icon) and as badge overlay on food photos
+
+- **Chat UI Cleanup**
+  - Removed "2+" badge for cleaner interface
+  - More space for conversation
+  - Source icons in chat replies (🗄️ = from DB, ✏️ = pending)
+
+- **Analyze All Bar**: Database icon now consistent across all screens
+
+### 🐛 Bug Fixes
+- **Analyze All Database Save**: Fixed analyzed items not saving to MyMeal/Ingredient
+  - Added auto-save after successful analysis
+  - Checks for duplicates before saving
+  - Applied to batch analysis, individual fallback, and re-analysis flows
+
+- **Chat Ingredients Hint**: Fixed AI not returning ingredient hints
+  - Updated prompt to prioritize ingredient hints over full analysis
+  - Added fallback to extract names from ingredients_detail if needed
+  - Custom meals now properly save ingredient lists
+
+- **AI Prompt Conflict**: Fixed AI analyzing when it should only log ingredients
+  - Restructured prompt with CUSTOM MEAL MODE section at top
+  - Added clear exceptions for when NOT to analyze
+  - Example responses provided for clarity
+
+### 🔧 Technical Improvements
+- Added `_gatherFoodContext()` in chat provider (MyMeal, Ingredient, history, today's summary)
+- Updated `GeminiChatService.analyzeChatMessage()` to accept foodContext parameter
+- Backend `buildChatPrompt()` now injects user's food database context
+- `analyzeFoodBatch()` and `analyzeFoodByName()` now accept ingredientNames parameter
+- Added preliminary ingredientsJson support for chat-created entries
+- Energy cost display fixed (Menu/Tips chips now show 1 energy)
+
+---
+
+## [1.1.8+33] - 2026-02-19
+
+### 🐛 Bug Fixes
+- **Meal Ingredients Display**: Fixed meal detail bottom sheet not showing ingredients list
+  - Changed from `ref.read()` to `ref.watch()` for reactive updates
+  - Wrapped bottom sheet builder with `Consumer` widget
+  - Ingredients now display correctly when tapping on a meal
+  
+- **Add Ingredient Save Issue**: Fixed "Add Ingredient" button not saving new ingredients
+  - Corrected save logic to use `saveIngredient()` for create mode
+  - Corrected save logic to use `updateIngredient()` for edit mode
+  - Removed duplicate save operation in callback
+  - Added proper async/await handling
+
+- **Edit Ingredient Stale Data**: Fixed edit screen showing old values after saving
+  - Now reloads ingredient from database before opening edit sheet
+  - Ensures fresh data is always displayed when editing
+  - Applied same fix to meal editing
+
+### 🔧 Technical Improvements
+- Changed `EditIngredientSheet.onSave` callback from sync to async
+- Added debug logging for ingredient save operations
+- Improved error handling with stack traces in edit ingredient sheet
+- Added null checks and error messages for missing ingredients/meals
+
+---
+
+## [1.1.7+32] - 2026-02-19
+
+### 🐛 Bug Fixes
+- **Food Scanning Auto-Analysis Disabled**: Fixed aggressive auto-analysis when scanning food images
+  - Removed auto-trigger listener that analyzed images immediately after scanning
+  - Scanned images now save as 0 kcal, 1 serving and wait for manual analysis
+  - Users must press "Analyze All" button when ready to analyze
+  - Prevents wasting Energy on food images the user didn't eat
+  - Updated feedback message: "Saved — use Analyze All when ready"
+
+### 🔧 Improvements
+- **AI Search Feedback Enhanced**: Ingredient search now shows quantity used in results
+  - Example: `AI: "chicken" 150.0 g → 165 kcal` (instead of just "chicken → 165 kcal")
+  - Makes it easier to verify that the correct quantity was sent to AI
+  - Applied to all ingredient editing sheets
+
+### 🔧 Technical
+- Removed `_autoTriggerAnalysisIfNeeded()` method from `HealthTimelineTab`
+- Removed `_triggerAutoAnalysisInTimeline()` method from `HomeScreen`
+- Removed auto-trigger listener in `initState()` of `HealthTimelineTab`
+- Updated `ImageAnalysisPreviewScreen` success message
+- Updated `EditIngredientSheet` AI search feedback to include quantity
+
+---
+
+## [1.1.6+31] - 2026-02-18
+
+### 🔒 Privacy & Compliance
+- **Firebase Analytics Consent System**: Added GDPR/PDPA compliant user consent
+  - Analytics disabled by default, requires user opt-in
+  - Consent dialog shown after onboarding
+  - Toggle in Profile → Settings to opt-in/opt-out anytime
+  - Privacy Policy updated with Analytics disclosure
+- **Privacy Policy Updated**: Added Firebase Analytics, PDPA compliance sections
+  - Section 2.3: Firebase Analytics data collection (optional)
+  - Section 10: Data Collection Consent & opt-out instructions
+  - Section 11: PDPA Compliance (Thailand Personal Data Protection Act)
+  - Effective date: February 18, 2026
+
+### 🛒 Store Compliance
+- **Billing Library Update**: Updated to Google Play Billing Library 7.0+
+  - in_app_purchase: 3.2.2 → 3.2.3
+  - in_app_purchase_storekit: 0.3.22+1 → 0.4.7
+  - Resolves Google Play policy violation (Aug 31, 2025 deadline)
+- **Ready for Data Safety Declaration**: App compliant with Google Play data disclosure requirements
+
+### 🍽️ Food Suggestions
+- **Daily Calorie Cap**: Meal suggestions now respect daily calorie limits
+  - If daily calories exceeded, no suggestions shown
+  - If remaining calories < meal budget, suggests up to remaining amount only
+  - Shows "Daily goal reached" message when over limit
+  - Displays "Daily remaining ~X kcal" in orange when capped
+
+### 📝 Files Added
+- `lib/core/services/consent_service.dart`: Consent management
+- `lib/core/widgets/analytics_consent_dialog.dart`: User consent UI
+- `_project_manager/legal/privacy-policy.html`: HTML version for web hosting
+
+---
+
+## [1.1.5+30] - 2026-02-18
+
+### ✨ New Features
+- **Smart Food Suggestions (Ghost Suggestions)**: AI-powered meal recommendations in empty meal slots
+  - Suggests foods from My Meals, Ingredients, and yesterday's entries that fit your per-meal budget
+  - Shows top recommendation + up to 4 alternatives as tappable cards
+  - One-tap to auto-fill with complete ingredient details (for My Meals)
+  - Displays as faded "ghost" UI until you add food to that meal
+  - Falls back to yesterday's meals when My Meal database is empty
+  - Shows budget info (e.g., "515 / 560 kcal") in meal section headers
+- **Suggestion Threshold Setting**: Control how flexible food suggestions are
+  - Set threshold (± kcal) for suggestion range in Health Goals
+  - Example: 700 kcal budget + 100 threshold → suggests 600-800 kcal foods
+  - Default: ±100 kcal
+  - Includes explanatory card to help users understand the feature
+- **Per-Meal Calorie Budgets**: Customize calorie allocation for each meal
+  - Set individual budgets for Breakfast, Lunch, Dinner, Snack
+  - Lock 3 meals to auto-calculate the 4th (similar to macro locking)
+  - Live validation shows total vs. goal
+  - Smart suggestions use these budgets for personalized recommendations
+
+### 🔥 Improvements
+- **Exit Confirmation Dialog**: Added warning when pressing back to exit app
+  - Prevents accidental app closure
+  - Shows "Are you sure you want to exit?" dialog
+- **My Meal Auto-Fill**: Tapping ghost suggestions from My Meals opens full ingredient view
+  - Shows complete ingredient breakdown with serving size control
+  - Saves all ingredients (main + sub-ingredients) to `ingredientsJson`
+  - Same rich experience as logging from My Meal manually
+- **Removed Quick Add Section**: Replaced with superior ghost suggestions system
+  - No more "Favorite + Repeat Yesterday" section
+  - Ghost suggestions are more intelligent and context-aware
+
+### 🔧 Technical
+- Added `suggestionThreshold`, `breakfastBudget`, `lunchBudget`, `dinnerBudget`, `snackBudget` to UserProfile
+- New `FulfillCalorieProvider` calculates meal suggestions based on budget + threshold
+- New `GhostMealSuggestion` widget with alternative cards UI
+- Updated `MealSection` to display budget in header and pass suggestion callbacks
+- Modified `LogFromMealSheet` integration for seamless ghost suggestion tap
+- Isar schema migration for new profile fields (v30)
+
+---
+
+## [1.1.4+29] - 2026-02-18
+
+### 🐛 Bug Fixes
+- **AI Analysis Loading State**: Fixed loading dialog blocking back navigation
+  - Replaced `ErrorHandler.showLoading` dialog with inline loading indicator
+  - Added `PopScope` warning dialog when user tries to exit during analysis
+  - Shows "ถ้าออกตอนนี้ผลวิเคราะห์จะหายไป และต้องวิเคราะห์ใหม่ (เสีย Energy อีกครั้ง)"
+  - Prevents app from getting stuck in loading state
+- **Sub-ingredients Not Updating**: Fixed sub-ingredients not clearing when main ingredient changes
+  - Now clears old sub-ingredients before AI lookup
+  - Sub-ingredients properly update from AI results when main ingredient changes
+- **Search Button Auto-Select**: Fixed search button auto-selecting closest DB match
+  - Removed `_findInDb` from `_lookupIngredient` method
+  - Search button (magnifying glass) now always goes to AI analysis
+  - Users can still select from Autocomplete dropdown for free DB lookup
+  - If user types without selecting from dropdown → treated as new item for AI search
+- **Autocomplete Not Showing Suggestions**: Fixed Autocomplete dropdown not displaying ingredient suggestions
+  - Changed from `ref.read(allIngredientsProvider)` to `ref.watch(allIngredientsProvider)` in build method
+  - Added `_cachedIngredients` field to properly subscribe to provider updates
+  - Autocomplete now shows matching ingredients while typing (e.g., "ground" shows "boiled ground beef meatballs")
+- **Non-Food Image Analysis Error**: Fixed `FormatException` when analyzing non-food images
+  - Added validation to detect when AI returns text instead of JSON
+  - Shows user-friendly Thai error message: "ไม่พบอาหารในภาพนี้ กรุณาลองถ่ายภาพอาหารใหม่อีกครั้ง"
+  - Prevents raw `FormatException: Unexpected character` errors
+
+### 🔧 Technical
+- Removed unused `_findInDb` methods from `edit_food_bottom_sheet.dart` and `gemini_analysis_sheet.dart`
+- Fixed Autocomplete provider subscription in `create_meal_sheet.dart`
+- Improved error handling in `GeminiService._callBackend` for non-JSON responses
+- Added proper `mounted` checks in `food_preview_screen.dart` finally block
+
+---
+
 ## [1.1.3+27] - 2026-02-16
 
 ### 🐛 Bug Fixes

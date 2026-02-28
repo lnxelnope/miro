@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../models/food_entry.dart';
 
@@ -22,11 +24,12 @@ class FoodTimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppRadius.md,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -36,12 +39,13 @@ class FoodTimelineCard extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: AppColors.health.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.health.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
                 ),
-                child: entry.imagePath != null && File(entry.imagePath!).existsSync()
+                child: entry.imagePath != null &&
+                        File(entry.imagePath!).existsSync()
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: AppRadius.sm,
                         child: Image.file(
                           File(entry.imagePath!),
                           fit: BoxFit.cover,
@@ -51,7 +55,7 @@ class FoodTimelineCard extends StatelessWidget {
                     : _buildPlaceholderIcon(),
               ),
               const SizedBox(width: 12),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -59,9 +63,10 @@ class FoodTimelineCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
+                        Icon(
                           entry.mealType.icon,
-                          style: const TextStyle(fontSize: 14),
+                          size: 16,
+                          color: entry.mealType.iconColor,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -86,7 +91,8 @@ class FoodTimelineCard extends StatelessWidget {
                         if (entry.isVerified)
                           const Padding(
                             padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.verified, size: 16, color: Colors.green),
+                            child: Icon(Icons.verified,
+                                size: 16, color: AppColors.success),
                           ),
                         // ปุ่มวิเคราะห์ด้วย AI
                         if (onAnalyze != null)
@@ -95,8 +101,8 @@ class FoodTimelineCard extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: AppRadius.sm,
                               ),
                               child: const Icon(
                                 Icons.auto_awesome,
@@ -105,17 +111,16 @@ class FoodTimelineCard extends StatelessWidget {
                               ),
                             ),
                           ),
-                        if (onAnalyze != null)
-                          const SizedBox(width: 4),
+                        if (onAnalyze != null) const SizedBox(width: 4),
                         if (onEdit != null)
                           GestureDetector(
                             onTap: onEdit,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.edit,
                                 size: 20,
-                                color: AppColors.textSecondary,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -128,7 +133,7 @@ class FoodTimelineCard extends StatelessWidget {
                               child: const Icon(
                                 Icons.delete_outline,
                                 size: 20,
-                                color: Colors.red,
+                                color: AppColors.error,
                               ),
                             ),
                           ),
@@ -136,12 +141,12 @@ class FoodTimelineCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    _buildMacros(),
+                    _buildMacros(isDark),
                     const SizedBox(height: 4),
                     Text(
                       '${_formatTime(entry.timestamp)} • ${entry.mealType.displayName}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
@@ -169,13 +174,13 @@ class FoodTimelineCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.health.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.health.withValues(alpha: 0.1),
+        borderRadius: AppRadius.md,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 12)),
+          const Icon(AppIcons.calories, size: 14, color: AppIcons.caloriesColor),
           const SizedBox(width: 2),
           Text(
             '${entry.calories.toInt()} kcal',
@@ -190,19 +195,19 @@ class FoodTimelineCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMacros() {
+  Widget _buildMacros(bool isDark) {
     return Row(
       children: [
-        _buildMacroChip('P', entry.protein, AppColors.protein),
+        _buildMacroChip('P', entry.protein, AppColors.protein, isDark),
         const SizedBox(width: 8),
-        _buildMacroChip('C', entry.carbs, AppColors.carbs),
+        _buildMacroChip('C', entry.carbs, AppColors.carbs, isDark),
         const SizedBox(width: 8),
-        _buildMacroChip('F', entry.fat, AppColors.fat),
+        _buildMacroChip('F', entry.fat, AppColors.fat, isDark),
       ],
     );
   }
 
-  Widget _buildMacroChip(String label, double value, Color color) {
+  Widget _buildMacroChip(String label, double value, Color color, bool isDark) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -216,8 +221,8 @@ class FoodTimelineCard extends StatelessWidget {
         ),
         Text(
           '${value.toInt()}g',
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
             fontSize: 12,
           ),
         ),

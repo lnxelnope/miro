@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/services/welcome_offer_service.dart';
+import '../../../core/theme/app_icons.dart';
 
 /// Widget แสดง progress การปลดล็อค Welcome Offer
 /// แสดงเฉพาะเมื่อยังใช้ AI ไม่ครบ 10 ครั้ง
@@ -12,13 +13,13 @@ class WelcomeOfferProgress extends StatelessWidget {
       future: WelcomeOfferService.getRemainingUsages(),
       builder: (context, snapshot) {
         final remaining = snapshot.data ?? 10;
-        
+
         // ถ้าครบ 10 ครั้งแล้ว (remaining = 0) → ไม่แสดง widget นี้
         if (remaining == 0) return const SizedBox.shrink();
-        
+
         final completed = WelcomeOfferService.triggerCount - remaining;
         final progress = completed / WelcomeOfferService.triggerCount;
-        
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(16),
@@ -36,10 +37,7 @@ class WelcomeOfferProgress extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text(
-                    '🎁',
-                    style: TextStyle(fontSize: 24),
-                  ),
+                  const Icon(AppIcons.gift, size: 24, color: AppIcons.giftColor),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -82,7 +80,10 @@ class WelcomeOfferProgress extends StatelessWidget {
                       height: 8,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.purple.shade400, Colors.blue.shade400],
+                          colors: [
+                            Colors.purple.shade400,
+                            Colors.blue.shade400
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(4),
                       ),
@@ -103,7 +104,8 @@ class WelcomeOfferProgress extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade100,
                       borderRadius: BorderRadius.circular(8),

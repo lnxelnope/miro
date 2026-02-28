@@ -4,7 +4,7 @@ part 'my_meal.g.dart';
 
 /// เมนูอาหารส่วนตัว
 /// ประกอบจาก Ingredients หลายตัว
-/// 
+///
 /// ตัวอย่าง: "ผัดกระเพราไข่ดาว"
 ///   totalCalories: 611 (ผลรวมจาก ingredients ทั้งหมด)
 ///   baseServingDescription: "1 จาน"
@@ -14,7 +14,7 @@ class MyMeal {
 
   /// ชื่อเมนู (ไทย)
   late String name;
-  
+
   /// ชื่อเมนู (อังกฤษ) - nullable
   String? nameEn;
 
@@ -77,16 +77,22 @@ class MyMeal {
       return match.group(2)!.trim();
     }
     // ถ้าไม่มีตัวเลขเลย → ทั้ง string คือ unit
-    return baseServingDescription.trim().isEmpty ? 'serving' : baseServingDescription.trim();
+    return baseServingDescription.trim().isEmpty
+        ? 'serving'
+        : baseServingDescription.trim();
   }
 
   /// kcal ต่อ 1 หน่วยฐาน
   @ignore
-  double get caloriesPerUnit => parsedServingSize > 0 ? totalCalories / parsedServingSize : totalCalories;
+  double get caloriesPerUnit =>
+      parsedServingSize > 0 ? totalCalories / parsedServingSize : totalCalories;
   @ignore
-  double get proteinPerUnit  => parsedServingSize > 0 ? totalProtein  / parsedServingSize : totalProtein;
+  double get proteinPerUnit =>
+      parsedServingSize > 0 ? totalProtein / parsedServingSize : totalProtein;
   @ignore
-  double get carbsPerUnit    => parsedServingSize > 0 ? totalCarbs    / parsedServingSize : totalCarbs;
+  double get carbsPerUnit =>
+      parsedServingSize > 0 ? totalCarbs / parsedServingSize : totalCarbs;
   @ignore
-  double get fatPerUnit      => parsedServingSize > 0 ? totalFat      / parsedServingSize : totalFat;
+  double get fatPerUnit =>
+      parsedServingSize > 0 ? totalFat / parsedServingSize : totalFat;
 }

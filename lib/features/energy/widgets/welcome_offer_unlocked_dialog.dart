@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/theme/app_icons.dart';
 import 'package:miro_hybrid/features/energy/presentation/energy_store_screen.dart';
 
 /// Dialog แสดงเมื่อปลดล็อค Welcome Offer (หลังใช้ AI 10 ครั้ง)
@@ -21,11 +22,12 @@ class WelcomeOfferUnlockedDialog {
             ),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              // 🎉 Icon
-              Container(
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
@@ -35,31 +37,38 @@ class WelcomeOfferUnlockedDialog {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.celebration_outlined,
+                  AppIcons.celebration,
                   size: 48,
                   color: Colors.white,
                 ),
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Title
-              const Text(
-                '🎉 Welcome Offer Unlocked!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-                textAlign: TextAlign.center,
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(AppIcons.celebration, size: 28, color: Colors.purple),
+                  SizedBox(width: 8),
+                  Text(
+                    'Welcome Offer Unlocked!',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.purple,
+                    ),
+                  ),
+                ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Description
               Text(
-                'You\'ve used AI 10 times!\n\n'
-                'Get 40% OFF Energy packages\n'
+                'Out of Energy?\nDon\'t worry!\n\n'
+                'We gave you 50 Energy FREE\n'
+                'and 40% OFF all packages\n'
                 'for the next 24 hours!',
                 style: TextStyle(
                   fontSize: 16,
@@ -68,12 +77,13 @@ class WelcomeOfferUnlockedDialog {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Discount badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.orange.shade400, Colors.red.shade400],
@@ -97,18 +107,30 @@ class WelcomeOfferUnlockedDialog {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Features
-              _buildFeature('⚡ Save up to \$4.00'),
+              _buildFeature(
+                AppIcons.energy,
+                AppIcons.energyColor,
+                '50 Energy Bonus FREE!',
+              ),
               const SizedBox(height: 8),
-              _buildFeature('⏰ Limited to 24 hours'),
+              _buildFeature(
+                AppIcons.discount,
+                AppIcons.discountColor,
+                'Save up to ฿120',
+              ),
               const SizedBox(height: 8),
-              _buildFeature('🎁 One-time exclusive offer'),
-              
+              _buildFeature(
+                AppIcons.timer,
+                AppIcons.timerColor,
+                'Only 24 hours left',
+              ),
+
               const SizedBox(height: 28),
-              
+
               // Buttons
               Row(
                 children: [
@@ -159,16 +181,29 @@ class WelcomeOfferUnlockedDialog {
               ),
             ],
           ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black.withValues(alpha: 0.05),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-  
-  static Widget _buildFeature(String text) {
+
+  static Widget _buildFeature(IconData icon, Color iconColor, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
+        Icon(icon, color: iconColor, size: 20),
         const SizedBox(width: 8),
         Text(
           text,

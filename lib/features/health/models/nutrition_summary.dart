@@ -29,9 +29,12 @@ class NutritionSummary {
   double get fatDifference => actualFat - goalFat;
 
   // Calculate percentages
-  double get caloriesPercentage => goalCalories > 0 ? (actualCalories / goalCalories) * 100 : 0;
-  double get proteinPercentage => goalProtein > 0 ? (actualProtein / goalProtein) * 100 : 0;
-  double get carbsPercentage => goalCarbs > 0 ? (actualCarbs / goalCarbs) * 100 : 0;
+  double get caloriesPercentage =>
+      goalCalories > 0 ? (actualCalories / goalCalories) * 100 : 0;
+  double get proteinPercentage =>
+      goalProtein > 0 ? (actualProtein / goalProtein) * 100 : 0;
+  double get carbsPercentage =>
+      goalCarbs > 0 ? (actualCarbs / goalCarbs) * 100 : 0;
   double get fatPercentage => goalFat > 0 ? (actualFat / goalFat) * 100 : 0;
 
   // Is over/under goal

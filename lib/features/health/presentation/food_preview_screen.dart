@@ -3,15 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/constants/ai_loading_messages.dart';
-import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/unit_converter.dart';
-import '../../../core/utils/logger.dart';
-import '../../../core/services/usage_limiter.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../core/widgets/search_mode_selector.dart';
+import '../../../l10n/app_localizations.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
+import '../providers/analysis_provider.dart';
 
 class FoodPreviewScreen extends ConsumerStatefulWidget {
   final File imageFile;
@@ -29,10 +28,12 @@ class FoodPreviewScreen extends ConsumerStatefulWidget {
 
 class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   bool _isAnalyzing = false;
+  bool _isCancelled = false;
   bool _hasAnalyzed = false;
   bool _hasGeminiKey = false;
   FoodAnalysisResult? _analysisResult;
   String? _error;
+  FoodSearchMode _searchMode = FoodSearchMode.normal;
 
   // Editable fields
   late TextEditingController _nameController;
@@ -41,7 +42,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   late TextEditingController _carbsController;
   late TextEditingController _fatController;
   late TextEditingController _servingSizeController;
-  
+
   String _servingUnit = 'serving';
   MealType _selectedMealType = MealType.lunch;
 
@@ -61,13 +62,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     _carbsController = TextEditingController(text: '0');
     _fatController = TextEditingController(text: '0');
     _servingSizeController = TextEditingController(text: '1');
-    
+
     // Detect meal type based on time
     _selectedMealType = _detectMealType();
-    
+
     // ฟัง serving size เปลี่ยน → recalculate kcal/macro
     _servingSizeController.addListener(_onServingSizeChanged);
-    
+
     // Check if API key exists and start analysis
     _checkAndAnalyze();
   }
@@ -86,7 +87,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     setState(() {
       _hasGeminiKey = true; // Energy System พร้อมใช้งานเสมอ
     });
-    
+
     // ถ้า autoAnalyze = true (มาจากแชท) ให้วิเคราะห์ทันที
     if (widget.autoAnalyze && mounted) {
       await _analyzeFood();
@@ -101,7 +102,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     if (newServing <= 0) return;
 
     setState(() {
-      _caloriesController.text = (_baseCalories * newServing).round().toString();
+      _caloriesController.text =
+          (_baseCalories * newServing).round().toString();
       _proteinController.text = (_baseProtein * newServing).round().toString();
       _carbsController.text = (_baseCarbs * newServing).round().toString();
       _fatController.text = (_baseFat * newServing).round().toString();
@@ -110,6 +112,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
   @override
   void dispose() {
+    _isCancelled = true;
     _servingSizeController.removeListener(_onServingSizeChanged);
     _nameController.dispose();
     _caloriesController.dispose();
@@ -122,16 +125,26 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldLeave = await _onWillPop();
+        if (shouldLeave && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
-        title: const Text('Save Food'),
+        title: Text(L10n.of(context)!.saveFoodTitle),
         actions: [
           if (!_isAnalyzing)
             TextButton(
               onPressed: _saveFood,
-              child: const Text(
-                'บันทึก',
-                style: TextStyle(
+              child: Text(
+                L10n.of(context)!.saveButton,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -158,7 +171,19 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             // Analysis status
             if (_isAnalyzing) _buildAnalyzingIndicator(),
             if (_error != null) _buildErrorMessage(),
-            if (_hasAnalyzed && _analysisResult != null) _buildAnalysisSuccess(),
+            if (_hasAnalyzed && _analysisResult != null)
+              _buildAnalysisSuccess(),
+
+            // Search Mode Toggle (show before analysis)
+            if (!_hasAnalyzed && !_isAnalyzing)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: SearchModeSelector(
+                  selectedMode: _searchMode,
+                  onChanged: (mode) => setState(() => _searchMode = mode),
+                ),
+              ),
 
             // Manual analyze button (if no auto-analyze)
             if (!_hasAnalyzed && !_isAnalyzing) _buildAnalyzeButton(),
@@ -171,8 +196,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
-                labelText: 'ชื่ออาหาร',
-                hintText: 'เช่น ข้าวผัดกุ้ง',
+                labelText: L10n.of(context)!.foodNameLabel,
+                hintText: L10n.of(context)!.foodNameHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -187,11 +212,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   flex: 2,
                   child: TextField(
                     controller: _servingSizeController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     decoration: InputDecoration(
-                      labelText: 'ปริมาณ',
-                      helperText: _hasBaseValues ? 'เปลี่ยน → แคลเปลี่ยนตาม' : null,
-                      helperStyle: TextStyle(fontSize: 11, color: Colors.purple.shade300),
+                      labelText: L10n.of(context)!.amountLabel,
+                      helperText:
+                          _hasBaseValues ? L10n.of(context)!.amountAutoAdjust : null,
+                      helperStyle: TextStyle(
+                          fontSize: 11, color: Colors.purple.shade300),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -204,14 +232,16 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   child: DropdownButtonFormField<String>(
                     initialValue: UnitConverter.ensureValid(_servingUnit),
                     decoration: InputDecoration(
-                      labelText: 'Unit',
+                      labelText: L10n.of(context)!.unitLabel,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     items: UnitConverter.allDropdownItems,
                     onChanged: (value) {
-                      if (value != null && value.isNotEmpty) setState(() => _servingUnit = value);
+                      if (value != null && value.isNotEmpty) {
+                        setState(() => _servingUnit = value);
+                      }
                     },
                   ),
                 ),
@@ -228,20 +258,26 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: isDark ? AppColors.surfaceVariantDark : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 14, color: AppColors.textSecondary),
+                    Icon(Icons.info_outline,
+                        size: 14, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'ค่าฐาน: ${_baseCalories.toInt()} kcal / 1 $_servingUnit '
-                        '(P:${_baseProtein.toInt()}g C:${_baseCarbs.toInt()}g F:${_baseFat.toInt()}g)',
-                        style: const TextStyle(
+                        L10n.of(context)!.baseInfo(
+                          _baseCalories.toInt().toString(),
+                          _servingUnit,
+                          _baseProtein.toInt().toString(),
+                          _baseCarbs.toInt().toString(),
+                          _baseFat.toInt().toString(),
+                        ),
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -252,32 +288,38 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             const SizedBox(height: 24),
 
             // Macros
-            const Text(
-              '💪 Macros',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            AppIcons.iconWithLabel(
+              AppIcons.macros,
+              L10n.of(context)!.macrosTitle,
+              iconColor: AppIcons.macrosColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _buildMacroInput('Protein', _proteinController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        L10n.of(context)!.proteinLabel, _proteinController, AppColors.health)),
                 const SizedBox(width: 8),
-                Expanded(child: _buildMacroInput('Carbs', _carbsController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        L10n.of(context)!.carbsLabel, _carbsController, AppColors.health)),
                 const SizedBox(width: 8),
-                Expanded(child: _buildMacroInput('Fat', _fatController, AppColors.health)),
+                Expanded(
+                    child: _buildMacroInput(
+                        L10n.of(context)!.fatLabel, _fatController, AppColors.health)),
               ],
             ),
             const SizedBox(height: 24),
 
             // Meal type
-            const Text(
-              '🍽️ มื้ออาหาร',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+            AppIcons.iconWithLabel(
+              AppIcons.meal,
+              L10n.of(context)!.mealTypeTitle,
+              iconColor: AppIcons.mealColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -285,7 +327,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               children: MealType.values.map((type) {
                 final isSelected = _selectedMealType == type;
                 return ChoiceChip(
-                  label: Text('${type.icon} ${type.displayName}'),
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(type.icon, size: 16, color: type.iconColor),
+                      const SizedBox(width: 6),
+                      Text(type.displayName),
+                    ],
+                  ),
                   selected: isSelected,
                   onSelected: (selected) {
                     if (selected) setState(() => _selectedMealType = type);
@@ -294,39 +343,56 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                 );
               }).toList(),
             ),
-            
-            // แสดงวัตถุดิบ (ถ้ามี)
-            if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
+
+            // แสดงวัตถุดิบ (ถ้ามี) — ย่อ default, กดเปิดเพื่อดู/แก้ไข
+            if (_hasAnalyzed &&
+                _analysisResult?.ingredientsDetail != null &&
+                _analysisResult!.ingredientsDetail!.isNotEmpty) ...[
               const SizedBox(height: 24),
-              const Text(
-                '🥘 Ingredients',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _analysisResult!.ingredientsDetail!.map((ingredient) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
-                        style: const TextStyle(fontSize: 13),
+              Theme(
+                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceVariantDark : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                    childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    initiallyExpanded: false,
+                    leading: const Icon(
+                      Icons.restaurant_menu_rounded,
+                      color: AppIcons.mealColor,
+                      size: 20,
+                    ),
+                    title: Text(
+                      '${L10n.of(context)!.ingredientsTitle} (${_analysisResult!.ingredientsDetail!.length})',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    subtitle: Text(
+                      L10n.of(context)!.ingredientsTapToExpand,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      ),
+                    ),
+                    children: _analysisResult!.ingredientsDetail!.map((ingredient) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 100),
           ],
         ),
@@ -353,16 +419,24 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    '💾 บันทึก',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(AppIcons.save, size: 20, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        L10n.of(context)!.saveButton,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ),
       ),
+    ),
     );
   }
 
@@ -373,21 +447,22 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         color: AppColors.primary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          SizedBox(
+          const SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
-          SizedBox(width: 12),
-          const Text('📸 PROCESSING IMAGE DATA...'),
+          const SizedBox(width: 12),
+          Text(L10n.of(context)!.processingImageData),
         ],
       ),
     );
   }
 
   Widget _buildErrorMessage() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -402,10 +477,10 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
             children: [
               const Icon(Icons.error_outline, color: AppColors.error),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'ไม่สามารถวิเคราะห์ได้',
-                  style: TextStyle(
+                  L10n.of(context)!.unableToAnalyzeTitle,
+                  style: const TextStyle(
                     color: AppColors.error,
                     fontWeight: FontWeight.w600,
                   ),
@@ -413,14 +488,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
               ),
               TextButton(
                 onPressed: _analyzeFood,
-                child: const Text('Try Again'),
+                child: Text(L10n.of(context)!.tryAgainButton),
               ),
             ],
           ),
           Text(
             _error ?? '',
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
               fontSize: 12,
             ),
           ),
@@ -441,9 +516,17 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
           const Icon(Icons.check_circle, color: AppColors.success),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              '✨ AI Analyzed (${(_analysisResult!.confidence * 100).toInt()}% confidence)',
-              style: const TextStyle(color: AppColors.success),
+            child: Row(
+              children: [
+                const Icon(AppIcons.aiAnalyzed, size: 16, color: AppColors.success),
+                const SizedBox(width: 4),
+                Text(
+                  L10n.of(context)!.aiAnalyzedConfidence(
+                    (_analysisResult!.confidence * 100).toInt().toString(),
+                  ),
+                  style: const TextStyle(color: AppColors.success),
+                ),
+              ],
             ),
           ),
         ],
@@ -459,14 +542,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: _isAnalyzing ? null : _analyzeFood,
-          icon: _isAnalyzing 
+          icon: _isAnalyzing
               ? const SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('✨'),
-          label: Text(_isAnalyzing ? 'ANALYZING...' : 'AI Analysis'),
+              : const Icon(AppIcons.aiAnalyzed, size: 20, color: Colors.purple),
+          label: Text(_isAnalyzing ? L10n.of(context)!.analyzingButton : L10n.of(context)!.aiAnalysisButton),
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.purple,
             side: const BorderSide(color: Colors.purple),
@@ -475,7 +558,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         ),
       );
     }
-    
+
     // Manual input hint
     return Container(
       margin: const EdgeInsets.all(0),
@@ -484,22 +567,23 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
         color: Colors.blue.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
-        children: [
-          Icon(Icons.info_outline, color: Colors.blue),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'กรอกข้อมูลอาหารด้านล่าง หรือตั้งค่า Gemini API Key เพื่อวิเคราะห์อัตโนมัติ',
-              style: TextStyle(fontSize: 13),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.blue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                L10n.of(context)!.manualInputHint,
+                style: const TextStyle(fontSize: 13),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 
   Widget _buildCaloriesInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -514,12 +598,12 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       ),
       child: Column(
         children: [
-          const Text(
-            '🔥 CALORIES',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.health,
-            ),
+          AppIcons.iconWithLabel(
+            AppIcons.calories,
+            L10n.of(context)!.caloriesTitle,
+            iconColor: AppIcons.caloriesColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 8),
           Row(
@@ -542,13 +626,13 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                   ),
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
                   'kcal',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -584,7 +668,8 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     );
   }
 
-  Widget _buildMacroInput(String label, TextEditingController controller, Color color) {
+  Widget _buildMacroInput(
+      String label, TextEditingController controller, Color color) {
     return Column(
       children: [
         Text(
@@ -616,81 +701,47 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   }
 
   Future<void> _analyzeFood() async {
-    // === ตรวจสอบ Energy ก่อนเรียก API ===
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy) {
-      if (mounted) {
-        await NoEnergyDialog.show(context);
-      }
-      return;
-    }
-    // === จบ Gate Check ===
+    final foodName = _nameController.text.trim();
+    final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
-    setState(() {
-      _isAnalyzing = true;
-      _error = null;
-    });
+    final entry = FoodEntry()
+      ..foodName = foodName.isNotEmpty
+          ? foodName
+          : L10n.of(context)!.foodPendingAnalysis
+      ..mealType = _selectedMealType
+      ..servingSize = servingSize
+      ..servingUnit = _servingUnit
+      ..imagePath = widget.imageFile.path
+      ..timestamp = DateTime.now()
+      ..searchMode = _searchMode
+      ..source = DataSource.galleryScanned;
 
-    try {
-      final result = await GeminiService.analyzeFoodImage(widget.imageFile);
-      
-      if (result != null) {
-        // === Record AI Usage หลังสำเร็จ ===
-        await UsageLimiter.recordAiUsage();
-        setState(() {
-          _analysisResult = result;
-          _hasAnalyzed = true;
-          
-          // Fill in fields
-          _nameController.text = result.foodName;
-          _servingUnit = _getValidUnit(result.servingUnit);
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    await notifier.addFoodEntry(entry);
 
-          // คำนวณ base values (ต่อ 1 หน่วย) จาก Gemini
-          final geminiServing = result.servingSize > 0 ? result.servingSize : 1.0;
-          _baseCalories = result.nutrition.calories / geminiServing;
-          _baseProtein = result.nutrition.protein / geminiServing;
-          _baseCarbs = result.nutrition.carbs / geminiServing;
-          _baseFat = result.nutrition.fat / geminiServing;
-          _hasBaseValues = true;
+    if (!mounted) return;
 
-          // ต้อง remove listener ก่อน set text เพื่อไม่ให้ trigger ซ้ำ
-          _servingSizeController.removeListener(_onServingSizeChanged);
-          _caloriesController.text = result.nutrition.calories.toInt().toString();
-          _proteinController.text = result.nutrition.protein.toInt().toString();
-          _carbsController.text = result.nutrition.carbs.toInt().toString();
-          _fatController.text = result.nutrition.fat.toInt().toString();
-          _servingSizeController.text = result.servingSize.toString();
-          _servingSizeController.addListener(_onServingSizeChanged);
-        });
-      } else {
-        setState(() => _error = 'ไม่สามารถวิเคราะห์ภาพได้');
-      }
-    } catch (e) {
-      if (mounted) {
-        // ตรวจสอบว่าเป็น Energy error หรือไม่
-        if (e.toString().contains('Insufficient energy')) {
-          await NoEnergyDialog.show(context);
-        } else {
-          setState(() => _error = e.toString());
-        }
-      }
-    } finally {
-      setState(() => _isAnalyzing = false);
-    }
+    ref.read(analysisProvider.notifier).enqueue(
+      entries: [entry],
+      selectedDate: dateOnly(DateTime.now()),
+    );
+
+    refreshFoodProviders(ref, dateOnly(DateTime.now()));
+    Navigator.pop(context);
   }
 
   Future<void> _saveFood() async {
     // Validation
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter food name')),
+        SnackBar(content: Text(L10n.of(context)!.pleaseEnterFoodNameShort), duration: const Duration(seconds: 2)),
       );
       return;
     }
 
     final calories = double.tryParse(_caloriesController.text) ?? 0;
     // อนุญาตให้บันทึกด้วยค่า 0 ได้ (จะวิเคราะห์ด้วย Gemini ทีหลัง)
-    
+
     // Create entry
     final protein = double.tryParse(_proteinController.text) ?? 0;
     final carbs = double.tryParse(_carbsController.text) ?? 0;
@@ -698,7 +749,9 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
     final entry = FoodEntry()
-      ..foodName = _nameController.text.trim().isEmpty ? 'อาหาร (รอวิเคราะห์)' : _nameController.text.trim()
+      ..foodName = _nameController.text.trim().isEmpty
+          ? L10n.of(context)!.foodPendingAnalysis
+          : _nameController.text.trim()
       ..foodNameEn = _analysisResult?.foodNameEn
       ..calories = calories
       ..protein = protein
@@ -717,11 +770,14 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       ..source = _hasAnalyzed ? DataSource.aiAnalyzed : DataSource.manual
       ..aiConfidence = _analysisResult?.confidence
       ..isVerified = _hasAnalyzed;
-    
+
     // บันทึกวัตถุดิบ (ถ้ามี) จาก AI analysis
-    if (_hasAnalyzed && _analysisResult?.ingredientsDetail != null && _analysisResult!.ingredientsDetail!.isNotEmpty) {
+    if (_hasAnalyzed &&
+        _analysisResult?.ingredientsDetail != null &&
+        _analysisResult!.ingredientsDetail!.isNotEmpty) {
       entry.ingredientsJson = jsonEncode(_analysisResult!.ingredientsDetail);
-      AppLogger.info('Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
+      AppLogger.info(
+          'Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
     }
 
     // Save
@@ -730,9 +786,17 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Food saved successfully! 🎉'),
+        SnackBar(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(AppIcons.success, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(L10n.of(context)!.foodSavedSuccess),
+            ],
+          ),
           backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 2),
         ),
       );
       Navigator.pop(context);

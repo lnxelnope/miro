@@ -18,7 +18,7 @@ class ChatMessage {
   // Rich content
   String? responseType; // text, confirmCard, listCard, workoutCard
   String? cardDataJson; // JSON string ของ card data
-  String? actionsJson;  // JSON string ของ actions
+  String? actionsJson; // JSON string ของ actions
 
   // Metadata
   String? detectedIntent;

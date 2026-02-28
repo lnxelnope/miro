@@ -1,45 +1,51 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 class TermsScreen extends StatelessWidget {
   const TermsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Terms of Service'),
+        title: Text(L10n.of(context)!.termsOfServiceTitle),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppSpacing.paddingLg,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            const SizedBox(height: 24),
+            _buildHeader(context, isDark),
+            const SizedBox(height: AppSpacing.xxl),
             _buildSection(
-              'Acceptance of Terms',
+              L10n.of(context)!.termsSectionAcceptanceOfTerms,
               [
                 'By downloading, installing, or using MiRO, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
               ],
+              isDark,
             ),
             _buildSection(
-              'Service Description',
+              L10n.of(context)!.termsSectionServiceDescription,
               [
                 'MiRO is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
               ],
+              isDark,
             ),
             _buildSection(
-              'Disclaimer of Warranties',
+              L10n.of(context)!.termsSectionDisclaimerOfWarranties,
               [
                 '• Nutritional information from AI may not be 100% accurate',
                 '• This app is not medical advice — always consult a doctor or registered dietitian for health decisions',
                 '• Calorie and macro values are estimates only',
                 '• The app is provided "as is" without warranties of any kind',
               ],
+              isDark,
             ),
             _buildSection(
-              'Energy System Terms',
+              L10n.of(context)!.termsSectionEnergySystemTerms,
               [
                 'Energy is the in-app currency used to access AI analysis features.',
                 '',
@@ -60,9 +66,10 @@ class TermsScreen extends StatelessWidget {
                 '• Promotional offers cannot be combined with other discounts',
                 '• We reserve the right to modify or cancel promotional offers at any time',
               ],
+              isDark,
             ),
             _buildSection(
-              'User Data and Responsibilities',
+              L10n.of(context)!.termsSectionUserDataAndResponsibilities,
               [
                 '• You are responsible for the accuracy of data you enter',
                 '• Food data is stored locally on your device',
@@ -78,9 +85,10 @@ class TermsScreen extends StatelessWidget {
                 '• Transfer Keys are single-use: once redeemed, the key becomes invalid',
                 '• Creating a new backup invalidates any previous unused Transfer Key',
               ],
+              isDark,
             ),
             _buildSection(
-              'Backup & Transfer',
+              L10n.of(context)!.termsSectionBackupTransfer,
               [
                 '• Backup files contain your food history, settings, and a Transfer Key',
                 '• Transfer Keys are valid for 30 days from creation',
@@ -91,18 +99,20 @@ class TermsScreen extends StatelessWidget {
                 '• We are not responsible for unauthorized use of your backup file or Transfer Key',
                 '• Keep your backup file secure — anyone with the file can redeem your Energy',
               ],
+              isDark,
             ),
             _buildSection(
-              'In-App Purchases',
+              L10n.of(context)!.termsSectionInAppPurchases,
               [
                 '• All Energy purchases are processed through Google Play Billing',
                 '• Purchases are non-refundable except as required by applicable law',
                 '• Google Play\'s refund policies apply',
                 '• Prices are subject to change without notice',
               ],
+              isDark,
             ),
             _buildSection(
-              'Prohibited Uses',
+              L10n.of(context)!.termsSectionProhibitedUses,
               [
                 'You agree NOT to:',
                 '',
@@ -112,17 +122,19 @@ class TermsScreen extends StatelessWidget {
                 '• Share or sell your account or Energy balance',
                 '• Use automated tools or bots to access the app',
               ],
+              isDark,
             ),
             _buildSection(
-              'Intellectual Property',
+              L10n.of(context)!.termsSectionIntellectualProperty,
               [
                 '• All app code, UI design, and content are proprietary and protected by copyright',
                 '• The MiRO name and logo are trademarks',
                 '• You may not copy, modify, or distribute app content without permission',
               ],
+              isDark,
             ),
             _buildSection(
-              'Limitation of Liability',
+              L10n.of(context)!.termsSectionLimitationOfLiability,
               [
                 'To the maximum extent permitted by law:',
                 '',
@@ -130,53 +142,75 @@ class TermsScreen extends StatelessWidget {
                 '• We are not liable for loss of data due to app uninstallation or device failure',
                 '• Our total liability shall not exceed the amount you paid for Energy in the past 3 months',
               ],
+              isDark,
             ),
             _buildSection(
-              'Service Termination',
+              L10n.of(context)!.termsSectionHealthDataSync,
+              [
+                'MiRO offers optional integration with Apple Health (iOS) and Google Health Connect (Android).',
+                '',
+                '• Health Sync is entirely optional and must be enabled by you',
+                '• When enabled, MiRO reads your active energy burned and writes dietary nutrition data to your Health App',
+                '• Nutritional data written to Health App is based on your manual entries and AI estimates — accuracy is not guaranteed',
+                '• Deleting a food entry in MiRO will also remove it from your Health App',
+                '• Disabling Health Sync will stop future syncing but will NOT delete previously synced records',
+                '• We are NOT responsible for how third-party apps (Apple Health, Google Health Connect, fitness trackers) interpret or display the data',
+                '• Health data never leaves your device — it is synced locally between MiRO and your Health App only',
+              ],
+              isDark,
+            ),
+            _buildSection(
+              L10n.of(context)!.termsSectionServiceTermination,
               [
                 '• You may stop using the app at any time by uninstalling it',
                 '• Uninstalling the app will delete all local data (but Energy balance is preserved on our server)',
                 '• We recommend creating a backup before uninstalling to preserve your food history',
                 '• We reserve the right to suspend accounts engaged in fraudulent activity',
               ],
+              isDark,
             ),
             _buildSection(
-              'Changes to Terms',
+              L10n.of(context)!.termsSectionChangesToTerms,
               [
                 'We may update these Terms of Service from time to time. Continued use after changes constitutes acceptance of updated terms. Material changes will be communicated through app updates.',
               ],
+              isDark,
             ),
             _buildSection(
-              'Governing Law',
+              L10n.of(context)!.termsSectionGoverningLaw,
               [
                 'These terms are governed by the laws of Thailand, without regard to conflict of law principles.',
               ],
+              isDark,
             ),
             _buildSection(
-              'Contact Us',
+              L10n.of(context)!.termsSectionContactUs,
               [
                 'For questions, support, or to report issues, please contact us through Google Play Store.',
               ],
+              isDark,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.shade200),
+                color: AppColors.warning.withValues(alpha: 0.1),
+                borderRadius: AppRadius.sm,
+                border:
+                    Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.warning_amber,
+                      color: AppColors.warning, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
-                      'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.',
-                      style: TextStyle(
+                      L10n.of(context)!.termsAcknowledgment,
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: Colors.orange.shade900,
+                        color: AppColors.warning,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -184,46 +218,50 @@ class TermsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(
-              'Last updated: February 15, 2026',
+              L10n.of(context)!.termsLastUpdated,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
                 fontStyle: FontStyle.italic,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Terms of Service',
+        Text(
+          L10n.of(context)!.termsOfServiceTitle,
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         Text(
-          'MiRO — My Intake Record Oracle',
+          L10n.of(context)!.termsSubtitle,
           style: TextStyle(
             fontSize: 16,
-            color: Colors.grey.shade700,
+            color:
+                isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSection(String title, List<String> content) {
+  Widget _buildSection(String title, List<String> content, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,7 +273,7 @@ class TermsScreen extends StatelessWidget {
             color: AppColors.primary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.sm),
         ...content.map((line) {
           if (line.isEmpty) {
             return const SizedBox(height: 8);
@@ -246,13 +284,14 @@ class TermsScreen extends StatelessWidget {
               line,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade800,
+                color:
+                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
           );
         }),
-        const SizedBox(height: 20),
+        const SizedBox(height: AppSpacing.xl),
       ],
     );
   }

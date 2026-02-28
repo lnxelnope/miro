@@ -11,53 +11,56 @@ import '../models/my_meal_ingredient.dart';
 // ===== INGREDIENT PROVIDERS =====
 
 /// ดึง ingredients ทั้งหมด (เรียงตาม usageCount)
-final allIngredientsProvider = FutureProvider.autoDispose<List<Ingredient>>((ref) async {
-  return await DatabaseService.ingredients
-      .where()
-      .sortByUsageCountDesc()
-      .findAll();
+final allIngredientsProvider =
+    FutureProvider.autoDispose<List<Ingredient>>((ref) async {
+  final all = await DatabaseService.ingredients.where().findAll();
+  all.sort((a, b) => b.usageCount.compareTo(a.usageCount));
+  return all;
 });
 
 /// ค้นหา ingredient ตามชื่อ (fuzzy search)
-final ingredientSearchProvider = FutureProvider.autoDispose.family<List<Ingredient>, String>((ref, query) async {
+final ingredientSearchProvider = FutureProvider.autoDispose
+    .family<List<Ingredient>, String>((ref, query) async {
   if (query.isEmpty) return [];
-  
+
   final all = await DatabaseService.ingredients.where().findAll();
   final lowerQuery = query.toLowerCase();
-  
+
   return all.where((ing) {
     return ing.name.toLowerCase().contains(lowerQuery) ||
-           (ing.nameEn?.toLowerCase().contains(lowerQuery) ?? false);
+        (ing.nameEn?.toLowerCase().contains(lowerQuery) ?? false);
   }).toList()
     ..sort((a, b) => b.usageCount.compareTo(a.usageCount));
 });
 
 // ===== MY MEAL PROVIDERS =====
 
-/// ดึง meals ทั้งหมด
-final allMyMealsProvider = FutureProvider.autoDispose<List<MyMeal>>((ref) async {
-  return await DatabaseService.myMeals
-      .where()
-      .sortByUsageCountDesc()
-      .findAll();
+/// ดึง meals ทั้งหมด — เรียงจากล่าสุดที่เปลี่ยนแปลง/บันทึกด้านบน
+final allMyMealsProvider =
+    FutureProvider.autoDispose<List<MyMeal>>((ref) async {
+  final all = await DatabaseService.myMeals.where().findAll();
+  all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+  return all;
 });
 
 /// ค้นหา meal ตามชื่อ
-final myMealSearchProvider = FutureProvider.autoDispose.family<List<MyMeal>, String>((ref, query) async {
+final myMealSearchProvider =
+    FutureProvider.autoDispose.family<List<MyMeal>, String>((ref, query) async {
   if (query.isEmpty) return [];
-  
+
   final all = await DatabaseService.myMeals.where().findAll();
   final lowerQuery = query.toLowerCase();
-  
+
   return all.where((meal) {
     return meal.name.toLowerCase().contains(lowerQuery) ||
-           (meal.nameEn?.toLowerCase().contains(lowerQuery) ?? false);
+        (meal.nameEn?.toLowerCase().contains(lowerQuery) ?? false);
   }).toList()
     ..sort((a, b) => b.usageCount.compareTo(a.usageCount));
 });
 
 /// ดึง ingredients ของ meal
-final mealIngredientsProvider = FutureProvider.autoDispose.family<List<MyMealIngredient>, int>((ref, mealId) async {
+final mealIngredientsProvider = FutureProvider.autoDispose
+    .family<List<MyMealIngredient>, int>((ref, mealId) async {
   return await DatabaseService.myMealIngredients
       .filter()
       .myMealIdEqualTo(mealId)
@@ -84,7 +87,7 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
   }) async {
     // Validate and fallback unit
     final validUnit = UnitConverter.ensureValid(baseUnit);
-    
+
     // Search if already exists (by name)
     final existing = await DatabaseService.ingredients
         .filter()
@@ -106,7 +109,8 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
         await DatabaseService.ingredients.put(existing);
       });
 
-      AppLogger.info('Updated Ingredient: ${existing.name} (id=${existing.id})');
+      AppLogger.info(
+          'Updated Ingredient: ${existing.name} (id=${existing.id})');
       return existing;
     }
 
@@ -127,8 +131,78 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
       await DatabaseService.ingredients.put(ingredient);
     });
 
-    debugPrint('✅ [MyMealNotifier] Created new Ingredient: ${ingredient.name} (id=${ingredient.id})');
+    debugPrint(
+        '✅ [MyMealNotifier] Created new Ingredient: ${ingredient.name} (id=${ingredient.id})');
     return ingredient;
+  }
+
+  /// Save ingredient และ sub-ingredients แบบ recursive
+  /// Returns: MyMealIngredient ที่ save แล้ว (parent)
+  Future<MyMealIngredient> _saveMealIngredient({
+    required MyMeal meal,
+    required MealIngredientInput input,
+    required int? parentId, // null = root level
+    required int depth, // 0 = root, 1 = sub, 2 = sub-sub
+    required int sortOrder,
+  }) async {
+    // 1. บันทึก ingredient ลง Ingredient table ก่อน (สำหรับ reference)
+    final savedIngredient = await saveIngredient(
+      name: input.name,
+      nameEn: input.nameEn,
+      baseAmount: input.amount,
+      baseUnit: input.unit,
+      calories: input.calories,
+      protein: input.protein,
+      carbs: input.carbs,
+      fat: input.fat,
+      source: meal.source,
+    );
+
+    // 2. สร้าง MyMealIngredient จาก input
+    final mealIngredient = MyMealIngredient()
+      ..myMealId = meal.id
+      ..ingredientId = savedIngredient.id
+      ..ingredientName = input.name
+      ..amount = input.amount
+      ..unit = input.unit
+      ..calories = input.calories
+      ..protein = input.protein
+      ..carbs = input.carbs
+      ..fat = input.fat
+      ..parentId = parentId // NEW
+      ..depth = depth // NEW
+      ..isComposite = false // จะ update ทีหลังถ้ามี sub
+      ..detail = input.detail // NEW
+      ..sortOrder = sortOrder;
+
+    // 3. Save parent ก่อน (ต้องได้ id มาก่อน)
+    await DatabaseService.isar.writeTxn(() async {
+      await DatabaseService.myMealIngredients.put(mealIngredient);
+    });
+
+    // 4. ถ้ามี sub-ingredients → save recursively
+    if (input.subIngredients != null && input.subIngredients!.isNotEmpty) {
+      int subSortOrder = sortOrder + 1;
+
+      for (final subInput in input.subIngredients!) {
+        await _saveMealIngredient(
+          meal: meal,
+          input: subInput,
+          parentId: mealIngredient.id, // link to parent
+          depth: depth + 1, // increase depth
+          sortOrder: subSortOrder,
+        );
+        subSortOrder++;
+      }
+
+      // 5. Mark parent as composite
+      mealIngredient.isComposite = true;
+      await DatabaseService.isar.writeTxn(() async {
+        await DatabaseService.myMealIngredients.put(mealIngredient);
+      });
+    }
+
+    return mealIngredient;
   }
 
   /// สร้าง MyMeal พร้อม ingredients
@@ -140,10 +214,11 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required List<MealIngredientInput> ingredients,
     String source = 'gemini',
   }) async {
-    // คำนวณ total nutrition
+    // คำนวณ total nutrition จาก ROOT ingredients เท่านั้น
+    // (SUB ingredients อยู่ใน input.subIngredients ไม่นับ)
     double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
     for (final ing in ingredients) {
-      totalCal += ing.calories;
+      totalCal += ing.calories; // ROOT only
       totalP += ing.protein;
       totalC += ing.carbs;
       totalF += ing.fat;
@@ -166,41 +241,26 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
       await DatabaseService.myMeals.put(meal);
     });
 
-    // สร้าง MyMealIngredient entries
-    for (int i = 0; i < ingredients.length; i++) {
-      final inp = ingredients[i];
-
-      // บันทึก ingredient ลง DB ด้วย
-      final savedIngredient = await saveIngredient(
-        name: inp.name,
-        nameEn: inp.nameEn,
-        baseAmount: inp.amount,
-        baseUnit: inp.unit,
-        calories: inp.calories,
-        protein: inp.protein,
-        carbs: inp.carbs,
-        fat: inp.fat,
-        source: source,
+    // สร้าง MyMealIngredient entries แบบ recursive (NEW)
+    int sortIndex = 0;
+    for (final input in ingredients) {
+      await _saveMealIngredient(
+        meal: meal,
+        input: input,
+        parentId: null, // ROOT
+        depth: 0,
+        sortOrder: sortIndex,
       );
 
-      final mealIngredient = MyMealIngredient()
-        ..myMealId = meal.id
-        ..ingredientId = savedIngredient.id
-        ..ingredientName = inp.name
-        ..amount = inp.amount
-        ..unit = inp.unit
-        ..calories = inp.calories
-        ..protein = inp.protein
-        ..carbs = inp.carbs
-        ..fat = inp.fat
-        ..sortOrder = i;
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.myMealIngredients.put(mealIngredient);
-      });
+      // sortIndex ต้องเพิ่มตามจำนวน sub ด้วย (ถ้ามี)
+      if (input.subIngredients != null && input.subIngredients!.isNotEmpty) {
+        sortIndex += input.subIngredients!.length;
+      }
+      sortIndex++;
     }
 
-    AppLogger.info('Created MyMeal: ${meal.name} (id=${meal.id}, ${ingredients.length} ingredients)');
+    AppLogger.info(
+        'Created MyMeal: ${meal.name} (id=${meal.id}, ${ingredients.length} ROOT ingredients)');
     return meal;
   }
 
@@ -214,12 +274,12 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required List<MealIngredientInput> ingredients,
   }) async {
     final meal = await DatabaseService.myMeals.get(mealId);
-    if (meal == null) throw Exception('ไม่พบเมนู');
+    if (meal == null) throw Exception('Meal not found');
 
-    // คำนวณ total nutrition
+    // คำนวณ total nutrition จาก ROOT เท่านั้น
     double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
     for (final ing in ingredients) {
-      totalCal += ing.calories;
+      totalCal += ing.calories; // ROOT only
       totalP += ing.protein;
       totalC += ing.carbs;
       totalF += ing.fat;
@@ -239,44 +299,29 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.myMeals.put(meal);
 
-      // ลบ MyMealIngredient เดิม
+      // ลบ MyMealIngredient เดิมทั้งหมด (รวม children)
       await DatabaseService.myMealIngredients
           .filter()
           .myMealIdEqualTo(mealId)
           .deleteAll();
     });
 
-    // สร้าง MyMealIngredient entries ใหม่
-    for (int i = 0; i < ingredients.length; i++) {
-      final inp = ingredients[i];
-
-      final savedIngredient = await saveIngredient(
-        name: inp.name,
-        nameEn: inp.nameEn,
-        baseAmount: inp.amount,
-        baseUnit: inp.unit,
-        calories: inp.calories,
-        protein: inp.protein,
-        carbs: inp.carbs,
-        fat: inp.fat,
-        source: meal.source,
+    // สร้าง MyMealIngredient entries ใหม่แบบ recursive
+    int sortIndex = 0;
+    for (final input in ingredients) {
+      await _saveMealIngredient(
+        meal: meal,
+        input: input,
+        parentId: null, // ROOT
+        depth: 0,
+        sortOrder: sortIndex,
       );
 
-      final mealIngredient = MyMealIngredient()
-        ..myMealId = meal.id
-        ..ingredientId = savedIngredient.id
-        ..ingredientName = inp.name
-        ..amount = inp.amount
-        ..unit = inp.unit
-        ..calories = inp.calories
-        ..protein = inp.protein
-        ..carbs = inp.carbs
-        ..fat = inp.fat
-        ..sortOrder = i;
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.myMealIngredients.put(mealIngredient);
-      });
+      // sortIndex ต้องเพิ่มตามจำนวน sub ด้วย
+      if (input.subIngredients != null && input.subIngredients!.isNotEmpty) {
+        sortIndex += input.subIngredients!.length;
+      }
+      sortIndex++;
     }
 
     AppLogger.info('Updated MyMeal: ${meal.name} (id=${meal.id})');
@@ -312,7 +357,8 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
       await DatabaseService.ingredients.put(ingredient);
     });
 
-    AppLogger.info('Updated Ingredient: ${ingredient.name} (id=${ingredient.id})');
+    AppLogger.info(
+        'Updated Ingredient: ${ingredient.name} (id=${ingredient.id})');
     return ingredient;
   }
 
@@ -368,21 +414,74 @@ final myMealNotifierProvider =
 class MealIngredientInput {
   final String name;
   final String? nameEn;
+  final String? detail; // NEW
   final double amount;
   final String unit;
   final double calories;
   final double protein;
   final double carbs;
   final double fat;
+  final List<MealIngredientInput>? subIngredients; // NEW: recursive
 
   MealIngredientInput({
     required this.name,
     this.nameEn,
+    this.detail, // NEW
     required this.amount,
     required this.unit,
     required this.calories,
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.subIngredients, // NEW
   });
+}
+
+// ===== TREE PROVIDER =====
+
+/// ดึง ingredients ของ meal เป็น tree structure (ROOT + children)
+final mealIngredientTreeProvider = FutureProvider.autoDispose
+    .family<List<IngredientTreeNode>, int>((ref, mealId) async {
+  // Query all ingredients ของ meal นี้
+  final allIngredients = await DatabaseService.myMealIngredients
+      .filter()
+      .myMealIdEqualTo(mealId)
+      .sortBySortOrder()
+      .findAll();
+
+  // แยก root vs sub
+  final roots = allIngredients.where((e) => e.parentId == null).toList();
+
+  // สร้าง map: parentId → List<children>
+  final childMap = <int, List<MyMealIngredient>>{};
+  for (final item in allIngredients.where((e) => e.parentId != null)) {
+    childMap.putIfAbsent(item.parentId!, () => []).add(item);
+  }
+
+  // สร้าง tree nodes
+  return roots.map((root) {
+    return IngredientTreeNode(
+      ingredient: root,
+      children: childMap[root.id] ?? [],
+    );
+  }).toList();
+});
+
+/// Tree node สำหรับแสดง hierarchical ingredients
+class IngredientTreeNode {
+  final MyMealIngredient ingredient;
+  final List<MyMealIngredient> children;
+
+  IngredientTreeNode({
+    required this.ingredient,
+    required this.children,
+  });
+
+  bool get isComposite => children.isNotEmpty;
+
+  /// Total calories รวม children (สำหรับ validation)
+  double get totalCaloriesWithChildren {
+    return ingredient.calories +
+        children.fold<double>(0, (sum, child) => sum + child.calories);
+  }
 }

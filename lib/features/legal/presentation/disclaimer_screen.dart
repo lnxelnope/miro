@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/constants/app_disclaimer.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 
 class DisclaimerScreen extends StatelessWidget {
   const DisclaimerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health Disclaimer'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(L10n.of(context)!.disclaimerHealthDisclaimer),
+        backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+        foregroundColor: isDark ? AppColors.textPrimaryDark : Colors.black,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xxl),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Warning icon
             Center(
               child: Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
+                  color: AppColors.warning.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -36,67 +40,64 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             
-            // Full disclaimer text
             Text(
               AppDisclaimer.full,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 height: 1.6,
-                color: Colors.black87,
+                color: isDark ? AppColors.textPrimaryDark : Colors.black87,
               ),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxxl),
             
-            // Acknowledgment section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
+                color: AppColors.info.withValues(alpha: 0.1),
+                borderRadius: AppRadius.md,
+                border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Important Reminders:',
-                    style: TextStyle(
+                    L10n.of(context)!.disclaimerImportantReminders,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade900,
+                      color: AppColors.info,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildBulletPoint('All nutritional data is estimated'),
-                  _buildBulletPoint('AI analysis may contain errors'),
-                  _buildBulletPoint('Not a substitute for professional advice'),
-                  _buildBulletPoint('Consult healthcare providers for medical guidance'),
-                  _buildBulletPoint('Use at your own discretion and risk'),
+                  const SizedBox(height: AppSpacing.md),
+                  _buildBulletPoint(L10n.of(context)!.disclaimerBullet1),
+                  _buildBulletPoint(L10n.of(context)!.disclaimerBullet2),
+                  _buildBulletPoint(L10n.of(context)!.disclaimerBullet3),
+                  _buildBulletPoint(L10n.of(context)!.disclaimerBullet4),
+                  _buildBulletPoint(L10n.of(context)!.disclaimerBullet5),
                 ],
               ),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxxl),
             
-            // Close button
             SizedBox(
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey.shade800,
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark ? Colors.white : AppColors.textPrimary,
+                  foregroundColor: isDark ? AppColors.textPrimary : Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppRadius.md,
                   ),
                 ),
-                child: const Text(
-                  'I Understand',
-                  style: TextStyle(
+                child: Text(
+                  L10n.of(context)!.disclaimerIUnderstand,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -104,8 +105,9 @@ class DisclaimerScreen extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
           ],
+        ),
         ),
       ),
     );
@@ -117,20 +119,20 @@ class DisclaimerScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '• ',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.blue.shade900,
+              color: AppColors.info,
               fontWeight: FontWeight.bold,
             ),
           ),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
-                color: Colors.blue.shade900,
+                color: AppColors.info,
               ),
             ),
           ),

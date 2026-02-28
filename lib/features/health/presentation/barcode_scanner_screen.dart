@@ -5,10 +5,12 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/constants/enums.dart';
-import '../../../features/energy/widgets/no_energy_dialog.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
@@ -20,7 +22,8 @@ class BarcodeScannerScreen extends ConsumerStatefulWidget {
   const BarcodeScannerScreen({super.key});
 
   @override
-  ConsumerState<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
+  ConsumerState<BarcodeScannerScreen> createState() =>
+      _BarcodeScannerScreenState();
 }
 
 class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
@@ -92,13 +95,13 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    Colors.black.withOpacity(0.9),
+                    Colors.black.withValues(alpha: 0.9),
                     Colors.transparent,
                   ],
                 ),
@@ -108,32 +111,35 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                 children: [
                   if (_detectedBarcode != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
+                        color: AppColors.success.withValues(alpha: 0.2),
+                        borderRadius: AppRadius.xl,
                         border: Border.all(color: AppColors.success),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
-                          const SizedBox(width: 8),
+                          const Icon(Icons.check_circle,
+                              color: AppColors.success, size: 20),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             'Barcode: $_detectedBarcode',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                   ],
-
                   if (_isProcessing)
                     const Column(
                       children: [
                         CircularProgressIndicator(color: Colors.white),
-                        SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           '📱 READING BARCODE DATA...',
                           style: TextStyle(color: Colors.white),
@@ -142,23 +148,25 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                     )
                   else ...[
                     const Text(
-                      'ส่องกล้องไปที่บาร์โค้ดบนสินค้า',
+                      'Point camera at product barcode',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     const Text(
-                      'พยายามให้เห็นฉลากโภชนาการด้วยจะแม่นยำกว่า',
+                      'Including the nutrition label improves accuracy',
                       style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     // ปุ่มถ่ายฉลากแทน
                     OutlinedButton.icon(
                       onPressed: () => _switchToNutritionLabel(),
                       icon: const Icon(Icons.receipt_long, color: Colors.white),
-                      label: const Text('Scan nutrition label instead', style: TextStyle(color: Colors.white)),
+                      label: const Text('Scan nutrition label instead',
+                          style: TextStyle(color: Colors.white)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.white54),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.md),
                       ),
                     ),
                   ],
@@ -183,7 +191,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             // Dark overlay with transparent scan area
             ColorFiltered(
               colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
                 BlendMode.srcOut,
               ),
               child: Stack(
@@ -201,8 +209,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
                       width: scanAreaSize,
                       height: scanAreaSize,
                       decoration: BoxDecoration(
-                        color: Colors.red, // สีอะไรก็ได้ จะถูก srcOut
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppColors.error, // สีอะไรก็ได้ จะถูก srcOut
+                        borderRadius: AppRadius.lg,
                       ),
                     ),
                   ),
@@ -245,7 +253,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _CornerPainter(alignment: alignment, color: color, thickness: thickness),
+        painter: _CornerPainter(
+            alignment: alignment, color: color, thickness: thickness),
       ),
     );
   }
@@ -264,6 +273,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     });
 
     AppLogger.info('Barcode detected: ${barcode.rawValue}');
+    AnalyticsService.logBarcodeScan();
 
     try {
       // จับ frame จากกล้อง
@@ -283,7 +293,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           _isProcessing = false;
           _hasScanned = false;
         });
-        
+
         _showManualCaptureDialog(barcode.rawValue!);
         return;
       }
@@ -299,7 +309,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
 
       if (result == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('❌ ไม่สามารถวิเคราะห์สินค้าได้')),
+          const SnackBar(content: Text('Unable to analyze product'), duration: Duration(seconds: 2)),
         );
         setState(() => _hasScanned = false);
         return;
@@ -310,23 +320,28 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
     } catch (e) {
       debugPrint('❌ [BarcodeScanner] Error: $e');
       if (!context.mounted) return;
-      
+
       // ปิด loading dialog ถ้ายังเปิดอยู่
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
       }
-      
+
       setState(() {
         _isProcessing = false;
         _hasScanned = false;
       });
-      
+
       // ตรวจสอบว่าเป็น Energy error หรือไม่
       if (e.toString().contains('Insufficient energy')) {
-        await NoEnergyDialog.show(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ เกิดข้อผิดพลาด: $e')),
+          SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 2)),
         );
       }
     }
@@ -344,8 +359,8 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             Text('Barcode: $barcodeValue'),
             const SizedBox(height: 12),
             const Text(
-              'กรุณาถ่ายรูปบรรจุภัณฑ์หรือฉลากโภชนาการ\n'
-              'เพื่อให้ Gemini วิเคราะห์ข้อมูลสินค้า',
+              'Please take a photo of the packaging or nutrition label\n'
+              'for AI to analyze product information',
             ),
           ],
         ),
@@ -407,13 +422,14 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         _hasScanned = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ $e')),
+        SnackBar(content: Text('❌ $e'), duration: const Duration(seconds: 2)),
       );
     }
   }
 
   /// แสดงผลวิเคราะห์
-  void _showAnalysisResult(FoodAnalysisResult result, String barcodeValue, String imagePath) {
+  void _showAnalysisResult(
+      FoodAnalysisResult result, String barcodeValue, String imagePath) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -445,7 +461,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             ..source = DataSource.aiAnalyzed
             ..aiConfidence = confirmedData.confidence
             ..isVerified = true
-            ..notes = 'สแกนบาร์โค้ด: $barcodeValue';
+            ..notes = 'Barcode scan: $barcodeValue';
 
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);
@@ -457,11 +473,12 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
               await notifier.saveIngredientsAndMeal(
                 mealName: confirmedData.foodName,
                 mealNameEn: confirmedData.foodNameEn,
-                servingDescription: '${confirmedData.servingSize} ${confirmedData.servingUnit}',
+                servingDescription:
+                    '${confirmedData.servingSize} ${confirmedData.servingUnit}',
                 imagePath: imagePath,
                 ingredientsData: confirmedData.ingredientsDetail!,
               );
-              
+
               // Invalidate MyMeal providers to refresh UI
               ref.invalidate(allMyMealsProvider);
               ref.invalidate(allIngredientsProvider);
@@ -475,7 +492,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✅ บันทึก "${confirmedData.foodName}" แล้ว'),
+              content: Text('Saved "${confirmedData.foodName}"'),
               backgroundColor: AppColors.success,
             ),
           );

@@ -133,69 +133,100 @@ const FoodEntrySchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _FoodEntrymealTypeEnumValueMap,
     ),
-    r'myMealId': PropertySchema(
+    r'monounsaturatedFat': PropertySchema(
       id: 23,
+      name: r'monounsaturatedFat',
+      type: IsarType.double,
+    ),
+    r'myMealId': PropertySchema(
+      id: 24,
       name: r'myMealId',
       type: IsarType.long,
     ),
     r'notes': PropertySchema(
-      id: 24,
+      id: 25,
       name: r'notes',
       type: IsarType.string,
     ),
+    r'polyunsaturatedFat': PropertySchema(
+      id: 26,
+      name: r'polyunsaturatedFat',
+      type: IsarType.double,
+    ),
+    r'potassium': PropertySchema(
+      id: 27,
+      name: r'potassium',
+      type: IsarType.double,
+    ),
     r'protein': PropertySchema(
-      id: 25,
+      id: 28,
       name: r'protein',
       type: IsarType.double,
     ),
     r'saturatedFat': PropertySchema(
-      id: 26,
+      id: 29,
       name: r'saturatedFat',
       type: IsarType.double,
     ),
+    r'searchMode': PropertySchema(
+      id: 30,
+      name: r'searchMode',
+      type: IsarType.byte,
+      enumMap: _FoodEntrysearchModeEnumValueMap,
+    ),
     r'servingGrams': PropertySchema(
-      id: 27,
+      id: 31,
       name: r'servingGrams',
       type: IsarType.double,
     ),
     r'servingSize': PropertySchema(
-      id: 28,
+      id: 32,
       name: r'servingSize',
       type: IsarType.double,
     ),
     r'servingUnit': PropertySchema(
-      id: 29,
+      id: 33,
       name: r'servingUnit',
       type: IsarType.string,
     ),
     r'sodium': PropertySchema(
-      id: 30,
+      id: 34,
       name: r'sodium',
       type: IsarType.double,
     ),
     r'source': PropertySchema(
-      id: 31,
+      id: 35,
       name: r'source',
       type: IsarType.byte,
       enumMap: _FoodEntrysourceEnumValueMap,
     ),
     r'sugar': PropertySchema(
-      id: 32,
+      id: 36,
       name: r'sugar',
       type: IsarType.double,
     ),
     r'syncedAt': PropertySchema(
-      id: 33,
+      id: 37,
       name: r'syncedAt',
       type: IsarType.dateTime,
     ),
     r'timestamp': PropertySchema(
-      id: 34,
+      id: 38,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
+    r'transFat': PropertySchema(
+      id: 39,
+      name: r'transFat',
+      type: IsarType.double,
+    ),
+    r'unsaturatedFat': PropertySchema(
+      id: 40,
+      name: r'unsaturatedFat',
+      type: IsarType.double,
+    ),
     r'updatedAt': PropertySchema(
-      id: 35,
+      id: 41,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -290,19 +321,25 @@ void _foodEntrySerialize(
   writer.writeBool(offsets[20], object.isDeleted);
   writer.writeBool(offsets[21], object.isVerified);
   writer.writeByte(offsets[22], object.mealType.index);
-  writer.writeLong(offsets[23], object.myMealId);
-  writer.writeString(offsets[24], object.notes);
-  writer.writeDouble(offsets[25], object.protein);
-  writer.writeDouble(offsets[26], object.saturatedFat);
-  writer.writeDouble(offsets[27], object.servingGrams);
-  writer.writeDouble(offsets[28], object.servingSize);
-  writer.writeString(offsets[29], object.servingUnit);
-  writer.writeDouble(offsets[30], object.sodium);
-  writer.writeByte(offsets[31], object.source.index);
-  writer.writeDouble(offsets[32], object.sugar);
-  writer.writeDateTime(offsets[33], object.syncedAt);
-  writer.writeDateTime(offsets[34], object.timestamp);
-  writer.writeDateTime(offsets[35], object.updatedAt);
+  writer.writeDouble(offsets[23], object.monounsaturatedFat);
+  writer.writeLong(offsets[24], object.myMealId);
+  writer.writeString(offsets[25], object.notes);
+  writer.writeDouble(offsets[26], object.polyunsaturatedFat);
+  writer.writeDouble(offsets[27], object.potassium);
+  writer.writeDouble(offsets[28], object.protein);
+  writer.writeDouble(offsets[29], object.saturatedFat);
+  writer.writeByte(offsets[30], object.searchMode.index);
+  writer.writeDouble(offsets[31], object.servingGrams);
+  writer.writeDouble(offsets[32], object.servingSize);
+  writer.writeString(offsets[33], object.servingUnit);
+  writer.writeDouble(offsets[34], object.sodium);
+  writer.writeByte(offsets[35], object.source.index);
+  writer.writeDouble(offsets[36], object.sugar);
+  writer.writeDateTime(offsets[37], object.syncedAt);
+  writer.writeDateTime(offsets[38], object.timestamp);
+  writer.writeDouble(offsets[39], object.transFat);
+  writer.writeDouble(offsets[40], object.unsaturatedFat);
+  writer.writeDateTime(offsets[41], object.updatedAt);
 }
 
 FoodEntry _foodEntryDeserialize(
@@ -336,21 +373,29 @@ FoodEntry _foodEntryDeserialize(
   object.mealType =
       _FoodEntrymealTypeValueEnumMap[reader.readByteOrNull(offsets[22])] ??
           MealType.breakfast;
-  object.myMealId = reader.readLongOrNull(offsets[23]);
-  object.notes = reader.readStringOrNull(offsets[24]);
-  object.protein = reader.readDouble(offsets[25]);
-  object.saturatedFat = reader.readDoubleOrNull(offsets[26]);
-  object.servingGrams = reader.readDoubleOrNull(offsets[27]);
-  object.servingSize = reader.readDouble(offsets[28]);
-  object.servingUnit = reader.readString(offsets[29]);
-  object.sodium = reader.readDoubleOrNull(offsets[30]);
+  object.monounsaturatedFat = reader.readDoubleOrNull(offsets[23]);
+  object.myMealId = reader.readLongOrNull(offsets[24]);
+  object.notes = reader.readStringOrNull(offsets[25]);
+  object.polyunsaturatedFat = reader.readDoubleOrNull(offsets[26]);
+  object.potassium = reader.readDoubleOrNull(offsets[27]);
+  object.protein = reader.readDouble(offsets[28]);
+  object.saturatedFat = reader.readDoubleOrNull(offsets[29]);
+  object.searchMode =
+      _FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offsets[30])] ??
+          FoodSearchMode.normal;
+  object.servingGrams = reader.readDoubleOrNull(offsets[31]);
+  object.servingSize = reader.readDouble(offsets[32]);
+  object.servingUnit = reader.readString(offsets[33]);
+  object.sodium = reader.readDoubleOrNull(offsets[34]);
   object.source =
-      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[31])] ??
+      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[35])] ??
           DataSource.manual;
-  object.sugar = reader.readDoubleOrNull(offsets[32]);
-  object.syncedAt = reader.readDateTimeOrNull(offsets[33]);
-  object.timestamp = reader.readDateTime(offsets[34]);
-  object.updatedAt = reader.readDateTime(offsets[35]);
+  object.sugar = reader.readDoubleOrNull(offsets[36]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[37]);
+  object.timestamp = reader.readDateTime(offsets[38]);
+  object.transFat = reader.readDoubleOrNull(offsets[39]);
+  object.unsaturatedFat = reader.readDoubleOrNull(offsets[40]);
+  object.updatedAt = reader.readDateTime(offsets[41]);
   return object;
 }
 
@@ -409,11 +454,11 @@ P _foodEntryDeserializeProp<P>(
       return (_FoodEntrymealTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           MealType.breakfast) as P;
     case 23:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 24:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 25:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 26:
       return (reader.readDoubleOrNull(offset)) as P;
     case 27:
@@ -421,19 +466,32 @@ P _foodEntryDeserializeProp<P>(
     case 28:
       return (reader.readDouble(offset)) as P;
     case 29:
-      return (reader.readString(offset)) as P;
-    case 30:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 30:
+      return (_FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offset)] ??
+          FoodSearchMode.normal) as P;
     case 31:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 32:
+      return (reader.readDouble(offset)) as P;
+    case 33:
+      return (reader.readString(offset)) as P;
+    case 34:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 35:
       return (_FoodEntrysourceValueEnumMap[reader.readByteOrNull(offset)] ??
           DataSource.manual) as P;
-    case 32:
+    case 36:
       return (reader.readDoubleOrNull(offset)) as P;
-    case 33:
+    case 37:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 34:
+    case 38:
       return (reader.readDateTime(offset)) as P;
-    case 35:
+    case 39:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 40:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 41:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -451,6 +509,14 @@ const _FoodEntrymealTypeValueEnumMap = {
   1: MealType.lunch,
   2: MealType.dinner,
   3: MealType.snack,
+};
+const _FoodEntrysearchModeEnumValueMap = {
+  'normal': 0,
+  'product': 1,
+};
+const _FoodEntrysearchModeValueEnumMap = {
+  0: FoodSearchMode.normal,
+  1: FoodSearchMode.product,
 };
 const _FoodEntrysourceEnumValueMap = {
   'manual': 0,
@@ -2402,6 +2468,90 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'monounsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'monounsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'monounsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'monounsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'monounsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      monounsaturatedFatBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'monounsaturatedFat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> myMealIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2618,6 +2768,170 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'polyunsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'polyunsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'polyunsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'polyunsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'polyunsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      polyunsaturatedFatBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'polyunsaturatedFat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> potassiumIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'potassium',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      potassiumIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'potassium',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> potassiumEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'potassium',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      potassiumGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'potassium',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> potassiumLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'potassium',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> potassiumBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'potassium',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> proteinEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -2758,6 +3072,60 @@ extension FoodEntryQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeEqualTo(
+      FoodSearchMode value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      searchModeGreaterThan(
+    FoodSearchMode value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeLessThan(
+    FoodSearchMode value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'searchMode',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> searchModeBetween(
+    FoodSearchMode lower,
+    FoodSearchMode upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'searchMode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -3374,6 +3742,169 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> transFatIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'transFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      transFatIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'transFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> transFatEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'transFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> transFatGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'transFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> transFatLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'transFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> transFatBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'transFat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'unsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'unsaturatedFat',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'unsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'unsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'unsaturatedFat',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      unsaturatedFatBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'unsaturatedFat',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> updatedAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -3713,6 +4244,19 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByMonounsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monounsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      sortByMonounsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monounsaturatedFat', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.asc);
@@ -3737,6 +4281,31 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPolyunsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'polyunsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      sortByPolyunsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'polyunsaturatedFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPotassium() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'potassium', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPotassiumDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'potassium', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByProtein() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'protein', Sort.asc);
@@ -3758,6 +4327,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortBySaturatedFatDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'saturatedFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortBySearchModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.desc);
     });
   }
 
@@ -3854,6 +4435,30 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByTransFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByTransFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByUnsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByUnsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unsaturatedFat', Sort.desc);
     });
   }
 
@@ -4161,6 +4766,19 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByMonounsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monounsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      thenByMonounsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'monounsaturatedFat', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'myMealId', Sort.asc);
@@ -4185,6 +4803,31 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPolyunsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'polyunsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      thenByPolyunsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'polyunsaturatedFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPotassium() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'potassium', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPotassiumDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'potassium', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByProtein() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'protein', Sort.asc);
@@ -4206,6 +4849,18 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenBySaturatedFatDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'saturatedFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenBySearchModeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'searchMode', Sort.desc);
     });
   }
 
@@ -4302,6 +4957,30 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByTimestampDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByTransFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByTransFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'transFat', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByUnsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unsaturatedFat', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByUnsaturatedFatDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'unsaturatedFat', Sort.desc);
     });
   }
 
@@ -4466,6 +5145,12 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByMonounsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'monounsaturatedFat');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByMyMealId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'myMealId');
@@ -4479,6 +5164,18 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByPolyunsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'polyunsaturatedFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByPotassium() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'potassium');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByProtein() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'protein');
@@ -4488,6 +5185,12 @@ extension FoodEntryQueryWhereDistinct
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctBySaturatedFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'saturatedFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctBySearchMode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'searchMode');
     });
   }
 
@@ -4537,6 +5240,18 @@ extension FoodEntryQueryWhereDistinct
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByTransFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'transFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByUnsaturatedFat() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'unsaturatedFat');
     });
   }
 
@@ -4693,6 +5408,13 @@ extension FoodEntryQueryProperty
     });
   }
 
+  QueryBuilder<FoodEntry, double?, QQueryOperations>
+      monounsaturatedFatProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'monounsaturatedFat');
+    });
+  }
+
   QueryBuilder<FoodEntry, int?, QQueryOperations> myMealIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'myMealId');
@@ -4705,6 +5427,19 @@ extension FoodEntryQueryProperty
     });
   }
 
+  QueryBuilder<FoodEntry, double?, QQueryOperations>
+      polyunsaturatedFatProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'polyunsaturatedFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> potassiumProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'potassium');
+    });
+  }
+
   QueryBuilder<FoodEntry, double, QQueryOperations> proteinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'protein');
@@ -4714,6 +5449,13 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, double?, QQueryOperations> saturatedFatProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'saturatedFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodSearchMode, QQueryOperations>
+      searchModeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'searchMode');
     });
   }
 
@@ -4762,6 +5504,18 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, DateTime, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> transFatProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'transFat');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> unsaturatedFatProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'unsaturatedFat');
     });
   }
 

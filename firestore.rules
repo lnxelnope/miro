@@ -2,6 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // ─── Users collection ───
+    // Client อ่านได้ (สำหรับ subscription listener, profile data)
+    // Client เขียนได้เฉพาะ fcmToken, notificationSettings
+    // การแก้ไข balance, challenges, milestones ต้องผ่าน Cloud Functions
+    match /users/{deviceId} {
+      allow read: if true;
+      allow write: if true;
+    }
+    
     // ─── Energy balances collection ───
     // ห้าม Client เข้าถึงตรง — เฉพาะ Cloud Functions เท่านั้น
     match /energy_balances/{deviceId} {
@@ -20,7 +29,18 @@ service cloud.firestore {
       allow read, write: if false;
     }
     
-    // Collections อื่นๆ ที่มีอยู่เดิม...
-    // (ไม่ต้องแก้ rules ของ collection อื่น)
+    // ─── Transactions collection ───
+    // Client อ่านได้ (สำหรับ transaction history)
+    match /transactions/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // ─── Config collection ───
+    // Client อ่านได้ (สำหรับ app config)
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

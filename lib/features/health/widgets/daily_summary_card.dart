@@ -2,202 +2,386 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/health_sync_service.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
-import '../../profile/providers/profile_provider.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../profile/models/user_profile.dart';
+import 'deficit_gauge.dart';
 
 class DailySummaryCard extends ConsumerWidget {
-  /// วันที่ที่ต้องการแสดงสรุป (ถ้าไม่ระบุ = วันนี้)
   final DateTime? selectedDate;
+  final ValueChanged<DateTime>? onDateChanged;
 
-  const DailySummaryCard({super.key, this.selectedDate});
+  const DailySummaryCard({super.key, this.selectedDate, this.onDateChanged});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final date = selectedDate ?? dateOnly(DateTime.now());
     final isToday = _isToday(date);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // ใช้ foodEntriesByDateProvider(date) แทน todayCaloriesProvider
     final foodsAsync = ref.watch(foodEntriesByDateProvider(date));
     final profileAsync = ref.watch(profileNotifierProvider);
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const TodaySummaryDashboardScreen(),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+        decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.health.withOpacity(0.8),
-            AppColors.health,
-          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppColors.surfaceVariantDark,
+                  AppColors.surfaceDark,
+                ]
+              : [
+                  AppColors.health.withValues(alpha: 0.05),
+                  AppColors.health.withValues(alpha: 0.10),
+                ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppRadius.md,
+        border: Border.all(
+          color: isDark
+              ? AppColors.health.withValues(alpha: 0.35)
+              : AppColors.health.withValues(alpha: 0.18),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.health.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: AppColors.health.withValues(alpha: isDark ? 0.10 : 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
+      child: profileAsync.when(
+        loading: () => const SizedBox(
+          height: 80,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        error: (_, __) => const SizedBox(),
+        data: (profile) => foodsAsync.when(
+          loading: () => const SizedBox(
+            height: 80,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (_, __) => const Text('Error'),
+          data: (entries) {
+            final calories =
+                entries.fold<double>(0, (sum, e) => sum + e.calories);
+            final protein =
+                entries.fold<double>(0, (sum, e) => sum + e.protein);
+            final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
+            final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
+
+            final l10n = L10n.of(context)!;
+            final isHealthOn = profile.isHealthConnectConnected;
+            final activeEnergyAsync =
+                isToday && isHealthOn ? ref.watch(activeEnergyProvider) : null;
+            final rawActive = activeEnergyAsync?.valueOrNull ?? 0.0;
+            final activeEnergy =
+                (rawActive.isNaN || rawActive.isInfinite) ? 0.0 : rawActive;
+
+            final baseGoal = profile.calorieGoal;
+            final tdee = profile.tdee > 0 ? profile.tdee : baseGoal.toDouble();
+
+            // Left ring: Intake vs Goal
+            final intakePercent =
+                baseGoal > 0 ? (calories / baseGoal).clamp(0.0, 1.5) : 0.0;
+            final intakeColor = intakePercent > 1.0
+                ? AppColors.error
+                : AppColors.health;
+
+            // Net Energy = Intake - TDEE - Active Burn
+            final netEnergy = calories - tdee - activeEnergy;
+
+            final showHealthSection = isHealthOn && isToday && tdee > 0;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Date navigation ──
+                Row(
+                  children: [
+                    if (onDateChanged != null)
+                      _navArrow(
+                        icon: Icons.chevron_left_rounded,
+                        onTap: () => onDateChanged!(
+                            date.subtract(const Duration(days: 1))),
+                        isDark: isDark,
+                      ),
+                    if (onDateChanged != null)
+                      const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: onDateChanged != null
+                            ? () => _pickDate(context, date)
+                            : null,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              isToday
+                                  ? 'Today'
+                                  : DateFormat('d MMM yyyy', 'en').format(date),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              DateFormat('EEEE', 'en').format(date),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (onDateChanged != null)
+                      _navArrow(
+                        icon: Icons.chevron_right_rounded,
+                        onTap: isToday
+                            ? null
+                            : () => onDateChanged!(
+                                date.add(const Duration(days: 1))),
+                        isDark: isDark,
+                        disabled: isToday,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // ── Macros + Ring + Gauge ──
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Left: Macro bars + Health Sync toggle
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildMacroBar(
+                            label: 'P',
+                            value: protein,
+                            goal: profile.proteinGoal,
+                            color: AppColors.protein,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _buildMacroBar(
+                            label: 'C',
+                            value: carbs,
+                            goal: profile.carbGoal,
+                            color: AppColors.carbs,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _buildMacroBar(
+                            label: 'F',
+                            value: fat,
+                            goal: profile.fatGoal,
+                            color: AppColors.fat,
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          _ActiveEnergyRow(
+                            profile: profile,
+                            activeEnergy: activeEnergy,
+                            isHealthOn: isHealthOn,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    // Right: Intake Ring + Gauge side by side
+                    if (showHealthSection) ...[
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildRing(
+                            size: 68,
+                            strokeWidth: 5,
+                            percent: intakePercent.clamp(0.0, 1.0),
+                            color: intakeColor,
+                            centerValue: '${calories.toInt()}',
+                            subText: '/${baseGoal.toInt()}',
+                            label: l10n.intakeGoalLabel,
+                            isDark: isDark,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 4),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          DeficitGauge(
+                            netEnergy: netEnergy,
+                            isDark: isDark,
+                            width: 96,
+                          ),
+                        ],
+                      ),
+                    ] else
+                      _buildRing(
+                        size: 90,
+                        strokeWidth: 6,
+                        percent: intakePercent.clamp(0.0, 1.0),
+                        color: intakeColor,
+                        centerValue: '${calories.toInt()}',
+                        subText: '/${baseGoal.toInt()}',
+                        label: 'kcal',
+                        isDark: isDark,
+                      ),
+                  ],
+                ),
+
+                // ── 3 stats in a single row ──
+                if (showHealthSection) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _statInline(Icons.restaurant_rounded, '${calories.toInt()}', 'Eaten', isDark),
+                      _statInline(Icons.local_fire_department_rounded, '${activeEnergy.toInt()}', 'Exercise', isDark),
+                      _statInline(Icons.bolt_rounded, '${tdee.toInt()}', 'TDEE', isDark),
+                    ],
+                  ),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    ),
+    );
+  }
+
+  Widget _statInline(IconData icon, String value, String label, bool isDark) {
+    final sub = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: sub),
+        const SizedBox(width: 3),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(width: 2),
+        Text(
+          label,
+          style: TextStyle(fontSize: 9, color: sub),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRing({
+    required double size,
+    required double strokeWidth,
+    required double percent,
+    required Color color,
+    required String centerValue,
+    required String subText,
+    required String label,
+    required bool isDark,
+  }) {
+    return SizedBox(
+      width: size,
+      height: size + 14,
       child: Column(
         children: [
-          Text(
-            isToday
-                ? '📊 Today\'s Summary'
-                : '📊 Summary ${DateFormat('d MMM', 'en').format(date)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 16),
-          
-          // Calories + Macros - คำนวณจาก foodEntries ของวันที่เลือก
-          profileAsync.when(
-            loading: () => const CircularProgressIndicator(color: Colors.white),
-            error: (_, __) => const SizedBox(),
-            data: (profile) => foodsAsync.when(
-              loading: () => const CircularProgressIndicator(color: Colors.white),
-              error: (_, __) => const Text('Error', style: TextStyle(color: Colors.white)),
-              data: (entries) {
-                final calories = entries.fold<double>(0, (sum, e) => sum + e.calories);
-                final protein = entries.fold<double>(0, (sum, e) => sum + e.protein);
-                final carbs = entries.fold<double>(0, (sum, e) => sum + e.carbs);
-                final fat = entries.fold<double>(0, (sum, e) => sum + e.fat);
-
-                final goal = profile.calorieGoal;
-                final percent = goal > 0 ? (calories / goal).clamp(0.0, 1.0) : 0.0;
-                
-                return Column(
+          SizedBox(
+            width: size,
+            height: size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: size,
+                  height: size,
+                  child: CircularProgressIndicator(
+                    value: percent,
+                    strokeWidth: strokeWidth,
+                    strokeCap: StrokeCap.round,
+                    backgroundColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.divider,
+                    valueColor: AlwaysStoppedAnimation(color),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Calories
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text('🔥', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${calories.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          ' / ${goal.toInt()} kcal',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: percent,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        valueColor: const AlwaysStoppedAnimation(Colors.white),
-                        minHeight: 8,
+                    Text(
+                      centerValue,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: size > 80 ? 18 : 14,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${(percent * 100).toInt()}%',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '•',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          calories >= goal
-                              ? 'Goal reached! 🎉'
-                              : '${(goal - calories).toInt()} kcal left',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Macros
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildMacroItem(
-                          label: 'Protein',
-                          value: protein,
-                          goal: profile.proteinGoal,
-                          color: AppColors.protein,
-                        ),
-                        _buildMacroItem(
-                          label: 'Carbs',
-                          value: carbs,
-                          goal: profile.carbGoal,
-                          color: AppColors.carbs,
-                        ),
-                        _buildMacroItem(
-                          label: 'Fat',
-                          value: fat,
-                          goal: profile.fatGoal,
-                          color: AppColors.fat,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Details button
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const TodaySummaryDashboardScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.analytics_outlined, size: 16),
-                      label: const Text(
-                        'View Details',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                    Text(
+                      subText,
+                      style: TextStyle(
+                        fontSize: size > 80 ? 10 : 8,
+                        fontWeight: FontWeight.w500,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],
-                );
-              },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 3),
+          SizedBox(
+            width: size,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textTertiary,
+              ),
             ),
           ),
         ],
@@ -205,53 +389,273 @@ class DailySummaryCard extends ConsumerWidget {
     );
   }
 
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+  Widget _navArrow({
+    required IconData icon,
+    required VoidCallback? onTap,
+    required bool isDark,
+    bool disabled = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: disabled
+              ? Colors.transparent
+              : (isDark 
+                  ? AppColors.health.withValues(alpha: 0.15)
+                  : AppColors.health.withValues(alpha: 0.10)),
+          borderRadius: AppRadius.sm,
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: disabled
+              ? (isDark ? AppColors.dividerDark : AppColors.divider)
+              : (isDark ? AppColors.health.withValues(alpha: 0.9) : AppColors.health),
+        ),
+      ),
+    );
   }
 
-  Widget _buildMacroItem({
+  Future<void> _pickDate(BuildContext context, DateTime current) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      onDateChanged?.call(picked);
+    }
+  }
+
+  bool _isToday(DateTime date) {
+    final now = DateTime.now();
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
+  }
+
+  Widget _buildMacroBar({
     required String label,
     required double value,
     required double goal,
     required Color color,
+    required bool isDark,
   }) {
-    return Column(
+    final progress = goal > 0 ? (value / goal).clamp(0.0, 1.0) : 0.0;
+
+    return Row(
       children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              '${value.toInt()}g',
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
+        SizedBox(
+          width: 14,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 11,
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              backgroundColor:
+                  isDark ? AppColors.surfaceVariantDark : AppColors.divider,
+              valueColor: AlwaysStoppedAnimation(color),
+            ),
           ),
         ),
-        Text(
-          '/${goal.toInt()}g',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
-            fontSize: 10,
+        const SizedBox(width: AppSpacing.sm),
+        SizedBox(
+          width: 68,
+          child: Text(
+            '${value.toInt()}/${goal.toInt()}g',
+            textAlign: TextAlign.right,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark.withValues(alpha: 0.85) : AppColors.textSecondary,
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Compact Active Energy row — same height as macro bars.
+/// Tap to toggle; first enable triggers Health Connect permission request.
+class _ActiveEnergyRow extends ConsumerStatefulWidget {
+  final UserProfile profile;
+  final double activeEnergy;
+  final bool isHealthOn;
+  final bool isDark;
+
+  const _ActiveEnergyRow({
+    required this.profile,
+    required this.activeEnergy,
+    required this.isHealthOn,
+    required this.isDark,
+  });
+
+  @override
+  ConsumerState<_ActiveEnergyRow> createState() => _ActiveEnergyRowState();
+}
+
+class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
+  bool _isLoading = false;
+
+  Future<void> _toggle() async {
+    if (widget.isHealthOn) {
+      widget.profile.isHealthConnectConnected = false;
+      await ref
+          .read(profileNotifierProvider.notifier)
+          .updateProfile(widget.profile);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final available = await HealthSyncService.isAvailable();
+    if (!available) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.healthSyncNotAvailable),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      return;
+    }
+
+    final granted = await HealthSyncService.requestPermissions();
+    if (!granted) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showPermissionDeniedDialog();
+      }
+      return;
+    }
+
+    widget.profile.isHealthConnectConnected = true;
+    await ref
+        .read(profileNotifierProvider.notifier)
+        .updateProfile(widget.profile);
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.healthSyncPermissionDeniedTitle),
+        content: Text(L10n.of(context)!.healthSyncPermissionDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              HealthSyncService.openDeviceSettings();
+            },
+            child: Text(L10n.of(context)!.healthSyncGoToSettings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _activeGreen = Color(0xFF4CAF50);
+
+  @override
+  Widget build(BuildContext context) {
+    final isOn = widget.isHealthOn;
+    final offColor = widget.isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
+    final chipColor = isOn ? _activeGreen : offColor;
+
+    return GestureDetector(
+      onTap: _isLoading ? null : _toggle,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: isOn
+              ? _activeGreen.withValues(alpha: widget.isDark ? 0.15 : 0.10)
+              : (widget.isDark
+                  ? AppColors.surfaceVariantDark
+                  : AppColors.divider.withValues(alpha: 0.4)),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.local_fire_department_rounded,
+              size: 12,
+              color: chipColor,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _isLoading
+                  ? SizedBox(
+                      height: 6,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: const LinearProgressIndicator(minHeight: 6),
+                      ),
+                    )
+                  : Text(
+                      isOn ? 'Health Sync' : 'Health Sync off',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: chipColor,
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              width: 22,
+              height: 12,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                color: isOn
+                    ? _activeGreen
+                    : (widget.isDark
+                        ? Colors.grey.shade700
+                        : Colors.grey.shade400),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 200),
+                alignment:
+                    isOn ? Alignment.centerRight : Alignment.centerLeft,
+                child: Container(
+                  width: 9,
+                  height: 9,
+                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

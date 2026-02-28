@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:miro_hybrid/features/health/models/nutrition_summary.dart';
+import '../../../core/theme/app_colors.dart';
 
 class GoalsVsActualTable extends StatelessWidget {
   final NutritionSummary summary;
@@ -26,7 +27,7 @@ class GoalsVsActualTable extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Table
             Table(
               columnWidths: const {
@@ -36,14 +37,14 @@ class GoalsVsActualTable extends StatelessWidget {
                 3: FlexColumnWidth(1.5),
               },
               border: TableBorder.all(
-                color: Colors.grey.shade300,
+                color: AppColors.divider,
                 width: 1,
               ),
               children: [
                 // Header row
                 TableRow(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceVariant,
                   ),
                   children: [
                     _buildHeaderCell('Nutrient'),
@@ -52,7 +53,7 @@ class GoalsVsActualTable extends StatelessWidget {
                     _buildHeaderCell('Diff'),
                   ],
                 ),
-                
+
                 // Calories row
                 _buildDataRow(
                   'Calories',
@@ -61,7 +62,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.caloriesDifference,
                   summary.isCaloriesOver,
                 ),
-                
+
                 // Protein row
                 _buildDataRow(
                   'Protein',
@@ -70,7 +71,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.proteinDifference,
                   summary.isProteinOver,
                 ),
-                
+
                 // Carbs row
                 _buildDataRow(
                   'Carbohydrates',
@@ -79,7 +80,7 @@ class GoalsVsActualTable extends StatelessWidget {
                   summary.carbsDifference,
                   summary.isCarbsOver,
                 ),
-                
+
                 // Fat row
                 _buildDataRow(
                   'Fat',
@@ -117,8 +118,10 @@ class GoalsVsActualTable extends StatelessWidget {
     double difference,
     bool isOver,
   ) {
-    final diffText = difference >= 0 ? '+${difference.toStringAsFixed(0)}' : difference.toStringAsFixed(0);
-    final diffColor = isOver ? Colors.red : Colors.green;
+    final diffText = difference >= 0
+        ? '+${difference.toStringAsFixed(0)}'
+        : difference.toStringAsFixed(0);
+    final diffColor = isOver ? AppColors.error : AppColors.success;
 
     return TableRow(
       children: [
