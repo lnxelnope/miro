@@ -33,7 +33,7 @@ android {
         minSdk = 26  // Android 8.0+ (required by health plugin)
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
         versionCode = 50
-        versionName = "1.2.1"
+        versionName = "1.2.2"
     }
 
     signingConfigs {
