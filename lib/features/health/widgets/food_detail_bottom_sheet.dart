@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +7,9 @@ import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../models/food_entry.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
@@ -166,21 +167,10 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     );
   }
 
-  void _showFullScreenImage(BuildContext context, String imagePath) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _FullScreenImageView(imagePath: imagePath),
-        fullscreenDialog: true,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
+    final hasImage = entry.hasAnyImage;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final hasNotes = entry.notes != null && entry.notes!.isNotEmpty;
@@ -232,18 +222,17 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                   // === Image (if available) — tap to view full screen, tap again to close ===
                   if (hasImage) ...[
                     GestureDetector(
-                      onTap: () => _showFullScreenImage(context, entry.imagePath!),
+                      onTap: () => showFoodEntryImage(context, entry),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Stack(
                           children: [
-                            Image.file(
-                              File(entry.imagePath!),
+                            FoodEntryImage(
+                              entry: entry,
                               width: double.infinity,
                               height: 220,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  _buildImagePlaceholder(isDark),
+                              borderRadius: BorderRadius.circular(16),
+                              placeholder: _buildImagePlaceholder(isDark),
                             ),
                           // Gradient overlay at bottom of image
                           Positioned(
@@ -432,6 +421,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                   ),
                   const SizedBox(height: 12),
 
+                  // === AR Detection Info (ซ่อนไว้ กดเพื่อดู) ===
+                  _buildDetectionInfoTile(entry, isDark),
+
                   // === Serving Size ===
                   if (entry.servingSize > 0)
                     Container(
@@ -601,6 +593,160 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           size: 56,
           color: AppColors.health.withValues(alpha: 0.4),
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // AR Detection Info (collapsible)
+  // ============================================================
+  Widget _buildDetectionInfoTile(FoodEntry entry, bool isDark) {
+    debugPrint(
+      '>>> [DetectionInfo] arLabelsJson=${entry.arLabelsJson?.length ?? 0} chars, '
+      'arImgW=${entry.arImageWidth}, arImgH=${entry.arImageHeight}',
+    );
+    final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+    debugPrint('>>> [DetectionInfo] decoded ${labels.length} labels');
+    if (labels.isEmpty) return const SizedBox.shrink();
+
+    final pixelPerCm = entry.arPixelPerCm;
+    final hasCalibration = pixelPerCm != null && pixelPerCm > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.grey.shade200,
+            ),
+          ),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+            childrenPadding:
+                const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 14),
+            leading: Icon(
+              Icons.precision_manufacturing_rounded,
+              size: 20,
+              color: isDark ? Colors.white54 : AppColors.textSecondary,
+            ),
+            title: Text(
+              'Object Detection (${labels.length})',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : AppColors.textPrimary,
+              ),
+            ),
+            subtitle: Text(
+              hasCalibration ? 'Calibrated' : 'Uncalibrated',
+              style: TextStyle(
+                fontSize: 11,
+                color: hasCalibration
+                    ? AppColors.health
+                    : (isDark ? Colors.white38 : AppColors.textTertiary),
+              ),
+            ),
+            children: [
+              for (final obj in labels)
+                _buildDetectedObjectRow(obj, pixelPerCm, isDark),
+              if (hasCalibration)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.straighten_rounded,
+                          size: 14,
+                          color: isDark
+                              ? Colors.white38
+                              : AppColors.textTertiary),
+                      const SizedBox(width: 6),
+                      Text(
+                        '1 cm = ${pixelPerCm.toStringAsFixed(1)} px',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark
+                              ? Colors.white38
+                              : AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetectedObjectRow(
+      DetectedObjectLabel obj, double? pixelPerCm, bool isDark) {
+    final confPct = (obj.confidence * 100).toStringAsFixed(0);
+
+    String sizeStr;
+    if (pixelPerCm != null && pixelPerCm > 0) {
+      final wCm = (obj.bboxWidth / pixelPerCm).toStringAsFixed(1);
+      final hCm = (obj.bboxHeight / pixelPerCm).toStringAsFixed(1);
+      sizeStr = '$wCm × $hCm cm';
+    } else {
+      sizeStr = '${obj.bboxWidth.toInt()} × ${obj.bboxHeight.toInt()} px';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: AppColors.health,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              obj.label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white : AppColors.textPrimary,
+              ),
+            ),
+          ),
+          Text(
+            sizeStr,
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? Colors.white54 : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.health.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$confPct%',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: AppColors.health,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1155,8 +1301,6 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     if (_isAnalyzing) return;
 
     final entry = widget.entry;
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
 
     // ถ้ามี onAnalyze callback (เรียกจาก Timeline)
     if (widget.onAnalyze != null) {
@@ -1324,8 +1468,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     final validatedUnit = UnitConverter.ensureValid(entryUnit);
     String selectedUnit = validatedUnit;
 
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
+    final hasImage = entry.hasAnyImage;
     FoodSearchMode searchMode = entry.searchMode; // Pre-fill from entry
 
     return showDialog<Map<String, dynamic>>(
@@ -1365,14 +1508,11 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                       const SizedBox(height: 16),
 
                       if (hasImage) ...[
-                        ClipRRect(
+                        FoodEntryImage(
+                          entry: entry,
+                          width: double.infinity,
+                          height: 150,
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            File(entry.imagePath!),
-                            height: 150,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
                         ),
                         const SizedBox(height: 16),
                       ],
@@ -1509,34 +1649,4 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   }
 }
 
-/// Full-screen image viewer. Tap anywhere to close.
-class _FullScreenImageView extends StatelessWidget {
-  final String imagePath;
-
-  const _FullScreenImageView({required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        color: Colors.black,
-        child: Center(
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            child: Image.file(
-              File(imagePath),
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.broken_image_rounded,
-                size: 64,
-                color: Colors.white54,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Full-screen viewer now uses shared FoodEntryFullScreenImage from food_entry_image.dart

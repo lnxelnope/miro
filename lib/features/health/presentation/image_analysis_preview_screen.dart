@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,6 +9,7 @@ import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/core/services/image_picker_service.dart';
+import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
 import 'package:miro_hybrid/features/health/providers/analysis_provider.dart';
@@ -49,6 +51,12 @@ class _ImageAnalysisPreviewScreenState
   bool _showDetails = false;
   File? _currentImageFile;
 
+  // AR Scale state
+  CalibrationResult? _calibrationResult;
+  List<DetectedObjectLabel> _objectLabels = [];
+  bool _isDetecting = false;
+  Size _imageSize = Size.zero;
+
   bool get _hasImage => _currentImageFile != null;
 
   @override
@@ -65,6 +73,7 @@ class _ImageAnalysisPreviewScreenState
     _selectedMealType = widget.initialMealType ?? _guessMealType();
     if (_hasImage) {
       _copyImageToPermanentPath();
+      _runARDetection(_currentImageFile!);
     }
   }
 
@@ -86,19 +95,76 @@ class _ImageAnalysisPreviewScreenState
     }
   }
 
+  /// เรียก ML Kit detect + calibrate หลังจากได้รูปแล้ว
+  Future<void> _runARDetection(File imageFile) async {
+    if (!mounted) return;
+    setState(() => _isDetecting = true);
+
+    try {
+      final imageBytes = await imageFile.readAsBytes();
+      final codec = await ui.instantiateImageCodec(imageBytes);
+      final frame = await codec.getNextFrame();
+      final imgWidth = frame.image.width.toDouble();
+      final imgHeight = frame.image.height.toDouble();
+      frame.image.dispose();
+
+      if (mounted) {
+        setState(() => _imageSize = Size(imgWidth, imgHeight));
+      }
+
+      final detector = ReferenceDetectorService.instance;
+
+      // 1. detect ทุก object สำหรับ label overlay (ไม่ filter)
+      final allLabels = await detector.detectAllObjectLabels(imageFile);
+
+      // 2. detect reference objects สำหรับ calibration (ส่ง Gemini)
+      final detected = await detector.detectFromImage(imageFile);
+      CalibrationResult? calibration;
+      if (detected.isNotEmpty) {
+        final plate = await detector.detectPlate(imageFile);
+        calibration = ScaleCalibrationService.calibrate(
+          referenceObject: detected.first,
+          plateBoundingBox: plate?.boundingBox,
+          imageWidth: imgWidth,
+          imageHeight: imgHeight,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _objectLabels = allLabels;
+        _calibrationResult = calibration;
+        _isDetecting = false;
+      });
+    } catch (e) {
+      AppLogger.error('[AR] Detection error', e);
+      if (mounted) setState(() => _isDetecting = false);
+    }
+  }
+
   Future<void> _pickImageFromCamera() async {
     final file = await ImagePickerService.pickFromCamera();
     if (file != null && mounted) {
-      setState(() => _currentImageFile = file);
+      setState(() {
+        _currentImageFile = file;
+        _calibrationResult = null;
+        _objectLabels = [];
+      });
       await _copyImageToPermanentPath();
+      await _runARDetection(file);
     }
   }
 
   Future<void> _pickImageFromGallery() async {
     final file = await ImagePickerService.pickFromGallery();
     if (file != null && mounted) {
-      setState(() => _currentImageFile = file);
+      setState(() {
+        _currentImageFile = file;
+        _calibrationResult = null;
+        _objectLabels = [];
+      });
       await _copyImageToPermanentPath();
+      await _runARDetection(file);
     }
   }
 
@@ -148,6 +214,8 @@ class _ImageAnalysisPreviewScreenState
     final now = DateTime.now();
     final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
+    final calibration = _calibrationResult;
+
     final entry = FoodEntry()
       ..foodName = effectiveName
       ..mealType = _selectedMealType
@@ -161,7 +229,24 @@ class _ImageAnalysisPreviewScreenState
       ..fat = 0
       ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
       ..isVerified = false
-      ..searchMode = _searchMode;
+      ..searchMode = _searchMode
+      ..referenceObjectUsed = calibration?.referenceObject.type.name
+      ..referenceConfidence = calibration?.referenceObject.confidence
+      ..plateDiameterCm = calibration?.plateDiameterCm
+      ..estimatedVolumeMl = calibration?.estimatedVolumeMl
+      ..isCalibrated = calibration?.shouldUseCalibration ?? false
+      // AR Label Overlay data (เก็บ JSON เพื่อ overlay ตอนแสดงผล)
+      ..arLabelsJson = _objectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(_objectLabels) : null
+      ..arImageWidth = _imageSize.width > 0 ? _imageSize.width : null
+      ..arImageHeight = _imageSize.height > 0 ? _imageSize.height : null
+      ..arPixelPerCm = calibration?.pixelPerCm;
+
+    debugPrint(
+      '>>> [AR Save analyze] labels=${_objectLabels.length}, '
+      'imgSize=${_imageSize.width.toInt()}x${_imageSize.height.toInt()}, '
+      'jsonLen=${entry.arLabelsJson?.length ?? 0}',
+    );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);
@@ -225,7 +310,19 @@ class _ImageAnalysisPreviewScreenState
       ..fat = 0
       ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
       ..isVerified = false
-      ..searchMode = _searchMode;
+      ..searchMode = _searchMode
+      // AR Label Overlay data
+      ..arLabelsJson = _objectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(_objectLabels) : null
+      ..arImageWidth = _imageSize.width > 0 ? _imageSize.width : null
+      ..arImageHeight = _imageSize.height > 0 ? _imageSize.height : null
+      ..arPixelPerCm = _calibrationResult?.pixelPerCm;
+
+    debugPrint(
+      '>>> [AR Save diary] labels=${_objectLabels.length}, '
+      'imgSize=${_imageSize.width.toInt()}x${_imageSize.height.toInt()}, '
+      'jsonLen=${entry.arLabelsJson?.length ?? 0}',
+    );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);
@@ -274,10 +371,47 @@ class _ImageAnalysisPreviewScreenState
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.file(
-                      _currentImageFile!,
-                      fit: BoxFit.contain,
+                    ArLabelOverlay(
+                      labels: _objectLabels,
+                      imageSize: _imageSize,
+                      pixelPerCm: _calibrationResult?.pixelPerCm,
+                      child: Image.file(
+                        _currentImageFile!,
+                        fit: BoxFit.contain,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                     ),
+                    // Loading indicator ระหว่าง detect
+                    if (_isDetecting)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black26,
+                          child: const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Detecting objects...',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       top: 8,
                       right: 8,
@@ -285,6 +419,8 @@ class _ImageAnalysisPreviewScreenState
                         onTap: () => setState(() {
                           _currentImageFile = null;
                           _permanentImagePath = null;
+                          _calibrationResult = null;
+                          _objectLabels = [];
                         }),
                         child: Container(
                           padding: const EdgeInsets.all(6),
@@ -299,6 +435,24 @@ class _ImageAnalysisPreviewScreenState
                   ],
                 ),
               ),
+            // แสดง detection status หรือ tip
+            if (_currentImageFile != null) ...[
+              const SizedBox(height: 8),
+              if (_objectLabels.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Detected ${_objectLabels.length} object${_objectLabels.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )
+              else if (!_isDetecting)
+                const ReferenceGuideTip(compact: true),
+            ],
 
             // No Image — show camera/gallery options
             if (!_hasImage)

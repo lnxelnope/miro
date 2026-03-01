@@ -85,11 +85,11 @@ class _RetroScanDialogState extends State<RetroScanDialog>
         qrParser,
       );
 
-      final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+      final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
 
-      AppLogger.info('RetroScan: Starting scan for images from last 7 days...');
+      AppLogger.info('RetroScan: Starting scan for images from last 3 days...');
 
-      final images = await galleryService.fetchNewImages(after: sevenDaysAgo);
+      final images = await galleryService.fetchNewImages(after: threeDaysAgo);
 
       if (!mounted) return;
 
@@ -107,7 +107,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
         return;
       }
 
-      final savedCount = await scanController.scanNewImages(after: sevenDaysAgo);
+      final savedCount = await scanController.scanNewImages(after: threeDaysAgo);
 
       visionProcessor.dispose();
 

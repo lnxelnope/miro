@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/food_entry.dart';
@@ -776,27 +776,32 @@ class _MealSectionState extends ConsumerState<MealSection> {
             ] else ...[
               Stack(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _getSourceBgColor(food),
-                      borderRadius: AppRadius.sm,
-                    ),
-                    child: food.imagePath != null &&
-                            File(food.imagePath!).existsSync()
-                        ? ClipRRect(
-                            borderRadius: AppRadius.sm,
-                            child: Image.file(
-                              File(food.imagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildSourceIcon(food),
+                  food.hasAnyImage
+                      ? FoodEntryImage(
+                          entry: food,
+                          width: 40,
+                          height: 40,
+                          borderRadius: AppRadius.sm,
+                          placeholder: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: _getSourceBgColor(food),
+                              borderRadius: AppRadius.sm,
                             ),
-                          )
-                        : _buildSourceIcon(food),
-                  ),
-                  // Status badge overlay (only if has image)
-                  if (food.imagePath != null && File(food.imagePath!).existsSync())
+                            child: _buildSourceIcon(food),
+                          ),
+                        )
+                      : Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _getSourceBgColor(food),
+                            borderRadius: AppRadius.sm,
+                          ),
+                          child: _buildSourceIcon(food),
+                        ),
+                  if (food.hasAnyImage)
                     Positioned(
                       bottom: 2,
                       right: 2,

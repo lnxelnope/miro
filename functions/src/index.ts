@@ -24,6 +24,9 @@ export {verifyPurchase} from "./verifyPurchase";
 // Transfer Key API
 export {generateTransferKey, redeemTransferKey} from "./transferKey";
 
+// Recovery Key API (cross-device account restoration with data sync)
+export {registerRecoveryKey, redeemRecoveryKey} from "./recoveryKey";
+
 // Migration API
 export {migrateToUsersCollection} from "./migration";
 
@@ -81,3 +84,6 @@ export {verifyRewardedAd, claimAdReward, getAdStatus} from "./energy/rewardedAd"
 
 // Push Notification Triggers
 export {checkOfferExpiry, streakReminder} from "./notifications/pushTriggers";
+
+// ─── Data Mining ────────────────────────────────────────────
+export {computeDataMiningReports, getDataMiningReport, triggerDataMining, exportDataset} from "./admin/dataMining";

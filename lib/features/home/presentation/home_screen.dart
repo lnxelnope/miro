@@ -8,6 +8,7 @@ import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
 import '../../../core/services/consent_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../profile/providers/locale_provider.dart';
 import '../../../core/widgets/analytics_consent_dialog.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/presentation/health_timeline_tab.dart';
@@ -43,32 +44,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 1. Request permissions first
+      // 1. Ensure permissions (silent — no dialog, onboarding already asked)
       await _checkAndRequestPermissions();
 
-      // 2. Show feature tour (only first time)
+      // 2. Feature tour (only shows if user reset from Settings; onboarding marks it done for new users)
       await _checkAndShowFeatureTour();
 
-      // 3. Retro scan: scan gallery photos from last 7 days (first time only)
-      await _checkAndStartRetroScan();
+      // 3. Retro scan: scan gallery for recent food photos (first time only)
+      if (mounted) {
+        await Future.delayed(const Duration(seconds: 2));
+        await _checkAndStartRetroScan();
+      }
 
-      // 4. Welcome message: mark end of tutorial
-      await _showWelcomeMessage();
-
-      // 5. Show analytics consent dialog (only if never asked)
+      // 4. Show analytics consent dialog (only if never asked)
       await _checkAndShowConsentDialog();
 
-      // 6. Set context for Welcome Offer notifications
+      // 4. Set context for Welcome Offer notifications
       if (mounted) {
         GeminiService.setContext(context);
       }
 
-      // 7. Set cuisine preference for AI analysis bias
+      // 5. Set cuisine preference + user language for AI analysis
       try {
         final profile = await ref.read(userProfileProvider.future);
         GeminiService.setCuisinePreference(profile.cuisinePreference);
+        final locale = ref.read(localeProvider);
+        GeminiService.setUserLanguage(locale?.languageCode ?? 'en');
       } catch (_) {
-        // Silent fail — defaults to 'international'
+        // Silent fail — defaults to 'international' / 'en'
       }
     });
   }

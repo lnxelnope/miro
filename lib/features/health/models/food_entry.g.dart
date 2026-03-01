@@ -22,211 +22,266 @@ const FoodEntrySchema = CollectionSchema(
       name: r'aiConfidence',
       type: IsarType.double,
     ),
-    r'baseCalories': PropertySchema(
+    r'arImageHeight': PropertySchema(
       id: 1,
+      name: r'arImageHeight',
+      type: IsarType.double,
+    ),
+    r'arImageWidth': PropertySchema(
+      id: 2,
+      name: r'arImageWidth',
+      type: IsarType.double,
+    ),
+    r'arLabelsJson': PropertySchema(
+      id: 3,
+      name: r'arLabelsJson',
+      type: IsarType.string,
+    ),
+    r'arPixelPerCm': PropertySchema(
+      id: 4,
+      name: r'arPixelPerCm',
+      type: IsarType.double,
+    ),
+    r'baseCalories': PropertySchema(
+      id: 5,
       name: r'baseCalories',
       type: IsarType.double,
     ),
     r'baseCarbs': PropertySchema(
-      id: 2,
+      id: 6,
       name: r'baseCarbs',
       type: IsarType.double,
     ),
     r'baseFat': PropertySchema(
-      id: 3,
+      id: 7,
       name: r'baseFat',
       type: IsarType.double,
     ),
     r'baseProtein': PropertySchema(
-      id: 4,
+      id: 8,
       name: r'baseProtein',
       type: IsarType.double,
     ),
     r'calories': PropertySchema(
-      id: 5,
+      id: 9,
       name: r'calories',
       type: IsarType.double,
     ),
     r'carbs': PropertySchema(
-      id: 6,
+      id: 10,
       name: r'carbs',
       type: IsarType.double,
     ),
     r'cholesterol': PropertySchema(
-      id: 7,
+      id: 11,
       name: r'cholesterol',
       type: IsarType.double,
     ),
     r'createdAt': PropertySchema(
-      id: 8,
+      id: 12,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
+    r'estimatedVolumeMl': PropertySchema(
+      id: 13,
+      name: r'estimatedVolumeMl',
+      type: IsarType.double,
+    ),
     r'fat': PropertySchema(
-      id: 9,
+      id: 14,
       name: r'fat',
       type: IsarType.double,
     ),
     r'fiber': PropertySchema(
-      id: 10,
+      id: 15,
       name: r'fiber',
       type: IsarType.double,
     ),
     r'foodName': PropertySchema(
-      id: 11,
+      id: 16,
       name: r'foodName',
       type: IsarType.string,
     ),
     r'foodNameEn': PropertySchema(
-      id: 12,
+      id: 17,
       name: r'foodNameEn',
       type: IsarType.string,
     ),
     r'groupId': PropertySchema(
-      id: 13,
+      id: 18,
       name: r'groupId',
       type: IsarType.string,
     ),
     r'hasBaseValues': PropertySchema(
-      id: 14,
+      id: 19,
       name: r'hasBaseValues',
       type: IsarType.bool,
     ),
     r'hasNutritionData': PropertySchema(
-      id: 15,
+      id: 20,
       name: r'hasNutritionData',
       type: IsarType.bool,
     ),
     r'healthConnectId': PropertySchema(
-      id: 16,
+      id: 21,
       name: r'healthConnectId',
       type: IsarType.string,
     ),
     r'imagePath': PropertySchema(
-      id: 17,
+      id: 22,
       name: r'imagePath',
       type: IsarType.string,
     ),
     r'ingredientId': PropertySchema(
-      id: 18,
+      id: 23,
       name: r'ingredientId',
       type: IsarType.long,
     ),
     r'ingredientsJson': PropertySchema(
-      id: 19,
+      id: 24,
       name: r'ingredientsJson',
       type: IsarType.string,
     ),
+    r'isCalibrated': PropertySchema(
+      id: 25,
+      name: r'isCalibrated',
+      type: IsarType.bool,
+    ),
     r'isDeleted': PropertySchema(
-      id: 20,
+      id: 26,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
+    r'isSynced': PropertySchema(
+      id: 27,
+      name: r'isSynced',
+      type: IsarType.bool,
+    ),
     r'isVerified': PropertySchema(
-      id: 21,
+      id: 28,
       name: r'isVerified',
       type: IsarType.bool,
     ),
     r'mealType': PropertySchema(
-      id: 22,
+      id: 29,
       name: r'mealType',
       type: IsarType.byte,
       enumMap: _FoodEntrymealTypeEnumValueMap,
     ),
     r'monounsaturatedFat': PropertySchema(
-      id: 23,
+      id: 30,
       name: r'monounsaturatedFat',
       type: IsarType.double,
     ),
     r'myMealId': PropertySchema(
-      id: 24,
+      id: 31,
       name: r'myMealId',
       type: IsarType.long,
     ),
     r'notes': PropertySchema(
-      id: 25,
+      id: 32,
       name: r'notes',
       type: IsarType.string,
     ),
+    r'plateDiameterCm': PropertySchema(
+      id: 33,
+      name: r'plateDiameterCm',
+      type: IsarType.double,
+    ),
     r'polyunsaturatedFat': PropertySchema(
-      id: 26,
+      id: 34,
       name: r'polyunsaturatedFat',
       type: IsarType.double,
     ),
     r'potassium': PropertySchema(
-      id: 27,
+      id: 35,
       name: r'potassium',
       type: IsarType.double,
     ),
     r'protein': PropertySchema(
-      id: 28,
+      id: 36,
       name: r'protein',
       type: IsarType.double,
     ),
+    r'referenceConfidence': PropertySchema(
+      id: 37,
+      name: r'referenceConfidence',
+      type: IsarType.double,
+    ),
+    r'referenceObjectUsed': PropertySchema(
+      id: 38,
+      name: r'referenceObjectUsed',
+      type: IsarType.string,
+    ),
     r'saturatedFat': PropertySchema(
-      id: 29,
+      id: 39,
       name: r'saturatedFat',
       type: IsarType.double,
     ),
     r'searchMode': PropertySchema(
-      id: 30,
+      id: 40,
       name: r'searchMode',
       type: IsarType.byte,
       enumMap: _FoodEntrysearchModeEnumValueMap,
     ),
     r'servingGrams': PropertySchema(
-      id: 31,
+      id: 41,
       name: r'servingGrams',
       type: IsarType.double,
     ),
     r'servingSize': PropertySchema(
-      id: 32,
+      id: 42,
       name: r'servingSize',
       type: IsarType.double,
     ),
     r'servingUnit': PropertySchema(
-      id: 33,
+      id: 43,
       name: r'servingUnit',
       type: IsarType.string,
     ),
     r'sodium': PropertySchema(
-      id: 34,
+      id: 44,
       name: r'sodium',
       type: IsarType.double,
     ),
     r'source': PropertySchema(
-      id: 35,
+      id: 45,
       name: r'source',
       type: IsarType.byte,
       enumMap: _FoodEntrysourceEnumValueMap,
     ),
     r'sugar': PropertySchema(
-      id: 36,
+      id: 46,
       name: r'sugar',
       type: IsarType.double,
     ),
     r'syncedAt': PropertySchema(
-      id: 37,
+      id: 47,
       name: r'syncedAt',
       type: IsarType.dateTime,
     ),
+    r'thumbnailUrl': PropertySchema(
+      id: 48,
+      name: r'thumbnailUrl',
+      type: IsarType.string,
+    ),
     r'timestamp': PropertySchema(
-      id: 38,
+      id: 49,
       name: r'timestamp',
       type: IsarType.dateTime,
     ),
     r'transFat': PropertySchema(
-      id: 39,
+      id: 50,
       name: r'transFat',
       type: IsarType.double,
     ),
     r'unsaturatedFat': PropertySchema(
-      id: 40,
+      id: 51,
       name: r'unsaturatedFat',
       type: IsarType.double,
     ),
     r'updatedAt': PropertySchema(
-      id: 41,
+      id: 52,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -251,6 +306,12 @@ int _foodEntryEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  {
+    final value = object.arLabelsJson;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.foodName.length * 3;
   {
     final value = object.foodNameEn;
@@ -288,7 +349,19 @@ int _foodEntryEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.referenceObjectUsed;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.servingUnit.length * 3;
+  {
+    final value = object.thumbnailUrl;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -299,47 +372,58 @@ void _foodEntrySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDouble(offsets[0], object.aiConfidence);
-  writer.writeDouble(offsets[1], object.baseCalories);
-  writer.writeDouble(offsets[2], object.baseCarbs);
-  writer.writeDouble(offsets[3], object.baseFat);
-  writer.writeDouble(offsets[4], object.baseProtein);
-  writer.writeDouble(offsets[5], object.calories);
-  writer.writeDouble(offsets[6], object.carbs);
-  writer.writeDouble(offsets[7], object.cholesterol);
-  writer.writeDateTime(offsets[8], object.createdAt);
-  writer.writeDouble(offsets[9], object.fat);
-  writer.writeDouble(offsets[10], object.fiber);
-  writer.writeString(offsets[11], object.foodName);
-  writer.writeString(offsets[12], object.foodNameEn);
-  writer.writeString(offsets[13], object.groupId);
-  writer.writeBool(offsets[14], object.hasBaseValues);
-  writer.writeBool(offsets[15], object.hasNutritionData);
-  writer.writeString(offsets[16], object.healthConnectId);
-  writer.writeString(offsets[17], object.imagePath);
-  writer.writeLong(offsets[18], object.ingredientId);
-  writer.writeString(offsets[19], object.ingredientsJson);
-  writer.writeBool(offsets[20], object.isDeleted);
-  writer.writeBool(offsets[21], object.isVerified);
-  writer.writeByte(offsets[22], object.mealType.index);
-  writer.writeDouble(offsets[23], object.monounsaturatedFat);
-  writer.writeLong(offsets[24], object.myMealId);
-  writer.writeString(offsets[25], object.notes);
-  writer.writeDouble(offsets[26], object.polyunsaturatedFat);
-  writer.writeDouble(offsets[27], object.potassium);
-  writer.writeDouble(offsets[28], object.protein);
-  writer.writeDouble(offsets[29], object.saturatedFat);
-  writer.writeByte(offsets[30], object.searchMode.index);
-  writer.writeDouble(offsets[31], object.servingGrams);
-  writer.writeDouble(offsets[32], object.servingSize);
-  writer.writeString(offsets[33], object.servingUnit);
-  writer.writeDouble(offsets[34], object.sodium);
-  writer.writeByte(offsets[35], object.source.index);
-  writer.writeDouble(offsets[36], object.sugar);
-  writer.writeDateTime(offsets[37], object.syncedAt);
-  writer.writeDateTime(offsets[38], object.timestamp);
-  writer.writeDouble(offsets[39], object.transFat);
-  writer.writeDouble(offsets[40], object.unsaturatedFat);
-  writer.writeDateTime(offsets[41], object.updatedAt);
+  writer.writeDouble(offsets[1], object.arImageHeight);
+  writer.writeDouble(offsets[2], object.arImageWidth);
+  writer.writeString(offsets[3], object.arLabelsJson);
+  writer.writeDouble(offsets[4], object.arPixelPerCm);
+  writer.writeDouble(offsets[5], object.baseCalories);
+  writer.writeDouble(offsets[6], object.baseCarbs);
+  writer.writeDouble(offsets[7], object.baseFat);
+  writer.writeDouble(offsets[8], object.baseProtein);
+  writer.writeDouble(offsets[9], object.calories);
+  writer.writeDouble(offsets[10], object.carbs);
+  writer.writeDouble(offsets[11], object.cholesterol);
+  writer.writeDateTime(offsets[12], object.createdAt);
+  writer.writeDouble(offsets[13], object.estimatedVolumeMl);
+  writer.writeDouble(offsets[14], object.fat);
+  writer.writeDouble(offsets[15], object.fiber);
+  writer.writeString(offsets[16], object.foodName);
+  writer.writeString(offsets[17], object.foodNameEn);
+  writer.writeString(offsets[18], object.groupId);
+  writer.writeBool(offsets[19], object.hasBaseValues);
+  writer.writeBool(offsets[20], object.hasNutritionData);
+  writer.writeString(offsets[21], object.healthConnectId);
+  writer.writeString(offsets[22], object.imagePath);
+  writer.writeLong(offsets[23], object.ingredientId);
+  writer.writeString(offsets[24], object.ingredientsJson);
+  writer.writeBool(offsets[25], object.isCalibrated);
+  writer.writeBool(offsets[26], object.isDeleted);
+  writer.writeBool(offsets[27], object.isSynced);
+  writer.writeBool(offsets[28], object.isVerified);
+  writer.writeByte(offsets[29], object.mealType.index);
+  writer.writeDouble(offsets[30], object.monounsaturatedFat);
+  writer.writeLong(offsets[31], object.myMealId);
+  writer.writeString(offsets[32], object.notes);
+  writer.writeDouble(offsets[33], object.plateDiameterCm);
+  writer.writeDouble(offsets[34], object.polyunsaturatedFat);
+  writer.writeDouble(offsets[35], object.potassium);
+  writer.writeDouble(offsets[36], object.protein);
+  writer.writeDouble(offsets[37], object.referenceConfidence);
+  writer.writeString(offsets[38], object.referenceObjectUsed);
+  writer.writeDouble(offsets[39], object.saturatedFat);
+  writer.writeByte(offsets[40], object.searchMode.index);
+  writer.writeDouble(offsets[41], object.servingGrams);
+  writer.writeDouble(offsets[42], object.servingSize);
+  writer.writeString(offsets[43], object.servingUnit);
+  writer.writeDouble(offsets[44], object.sodium);
+  writer.writeByte(offsets[45], object.source.index);
+  writer.writeDouble(offsets[46], object.sugar);
+  writer.writeDateTime(offsets[47], object.syncedAt);
+  writer.writeString(offsets[48], object.thumbnailUrl);
+  writer.writeDateTime(offsets[49], object.timestamp);
+  writer.writeDouble(offsets[50], object.transFat);
+  writer.writeDouble(offsets[51], object.unsaturatedFat);
+  writer.writeDateTime(offsets[52], object.updatedAt);
 }
 
 FoodEntry _foodEntryDeserialize(
@@ -350,52 +434,63 @@ FoodEntry _foodEntryDeserialize(
 ) {
   final object = FoodEntry();
   object.aiConfidence = reader.readDoubleOrNull(offsets[0]);
-  object.baseCalories = reader.readDouble(offsets[1]);
-  object.baseCarbs = reader.readDouble(offsets[2]);
-  object.baseFat = reader.readDouble(offsets[3]);
-  object.baseProtein = reader.readDouble(offsets[4]);
-  object.calories = reader.readDouble(offsets[5]);
-  object.carbs = reader.readDouble(offsets[6]);
-  object.cholesterol = reader.readDoubleOrNull(offsets[7]);
-  object.createdAt = reader.readDateTime(offsets[8]);
-  object.fat = reader.readDouble(offsets[9]);
-  object.fiber = reader.readDoubleOrNull(offsets[10]);
-  object.foodName = reader.readString(offsets[11]);
-  object.foodNameEn = reader.readStringOrNull(offsets[12]);
-  object.groupId = reader.readStringOrNull(offsets[13]);
-  object.healthConnectId = reader.readStringOrNull(offsets[16]);
+  object.arImageHeight = reader.readDoubleOrNull(offsets[1]);
+  object.arImageWidth = reader.readDoubleOrNull(offsets[2]);
+  object.arLabelsJson = reader.readStringOrNull(offsets[3]);
+  object.arPixelPerCm = reader.readDoubleOrNull(offsets[4]);
+  object.baseCalories = reader.readDouble(offsets[5]);
+  object.baseCarbs = reader.readDouble(offsets[6]);
+  object.baseFat = reader.readDouble(offsets[7]);
+  object.baseProtein = reader.readDouble(offsets[8]);
+  object.calories = reader.readDouble(offsets[9]);
+  object.carbs = reader.readDouble(offsets[10]);
+  object.cholesterol = reader.readDoubleOrNull(offsets[11]);
+  object.createdAt = reader.readDateTime(offsets[12]);
+  object.estimatedVolumeMl = reader.readDoubleOrNull(offsets[13]);
+  object.fat = reader.readDouble(offsets[14]);
+  object.fiber = reader.readDoubleOrNull(offsets[15]);
+  object.foodName = reader.readString(offsets[16]);
+  object.foodNameEn = reader.readStringOrNull(offsets[17]);
+  object.groupId = reader.readStringOrNull(offsets[18]);
+  object.healthConnectId = reader.readStringOrNull(offsets[21]);
   object.id = id;
-  object.imagePath = reader.readStringOrNull(offsets[17]);
-  object.ingredientId = reader.readLongOrNull(offsets[18]);
-  object.ingredientsJson = reader.readStringOrNull(offsets[19]);
-  object.isDeleted = reader.readBool(offsets[20]);
-  object.isVerified = reader.readBool(offsets[21]);
+  object.imagePath = reader.readStringOrNull(offsets[22]);
+  object.ingredientId = reader.readLongOrNull(offsets[23]);
+  object.ingredientsJson = reader.readStringOrNull(offsets[24]);
+  object.isCalibrated = reader.readBool(offsets[25]);
+  object.isDeleted = reader.readBool(offsets[26]);
+  object.isSynced = reader.readBool(offsets[27]);
+  object.isVerified = reader.readBool(offsets[28]);
   object.mealType =
-      _FoodEntrymealTypeValueEnumMap[reader.readByteOrNull(offsets[22])] ??
+      _FoodEntrymealTypeValueEnumMap[reader.readByteOrNull(offsets[29])] ??
           MealType.breakfast;
-  object.monounsaturatedFat = reader.readDoubleOrNull(offsets[23]);
-  object.myMealId = reader.readLongOrNull(offsets[24]);
-  object.notes = reader.readStringOrNull(offsets[25]);
-  object.polyunsaturatedFat = reader.readDoubleOrNull(offsets[26]);
-  object.potassium = reader.readDoubleOrNull(offsets[27]);
-  object.protein = reader.readDouble(offsets[28]);
-  object.saturatedFat = reader.readDoubleOrNull(offsets[29]);
+  object.monounsaturatedFat = reader.readDoubleOrNull(offsets[30]);
+  object.myMealId = reader.readLongOrNull(offsets[31]);
+  object.notes = reader.readStringOrNull(offsets[32]);
+  object.plateDiameterCm = reader.readDoubleOrNull(offsets[33]);
+  object.polyunsaturatedFat = reader.readDoubleOrNull(offsets[34]);
+  object.potassium = reader.readDoubleOrNull(offsets[35]);
+  object.protein = reader.readDouble(offsets[36]);
+  object.referenceConfidence = reader.readDoubleOrNull(offsets[37]);
+  object.referenceObjectUsed = reader.readStringOrNull(offsets[38]);
+  object.saturatedFat = reader.readDoubleOrNull(offsets[39]);
   object.searchMode =
-      _FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offsets[30])] ??
+      _FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offsets[40])] ??
           FoodSearchMode.normal;
-  object.servingGrams = reader.readDoubleOrNull(offsets[31]);
-  object.servingSize = reader.readDouble(offsets[32]);
-  object.servingUnit = reader.readString(offsets[33]);
-  object.sodium = reader.readDoubleOrNull(offsets[34]);
+  object.servingGrams = reader.readDoubleOrNull(offsets[41]);
+  object.servingSize = reader.readDouble(offsets[42]);
+  object.servingUnit = reader.readString(offsets[43]);
+  object.sodium = reader.readDoubleOrNull(offsets[44]);
   object.source =
-      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[35])] ??
+      _FoodEntrysourceValueEnumMap[reader.readByteOrNull(offsets[45])] ??
           DataSource.manual;
-  object.sugar = reader.readDoubleOrNull(offsets[36]);
-  object.syncedAt = reader.readDateTimeOrNull(offsets[37]);
-  object.timestamp = reader.readDateTime(offsets[38]);
-  object.transFat = reader.readDoubleOrNull(offsets[39]);
-  object.unsaturatedFat = reader.readDoubleOrNull(offsets[40]);
-  object.updatedAt = reader.readDateTime(offsets[41]);
+  object.sugar = reader.readDoubleOrNull(offsets[46]);
+  object.syncedAt = reader.readDateTimeOrNull(offsets[47]);
+  object.thumbnailUrl = reader.readStringOrNull(offsets[48]);
+  object.timestamp = reader.readDateTime(offsets[49]);
+  object.transFat = reader.readDoubleOrNull(offsets[50]);
+  object.unsaturatedFat = reader.readDoubleOrNull(offsets[51]);
+  object.updatedAt = reader.readDateTime(offsets[52]);
   return object;
 }
 
@@ -409,89 +504,111 @@ P _foodEntryDeserializeProp<P>(
     case 0:
       return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 2:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 5:
       return (reader.readDouble(offset)) as P;
     case 6:
       return (reader.readDouble(offset)) as P;
     case 7:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 8:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 9:
       return (reader.readDouble(offset)) as P;
     case 10:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 12:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 13:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 14:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 15:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 16:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 17:
       return (reader.readStringOrNull(offset)) as P;
     case 18:
-      return (reader.readLongOrNull(offset)) as P;
-    case 19:
       return (reader.readStringOrNull(offset)) as P;
+    case 19:
+      return (reader.readBool(offset)) as P;
     case 20:
       return (reader.readBool(offset)) as P;
     case 21:
-      return (reader.readBool(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 22:
+      return (reader.readStringOrNull(offset)) as P;
+    case 23:
+      return (reader.readLongOrNull(offset)) as P;
+    case 24:
+      return (reader.readStringOrNull(offset)) as P;
+    case 25:
+      return (reader.readBool(offset)) as P;
+    case 26:
+      return (reader.readBool(offset)) as P;
+    case 27:
+      return (reader.readBool(offset)) as P;
+    case 28:
+      return (reader.readBool(offset)) as P;
+    case 29:
       return (_FoodEntrymealTypeValueEnumMap[reader.readByteOrNull(offset)] ??
           MealType.breakfast) as P;
-    case 23:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 24:
-      return (reader.readLongOrNull(offset)) as P;
-    case 25:
-      return (reader.readStringOrNull(offset)) as P;
-    case 26:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 27:
-      return (reader.readDoubleOrNull(offset)) as P;
-    case 28:
-      return (reader.readDouble(offset)) as P;
-    case 29:
-      return (reader.readDoubleOrNull(offset)) as P;
     case 30:
-      return (_FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offset)] ??
-          FoodSearchMode.normal) as P;
-    case 31:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 31:
+      return (reader.readLongOrNull(offset)) as P;
     case 32:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 33:
-      return (reader.readString(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 34:
       return (reader.readDoubleOrNull(offset)) as P;
     case 35:
-      return (_FoodEntrysourceValueEnumMap[reader.readByteOrNull(offset)] ??
-          DataSource.manual) as P;
-    case 36:
       return (reader.readDoubleOrNull(offset)) as P;
+    case 36:
+      return (reader.readDouble(offset)) as P;
     case 37:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readDoubleOrNull(offset)) as P;
     case 38:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 39:
       return (reader.readDoubleOrNull(offset)) as P;
     case 40:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (_FoodEntrysearchModeValueEnumMap[reader.readByteOrNull(offset)] ??
+          FoodSearchMode.normal) as P;
     case 41:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 42:
+      return (reader.readDouble(offset)) as P;
+    case 43:
+      return (reader.readString(offset)) as P;
+    case 44:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 45:
+      return (_FoodEntrysourceValueEnumMap[reader.readByteOrNull(offset)] ??
+          DataSource.manual) as P;
+    case 46:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 47:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 48:
+      return (reader.readStringOrNull(offset)) as P;
+    case 49:
+      return (reader.readDateTime(offset)) as P;
+    case 50:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 51:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 52:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -703,6 +820,407 @@ extension FoodEntryQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
         property: r'aiConfidence',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'arImageHeight',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'arImageHeight',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arImageHeight',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'arImageHeight',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'arImageHeight',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageHeightBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'arImageHeight',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageWidthIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'arImageWidth',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageWidthIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'arImageWidth',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arImageWidthEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arImageWidth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageWidthGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'arImageWidth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arImageWidthLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'arImageWidth',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arImageWidthBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'arImageWidth',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'arLabelsJson',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'arLabelsJson',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arLabelsJsonEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arLabelsJsonBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'arLabelsJson',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'arLabelsJson',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arLabelsJsonMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'arLabelsJson',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arLabelsJson',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arLabelsJsonIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'arLabelsJson',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arPixelPerCmIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'arPixelPerCm',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arPixelPerCmIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'arPixelPerCm',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arPixelPerCmEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'arPixelPerCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arPixelPerCmGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'arPixelPerCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      arPixelPerCmLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'arPixelPerCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> arPixelPerCmBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'arPixelPerCm',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
@@ -1219,6 +1737,90 @@ extension FoodEntryQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'estimatedVolumeMl',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'estimatedVolumeMl',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'estimatedVolumeMl',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'estimatedVolumeMl',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'estimatedVolumeMl',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      estimatedVolumeMlBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'estimatedVolumeMl',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
       ));
     });
   }
@@ -2395,11 +2997,31 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> isCalibratedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCalibrated',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> isDeletedEqualTo(
       bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'isDeleted',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> isSyncedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isSynced',
         value: value,
       ));
     });
@@ -2769,6 +3391,90 @@ extension FoodEntryQueryFilter
   }
 
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'plateDiameterCm',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'plateDiameterCm',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'plateDiameterCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'plateDiameterCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'plateDiameterCm',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      plateDiameterCmBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'plateDiameterCm',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
       polyunsaturatedFatIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2990,6 +3696,244 @@ extension FoodEntryQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'referenceConfidence',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'referenceConfidence',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'referenceConfidence',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'referenceConfidence',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'referenceConfidence',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceConfidenceBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'referenceConfidence',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'referenceObjectUsed',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'referenceObjectUsed',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'referenceObjectUsed',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'referenceObjectUsed',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'referenceObjectUsed',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'referenceObjectUsed',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      referenceObjectUsedIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'referenceObjectUsed',
+        value: '',
       ));
     });
   }
@@ -3688,6 +4632,159 @@ extension FoodEntryQueryFilter
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'thumbnailUrl',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'thumbnailUrl',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> thumbnailUrlEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> thumbnailUrlBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'thumbnailUrl',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'thumbnailUrl',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> thumbnailUrlMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'thumbnailUrl',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'thumbnailUrl',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition>
+      thumbnailUrlIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'thumbnailUrl',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterFilterCondition> timestampEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -3979,6 +5076,54 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArImageHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArImageHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageHeight', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArImageWidth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageWidth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArImageWidthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageWidth', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArLabelsJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arLabelsJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArLabelsJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arLabelsJson', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArPixelPerCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arPixelPerCm', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByArPixelPerCmDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arPixelPerCm', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByBaseCalories() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'baseCalories', Sort.asc);
@@ -4072,6 +5217,19 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByEstimatedVolumeMl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'estimatedVolumeMl', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      sortByEstimatedVolumeMlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'estimatedVolumeMl', Sort.desc);
     });
   }
 
@@ -4208,6 +5366,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsCalibrated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCalibrated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsCalibratedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCalibrated', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -4217,6 +5387,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsDeletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
     });
   }
 
@@ -4281,6 +5463,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPlateDiameterCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plateDiameterCm', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPlateDiameterCmDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plateDiameterCm', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByPolyunsaturatedFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'polyunsaturatedFat', Sort.asc);
@@ -4315,6 +5509,32 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByProteinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'protein', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByReferenceConfidence() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceConfidence', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      sortByReferenceConfidenceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceConfidence', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByReferenceObjectUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceObjectUsed', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      sortByReferenceObjectUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceObjectUsed', Sort.desc);
     });
   }
 
@@ -4426,6 +5646,18 @@ extension FoodEntryQuerySortBy on QueryBuilder<FoodEntry, FoodEntry, QSortBy> {
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByThumbnailUrl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnailUrl', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByThumbnailUrlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnailUrl', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> sortByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.asc);
@@ -4486,6 +5718,54 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByAiConfidenceDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'aiConfidence', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArImageHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageHeight', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArImageHeightDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageHeight', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArImageWidth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageWidth', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArImageWidthDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arImageWidth', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArLabelsJson() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arLabelsJson', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArLabelsJsonDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arLabelsJson', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArPixelPerCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arPixelPerCm', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByArPixelPerCmDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'arPixelPerCm', Sort.desc);
     });
   }
 
@@ -4582,6 +5862,19 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByEstimatedVolumeMl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'estimatedVolumeMl', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      thenByEstimatedVolumeMlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'estimatedVolumeMl', Sort.desc);
     });
   }
 
@@ -4730,6 +6023,18 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsCalibrated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCalibrated', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsCalibratedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isCalibrated', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.asc);
@@ -4739,6 +6044,18 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsDeletedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isDeleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
     });
   }
 
@@ -4803,6 +6120,18 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPlateDiameterCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plateDiameterCm', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPlateDiameterCmDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'plateDiameterCm', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByPolyunsaturatedFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'polyunsaturatedFat', Sort.asc);
@@ -4837,6 +6166,32 @@ extension FoodEntryQuerySortThenBy
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByProteinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'protein', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByReferenceConfidence() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceConfidence', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      thenByReferenceConfidenceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceConfidence', Sort.desc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByReferenceObjectUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceObjectUsed', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy>
+      thenByReferenceObjectUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'referenceObjectUsed', Sort.desc);
     });
   }
 
@@ -4948,6 +6303,18 @@ extension FoodEntryQuerySortThenBy
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByThumbnailUrl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnailUrl', Sort.asc);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByThumbnailUrlDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'thumbnailUrl', Sort.desc);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QAfterSortBy> thenByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'timestamp', Sort.asc);
@@ -5005,6 +6372,31 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByArImageHeight() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'arImageHeight');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByArImageWidth() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'arImageWidth');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByArLabelsJson(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'arLabelsJson', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByArPixelPerCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'arPixelPerCm');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByBaseCalories() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'baseCalories');
@@ -5050,6 +6442,12 @@ extension FoodEntryQueryWhereDistinct
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByEstimatedVolumeMl() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'estimatedVolumeMl');
     });
   }
 
@@ -5127,9 +6525,21 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByIsCalibrated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isCalibrated');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByIsDeleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isSynced');
     });
   }
 
@@ -5164,6 +6574,12 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByPlateDiameterCm() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'plateDiameterCm');
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByPolyunsaturatedFat() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'polyunsaturatedFat');
@@ -5179,6 +6595,21 @@ extension FoodEntryQueryWhereDistinct
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByProtein() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'protein');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct>
+      distinctByReferenceConfidence() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'referenceConfidence');
+    });
+  }
+
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByReferenceObjectUsed(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'referenceObjectUsed',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -5237,6 +6668,13 @@ extension FoodEntryQueryWhereDistinct
     });
   }
 
+  QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByThumbnailUrl(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'thumbnailUrl', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<FoodEntry, FoodEntry, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
@@ -5273,6 +6711,30 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, double?, QQueryOperations> aiConfidenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'aiConfidence');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> arImageHeightProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'arImageHeight');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> arImageWidthProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'arImageWidth');
+    });
+  }
+
+  QueryBuilder<FoodEntry, String?, QQueryOperations> arLabelsJsonProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'arLabelsJson');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations> arPixelPerCmProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'arPixelPerCm');
     });
   }
 
@@ -5321,6 +6783,13 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations>
+      estimatedVolumeMlProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'estimatedVolumeMl');
     });
   }
 
@@ -5390,9 +6859,21 @@ extension FoodEntryQueryProperty
     });
   }
 
+  QueryBuilder<FoodEntry, bool, QQueryOperations> isCalibratedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isCalibrated');
+    });
+  }
+
   QueryBuilder<FoodEntry, bool, QQueryOperations> isDeletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<FoodEntry, bool, QQueryOperations> isSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isSynced');
     });
   }
 
@@ -5427,6 +6908,12 @@ extension FoodEntryQueryProperty
     });
   }
 
+  QueryBuilder<FoodEntry, double?, QQueryOperations> plateDiameterCmProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'plateDiameterCm');
+    });
+  }
+
   QueryBuilder<FoodEntry, double?, QQueryOperations>
       polyunsaturatedFatProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -5443,6 +6930,20 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, double, QQueryOperations> proteinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'protein');
+    });
+  }
+
+  QueryBuilder<FoodEntry, double?, QQueryOperations>
+      referenceConfidenceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'referenceConfidence');
+    });
+  }
+
+  QueryBuilder<FoodEntry, String?, QQueryOperations>
+      referenceObjectUsedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'referenceObjectUsed');
     });
   }
 
@@ -5498,6 +6999,12 @@ extension FoodEntryQueryProperty
   QueryBuilder<FoodEntry, DateTime?, QQueryOperations> syncedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'syncedAt');
+    });
+  }
+
+  QueryBuilder<FoodEntry, String?, QQueryOperations> thumbnailUrlProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'thumbnailUrl');
     });
   }
 

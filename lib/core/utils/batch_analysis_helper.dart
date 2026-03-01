@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ai/gemini_service.dart';
+import '../services/thumbnail_service.dart';
 import '../services/usage_limiter.dart';
 import '../utils/logger.dart';
 import '../constants/enums.dart';
+import '../ar_scale/models/detected_object_label.dart';
 import '../../features/health/models/food_entry.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/my_meal_provider.dart';
@@ -137,6 +139,13 @@ class BatchAnalysisHelper {
     entry.isVerified = true;
     entry.aiConfidence = result.confidence;
 
+    // AR Scale calibration data
+    entry.referenceObjectUsed = result.referenceObjectUsed;
+    entry.referenceConfidence = result.referenceConfidence;
+    entry.plateDiameterCm = result.plateDiameterCm;
+    entry.estimatedVolumeMl = result.estimatedVolumeMl;
+    entry.isCalibrated = result.isCalibrated;
+
     if (result.ingredientsDetail != null &&
         result.ingredientsDetail!.isNotEmpty) {
       entry.ingredientsJson = jsonEncode(
@@ -252,6 +261,7 @@ class BatchAnalysisHelper {
                   .updateFoodEntry(entry);
               await autoSaveToDatabase(ref, entry, result);
               await UsageLimiter.recordAiUsage();
+              _uploadThumbnailInBackground(entry);
               batchSuccessCount++;
             } else {
               failedIds.add(entry.id);
@@ -289,6 +299,7 @@ class BatchAnalysisHelper {
                     .updateFoodEntry(entry);
                 await autoSaveToDatabase(ref, entry, result);
                 await UsageLimiter.recordAiUsage();
+                _uploadThumbnailInBackground(entry);
                 batchSuccessCount++;
               } else {
                 failedIds.add(entry.id);
@@ -318,12 +329,16 @@ class BatchAnalysisHelper {
         );
 
         try {
+          // สร้าง calibration hint จากข้อมูล AR ที่เก็บไว้ใน entry (ถ้ามี)
+          final calibrationHint = _buildCalibrationHint(entry);
+
           final result = await GeminiService.analyzeFoodImage(
             File(entry.imagePath!),
             foodName: entry.foodName,
             quantity: entry.servingSize,
             unit: entry.servingUnit,
             searchMode: entry.searchMode,
+            calibrationHint: calibrationHint,
           );
 
           if (result != null) {
@@ -333,6 +348,7 @@ class BatchAnalysisHelper {
                 .updateFoodEntry(entry);
             await autoSaveToDatabase(ref, entry, result);
             await UsageLimiter.recordAiUsage();
+            _uploadThumbnailInBackground(entry);
             batchSuccessCount++;
           } else {
             failedIds.add(entry.id);
@@ -386,6 +402,101 @@ class BatchAnalysisHelper {
       successCount: totalSuccessCount,
       failedCount: failedIds.length,
       wasCancelled: shouldCancel(),
+    );
+  }
+
+  /// สร้าง calibration hint string จาก FoodEntry ที่มีข้อมูล AR Scale
+  static String? _buildCalibrationHint(FoodEntry entry) {
+    final buffer = StringBuffer();
+
+    // --- Part 1: Calibration data (ถ้ามี) ---
+    final isCalibrated = entry.isCalibrated;
+    final confidence = entry.referenceConfidence;
+
+    if (isCalibrated && confidence != null && confidence >= 0.65) {
+      final diameterCm = entry.plateDiameterCm;
+      final volumeMl = entry.estimatedVolumeMl;
+      final refType = entry.referenceObjectUsed;
+
+      final confLabel = confidence >= 0.85
+          ? 'HIGH confidence'
+          : 'MEDIUM confidence (verify visually)';
+      final confPct = (confidence * 100).toStringAsFixed(0);
+      final refName = refType ?? 'reference object';
+
+      buffer
+        ..writeln('PHYSICAL CALIBRATION DATA ($confLabel):')
+        ..writeln(
+          'A $refName was detected in the image with $confPct% confidence.',
+        );
+
+      if (diameterCm != null) {
+        buffer.writeln(
+          'Measured plate/bowl diameter: ~${diameterCm.toStringAsFixed(1)} cm.',
+        );
+      }
+      if (volumeMl != null) {
+        buffer.writeln(
+          'Estimated container volume: ~${volumeMl.toStringAsFixed(0)} ml.',
+        );
+      }
+
+      buffer.writeln(
+        'Use this measurement to estimate portion size more accurately.',
+      );
+
+      if (confidence < 0.85) {
+        buffer.writeln(
+          'Note: Medium confidence — cross-check with visual estimation.',
+        );
+      }
+    }
+
+    // --- Part 2: Object detection metadata (ทุก object ที่ detect ได้) ---
+    final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+    if (labels.isNotEmpty) {
+      final pxPerCm = entry.arPixelPerCm;
+      final imgW = entry.arImageWidth;
+      final imgH = entry.arImageHeight;
+
+      buffer.writeln('DETECTED OBJECTS IN IMAGE (${labels.length}):');
+      if (imgW != null && imgH != null) {
+        buffer.writeln(
+          'Image dimensions: ${imgW.toInt()}x${imgH.toInt()} pixels.',
+        );
+      }
+
+      for (final obj in labels) {
+        final confPct = (obj.confidence * 100).toStringAsFixed(0);
+        if (pxPerCm != null && pxPerCm > 0) {
+          final wCm = (obj.bboxWidth / pxPerCm).toStringAsFixed(1);
+          final hCm = (obj.bboxHeight / pxPerCm).toStringAsFixed(1);
+          buffer.writeln(
+            '- ${obj.label} ($confPct%): $wCm×$hCm cm '
+            'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+          );
+        } else {
+          buffer.writeln(
+            '- ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px '
+            'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+          );
+        }
+      }
+      buffer.writeln(
+        'Use these object sizes and positions to better estimate food portion sizes.',
+      );
+    }
+
+    final result = buffer.toString().trim();
+    return result.isEmpty ? null : result;
+  }
+
+  /// Fire-and-forget thumbnail upload (non-blocking, non-fatal).
+  static void _uploadThumbnailInBackground(FoodEntry entry) {
+    if (!entry.hasLocalImage) return;
+    ThumbnailService.uploadThumbnail(
+      entry: entry,
+      imageFile: File(entry.imagePath!),
     );
   }
 }

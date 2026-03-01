@@ -17,6 +17,11 @@ True ingredient-level accuracy that understands cultural nuances, from Thai stre
 ⚖️ Pro-Grade Granularity
 For those who take every calorie seriously. Fine-tune and adjust details at the sub-ingredient level with ease.
 
+
+
+"Stop Guessing, Start Measuring."
+"The world’s first AI Nutritionist that actually 'sees' your portion size using AR technology."
+
 จบไอเดียผู้สร้าง
 
 

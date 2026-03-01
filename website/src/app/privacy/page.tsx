@@ -14,7 +14,7 @@ export default function PrivacyPage() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Privacy Policy
           </h1>
-          <p className="mt-4 text-gray-400">Last updated: February 28, 2026</p>
+          <p className="mt-4 text-gray-400">Last updated: March 1, 2026</p>
         </div>
       </section>
 
@@ -42,11 +42,9 @@ export default function PrivacyPage() {
             <p>
               MiRO is an offline-first application. All food entries, nutrition
               data, meal history, personal goals, and preferences are stored
-              locally on your device using an on-device database. This data is
-              never uploaded to our servers.
+              locally on your device using an on-device database.
             </p>
             <ul>
-              <li>No cloud sync of food data</li>
               <li>No user accounts or profiles stored on our servers</li>
               <li>No email, name, or personal identifiers collected</li>
               <li>
@@ -54,6 +52,48 @@ export default function PrivacyPage() {
                 backup)
               </li>
             </ul>
+
+            <h3>2.1 Cloud Backup</h3>
+            <p>
+              When you claim your daily Energy, MiRO automatically syncs a compact
+              backup of your food history to our servers. This includes:
+            </p>
+            <ul>
+              <li>Food entry text data (food name, calories, nutrients, meal type, timestamp)</li>
+              <li>Custom meals (recipe name, ingredients, nutrition data)</li>
+              <li>Small thumbnail images (~40-80 KB) with nutrition metadata after AI analysis</li>
+              <li>Health profile (gender, age, weight, height, activity level)</li>
+              <li>Nutrition goals (calorie goal, macro targets, meal budgets, cuisine preference)</li>
+              <li>AR Scale data (detected object labels, bounding box coordinates, image dimensions, pixel-per-cm calibration ratio)</li>
+            </ul>
+            <p>
+              Full-resolution food photos and your name/avatar are <strong className="text-white">never uploaded</strong>.
+              All synced data is identified by an anonymous hashed device ID — not linked
+              to your personal identity. You can restore your food history on a new device
+              using a Recovery Key.
+            </p>
+
+            <h3>2.2 Anonymized AI Training Data</h3>
+            <p>
+              We may use <strong className="text-white">anonymized</strong> food images and associated metadata
+              (nutrition labels, detected object bounding boxes, calibration data) to improve AI food
+              recognition models or license to third-party AI/ML companies. This data is:
+            </p>
+            <ul>
+              <li>Fully anonymized — no device ID, personal identity, or location data is included</li>
+              <li>Stripped of EXIF metadata and any identifying information</li>
+              <li>Aggregated at population level — individual users cannot be identified</li>
+              <li>Used solely for improving food recognition technology</li>
+            </ul>
+            <p>
+              You may opt out of AI training data usage by contacting{' '}
+              <a
+                href="mailto:support@tnbgrp.com"
+                className="text-brand-400 underline"
+              >
+                support@tnbgrp.com
+              </a>.
+            </p>
           </section>
 
           <section>
@@ -101,14 +141,20 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-white">Cloud Firestore:</strong> Stores
-                your Energy balance, purchase records, and subscription status.
+                your Energy balance, purchase records, subscription status, and
+                compact food history backups for cross-device restoration.
                 Identified by a random device-generated ID (not linked to any
                 personal information).
               </li>
               <li>
                 <strong className="text-white">Cloud Functions:</strong>{' '}
-                Processes purchase validations and Energy transactions
-                server-side for security.
+                Processes purchase validations, Energy transactions, and data
+                sync operations server-side for security.
+              </li>
+              <li>
+                <strong className="text-white">Firebase Storage:</strong>{' '}
+                Stores small food thumbnail images (~40-80 KB) with nutrition
+                metadata for cloud backup and restoration purposes.
               </li>
               <li>
                 <strong className="text-white">Firebase Messaging:</strong>{' '}
@@ -187,16 +233,15 @@ export default function PrivacyPage() {
           <section>
             <h2>8. Data Deletion</h2>
             <p>
-              Since MiRO stores data locally on your device, you have full
-              control:
+              MiRO gives you full control over your data:
             </p>
             <ul>
               <li>Delete individual food entries at any time within the app</li>
               <li>Use &quot;Factory Reset&quot; in Settings to clear all local data</li>
               <li>Uninstall the app to remove all data from your device</li>
               <li>
-                To delete server-side data (Energy balance, purchase records),
-                contact us at{' '}
+                To delete server-side data (Energy balance, purchase records,
+                cloud-synced food history, and thumbnail images), contact us at{' '}
                 <a
                   href="mailto:support@tnbgrp.com"
                   className="text-brand-400 underline"
@@ -205,6 +250,11 @@ export default function PrivacyPage() {
                 </a>
               </li>
             </ul>
+            <p>
+              Cloud-synced food history is retained for up to 90 days for
+              restoration purposes and automatically expires. Thumbnail images
+              are retained until you request deletion.
+            </p>
           </section>
 
           <section>

@@ -16,6 +16,7 @@ import {
   UsersRound,
   FileText,
   Gift,
+  Database,
   LogOut 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const menuItems = [
   { icon: Settings, label: 'Config', href: '/config' },
   { icon: CreditCard, label: 'Subscriptions', href: '/subscriptions' },
   { icon: BarChart3, label: 'Promotion Analytics', href: '/analytics/promotions' },
+  { icon: Database, label: 'Data Mining', href: '/data-mining' },
   { icon: Send, label: 'Push Campaign', href: '/campaigns/push' },
   { icon: AlertTriangle, label: 'Fraud Alerts', href: '/fraud' },
   { icon: Send, label: 'Notifications', href: '/notifications' },

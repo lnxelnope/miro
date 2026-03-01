@@ -14,7 +14,7 @@ export default function TermsPage() {
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Terms of Service
           </h1>
-          <p className="mt-4 text-gray-400">Last updated: February 28, 2026</p>
+          <p className="mt-4 text-gray-400">Last updated: March 1, 2026</p>
         </div>
       </section>
 
@@ -50,7 +50,9 @@ export default function TermsPage() {
             <p>
               MiRO does not require you to create an account, sign up, or
               provide any personal information to use the app. Your data is
-              stored locally on your device.
+              stored locally on your device, with compact backups synced
+              automatically to our servers during daily Energy claims to enable
+              cross-device restoration.
             </p>
           </section>
 
@@ -141,8 +143,8 @@ export default function TermsPage() {
                 data
               </li>
               <li>
-                You are responsible for maintaining backups of your data if
-                desired
+                Food history is automatically backed up during daily Energy
+                claims; you are responsible for keeping your Recovery Key secure
               </li>
               <li>
                 You agree not to misuse the AI features (e.g., submitting
@@ -155,6 +157,43 @@ export default function TermsPage() {
               <li>
                 You agree not to exploit bugs or vulnerabilities in the Energy
                 system
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>6.1 Cloud Backup &amp; Recovery Key</h2>
+            <p>
+              MiRO automatically backs up your food history (nutrition text data
+              and small thumbnail images) during daily Energy claims.
+            </p>
+            <ul>
+              <li>
+                A Recovery Key (MIRO-XXXX-XXXX) is generated for your account,
+                viewable in Profile → Account
+              </li>
+              <li>
+                Use your Recovery Key to restore your account on a new device
+              </li>
+              <li>
+                Redeeming a Recovery Key transfers Energy balance, food history,
+                and generates a new key for the new device
+              </li>
+              <li>
+                Recovery Keys are single-use — once redeemed, the old key is
+                invalidated
+              </li>
+              <li>
+                Keep your Recovery Key secure — anyone with it can claim your
+                account and Energy
+              </li>
+              <li>
+                You can regenerate your Recovery Key at any time (this
+                invalidates the previous key)
+              </li>
+              <li>
+                Full-resolution food photos are NOT included in cloud backups —
+                only small thumbnails (~40-80 KB)
               </li>
             </ul>
           </section>
@@ -210,7 +249,9 @@ export default function TermsPage() {
               You may stop using MiRO at any time by uninstalling the app. We
               reserve the right to suspend or terminate access to cloud-based
               features (AI analysis, Energy system) if these terms are violated.
-              Locally stored data remains on your device regardless.
+              Locally stored data remains on your device regardless. Cloud-synced
+              food history and Energy balance are preserved on our servers and
+              can be restored using your Recovery Key.
             </p>
           </section>
 

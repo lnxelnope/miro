@@ -36,6 +36,8 @@ import '../../../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/health_sync_service.dart';
+import '../../../core/services/recovery_key_service.dart';
+import 'restore_account_screen.dart';
 import '../models/user_profile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -209,6 +211,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             );
                           },
                         ),
+                        _RecoveryKeyCard(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.inviteFriends,
@@ -306,6 +309,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 color: AppColors.success, size: 20),
                           ),
                           onTap: () => _handleRestore(context),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: 'กู้คืนด้วย Recovery Key',
+                          subtitle: 'ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์',
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.key_rounded,
+                                color: AppColors.warning, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RestoreAccountScreen(),
+                            ),
+                          ),
                         ),
                         const _AnalyticsConsentToggle(),
                         _buildModernSettingCard(
@@ -1342,6 +1365,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   isSelected: currentLocale == null,
                   onTap: () {
                     ref.read(localeProvider.notifier).state = null;
+                    GeminiService.setUserLanguage('en');
                     Navigator.pop(ctx);
                     _showLanguageChangedSnackbar(
                         L10n.of(context)!.systemDefault);
@@ -1361,6 +1385,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       isSelected: currentLocale?.languageCode == code,
                       onTap: () {
                         ref.read(localeProvider.notifier).state = Locale(code);
+                        GeminiService.setUserLanguage(code);
                         Navigator.pop(ctx);
                         _showLanguageChangedSnackbar(
                             _getLanguageLabel(context, code));
@@ -2764,6 +2789,224 @@ class _HealthSyncToggleState extends ConsumerState<_HealthSyncToggle> {
                 value: _isEnabled,
                 onChanged: _toggle,
               ),
+      ),
+    );
+  }
+}
+
+/// Recovery Key card — shows/hides the key for account recovery on new devices.
+class _RecoveryKeyCard extends StatefulWidget {
+  @override
+  State<_RecoveryKeyCard> createState() => _RecoveryKeyCardState();
+}
+
+class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
+  String? _recoveryKey;
+  bool _isRevealed = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKey();
+  }
+
+  Future<void> _loadKey() async {
+    final key = await RecoveryKeyService.getRecoveryKey();
+    if (key == null || key.isEmpty) {
+      final generated = await RecoveryKeyService.generateRecoveryKey();
+      if (mounted) setState(() { _recoveryKey = generated; _isLoading = false; });
+    } else {
+      if (mounted) setState(() { _recoveryKey = key; _isLoading = false; });
+    }
+  }
+
+  Future<void> _regenerate() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            SizedBox(width: 12),
+            Flexible(child: Text('สร้าง Key ใหม่?')),
+          ],
+        ),
+        content: const Text(
+          'Key เก่าจะใช้ไม่ได้อีก\n\n'
+          'ถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('ยกเลิก'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('สร้างใหม่'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoading = true);
+    final newKey = await RecoveryKeyService.regenerateRecoveryKey();
+    if (mounted) {
+      setState(() {
+        _recoveryKey = newKey;
+        _isRevealed = true;
+        _isLoading = false;
+      });
+      if (newKey != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('สร้าง Recovery Key ใหม่แล้ว')),
+        );
+      }
+    }
+  }
+
+  String get _maskedKey {
+    if (_recoveryKey == null) return '●●●●-●●●●-●●●●';
+    return 'MIRO-●●●●-●●●●';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.key_rounded,
+                      color: AppColors.warning, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Recovery Key',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        'ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Regenerate button
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, size: 20),
+                  tooltip: 'สร้าง Key ใหม่',
+                  onPressed: _isLoading ? null : _regenerate,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Key display
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _isLoading
+                        ? const Text('กำลังโหลด...',
+                            style: TextStyle(color: Colors.grey))
+                        : Text(
+                            _isRevealed ? (_recoveryKey ?? '-') : _maskedKey,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: _isRevealed
+                                  ? AppColors.warning
+                                  : (isDark ? Colors.white54 : Colors.black38),
+                            ),
+                          ),
+                  ),
+                  // Reveal / Hide toggle
+                  IconButton(
+                    icon: Icon(
+                      _isRevealed
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                      size: 20,
+                    ),
+                    onPressed: _isLoading
+                        ? null
+                        : () => setState(() => _isRevealed = !_isRevealed),
+                    tooltip: _isRevealed ? 'ซ่อน' : 'แสดง',
+                  ),
+                  // Copy button
+                  if (_isRevealed && _recoveryKey != null)
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      onPressed: () {
+                        Clipboard.setData(
+                            ClipboardData(text: _recoveryKey!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('คัดลอก Recovery Key แล้ว'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      tooltip: 'คัดลอก',
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น',
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white38 : Colors.black45,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

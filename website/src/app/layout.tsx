@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+import { ConditionalChrome } from '@/components/ConditionalChrome';
 
 export const metadata: Metadata = {
   title: 'MiRO — The Most Accurate AI Food Tracker',
@@ -42,9 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <ConditionalChrome>{children}</ConditionalChrome>
       </body>
     </html>
   );

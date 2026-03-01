@@ -1,9 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/ar_scale/widgets/calibration_badge.dart';
+import '../../../core/ar_scale/constants/ar_scale_enums.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../models/food_entry.dart';
 
 class FoodTimelineCard extends StatelessWidget {
@@ -35,24 +37,20 @@ class FoodTimelineCard extends StatelessWidget {
           child: Row(
             children: [
               // Image or Icon
-              Container(
+              FoodEntryImage(
+                entry: entry,
                 width: 60,
                 height: 60,
-                decoration: BoxDecoration(
-                  color: AppColors.health.withValues(alpha: 0.1),
-                  borderRadius: AppRadius.sm,
+                borderRadius: AppRadius.sm,
+                placeholder: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.health.withValues(alpha: 0.1),
+                    borderRadius: AppRadius.sm,
+                  ),
+                  child: _buildPlaceholderIcon(),
                 ),
-                child: entry.imagePath != null &&
-                        File(entry.imagePath!).existsSync()
-                    ? ClipRRect(
-                        borderRadius: AppRadius.sm,
-                        child: Image.file(
-                          File(entry.imagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
-                        ),
-                      )
-                    : _buildPlaceholderIcon(),
               ),
               const SizedBox(width: 12),
 
@@ -80,6 +78,17 @@ class FoodTimelineCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        // ถ้า entry มี calibration → แสดง badge
+                        if (entry.isCalibrated) ...[
+                          const SizedBox(width: 4),
+                          CalibrationBadge(
+                            tier: entry.referenceConfidence != null && entry.referenceConfidence! >= 0.85
+                                ? CalibrationTier.high
+                                : CalibrationTier.medium,
+                            plateDiameterCm: entry.plateDiameterCm,
+                            compact: true,
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),

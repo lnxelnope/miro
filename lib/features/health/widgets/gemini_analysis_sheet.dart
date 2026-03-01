@@ -11,6 +11,8 @@ import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/ar_scale/widgets/calibration_badge.dart';
+import '../../../core/ar_scale/constants/ar_scale_enums.dart';
 import '../providers/my_meal_provider.dart';
 import '../models/ingredient.dart';
 import '../../../l10n/app_localizations.dart';
@@ -753,13 +755,29 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
             const SizedBox(height: 20),
 
             // Food Name
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Food Name',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Food Name',
+                      border:
+                          OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                // แสดง calibration badge ถ้า AI ตรวจจับ reference object ได้
+                if (widget.analysisResult.isCalibrated) ...[
+                  const SizedBox(width: 6),
+                  CalibrationBadge(
+                    tier: (widget.analysisResult.referenceConfidence ?? 0) >= 0.85
+                        ? CalibrationTier.high
+                        : CalibrationTier.medium,
+                    plateDiameterCm: widget.analysisResult.plateDiameterCm,
+                  ),
+                ],
+              ],
             ),
             const SizedBox(height: 16),
 

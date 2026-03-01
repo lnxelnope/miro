@@ -403,9 +403,17 @@ class GeminiService {
   /// Cuisine preference for biasing AI analysis toward user's typical cuisine
   static String _cuisinePreference = 'international';
 
+  /// User's preferred language code (e.g. 'th', 'en', 'ja', 'ko')
+  static String _userLang = 'en';
+
   /// Set cuisine preference (call when profile loads or user changes preference)
   static void setCuisinePreference(String cuisine) {
     _cuisinePreference = cuisine;
+  }
+
+  /// Set user language for localized AI responses
+  static void setUserLanguage(String langCode) {
+    _userLang = langCode.isNotEmpty ? langCode : 'en';
   }
 
   /// Get EnergyService instance (for checking energy before API calls)
@@ -773,6 +781,7 @@ class GeminiService {
     String? unit,
     FoodSearchMode searchMode = FoodSearchMode.normal,
     List<Map<String, dynamic>>? userIngredients,
+    String? calibrationHint, // จาก CalibrationResult.toPromptHint()
   }) async {
     AppLogger.info(
         'Starting image analysis: ${imageFile.path} (mode: ${searchMode.name})');
@@ -794,9 +803,13 @@ class GeminiService {
       final base64Image = await _compressImageToBase64(imageFile);
 
       // Choose prompt based on search mode
+      final hasCalibration = calibrationHint != null && calibrationHint.isNotEmpty;
       String prompt = searchMode == FoodSearchMode.product
           ? _getProductImageAnalysisPrompt()
-          : _getImageAnalysisPrompt(userIngredients: userIngredients);
+          : _getImageAnalysisPrompt(
+              userIngredients: userIngredients,
+              hasCalibration: hasCalibration,
+            );
 
       // Add optional user-provided information to prompt
       if (foodName != null && foodName.isNotEmpty) {
@@ -811,9 +824,15 @@ class GeminiService {
         prompt += '\n\nThe user has specified the quantity as: $quantity.';
       }
 
+      // ถ้ามี local calibration data จาก ML Kit → เพิ่ม hint ให้ Gemini
+      if (calibrationHint != null && calibrationHint.isNotEmpty) {
+        prompt += '\n\n$calibrationHint';
+      }
+
       AppLogger.info(
           '[analyzeFoodImage] mode=${searchMode.name}, '
-          'foodName=$foodName, quantity=$quantity, unit=$unit');
+          'foodName=$foodName, quantity=$quantity, unit=$unit, '
+          'hasCalibration=${calibrationHint != null}');
 
       final result = await _callBackend(
         type: 'image',
@@ -893,6 +912,12 @@ Step 4 — HIDDEN CALORIE SOURCES:
 - Note sugar content in sauces and marinades
 - Flag high-sodium seasonings
 
+LANGUAGE & NAMING REQUIREMENTS:
+The user's language is: "$_userLang".
+- food_name: Use the user's language ($_userLang) for the product name. If the product packaging shows a different language, transliterate or translate to $_userLang. Keep brand name in original form.
+- food_name_en: MUST ALWAYS be in English for database standardization
+- notes: Write in $_userLang language
+
 CRITICAL RULES:
 - "ingredients_detail" array is MANDATORY
 - If nutrition label is visible, use label values as primary source
@@ -902,7 +927,7 @@ CRITICAL RULES:
 
 Respond in JSON format:
 {
-  "food_name": "Product name (original language from packaging)",
+  "food_name": "Product name in $_userLang language",
   "food_name_en": "English product name",
   "confidence": 0.95,
   "serving_size": 1,
@@ -1228,7 +1253,7 @@ Return ONLY valid JSON.''';
   // PROMPT HELPERS (สำหรับ Backend)
   // ───────────────────────────────────────────────────────────
 
-  static String _getImageAnalysisPrompt({List<Map<String, dynamic>>? userIngredients}) {
+  static String _getImageAnalysisPrompt({List<Map<String, dynamic>>? userIngredients, bool hasCalibration = false}) {
     // Build ingredients hint if user provided ingredients
     String ingredientsHint = '';
     if (userIngredients != null && userIngredients.isNotEmpty) {
@@ -1307,9 +1332,11 @@ Always account for hidden ingredients that add significant calories:
 Step 4 — CROSS-REFERENCE:
 If the food appears to be from a convenience store (7-Eleven, FamilyMart, Lawson) or chain restaurant, reference known product databases for more accurate nutrition data.
 
-NAMING REQUIREMENTS:
-- food_name: Detect language from image/context, keep ORIGINAL language
+LANGUAGE & NAMING REQUIREMENTS:
+The user's language is: "$_userLang".
+- food_name: Use the user's language ($_userLang). For example, Thai user → "ข้าวผัด", Japanese user → "チャーハン", English user → "Fried Rice". If the food is clearly foreign, keep its original name with a $_userLang translation in parentheses.
 - food_name_en: MUST ALWAYS be in English for database standardization
+- notes: Write in $_userLang language so the user can understand directly
 - ingredient names in ingredients_detail: MUST be in English with descriptive cooking state
 - serving_unit: "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc. Do NOT use "g" or "ml" as serving_unit for dishes.
 
@@ -1491,6 +1518,37 @@ Example for "Kimchi Fried Rice with Pork":
   "notes": "High sodium from kimchi + soy sauce + gochujang. Oil absorbed during stir-frying adds ~130 hidden calories."
 }
 
+${hasCalibration ? '''Step 5 — CALIBRATION DATA PROVIDED:
+Local AI has already detected a reference object and calculated physical measurements.
+The calibration data is appended at the end of this prompt.
+DO NOT re-detect reference objects — use the provided calibration data directly to improve your portion size estimation.
+Skip the "reference_objects" field in your response.''' : '''Step 5 — REFERENCE OBJECT DETECTION (for portion accuracy):
+Scan the image for standard reference objects placed near the food:
+- Cutlery: Fork (~19.5cm), Spoon (~17cm), Knife (~22cm), Chopsticks (~23cm)
+- Cards: Credit card (8.56×5.4cm), ID card
+- Coins: visible coins of any denomination
+
+If ANY reference object is found near the food:
+1. Report it in "reference_objects" array
+2. Use the known real-world size to estimate the plate/bowl diameter
+3. Use the plate size to more accurately estimate the total food weight (serving_grams)
+
+If NO reference object is found, simply skip the "reference_objects" field.
+
+Add to your JSON response (ONLY if reference objects are found):
+"reference_objects": [
+  {
+    "type": "dining_fork",
+    "confidence": 0.92,
+    "known_length_cm": 19.5
+  }
+],
+"plate_measurement": {
+  "estimated_diameter_cm": 22.5,
+  "estimated_area_cm2": 397.6,
+  "estimated_volume_ml": 450
+}'''}
+
 IMPORTANT: Add "food_type" field:
 - If you clearly see a packaged product with a nutrition label → set "food_type": "product"
 - Otherwise → set "food_type": "food"
@@ -1604,7 +1662,7 @@ CRITICAL RULES:
 
 Respond in JSON format:
 {
-  "food_name": "Product name (original language from packaging)",
+  "food_name": "Product name in $_userLang language",
   "food_name_en": "English product name with brand",
   "confidence": 0.95,
   "serving_size": 1,
@@ -1825,11 +1883,13 @@ Account for all hidden calorie sources typically used in this dish:
 Step 4 — CROSS-REFERENCE:
 If this is a well-known dish (e.g., Thai street food, convenience store meal, restaurant chain item), reference typical recipes and portion sizes for accurate estimation.
 
-FIELD REQUIREMENTS:
+LANGUAGE & FIELD REQUIREMENTS:
+The user's language is: "$_userLang".
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
 ${_isWeightUnit(servingUnitJson) ? '- The user specified weight in grams/kg. Keep serving_unit as "$servingUnitJson" and serving_size as $servingSizeJson. Do NOT change to "plate" or "serving".' : '- Do NOT use "g" as serving_unit for dishes — use "plate", "bowl", "cup", "piece", "serving", etc.'}
-- food_name: Keep in ORIGINAL language as user entered
+- food_name: Use $_userLang language. Keep the user's original name if already in $_userLang, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
+- notes: Write in $_userLang language
 - All ingredient names: MUST be in English with cooking state description
 - Include "detail" field for each ingredient
 
@@ -1889,7 +1949,7 @@ Do NOT copy example numbers. Calculate from nutrition databases (e.g., USDA) for
 
 Respond in JSON only:
 {
-  "food_name": "Original name as user entered (any language)",
+  "food_name": "Name in $_userLang language",
   "food_name_en": "ALWAYS English translation",
   "confidence": 0.7,
   "serving_size": $servingSizeJson,
@@ -2023,10 +2083,12 @@ SIZE/VARIANT AWARENESS:
 - If user specifies size, use that exact size
 - If not specified, use the most common single-serving size for that product
 
-FIELD REQUIREMENTS:
+LANGUAGE & FIELD REQUIREMENTS:
+The user's language is: "$_userLang".
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
-- food_name: Keep original name as user entered
+- food_name: Use $_userLang language. Keep brand name in original form, translate generic descriptors.
 - food_name_en: MUST ALWAYS be in English (include brand name)
+- notes: Write in $_userLang language
 - "ingredients_detail" array is MANDATORY (for multi-piece items, list EACH piece separately)
 
 Respond in JSON only:
@@ -2127,9 +2189,11 @@ INGREDIENT HIERARCHY RULES (CRITICAL):
 - sum(ROOT.calories) MUST equal nutrition.calories
 - NEVER put both a composite AND its raw materials at ROOT level
 
-NAMING & UNIT RULES:
-- food_name: Keep in ORIGINAL language as provided
+LANGUAGE, NAMING & UNIT RULES:
+The user's language is: "$_userLang".
+- food_name: Use $_userLang language. Keep user's original name if already in $_userLang, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
+- notes: Write in $_userLang language
 - ingredient names: MUST be in English with cooking state
 - serving_unit: Use "plate", "bowl", "cup", "piece", "serving", etc. NOT "g" or "ml" for dishes
 - Valid serving_unit values: g, kg, mg, oz, lbs, ml, l, fl oz, cup, tbsp, tsp, serving, piece, slice, plate, bowl, cup_c, glass, egg, ball, fruit, skewer, whole, sheet, pair, bunch, leaf, stick, scoop, handful, pack, bag, wrap, box, can, bottle, bar
@@ -2150,7 +2214,7 @@ Return ONLY valid JSON:
 {
   "items": [
     {
-      "food_name": "Original name (any language)",
+      "food_name": "Name in $_userLang language",
       "food_name_en": "English name",
       "food_type": "food",
       "confidence": 0.85,
@@ -2322,6 +2386,13 @@ class FoodAnalysisResult {
   final List<IngredientDetail>? ingredientsDetail;
   final String? notes;
 
+  // AR Scale Ruler fields
+  final String? referenceObjectUsed;
+  final double? referenceConfidence;
+  final double? plateDiameterCm;
+  final double? estimatedVolumeMl;
+  final bool isCalibrated;
+
   FoodAnalysisResult({
     required this.foodName,
     this.foodNameEn,
@@ -2334,6 +2405,11 @@ class FoodAnalysisResult {
     this.ingredients,
     this.ingredientsDetail,
     this.notes,
+    this.referenceObjectUsed,
+    this.referenceConfidence,
+    this.plateDiameterCm,
+    this.estimatedVolumeMl,
+    this.isCalibrated = false,
   });
 
   factory FoodAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -2349,6 +2425,17 @@ class FoodAnalysisResult {
       rawUnit = 'serving';
       rawSize = 1.0;
     }
+
+    // Parse AR Scale reference objects (if present in response)
+    final refObjects = json['reference_objects'] as List?;
+    String? refUsed;
+    double? refConf;
+    if (refObjects != null && refObjects.isNotEmpty) {
+      final best = refObjects[0] as Map<String, dynamic>;
+      refUsed = best['type'] as String?;
+      refConf = (best['confidence'] as num?)?.toDouble();
+    }
+    final plateMeasure = json['plate_measurement'] as Map<String, dynamic>?;
 
     return FoodAnalysisResult(
       foodName: json['food_name'] ?? 'Unknown',
@@ -2368,6 +2455,11 @@ class FoodAnalysisResult {
               .toList()
           : null,
       notes: json['notes'],
+      referenceObjectUsed: refUsed,
+      referenceConfidence: refConf,
+      plateDiameterCm: plateMeasure?['estimated_diameter_cm']?.toDouble(),
+      estimatedVolumeMl: plateMeasure?['estimated_volume_ml']?.toDouble(),
+      isCalibrated: refUsed != null && (refConf ?? 0) >= 0.65,
     );
   }
 }

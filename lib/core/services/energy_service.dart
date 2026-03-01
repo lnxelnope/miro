@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import '../models/energy_transaction.dart';
+import 'data_sync_service.dart';
 import 'device_id_service.dart';
 import 'energy_token_service.dart';
 
@@ -552,7 +553,8 @@ class EnergyService {
   }
 
   /// V3: Claim Daily Energy (Manual) — Static helper
-  /// เรียก endpoint claimDailyEnergy เพื่อ claim daily reward
+  /// Also piggybacks a data sync payload (food entries + meals since last sync)
+  /// for automatic cloud backup. Server stores this in Firestore.
   /// Returns: { success, energyClaimed, newBalance, newStreak, tierUpgraded, ... }
   static Future<Map<String, dynamic>> claimDailyEnergy() async {
     try {
@@ -560,10 +562,27 @@ class EnergyService {
       const url =
           'https://us-central1-miro-d6856.cloudfunctions.net/claimDailyEnergy';
 
+      // Build sync payload (food entries + meals since last sync)
+      Map<String, dynamic>? syncPayload;
+      try {
+        syncPayload = await DataSyncService.buildSyncPayload();
+      } catch (e) {
+        debugPrint('[EnergyService] Sync payload build failed (non-fatal): $e');
+      }
+
+      final requestBody = <String, dynamic>{
+        'deviceId': deviceId,
+      };
+      if (syncPayload != null &&
+          ((syncPayload['entries'] as List).isNotEmpty ||
+           (syncPayload['meals'] as List).isNotEmpty)) {
+        requestBody['sync'] = syncPayload;
+      }
+
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'deviceId': deviceId}),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
@@ -579,6 +598,20 @@ class EnergyService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setInt(_keyBalance, newBalance);
           debugPrint('[EnergyService] ✅ Daily claim balance updated: $newBalance');
+        }
+
+        // Mark sync as successful if server acknowledged it
+        if (syncPayload != null && data['syncAck'] == true) {
+          await DataSyncService.markSyncSuccess(
+            syncPayload['syncTimestamp'] as int,
+          );
+          final entryIds = (syncPayload['entries'] as List)
+              .map((e) => (e as Map<String, dynamic>)['id'] as int)
+              .toList();
+          if (entryIds.isNotEmpty) {
+            await DataSyncService.markEntriesSynced(entryIds);
+          }
+          debugPrint('[EnergyService] ✅ Data sync acknowledged by server');
         }
 
         return data;

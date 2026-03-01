@@ -19,6 +19,10 @@ android {
     compileSdk = 36  // Android 16 (required for sqflite_android 2.4.2+)
     ndkVersion = flutter.ndkVersion
 
+    aaptOptions {
+        noCompress += "tflite"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

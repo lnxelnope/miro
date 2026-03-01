@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:isar/isar.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
@@ -6,6 +8,7 @@ import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
+import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
 
 class ScanController {
   final GalleryService _galleryService;
@@ -90,13 +93,53 @@ class ScanController {
       AppLogger.info('Found data! Type: ${result['type']}');
 
       if (result['type'] == 'health') {
-        // บันทึกเป็น FoodEntry พร้อมค่าประมาณ
         final allLabels = result['all_labels'] as List<String>? ?? [];
+
+        // AR Scale: detect objects + calibrate
+        CalibrationResult? arCalibration;
+        List<DetectedObjectLabel> objectLabels = [];
+        double imgW = 0, imgH = 0;
+        try {
+          final detector = ReferenceDetectorService.instance;
+
+          final imgBytes = await file.readAsBytes();
+          final codec = await ui.instantiateImageCodec(imgBytes);
+          final frame = await codec.getNextFrame();
+          imgW = frame.image.width.toDouble();
+          imgH = frame.image.height.toDouble();
+          frame.image.dispose();
+
+          final detected = await detector.detectFromImage(file);
+          if (detected.isNotEmpty) {
+            final plate = await detector.detectPlate(file);
+            arCalibration = ScaleCalibrationService.calibrate(
+              referenceObject: detected.first,
+              plateBoundingBox: plate?.boundingBox,
+              imageWidth: imgW,
+              imageHeight: imgH,
+            );
+          }
+
+          objectLabels = await detector.detectAllObjectLabels(file);
+          if (objectLabels.isNotEmpty) {
+            AppLogger.info(
+              '[AR] Gallery scan: ${objectLabels.length} labels, '
+              'calibration=${arCalibration != null}',
+            );
+          }
+        } catch (e) {
+          AppLogger.warn('[AR] Gallery scan detection error: $e');
+        }
+
         await _saveFoodEntry(
           imagePath: file.path,
           timestamp: asset.createDateTime,
           label: result['label'] as String? ?? 'Food',
           allLabels: allLabels,
+          arCalibration: arCalibration,
+          arObjectLabels: objectLabels,
+          arImageWidth: imgW > 0 ? imgW : null,
+          arImageHeight: imgH > 0 ? imgH : null,
         );
         savedCount++;
         AppLogger.info('FoodEntry saved successfully!');
@@ -110,12 +153,15 @@ class ScanController {
     return savedCount;
   }
 
-  /// Save a food entry from scanned image
   Future<void> _saveFoodEntry({
     required String imagePath,
     required DateTime timestamp,
     required String label,
     List<String> allLabels = const [],
+    CalibrationResult? arCalibration,
+    List<DetectedObjectLabel> arObjectLabels = const [],
+    double? arImageWidth,
+    double? arImageHeight,
   }) async {
     AppLogger.info('Creating FoodEntry...');
     AppLogger.info('Label: $label');
@@ -168,7 +214,19 @@ class ScanController {
       ..isVerified = false
       ..notes = 'ML Kit: ${allLabels.isNotEmpty ? allLabels.join(", ") : label}'
       ..createdAt = DateTime.now()
-      ..updatedAt = DateTime.now();
+      ..updatedAt = DateTime.now()
+      // AR Scale calibration data (ถ้ามี)
+      ..referenceObjectUsed = arCalibration?.referenceObject.type.name
+      ..referenceConfidence = arCalibration?.referenceObject.confidence
+      ..plateDiameterCm = arCalibration?.plateDiameterCm
+      ..estimatedVolumeMl = arCalibration?.estimatedVolumeMl
+      ..isCalibrated = arCalibration?.shouldUseCalibration ?? false
+      // AR Label Overlay data
+      ..arLabelsJson = arObjectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(arObjectLabels) : null
+      ..arImageWidth = arImageWidth
+      ..arImageHeight = arImageHeight
+      ..arPixelPerCm = arCalibration?.pixelPerCm;
 
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.foodEntries.put(entry);

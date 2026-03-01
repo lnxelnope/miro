@@ -62,10 +62,10 @@
     <h1>Privacy Policy</h1>
     <p><strong>MiRO — My Intake Record Oracle</strong></p>
     <p><strong>Effective Date:</strong> February 17, 2026<br>
-    <strong>Last Updated:</strong> February 17, 2026</p>
+    <strong>Last Updated:</strong> March 1, 2026</p>
     
     <div class="highlight">
-        <strong>Your food data stays on your device. No account required. No personal data collected. Energy balance synced securely via Firebase.</strong>
+        <strong>Your food data is stored locally on your device. Compact backups are synced securely via Firebase to protect your history across devices. No account required. No personal data collected.</strong>
     </div>
 
     <h2>1. Information We Collect</h2>
@@ -86,9 +86,13 @@
     <ul>
         <li><strong>Device ID</strong> — A unique identifier generated for your device, used to manage Energy balance and prevent fraud. This is NOT linked to your personal identity.</li>
         <li><strong>Energy balance</strong> — Synced with Firebase Firestore for persistence across app reinstalls.</li>
+        <li><strong>Compact food history</strong> — Food entry text data (food name, calories, nutrients, meal type, timestamp) and custom meals are automatically backed up to Firebase during daily Energy claims. This enables cross-device restoration.</li>
+        <li><strong>Health profile</strong> — Gender, age, weight, height, activity level, calorie goal, macro targets, meal budgets, and cuisine preference are synced for seamless device transitions.</li>
+        <li><strong>Thumbnail images</strong> — Small compressed images (~40-80 KB) of food photos with nutrition metadata are uploaded to Firebase Storage after AI analysis for cloud backup purposes. Full-resolution photos are <strong>never uploaded</strong>.</li>
         <li><strong>Food photos (temporarily)</strong> — When you use AI analysis, your food photo is sent to our backend server (Firebase Cloud Functions) for processing by Google Gemini AI. Photos are processed in real-time and are <strong>not stored</strong> on our servers.</li>
         <li><strong>Chat messages (temporarily)</strong> — When using MiRO AI chat, your messages are sent to our backend for AI processing. Messages are processed in real-time and are <strong>not stored</strong> on our servers.</li>
         <li><strong>Referral codes</strong> — If you use the referral system, your MiRO ID and referral interactions are stored in Firebase.</li>
+        <li><strong>AR Scale data</strong> — Detected object labels, bounding box coordinates (px), image dimensions, and pixel-per-cm calibration ratio are synced as part of your food history backup.</li>
     </ul>
 
     <h3>1.3 Data We Do NOT Collect</h3>
@@ -112,8 +116,9 @@
 
     <h3>2.2 Firebase Services (Google)</h3>
     <ul>
-        <li><strong>Cloud Functions</strong> — Processes AI analysis requests and manages Energy deduction</li>
-        <li><strong>Firestore</strong> — Stores Energy balance, subscription status, referral data, and gamification state</li>
+        <li><strong>Cloud Functions</strong> — Processes AI analysis requests, manages Energy deduction, and handles data sync</li>
+        <li><strong>Firestore</strong> — Stores Energy balance, subscription status, referral data, gamification state, compact food history backups, and Recovery Key hashes</li>
+        <li><strong>Firebase Storage</strong> — Stores small food thumbnail images (~40-80 KB) with nutrition metadata for cloud backup and restoration</li>
         <li><strong>Firebase Analytics</strong> — Collects anonymous usage statistics (e.g., which features are used most, error rates). No personal data is included. You can opt out via your device's analytics settings.</li>
     </ul>
 
@@ -181,19 +186,31 @@
 
     <h2>8. Backup and Data Portability</h2>
     <ul>
-        <li>You can export your food data and Energy balance using the Backup feature (Profile → Backup Data)</li>
-        <li>Backup files are saved locally on your device — we do not have access to them</li>
-        <li>You can import data from a backup file (Profile → Restore from Backup)</li>
-        <li>Transfer Keys are one-time use and expire after 30 days</li>
+        <li>Your food history is automatically backed up during daily Energy claims</li>
+        <li>Backups include food entry text data, custom meals, small thumbnail images, and AR Scale data (detected object labels, bounding box coordinates, image dimensions, pixel-per-cm calibration ratio)</li>
+        <li>You can restore your food history on a new device using a Recovery Key (viewable in Profile → Account)</li>
+        <li>Recovery Keys are single-use; redeeming generates a new key for the new device</li>
+        <li>You can regenerate your Recovery Key at any time (invalidates the previous key)</li>
+        <li>Full-resolution food photos are NOT included in cloud backups</li>
+        <li>Legacy Transfer Keys are one-time use and expire after 30 days</li>
     </ul>
+
+    <h3>8.1 Anonymized AI Training Data</h3>
+    <p>We may use <strong>anonymized</strong> food images and associated metadata (nutrition labels, detected object bounding boxes, calibration data) to improve AI food recognition models or license to third-party AI/ML companies. This data is:</p>
+    <ul>
+        <li>Fully anonymized — no device ID, personal identity, or location data is included</li>
+        <li>Stripped of EXIF metadata and any identifying information</li>
+        <li>Aggregated at population level — individual users cannot be identified</li>
+        <li>Used solely for improving food recognition technology</li>
+    </ul>
+    <p>You may opt out of AI training data usage by contacting <a href="mailto:support@tnbgrp.com">support@tnbgrp.com</a>.</p>
 
     <h2>9. User Rights</h2>
     <ul>
         <li>Delete all local data anytime (Profile → Clear All Data)</li>
         <li>Uninstall the app to remove all local data</li>
         <li>Energy balance persists across app reinstalls (linked to your device)</li>
-        <li>Request server-side data deletion (Energy balance, referral data) by contacting support</li>
-        <li>Export your data at any time using the Backup feature</li>
+        <li>Request server-side data deletion (Energy balance, food history backups, thumbnails, referral data) by contacting support</li>
     </ul>
 
     <h2>10. Children's Privacy</h2>
@@ -202,6 +219,8 @@
     <h2>11. Data Retention</h2>
     <ul>
         <li><strong>Local food data:</strong> Retained until you delete it or uninstall the app</li>
+        <li><strong>Cloud-synced food history:</strong> Retained for up to 90 days for restoration purposes; deleted upon request</li>
+        <li><strong>Thumbnail images:</strong> Retained until you request deletion</li>
         <li><strong>Energy balance:</strong> Retained indefinitely (linked to your device)</li>
         <li><strong>Subscription data:</strong> Retained while subscription is active, plus as required by law</li>
         <li><strong>Referral data:</strong> Retained indefinitely</li>

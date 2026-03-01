@@ -1,12 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../health/models/food_entry.dart';
 import '../../health/providers/health_provider.dart';
 import '../../../core/database/database_service.dart';
@@ -337,23 +338,12 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
   bool get _hasNutrition => _calories > 0 || _protein > 0 || _carbs > 0 || _fat > 0;
 
-  void _showFullScreenImage(BuildContext context, String imagePath) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _FullScreenImageView(imagePath: imagePath),
-        fullscreenDialog: true,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
+    final hasImage = entry.hasAnyImage;
 
     return Container(
       constraints: BoxConstraints(
@@ -392,16 +382,12 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   // 1. Image (tap to view full screen, tap again to close)
                   if (hasImage) ...[
                     GestureDetector(
-                      onTap: () => _showFullScreenImage(context, entry.imagePath!),
-                      child: ClipRRect(
+                      onTap: () => showFoodEntryImage(context, entry),
+                      child: FoodEntryImage(
+                        entry: entry,
+                        width: double.infinity,
+                        height: 200,
                         borderRadius: AppRadius.lg,
-                        child: Image.file(
-                          File(entry.imagePath!),
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -597,6 +583,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
+                  // 4.5 Detected Objects (simple chips)
+                  _buildDetectedObjectsChips(entry, isDark),
+
                   // 5. Info text
                   Container(
                     width: double.infinity,
@@ -775,6 +764,68 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     );
   }
 
+  Widget _buildDetectedObjectsChips(FoodEntry entry, bool isDark) {
+    final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+    if (labels.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.visibility_rounded,
+                size: 14,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Detected ${labels.length} object${labels.length > 1 ? 's' : ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white38 : AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: labels.map((obj) {
+              final confPct = (obj.confidence * 100).toStringAsFixed(0);
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.grey.shade300,
+                  ),
+                ),
+                child: Text(
+                  '${obj.label} $confPct%',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _macroChip(String prefix, double value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -794,34 +845,4 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   }
 }
 
-/// Full-screen image viewer. Tap anywhere to close.
-class _FullScreenImageView extends StatelessWidget {
-  final String imagePath;
-
-  const _FullScreenImageView({required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        color: Colors.black,
-        child: Center(
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            child: Image.file(
-              File(imagePath),
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.broken_image_rounded,
-                size: 64,
-                color: Colors.white54,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Full-screen viewer now uses shared FoodEntryFullScreenImage from food_entry_image.dart

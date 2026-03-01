@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:isar/isar.dart';
 import '../../../core/constants/enums.dart';
 
@@ -74,6 +76,23 @@ class FoodEntry {
   String? groupId; // group หลายรายการจากเมนูเดียวกัน
   String? ingredientsJson; // snapshot ของ ingredients ที่ใช้จริง
 
+  // AR Scale Calibration
+  String? referenceObjectUsed;
+  double? referenceConfidence;
+  double? plateDiameterCm;
+  double? estimatedVolumeMl;
+  bool isCalibrated = false;
+
+  // AR Label Overlay (เก็บ JSON ของ detected labels เพื่อ overlay ตอนแสดงผล)
+  String? arLabelsJson;
+  double? arImageWidth;
+  double? arImageHeight;
+  double? arPixelPerCm;
+
+  // Cloud Backup & Sync
+  String? thumbnailUrl; // Firebase Storage URL for restored devices
+  bool isSynced = false; // true = synced to server via claimDailyEnergy
+
   // Sync
   String? healthConnectId;
   DateTime? syncedAt;
@@ -118,4 +137,18 @@ class FoodEntry {
   /// ตรวจสอบว่ามีค่าโภชนาการหรือยัง (ยังไม่ได้วิเคราะห์ = ค่า 0 ทั้งหมด)
   bool get hasNutritionData =>
       calories > 0 || protein > 0 || carbs > 0 || fat > 0;
+
+  /// true ถ้ามีรูปในเครื่อง (local file ยังอยู่)
+  @ignore
+  bool get hasLocalImage =>
+      imagePath != null && File(imagePath!).existsSync();
+
+  /// true ถ้ามีรูปจาก server (thumbnail URL สำหรับเครื่องที่ restore)
+  @ignore
+  bool get hasThumbnailUrl =>
+      thumbnailUrl != null && thumbnailUrl!.isNotEmpty;
+
+  /// true ถ้ามีรูปแสดงได้ (ไม่ว่าจะ local หรือ URL)
+  @ignore
+  bool get hasAnyImage => hasLocalImage || hasThumbnailUrl;
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/models/food_entry.dart';
 
@@ -85,12 +85,8 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
     // Sort: items with images first, then text-only; within each group by timestamp descending (ล่าสุดด้านบน)
     final sorted = List<FoodEntry>.from(widget.entries)
       ..sort((a, b) {
-        final aHasImage =
-            a.imagePath != null && File(a.imagePath!).existsSync();
-        final bHasImage =
-            b.imagePath != null && File(b.imagePath!).existsSync();
-        if (aHasImage != bHasImage) return aHasImage ? -1 : 1;
-        return b.timestamp.compareTo(a.timestamp); // ล่าสุดด้านบน
+        if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
+        return b.timestamp.compareTo(a.timestamp);
       });
 
     return Column(
@@ -345,8 +341,7 @@ class _FoodBubbleState extends State<_FoodBubble>
   Widget build(BuildContext context) {
     final entry = widget.entry;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
+    final hasImage = entry.hasAnyImage;
     final isUnanalyzed = !entry.hasNutritionData;
     final isProduct = entry.searchMode == FoodSearchMode.product;
 
@@ -399,17 +394,11 @@ class _FoodBubbleState extends State<_FoodBubble>
           children: [
             // Image (แสดงเฉพาะเมื่อมีรูป)
             if (hasImage) ...[
-              ClipRRect(
+              FoodEntryImage(
+                entry: entry,
+                width: double.infinity,
+                height: 56,
                 borderRadius: AppRadius.sm,
-                child: SizedBox(
-                  height: 56,
-                  width: double.infinity,
-                  child: Image.file(
-                    File(entry.imagePath!),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  ),
-                ),
               ),
               const SizedBox(height: AppSpacing.xs),
             ],

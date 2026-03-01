@@ -10,8 +10,12 @@ import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../profile/providers/locale_provider.dart';
 import '../../../core/services/analytics_service.dart';
-import 'tutorial_food_analysis_screen.dart';
+import '../../home/presentation/home_screen.dart';
+import '../../../core/services/permission_service.dart';
+import '../../home/widgets/feature_tour.dart';
+import '../../home/widgets/welcome_message_dialog.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -47,7 +51,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: AppSpacing.paddingLg,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) => _buildDot(i)),
+                children: List.generate(4, (i) => _buildDot(i)),
               ),
             ),
 
@@ -59,7 +63,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   _buildPage1Welcome(isDark),
                   _buildPage2CuisineAndGoal(isDark),
-                  _buildPage3Ready(isDark),
+                  _buildPage3HowItWorks(isDark),
+                  _buildPage4Ready(isDark),
                 ],
               ),
             ),
@@ -359,9 +364,195 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  // ============ Page 3: You're Ready! ============
+  // ============ Page 3: How It Works ============
 
-  Widget _buildPage3Ready(bool isDark) {
+  Widget _buildPage3HowItWorks(bool isDark) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, size: 32, color: AppColors.primary),
+              const SizedBox(width: 12),
+              Text(
+                L10n.of(context)!.onboardingQuickSetup.replaceAll(
+                    L10n.of(context)!.onboardingQuickSetup, 'How It Works'),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '3 simple steps to track your nutrition',
+            style: TextStyle(
+              fontSize: 15,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          _buildStepCard(
+            stepNumber: '1',
+            icon: AppIcons.camera,
+            iconColor: AppIcons.cameraColor,
+            title: L10n.of(context)!.onboardingSnap,
+            description: L10n.of(context)!.onboardingSnapDesc,
+            isDark: isDark,
+          ),
+          _buildStepConnector(),
+          _buildStepCard(
+            stepNumber: '2',
+            icon: Icons.auto_awesome,
+            iconColor: AppColors.primary,
+            title: 'AI Analyzes',
+            description: 'Identifies ingredients and calculates calories, protein, carbs & fat',
+            isDark: isDark,
+          ),
+          _buildStepConnector(),
+          _buildStepCard(
+            stepNumber: '3',
+            icon: AppIcons.edit,
+            iconColor: AppIcons.editColor,
+            title: L10n.of(context)!.onboardingEdit,
+            description: L10n.of(context)!.onboardingEditDesc,
+            isDark: isDark,
+          ),
+
+          const SizedBox(height: 24),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: isDark ? 0.15 : 0.08),
+              borderRadius: AppRadius.sm,
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(AppIcons.info, size: 20, color: AppIcons.infoColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    L10n.of(context)!.onboardingType,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+          _buildNextButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepCard({
+    required String stepNumber,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String description,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: isDark ? AppColors.dividerDark : AppColors.divider,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                stepNumber,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Icon(icon, size: 28, color: iconColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepConnector() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 34),
+      child: Container(
+        height: 20,
+        width: 2,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(1),
+        ),
+      ),
+    );
+  }
+
+  // ============ Page 4: You're Ready! ============
+
+  Widget _buildPage4Ready(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -453,7 +644,61 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
-          const SizedBox(height: AppSpacing.xxxxl),
+          const SizedBox(height: AppSpacing.xl),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.info.withValues(alpha: isDark ? 0.15 : 0.08),
+              borderRadius: AppRadius.sm,
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.bolt, size: 20, color: AppColors.warning),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    L10n.of(context)!.onboardingEnergyCost,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.md),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: isDark ? 0.12 : 0.06),
+              borderRadius: AppRadius.sm,
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.cloud_done_outlined, size: 20, color: AppColors.success),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Your food history is automatically backed up. Switch devices easily with a Recovery Key.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: AppSpacing.xxl),
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -497,7 +742,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       height: 48,
       child: ElevatedButton(
         onPressed: () {
-          if (_currentPage < 2) {
+          if (_currentPage < 3) {
             _pageController.nextPage(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -525,44 +770,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ============ Complete Onboarding ============
 
   Future<void> _completeOnboarding() async {
-    // บันทึกข้อมูลลง UserProfile (minimal)
     final profile = await DatabaseService.userProfiles.get(1) ?? UserProfile();
 
-    // เก็บแค่ cuisine + calorie goal เท่านั้น
     profile.cuisinePreference = _selectedCuisine;
-
-    // Parse calorie goal (optional - default 2000)
     final calorieGoal = double.tryParse(_calorieGoalController.text) ?? 2000.0;
     profile.calorieGoal = calorieGoal;
-
     profile.onboardingComplete = true;
 
     await DatabaseService.isar.writeTxn(() async {
       await DatabaseService.userProfiles.put(profile);
-      // Clear any leftover data from previous sessions
       await DatabaseService.foodEntries.clear();
     });
 
-    // Invalidate profile provider เพื่อ refresh
     ref.invalidate(userProfileProvider);
 
-    // Set cuisine preference for AI analysis bias
     GeminiService.setCuisinePreference(_selectedCuisine);
+    final locale = ref.read(localeProvider);
+    GeminiService.setUserLanguage(locale?.languageCode ?? 'en');
 
-    // Mark disclaimer as acknowledged (inline disclaimer on page 1)
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('disclaimer_acknowledged', true);
 
-    // Analytics: onboarding completed
+    // Mark all first-time flags so Home doesn't bombard with dialogs
+    final permissionService = PermissionService();
+    await permissionService.markFirstLaunchComplete();
+    await FeatureTour.completeTour();
+    await WelcomeMessageDialog.markWelcomeShown();
+
+    // Request permissions silently (system dialog only)
+    final hasGallery = await permissionService.hasGalleryPermission();
+    if (!hasGallery) {
+      await permissionService.requestInitialPermissions();
+    }
+
     AnalyticsService.logOnboardingComplete();
 
-    // Navigate to tutorial
     if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const TutorialFoodAnalysisScreen(),
-        ),
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (_) => false,
       );
     }
   }
