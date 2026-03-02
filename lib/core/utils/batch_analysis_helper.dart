@@ -290,6 +290,14 @@ class BatchAnalysisHelper {
               await UsageLimiter.recordAiUsage();
               _uploadThumbnailInBackground(entry);
               batchSuccessCount++;
+
+              // Refresh UI immediately so user sees each completed item
+              onProgress(
+                totalSuccessCount + batchSuccessCount + failedIds.length,
+                entries.length,
+                entry.foodName,
+              );
+              _refreshProviders(ref, selectedDate);
             } else {
               failedIds.add(entry.id);
             }
@@ -328,6 +336,7 @@ class BatchAnalysisHelper {
                 await UsageLimiter.recordAiUsage();
                 _uploadThumbnailInBackground(entry);
                 batchSuccessCount++;
+                _refreshProviders(ref, selectedDate);
               } else {
                 failedIds.add(entry.id);
               }
@@ -377,6 +386,7 @@ class BatchAnalysisHelper {
             await UsageLimiter.recordAiUsage();
             _uploadThumbnailInBackground(entry);
             batchSuccessCount++;
+            _refreshProviders(ref, selectedDate);
           } else {
             failedIds.add(entry.id);
           }
@@ -392,12 +402,8 @@ class BatchAnalysisHelper {
 
       totalSuccessCount += batchSuccessCount;
 
-      // Refresh providers — invalidate foodEntriesByDate first so healthTimeline gets fresh DB data
-      final d = dateOnly(selectedDate);
-      ref.invalidate(foodEntriesByDateProvider(d));
-      ref.invalidate(healthTimelineProvider(d));
-      ref.invalidate(todayCaloriesProvider);
-      ref.invalidate(todayMacrosProvider);
+      // Final refresh for this round
+      _refreshProviders(ref, selectedDate);
 
       if (shouldCancel()) break;
 
@@ -430,6 +436,15 @@ class BatchAnalysisHelper {
       failedCount: failedIds.length,
       wasCancelled: shouldCancel(),
     );
+  }
+
+  /// Refresh UI providers so completed items appear immediately
+  static void _refreshProviders(Ref ref, DateTime selectedDate) {
+    final d = dateOnly(selectedDate);
+    ref.invalidate(foodEntriesByDateProvider(d));
+    ref.invalidate(healthTimelineProvider(d));
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
   }
 
   /// สร้าง calibration hint string จาก FoodEntry ที่มีข้อมูล AR Scale

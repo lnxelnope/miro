@@ -471,17 +471,28 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
     final analysisState = ref.watch(analysisProvider);
     if (analysisState.isAnalyzing) {
-      return Column(
+      final progress = analysisState.total > 0
+          ? analysisState.current / analysisState.total
+          : 0.0;
+      return Row(
         children: [
-          Row(
-            children: [
-              const SizedBox(
-                width: 18, height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 2.5,
+              strokeCap: StrokeCap.round,
+              backgroundColor: isDark ? Colors.white12 : AppColors.divider,
+              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   L10n.of(context)!.analyzeProgressSelected(
                       analysisState.current,
                       analysisState.total,
@@ -489,28 +500,24 @@ class _MealSectionState extends ConsumerState<MealSection> {
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              TextButton(
-                onPressed: () => ref.read(analysisProvider.notifier).cancel(),
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  foregroundColor: AppColors.error,
+                Text(
+                  '${analysisState.current}/${analysisState.total}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
                 ),
-                child: Text(L10n.of(context)!.cancel, style: const TextStyle(fontSize: 12)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: analysisState.total > 0
-                  ? analysisState.current / analysisState.total
-                  : 0,
-              minHeight: 4,
-              backgroundColor: isDark ? Colors.white12 : AppColors.divider,
+              ],
             ),
+          ),
+          TextButton(
+            onPressed: () => ref.read(analysisProvider.notifier).cancel(),
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              foregroundColor: AppColors.error,
+            ),
+            child: Text(L10n.of(context)!.cancel, style: const TextStyle(fontSize: 12)),
           ),
         ],
       );
