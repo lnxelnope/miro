@@ -430,13 +430,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final alreadyDone = await RetroScanDialog.hasCompletedRetroScan();
       if (alreadyDone) return;
 
-      final permissionService = PermissionService();
-      final hasGallery = await permissionService.hasGalleryPermission();
-      if (!hasGallery) {
-        AppLogger.info('RetroScan skipped: no gallery permission');
-        await RetroScanDialog.markRetroScanDone();
-        return;
-      }
+      // ไม่เช็ค hasGalleryPermission — permission_handler มีบั๊กบน Android 13+
+      // RetroScanDialog ใช้ GalleryService ซึ่งขอ permission ผ่าน PhotoManager โดยตรง
 
       if (!mounted) return;
 
@@ -471,12 +466,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// Runs on every fresh launch — scans today's images
   Future<void> _autoScanGallery() async {
     try {
-      final permissionService = PermissionService();
-      final hasGallery = await permissionService.hasGalleryPermission();
-      if (!hasGallery) {
-        AppLogger.info('[AutoScan] Skipped: no gallery permission');
-        return;
-      }
+      // ไม่เช็ค hasGalleryPermission — permission_handler มีบั๊กบน Android 13+
+      // galleryScanNotifierProvider ใช้ GalleryService ซึ่งขอ permission ผ่าน PhotoManager โดยตรง
 
       AppLogger.info('[AutoScan] Starting background gallery scan...');
       final today = DateTime.now();
