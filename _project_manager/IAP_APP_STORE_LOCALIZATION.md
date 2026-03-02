@@ -1,4 +1,4 @@
-# IAP App Store Connect — Localization (12 ภาษา)
+X# IAP App Store Connect — Localization (12 ภาษา)
 
 > **ใช้สำหรับ:** คัดลอกไปกรอกใน App Store Connect → Monetization → In-App Purchases → เลือก product → App Store Localization
 
