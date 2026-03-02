@@ -576,7 +576,8 @@ class EnergyService {
       };
       if (syncPayload != null &&
           ((syncPayload['entries'] as List).isNotEmpty ||
-           (syncPayload['meals'] as List).isNotEmpty)) {
+           (syncPayload['meals'] as List).isNotEmpty ||
+           syncPayload['summary'] != null)) {
         requestBody['sync'] = syncPayload;
       }
 

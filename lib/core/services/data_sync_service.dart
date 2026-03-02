@@ -34,22 +34,18 @@ class DataSyncService {
         return;
       }
 
-      final unsyncedCount = await getUnsyncedCount();
-      if (unsyncedCount == 0) {
-        await prefs.setString(_keyAutoSyncDate, today);
-        debugPrint('[DataSync] No unsynced entries, marking today done');
-        return;
-      }
-
       final deviceId = await DeviceIdService.getDeviceId();
       final payload = await buildSyncPayload();
 
       final entries = payload['entries'] as List;
       final meals = payload['meals'] as List;
+      final hasProfile = payload['profile'] != null;
+      final hasSummary = payload['summary'] != null;
 
-      if (entries.isEmpty && meals.isEmpty) {
+      // Sync เมื่อมี entries, meals, profile หรือ summary (net energy สำหรับ data mining)
+      if (entries.isEmpty && meals.isEmpty && !hasProfile && !hasSummary) {
         await prefs.setString(_keyAutoSyncDate, today);
-        debugPrint('[DataSync] Payload empty after build, marking today done');
+        debugPrint('[DataSync] Payload empty, marking today done');
         return;
       }
 
@@ -64,6 +60,7 @@ class DataSyncService {
         'entries': entries,
         'meals': meals,
         if (payload['profile'] != null) 'profile': payload['profile'],
+        if (payload['summary'] != null) 'summary': payload['summary'],
         'syncTimestamp': FieldValue.serverTimestamp(),
         'entryCount': entries.length,
         'mealCount': meals.length,
@@ -100,8 +97,11 @@ class DataSyncService {
         final payload = await buildSyncPayload();
         final entries = payload['entries'] as List;
         final meals = payload['meals'] as List;
+        final hasProfile = payload['profile'] != null;
+        final hasSummary = payload['summary'] != null;
 
-        if (entries.isEmpty && meals.isEmpty) break;
+        // Sync เมื่อมี entries, meals, profile หรือ summary
+        if (entries.isEmpty && meals.isEmpty && !hasProfile && !hasSummary) break;
 
         final syncDoc = db
             .collection('users')
@@ -113,6 +113,7 @@ class DataSyncService {
           'entries': entries,
           'meals': meals,
           if (payload['profile'] != null) 'profile': payload['profile'],
+          if (payload['summary'] != null) 'summary': payload['summary'],
           'syncTimestamp': FieldValue.serverTimestamp(),
           'entryCount': entries.length,
           'mealCount': meals.length,
@@ -188,8 +189,23 @@ class DataSyncService {
       debugPrint('[DataSync] Profile read failed (non-fatal): $e');
     }
 
+    // Today's DailySummary (net energy) — สำคัญต่อ data mining
+    Map<String, dynamic>? summaryData;
+    try {
+      final today = DateTime(now.year, now.month, now.day);
+      final summary = await (DatabaseService.db.select(DatabaseService.db.dailySummaries)
+        ..where((tbl) => tbl.date.equals(today)))
+          .getSingleOrNull();
+      if (summary != null) {
+        summaryData = _compactSummary(summary);
+      }
+    } catch (e) {
+      debugPrint('[DataSync] DailySummary read failed (non-fatal): $e');
+    }
+
     debugPrint('[DataSync] Payload: ${entries.length} entries, '
-        '${meals.length} meals since ${lastSync.toIso8601String()}');
+        '${meals.length} meals since ${lastSync.toIso8601String()}'
+        '${summaryData != null ? ", netEnergy=${summaryData!['ne']}" : ""}');
 
     return {
       'lastSyncTimestamp': lastSyncMs,
@@ -197,6 +213,20 @@ class DataSyncService {
       'entries': entries.map(_compactEntry).toList(),
       'meals': meals.map(_compactMeal).toList(),
       if (profileData != null) 'profile': profileData,
+      if (summaryData != null) 'summary': summaryData,
+    };
+  }
+
+  /// Compact DailySummary for sync — net energy สำคัญต่อ data mining
+  static Map<String, dynamic> _compactSummary(DailySummary s) {
+    return {
+      'ne': _round(s.netEnergy),
+      'ce': _round(s.caloriesEaten),
+      'td': _round(s.tdee),
+      'dz': s.deficitZone,
+      'ec': s.entryCount,
+      'cc': s.correctionCount,
+      'cg': _round(s.calorieGoal),
     };
   }
 

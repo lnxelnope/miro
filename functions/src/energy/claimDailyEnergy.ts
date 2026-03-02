@@ -33,9 +33,10 @@ async function processSyncPayload(
     const entries = sync.entries || [];
     const meals = sync.meals || [];
     const profile = sync.profile || null;
+    const summary = sync.summary || null;
     const syncTimestamp = sync.syncTimestamp || Date.now();
 
-    if (entries.length === 0 && meals.length === 0 && !profile) return false;
+    if (entries.length === 0 && meals.length === 0 && !profile && !summary) return false;
 
     const today = new Date().toISOString().split("T")[0];
     const syncRef = db
@@ -56,6 +57,10 @@ async function processSyncPayload(
     }
     if (meals.length > 0) {
       syncData.meals = meals;
+    }
+    // net energy (summary) — สำคัญต่อ data mining
+    if (summary && typeof summary === "object") {
+      syncData.summary = summary;
     }
 
     await syncRef.set(syncData, {merge: true});
