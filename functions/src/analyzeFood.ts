@@ -895,6 +895,7 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
       topK: isAnalysis ? 10 : 32,
       topP: isAnalysis ? 0.8 : 0.95,
       maxOutputTokens: maxTokens,
+      ...(isAnalysis ? {responseMimeType: "application/json"} : {}),
     },
   };
 

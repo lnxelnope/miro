@@ -416,6 +416,54 @@ class GeminiService {
     _userLang = langCode.isNotEmpty ? langCode : 'en';
   }
 
+  /// Regional seasoning hints per cuisine for more accurate hidden ingredient detection
+  static String _getRegionalSeasoningHint() {
+    switch (_cuisinePreference) {
+      case 'thai':
+        return '''
+REGIONAL SEASONING FOCUS for Thai cuisine:
+- High-sodium: น้ำปลา (fish sauce ~1,400mg Na/tbsp), ซีอิ๊วขาว (light soy sauce), กะปิ (shrimp paste), ปลาร้า (fermented fish)
+- Hidden sugar: น้ำตาลปี๊บ (palm sugar) in curries, som tum, pad thai — often 1-3 tbsp per dish
+- Coconut: กะทิ (coconut milk/cream) adds 150-250 kcal per cup — common in curries, desserts
+- Cooking oil: Thai stir-fries typically use 2-4 tbsp vegetable oil
+''';
+      case 'japanese':
+        return '''
+REGIONAL SEASONING FOCUS for Japanese cuisine:
+- High-sodium: 醤油 (shoyu ~900mg Na/tbsp), みりん (mirin — contains sugar+alcohol), 味噌 (miso paste ~600mg Na/tbsp)
+- Hidden sugar: Mirin, teriyaki glaze, tonkatsu sauce, yakitori tare
+- Dashi: かつお出汁 (bonito dashi) is low-cal but adds umami — distinguish from oil-based broths
+- Rice vinegar in sushi rice adds ~20 kcal per serving
+''';
+      case 'korean':
+        return '''
+REGIONAL SEASONING FOCUS for Korean cuisine:
+- High-sodium: 간장 (ganjang ~900mg Na/tbsp), 된장 (doenjang ~800mg Na/tbsp), 고추장 (gochujang — also high sugar)
+- Hidden sugar: Gochujang contains corn syrup, bulgogi marinades use pear juice + sugar
+- Sesame oil: 참기름 is a finishing oil (~120 kcal/tbsp) — used in almost every Korean dish
+- Kimchi: 100g ≈ 20 kcal but ~600mg sodium
+''';
+      case 'chinese':
+        return '''
+REGIONAL SEASONING FOCUS for Chinese cuisine:
+- High-sodium: 酱油 (soy sauce), 蚝油 (oyster sauce — also contains sugar), 豆瓣酱 (doubanjiang)
+- Hidden sugar: Oyster sauce, hoisin sauce, sweet and sour sauces — often 1-2 tbsp sugar per dish
+- Cooking oil: Chinese stir-fry (爆炒) typically uses 3-5 tbsp oil at high heat — significant oil absorption
+- Cornstarch thickening (勾芡): Adds 30-60 kcal per dish in sauces
+''';
+      case 'indian':
+        return '''
+REGIONAL SEASONING FOCUS for Indian cuisine:
+- Ghee/Oil: Many curries use 3-6 tbsp ghee or oil — major hidden calorie source (120 kcal/tbsp)
+- Cream/Yogurt: Butter chicken, korma use heavy cream (200+ kcal/serving)
+- Hidden carbs: Naan/roti are calorie-dense (250-350 kcal each), rice portions are often 200-300g cooked
+- Spice pastes: Ginger-garlic paste, curry paste bases add minimal calories but significant sodium
+''';
+      default:
+        return '';
+    }
+  }
+
   /// Get EnergyService instance (for checking energy before API calls)
   static EnergyService? get energyService => _staticEnergyService;
 
@@ -428,45 +476,45 @@ class GeminiService {
     return await service.hasEnergy();
   }
 
-  /// Compress image for API: resize to max 800px and encode as JPEG 70% quality
-  /// Reduces ~10MB photos to ~100-200KB — enough for Gemini food analysis
-  static Future<String> _compressImageToBase64(File imageFile) async {
+  /// Compress image for API: resize and encode as PNG
+  /// [maxWidth] — 800 for food photos (default), 1600 for nutrition labels/products
+  static Future<String> _compressImageToBase64(
+    File imageFile, {
+    int maxWidth = 800,
+  }) async {
     final bytes = await imageFile.readAsBytes();
     final originalSizeKB = bytes.length / 1024;
     AppLogger.info(
-        '📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB');
+        '📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB (target: ${maxWidth}px)');
 
     // Decode image
     final codec = await ui.instantiateImageCodec(
       bytes,
-      targetWidth: 800, // max width 800px (ย่อจากกล้อง ~4000px)
+      targetWidth: maxWidth,
     );
     final frame = await codec.getNextFrame();
     final image = frame.image;
 
-    // Encode as JPEG with 70% quality
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
     if (byteData == null) {
-      // Fallback: use original bytes if encoding fails
       AppLogger.warn('⚠️ Image encode failed, using original');
       return base64Encode(bytes);
     }
 
-    // Convert PNG to JPEG-like smaller size
-    // Since dart:ui doesn't support JPEG quality, we use PNG with resize
     final compressedBytes = byteData.buffer.asUint8List();
     final compressedSizeKB = compressedBytes.length / 1024;
     AppLogger.info(
         '📷 Compressed: ${compressedSizeKB.toStringAsFixed(0)} KB (was ${originalSizeKB.toStringAsFixed(0)} KB)');
 
-    // If compressed is still too large (>500KB) or larger than original, use original resized
-    if (compressedSizeKB > 500 && compressedSizeKB > originalSizeKB * 0.8) {
-      // Re-encode at smaller resolution
+    // Fallback: if still too large, reduce to 75% of maxWidth
+    final sizeLimit = maxWidth <= 800 ? 500.0 : 1200.0;
+    if (compressedSizeKB > sizeLimit && compressedSizeKB > originalSizeKB * 0.8) {
+      final fallbackWidth = (maxWidth * 0.75).toInt();
       final codec2 = await ui.instantiateImageCodec(
         bytes,
-        targetWidth: 600,
+        targetWidth: fallbackWidth,
       );
       final frame2 = await codec2.getNextFrame();
       final image2 = frame2.image;
@@ -476,7 +524,7 @@ class GeminiService {
       if (byteData2 != null) {
         final smallerBytes = byteData2.buffer.asUint8List();
         AppLogger.info(
-            '📷 Re-compressed: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
+            '📷 Re-compressed to ${fallbackWidth}px: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
         return base64Encode(smallerBytes);
       }
     }
@@ -800,11 +848,15 @@ class GeminiService {
 
     try {
       AppLogger.info('Using Backend (Energy System)');
-      final base64Image = await _compressImageToBase64(imageFile);
+      final isProductMode = searchMode == FoodSearchMode.product;
+      final base64Image = await _compressImageToBase64(
+        imageFile,
+        maxWidth: isProductMode ? 1600 : 800,
+      );
 
       // Choose prompt based on search mode
       final hasCalibration = calibrationHint != null && calibrationHint.isNotEmpty;
-      String prompt = searchMode == FoodSearchMode.product
+      String prompt = isProductMode
           ? _getProductImageAnalysisPrompt()
           : _getImageAnalysisPrompt(
               userIngredients: userIngredients,
@@ -1007,7 +1059,7 @@ Return ONLY valid JSON.''';
     }
 
     try {
-      final base64Image = await _compressImageToBase64(imageFile);
+      final base64Image = await _compressImageToBase64(imageFile, maxWidth: 1600);
 
       const prompt = '''You are an AI expert in reading Nutrition Facts Labels.
 
@@ -1275,23 +1327,26 @@ These amounts are MORE ACCURATE than visual estimation because the user measured
 
 $lines
 
-MANDATORY RULES for user-specified ingredients:
-1. You MUST use EXACTLY these amounts — do NOT change them
+MANDATORY RULES for user-specified ingredients (ANCHOR SYSTEM):
+Treat user-specified ingredients as ANCHORS — these are ground truth. Your job is to:
+1. KEEP these EXACT amounts unchanged — do NOT adjust, round, or override them
 2. Calculate nutrition values (calories, protein, carbs, fat) for these EXACT amounts
 3. Keep the ingredient names similar (you may add cooking state description)
-4. You MUST actively discover HIDDEN ingredients not listed above:
+4. ONLY ESTIMATE the remaining HIDDEN ingredients the user likely forgot:
+   - Cooking oils/fats (type & amount based on cooking method visible in image)
    - Seasonings (fish sauce, soy sauce, MSG, sugar, salt, pepper)
-   - Cooking oils/fats used in preparation
    - Marinades, pastes, or sauce bases
    - Small garnishes (cilantro, lime, chili flakes)
    - Binding agents (flour, starch, egg wash)
-5. Added hidden ingredients should have amounts proportional to the dish
-6. The total nutrition = sum of user's ingredients + discovered hidden ingredients
+5. Added hidden ingredients should have amounts proportional to the anchored ingredients
+6. The total nutrition = sum of ANCHORED user ingredients + discovered hidden ingredients
+7. Do NOT re-estimate or override any anchored ingredient — even if your visual estimation differs
 ═══════════════════════════════════════════════════════════════════
 ''';
     }
 
-    // Build cuisine bias instruction
+    // Build cuisine bias instruction with regional specificity
+    final regionalSeasonings = _getRegionalSeasoningHint();
     final cuisineBias = _cuisinePreference != 'international'
         ? '''
 
@@ -1304,13 +1359,23 @@ you MUST bias your identification toward $_cuisinePreference cuisine FIRST.
 - Example: A noodle soup → identify as $_cuisinePreference-style noodle soup
 - Use $_cuisinePreference ingredient names, cooking techniques, and typical portion sizes
 - Only override this bias if the food is CLEARLY from another cuisine (e.g., sushi is clearly Japanese even if user prefers Thai)
-'''
+$regionalSeasonings'''
         : '';
 
     return '''You are a Food Scientist and Nutrition Expert specializing in deconstructing dishes into precise ingredients.
 Your job is to "dissect" every visible food item in the image with professional-level specificity.
 $cuisineBias$ingredientsHint
+CONFIDENCE CONTROL:
+- If you are less than 40% confident about a specific ingredient, include it but add "estimated" in its detail field and set a lower confidence score.
+- NEVER fabricate brand names or specific products unless clearly visible. Use generic descriptions instead (e.g., "dark soy-based sauce" instead of guessing a brand).
+- If the image is blurry, dark, or partially obscured, note this in "notes" and reduce overall confidence accordingly.
+
 STEP-BY-STEP ANALYSIS (you MUST follow this order):
+
+Step 0 — VISUAL DESCRIPTION (mandatory):
+Before any calculation, describe what you see in 1-2 sentences. Store this in the "visual_description" field.
+This forces you to observe the actual image before relying on parametric knowledge.
+Example: "A white plate with golden-brown fried rice topped with a sunny-side-up egg, green onion garnish, and a small bowl of clear soup on the side."
 
 Step 1 — IDENTIFY COOKING STATE:
 For each ingredient, determine its cooking method and state (e.g., Stir-fried in oil, Deep-fried, Grilled, Steamed, Boiled, Raw, Marinated, Braised). This affects calorie estimation significantly due to hidden oil/fat absorption.
@@ -1522,18 +1587,32 @@ ${hasCalibration ? '''Step 5 — CALIBRATION DATA PROVIDED:
 Local AI has already detected a reference object and calculated physical measurements.
 The calibration data is appended at the end of this prompt.
 DO NOT re-detect reference objects — use the provided calibration data directly to improve your portion size estimation.
-Skip the "reference_objects" field in your response.''' : '''Step 5 — REFERENCE OBJECT DETECTION (for portion accuracy):
-Scan the image for standard reference objects placed near the food:
+Skip the "reference_objects" field in your response.''' : '''Step 5 — SIZE ESTIMATION via REFERENCE OBJECTS (CRITICAL for portion accuracy):
+FIRST, scan the ENTIRE image for ANY object with a known real-world size. Use it to calibrate food portion estimation.
+
+Priority 1 — Standard reference objects:
 - Cutlery: Fork (~19.5cm), Spoon (~17cm), Knife (~22cm), Chopsticks (~23cm)
 - Cards: Credit card (8.56×5.4cm), ID card
 - Coins: visible coins of any denomination
 
-If ANY reference object is found near the food:
-1. Report it in "reference_objects" array
-2. Use the known real-world size to estimate the plate/bowl diameter
-3. Use the plate size to more accurately estimate the total food weight (serving_grams)
+Priority 2 — Everyday objects with known dimensions:
+- Beverage cans: Standard 330ml can (height 11.5cm, diameter 6.6cm), 350ml/12oz can (height 12.2cm)
+- Bottles: 500ml PET bottle (height ~21cm), 600ml water bottle (~24cm)
+- Smartphone: Average phone (~15×7.2cm) — if visible and identifiable
+- Cigarette pack: Standard pack (~8.5×5.5cm)
+- Tissue box: Standard box (~23×12cm)
 
-If NO reference object is found, simply skip the "reference_objects" field.
+ESTIMATION PROCESS:
+1. Identify ANY object with known dimensions in the image
+2. Calculate the pixel-to-cm ratio from that object
+3. Use the ratio to estimate plate/bowl diameter and food area
+4. Derive total food weight (serving_grams) from the measured area + estimated food depth
+
+If ANY reference object is found:
+- Report it in "reference_objects" array
+- Include "plate_measurement" with estimated dimensions
+
+If NO reference object is found, simply skip the "reference_objects" field and estimate portion from visual cues alone.
 
 Add to your JSON response (ONLY if reference objects are found):
 "reference_objects": [
@@ -1575,7 +1654,7 @@ RULES for scene_context:
 - ONLY report food, beverages, packaged food/snack products, and dining environment
 - DO NOT report personal belongings, clothing, accessories, electronics, or people
 - DO NOT report any personally identifiable information (faces, ID cards, etc.)
-- Beverage/product brand + size is useful for portion calibration (known standard dimensions)
+- IMPORTANT: If beverages/products with KNOWN SIZES are visible (e.g., Coke 330ml can, water bottle 600ml), use their known physical dimensions to cross-validate your portion size estimate from Step 5
 - If no additional items are visible, omit "scene_context" entirely
 
 Return ONLY valid JSON, no markdown or explanations.''';
@@ -2390,6 +2469,7 @@ Return ONLY valid JSON, no markdown.''';
       ingredients: result.ingredients,
       ingredientsDetail: adjustedIngredients,
       notes: result.notes,
+      visualDescription: result.visualDescription,
       referenceObjectUsed: result.referenceObjectUsed,
       referenceConfidence: result.referenceConfidence,
       plateDiameterCm: result.plateDiameterCm,
@@ -2423,6 +2503,9 @@ class FoodAnalysisResult {
   final List<IngredientDetail>? ingredientsDetail;
   final String? notes;
 
+  /// AI's visual description of the food (Chain-of-Thought reasoning)
+  final String? visualDescription;
+
   // AR Scale Ruler fields
   final String? referenceObjectUsed;
   final double? referenceConfidence;
@@ -2453,6 +2536,7 @@ class FoodAnalysisResult {
     this.ingredients,
     this.ingredientsDetail,
     this.notes,
+    this.visualDescription,
     this.referenceObjectUsed,
     this.referenceConfidence,
     this.plateDiameterCm,
@@ -2510,6 +2594,7 @@ class FoodAnalysisResult {
               .toList()
           : null,
       notes: json['notes'],
+      visualDescription: json['visual_description'],
       referenceObjectUsed: refUsed,
       referenceConfidence: refConf,
       plateDiameterCm: plateMeasure?['estimated_diameter_cm']?.toDouble(),
