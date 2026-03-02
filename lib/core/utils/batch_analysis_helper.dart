@@ -230,6 +230,7 @@ class BatchAnalysisHelper {
     int totalSuccessCount = 0;
     List<int> failedIds = [];
     var entriesToProcess = entries;
+    final d = dateOnly(selectedDate);
 
     while (entriesToProcess.isNotEmpty && !shouldCancel()) {
       int batchSuccessCount = 0;
@@ -425,7 +426,6 @@ class BatchAnalysisHelper {
     }
 
     // Final refresh so UI shows results immediately when analyze completes
-    final d = dateOnly(selectedDate);
     ref.invalidate(foodEntriesByDateProvider(d));
     ref.invalidate(healthTimelineProvider(d));
     ref.invalidate(todayCaloriesProvider);
