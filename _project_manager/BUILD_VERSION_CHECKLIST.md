@@ -2,11 +2,53 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-01 (Build 53 - iOS Resubmit)
+**อัปเดตล่าสุด:** 2026-03-02 (Build 55 - Profile Data Persistence)
 
 ---
 
-## ✅ Build 53 (v1.2.3) - Status: READY FOR RELEASE
+## ✅ Build 55 (v1.2.4) - Status: READY FOR RELEASE
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.4+55`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 55`, `versionName = "1.2.4"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.4'`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
+- [x] **Target SDK** - 35 (Android 15)
+- [x] **Compile SDK** - 36 (Android 16)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.4`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.4+55)
+- [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+
+### ✨ Changes in this version:
+- **Profile Data Persistence** - TDEE/BMR calculator เก็บค่าลง profile:
+  - อายุ, น้ำหนัก, ส่วนสูง, เพศ, ระดับกิจกรรม, TDEE, BMR
+  - Pre-populate calculator จากข้อมูลที่มี
+  - เอา disclaimer "ไม่เก็บข้อมูล" ออก
+- **Locale & Cuisine** - เก็บภาษาและอาหารที่ชอบลง profile
+- **Clear Data Dialog** - เอารายละเอียดเทคนิค (Isar DB, SharedPreferences, Admin Panel) ออก
+- **Name Change Re-Analysis Feature** - เมื่อเปลี่ยนชื่ออาหารใน Edit Food Bottom Sheet:
+  - Dialog เลือกว่าจะ keep วัตถุดิบไหน (uncheck = keep, check = re-analyze)
+  - AI วิเคราะห์ใหม่เฉพาะวัตถุดิบที่ checked โดยใช้ `userIngredients` parameter
+  - วัตถุดิบที่ keep → `source: 'user_kept'` (ground truth data)
+  - วัตถุดิบที่ re-analyze → `source: 'ai_reanalyzed'`
+  - ฟรี ไม่เสีย energy (ใช้ free edit lookup)
+- **Data Mining Value** - เพิ่มมูลค่าข้อมูลสำหรับ research:
+  - `user_kept` ingredients = user-confirmed ground truth
+  - `ai_reanalyzed` ingredients = AI behavior tracking
+  - Original vs new name/ingredients comparison
+
+---
+
+## ✅ Build 54 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Name Change Re-Analysis Feature** - Dialog เลือก keep/re-analyze วัตถุดิบเมื่อเปลี่ยนชื่ออาหาร
+- **Data Mining Value** - user_kept, ai_reanalyzed sources
+
+---
+
+## ✅ Build 53 (v1.2.3) - Status: RELEASED
 
 ### 📋 Checklist
 
@@ -407,7 +449,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.3+53
+version: 1.2.4+54
 ```
 **Format:** `versionName+versionCode`
 - `1.2.3` = Version name (แสดงให้ user เห็น)
@@ -416,8 +458,8 @@ version: 1.2.3+53
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 53
-    versionName = "1.2.3"
+    versionCode = 54
+    versionName = "1.2.4"
 }
 ```
 **Format:**
@@ -429,7 +471,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.3',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.4',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -454,22 +496,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.2+50 → 1.2.3+53
-version: 1.2.3+53
+# ตัวอย่าง: จาก 1.2.3+53 → 1.2.4+54
+version: 1.2.4+54
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 53  // เพิ่มทีละ 1
-    versionName = "1.2.3"  // ตรงกับ pubspec
+    versionCode = 54  // เพิ่มทีละ 1
+    versionName = "1.2.4"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.2.3',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.2.4',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -496,7 +538,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 53 | 1.2.3 | 2026-03-01 | ✅ Current |
+| 54 | 1.2.4 | 2026-03-01 | ✅ Current |
+| 53 | 1.2.3 | 2026-03-01 | ✅ Released |
 | 51 | 1.2.3 | 2026-02-28 | ❌ Rejected (iOS) |
 | 50 | 1.2.2 | 2026-02-28 | ✅ Released |
 | 49 | 1.2.1 | 2026-02-27 | ✅ Released |
@@ -535,14 +578,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.2.2+50`
-- `build.gradle.kts`: `versionCode = 53`, `versionName = "1.2.3"`
+- `pubspec.yaml`: `1.2.4+54`
+- `build.gradle.kts`: `versionCode = 54`, `versionName = "1.2.4"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.2.3',  // แก้ให้ตรงกับ versionName
+subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
@@ -550,11 +593,11 @@ subtitle: '1.2.3',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 53):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.3+53`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (51 → 53)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.3'`)
-- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.3+53)
+### Pre-flight Checklist (Build 54):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.4+54`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (53 → 54)
+- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.4'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.4+54)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)
