@@ -2424,6 +2424,14 @@ class L10nDe extends L10n {
   String get invalidBackupFile => 'Ungültige Sicherungsdatei';
 
   @override
+  String get restoreSelectDataFile =>
+      'This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.';
+
+  @override
+  String get restoreZeroEntriesHint =>
+      'No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.';
+
+  @override
   String get restoreFailed => 'Wiederherstellung fehlgeschlagen';
 
   @override
@@ -2431,22 +2439,25 @@ class L10nDe extends L10n {
 
   @override
   String get analyticsEnabled =>
-      'Analytics aktiviert – ขอบคุณที่ช่วยปรับปรุงแอป';
+      'Analytics aktiviert – Danke für die Hilfe bei der Verbesserung der App';
 
   @override
-  String get analyticsDisabled => 'Analytics deaktiviert – nicht verfügbar';
+  String get analyticsDisabled =>
+      'Analytics deaktiviert – Keine Nutzungsdaten werden gesammelt';
 
   @override
-  String get enabled => 'Ermöglicht';
+  String get enabled => 'Aktiviert';
 
   @override
-  String get enabledSubtitle => 'Aktiviert – aktiviert';
+  String get enabledSubtitle =>
+      'Aktiviert – Hilft, die Benutzererfahrung zu verbessern';
 
   @override
   String get disabled => 'Deaktiviert';
 
   @override
-  String get disabledSubtitle => 'Deaktiviert – nicht verfügbar';
+  String get disabledSubtitle =>
+      'Deaktiviert – Keine Nutzungsdaten werden gesammelt';
 
   @override
   String get imagesPerDay => 'Bilder pro Tag';
@@ -2786,7 +2797,7 @@ class L10nDe extends L10n {
 
   @override
   String get retroScanDescription =>
-      'Wir können Ihre Fotos der letzten 7 Tage scannen, um automatisch Lebensmittelfotos zu finden und sie Ihrem Tagebuch hinzuzufügen.';
+      'Wir können Ihre Fotos des letzten 1 Tages scannen, um automatisch Lebensmittelfotos zu finden und sie Ihrem Tagebuch hinzuzufügen.';
 
   @override
   String get retroScanNote =>
@@ -2813,7 +2824,7 @@ class L10nDe extends L10n {
 
   @override
   String retroScanPhotosFound(int count) {
-    return '$count Fotos in den letzten 7 Tagen gefunden';
+    return '$count Fotos in den letzten 1 Tag gefunden';
   }
 
   @override
@@ -2829,7 +2840,7 @@ class L10nDe extends L10n {
 
   @override
   String get retroScanNoResultsDesc =>
-      'In den letzten 7 Tagen wurden keine Lebensmittelfotos erkannt. Versuchen Sie, ein Foto von Ihrer nächsten Mahlzeit zu machen!';
+      'In den letzten 1 Tag wurden keine Lebensmittelfotos erkannt. Versuchen Sie, ein Foto von Ihrer nächsten Mahlzeit zu machen!';
 
   @override
   String get retroScanAnalyzeHint =>
@@ -2990,8 +3001,7 @@ class L10nDe extends L10n {
   String get addButton => 'Add';
 
   @override
-  String get noIngredientsHint =>
-      'Tap \"Add\" button to add ingredients\nOr enter total nutrition below';
+  String get noIngredientsHint => 'No ingredients yet. Tap add to record.';
 
   @override
   String get totalNutritionTitle => 'Total Nutrition';
@@ -3427,4 +3437,262 @@ class L10nDe extends L10n {
   @override
   String get subscriptionCannotLoadPrices =>
       'Unable to load prices from the Store right now';
+
+  @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get cloudSyncSynced => 'Data synced';
+
+  @override
+  String cloudSyncPending(int count) {
+    return '$count entries pending sync';
+  }
+
+  @override
+  String cloudSyncLastDate(String date) {
+    return 'Last sync: $date';
+  }
+
+  @override
+  String get cloudSyncNever => 'Never synced';
+
+  @override
+  String get cloudSyncAutoDescription =>
+      'Auto-syncs when app opens for the first time each day';
+
+  @override
+  String get cloudSyncNow => 'Sync now';
+
+  @override
+  String get cloudSyncSuccess => 'Data synced successfully';
+
+  @override
+  String cloudSyncFailed(String error) {
+    return 'Sync failed: $error';
+  }
+
+  @override
+  String get backupExportSubtitle => 'Export file for device transfer';
+
+  @override
+  String get foodResearch => 'Food Research';
+
+  @override
+  String get foodResearchSubtitleOn => 'Helping improve food AI analysis';
+
+  @override
+  String get foodResearchSubtitleOff =>
+      'Help food research with your food photos';
+
+  @override
+  String get foodResearchDialogTitle => 'Food Environment Research';
+
+  @override
+  String get foodResearchDialogDescription =>
+      'Help us improve food AI analysis by sharing your food photo data';
+
+  @override
+  String get foodResearchWhatWeAnalyze => 'What we analyze:';
+
+  @override
+  String get foodResearchAnalyze1 => 'Food, beverages, snacks in photos';
+
+  @override
+  String get foodResearchAnalyze2 =>
+      'Food brand + size (helps calibrate portion)';
+
+  @override
+  String get foodResearchAnalyze3 => 'Restaurant (if logo is visible)';
+
+  @override
+  String get foodResearchAnalyze4 => 'Utensils, plates, bowls';
+
+  @override
+  String get foodResearchWhatWeSkip => 'What we do NOT collect:';
+
+  @override
+  String get foodResearchSkip1 => 'Faces, personal info';
+
+  @override
+  String get foodResearchSkip2 => 'Personal belongings, clothing, bags';
+
+  @override
+  String get foodResearchSkip3 => 'Credit cards, documents';
+
+  @override
+  String get foodResearchPrivacyNote =>
+      'Data is anonymized and used in aggregate only. You can turn this off anytime.';
+
+  @override
+  String get foodResearchDecline => 'Decline';
+
+  @override
+  String get foodResearchAccept => 'I\'d like to help';
+
+  @override
+  String get foodResearchThanks => 'Thank you for supporting food research!';
+
+  @override
+  String get foodResearchDisabled => 'Food research sharing disabled';
+
+  @override
+  String get consentDialogTitle => 'Data & Research';
+
+  @override
+  String get consentAnalyticsSection => 'App Usage Analytics';
+
+  @override
+  String get consentAnalyticsDescription =>
+      'We use Firebase Analytics to improve your app experience';
+
+  @override
+  String get consentAnalyticsCollect =>
+      'What we collect: Feature usage, screens viewed';
+
+  @override
+  String get consentAnalyticsNotCollect =>
+      'Not collected: Food data, photos, health info';
+
+  @override
+  String get consentAnalyticsAnonymous => 'Data is aggregated and anonymous';
+
+  @override
+  String get consentFoodResearchSection => 'Food Research (Optional)';
+
+  @override
+  String get consentChangeAnytime =>
+      'You can change these anytime in Profile → Settings';
+
+  @override
+  String get ingredientSearchHintExample =>
+      'e.g. egg, vegetable oil, ground pork';
+
+  @override
+  String get freeIngredientSearch => 'Free ingredient search — no Energy cost!';
+
+  @override
+  String get recoveryKeyRestoreTitle => 'Restore with Recovery Key';
+
+  @override
+  String get recoveryKeyRestoreSubtitle =>
+      'Use Key from your old device, no file needed';
+
+  @override
+  String get recoveryKeyRegenerateConfirm => 'Generate new Key?';
+
+  @override
+  String get recoveryKeyRegenerateWarning =>
+      'The old Key will no longer work.\n\nIf you wrote it down, you\'ll need to note the new one instead.';
+
+  @override
+  String get recoveryKeyRegenerate => 'Generate new';
+
+  @override
+  String get recoveryKeyRegenerated => 'New Recovery Key generated';
+
+  @override
+  String get recoveryKeyDescription =>
+      'Recover your account when switching devices';
+
+  @override
+  String get recoveryKeyRegenerateTooltip => 'Generate new Key';
+
+  @override
+  String get recoveryKeyLoading => 'Loading...';
+
+  @override
+  String get recoveryKeyHide => 'Hide';
+
+  @override
+  String get recoveryKeyShow => 'Show';
+
+  @override
+  String get recoveryKeyCopied => 'Recovery Key copied';
+
+  @override
+  String get recoveryKeyCopyTooltip => 'Copy';
+
+  @override
+  String get recoveryKeyWarning =>
+      '⚠️ Keep this safe. Do not share with others.';
+
+  @override
+  String get restoreAccountTitle => 'Restore Account';
+
+  @override
+  String get restoreFromRecoveryKey => 'Restore from Recovery Key';
+
+  @override
+  String get restoreEnterKey =>
+      'Enter the Recovery Key from your old device\nto recover your food history and Energy';
+
+  @override
+  String get restoreButton => 'Restore Account';
+
+  @override
+  String get restoreKeyLocation =>
+      'Recovery Key is in Settings > Account on your old device';
+
+  @override
+  String get restoreSuccess => 'Restore successful!';
+
+  @override
+  String restoreFoodEntries(int count) {
+    return '$count food entries';
+  }
+
+  @override
+  String get restoreProfileRecovered => 'Profile & goals recovered';
+
+  @override
+  String get restoreStartUsing => 'Start using';
+
+  @override
+  String get restoreEmptyKey => 'Please enter a Recovery Key';
+
+  @override
+  String get restoreFailedGeneric =>
+      'Unable to restore. Please check your Key.';
+
+  @override
+  String get restoreInvalidKey => 'Invalid Recovery Key. Please check again.';
+
+  @override
+  String get restoreExpiredKey =>
+      'Recovery Key has expired. Please generate a new one from the original device.';
+
+  @override
+  String get restoreSameDevice => 'Cannot restore on the same device';
+
+  @override
+  String get restoreNoInternet => 'No internet connection. Please try again.';
+
+  @override
+  String restoreErrorGeneric(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get nameChangeReAnalyzeTitle => 'Food Name Changed';
+
+  @override
+  String nameChangeReAnalyzeMessage(String newName) {
+    return 'You changed the name to \"$newName\"\nIngredients with ✓ will be re-analyzed\nUncheck to keep as-is';
+  }
+
+  @override
+  String get nameChangeReAnalyzeConfirm => 'Re-analyze';
+
+  @override
+  String get nameChangeSaveAsIs => 'Save as-is';
+
+  @override
+  String get nameChangeAnalyzing => 'Re-analyzing ingredients...';
+
+  @override
+  String get nameChangeAnalysisFailed => 'Re-analysis failed. Saved as-is.';
+
+  @override
+  String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
 }

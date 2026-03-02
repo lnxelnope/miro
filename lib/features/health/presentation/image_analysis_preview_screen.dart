@@ -10,7 +10,8 @@ import 'package:miro_hybrid/core/utils/unit_converter.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/core/services/image_picker_service.dart';
 import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
-import 'package:miro_hybrid/features/health/models/food_entry.dart';
+import 'package:miro_hybrid/core/database/app_database.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:miro_hybrid/features/health/providers/health_provider.dart';
 import 'package:miro_hybrid/features/health/providers/analysis_provider.dart';
 import 'package:miro_hybrid/core/widgets/search_mode_selector.dart';
@@ -47,7 +48,7 @@ class _ImageAnalysisPreviewScreenState
   FoodSearchMode _searchMode = FoodSearchMode.normal;
   late MealType _selectedMealType;
   String? _permanentImagePath;
-  bool _isAnalyzing = false;
+  final bool _isAnalyzing = false;
   bool _showDetails = false;
   File? _currentImageFile;
 
@@ -216,31 +217,43 @@ class _ImageAnalysisPreviewScreenState
 
     final calibration = _calibrationResult;
 
-    final entry = FoodEntry()
-      ..foodName = effectiveName
-      ..mealType = _selectedMealType
-      ..timestamp = entryTimestamp
-      ..imagePath = imagePath
-      ..servingSize = quantity
-      ..servingUnit = _selectedUnit
-      ..calories = 0
-      ..protein = 0
-      ..carbs = 0
-      ..fat = 0
-      ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
-      ..isVerified = false
-      ..searchMode = _searchMode
-      ..referenceObjectUsed = calibration?.referenceObject.type.name
-      ..referenceConfidence = calibration?.referenceObject.confidence
-      ..plateDiameterCm = calibration?.plateDiameterCm
-      ..estimatedVolumeMl = calibration?.estimatedVolumeMl
-      ..isCalibrated = calibration?.shouldUseCalibration ?? false
-      // AR Label Overlay data (เก็บ JSON เพื่อ overlay ตอนแสดงผล)
-      ..arLabelsJson = _objectLabels.isNotEmpty
-          ? DetectedObjectLabel.encode(_objectLabels) : null
-      ..arImageWidth = _imageSize.width > 0 ? _imageSize.width : null
-      ..arImageHeight = _imageSize.height > 0 ? _imageSize.height : null
-      ..arPixelPerCm = calibration?.pixelPerCm;
+    final entry = FoodEntry(
+      id: 0,
+      foodName: effectiveName,
+      mealType: _selectedMealType,
+      timestamp: entryTimestamp,
+      imagePath: imagePath,
+      servingSize: quantity,
+      servingUnit: _selectedUnit,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      baseCalories: 0,
+      baseProtein: 0,
+      baseCarbs: 0,
+      baseFat: 0,
+      source: _hasImage ? DataSource.galleryScanned : DataSource.manual,
+      isVerified: false,
+      searchMode: _searchMode,
+      referenceObjectUsed: calibration?.referenceObject.type.name,
+      referenceConfidence: calibration?.referenceObject.confidence,
+      plateDiameterCm: calibration?.plateDiameterCm,
+      estimatedVolumeMl: calibration?.estimatedVolumeMl,
+      isCalibrated: calibration?.shouldUseCalibration ?? false,
+      arLabelsJson: _objectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(_objectLabels) : null,
+      arImageWidth: _imageSize.width > 0 ? _imageSize.width : null,
+      arImageHeight: _imageSize.height > 0 ? _imageSize.height : null,
+      arPixelPerCm: calibration?.pixelPerCm,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isSynced: false,
+      createdAt: now,
+      updatedAt: now,
+    );
 
     debugPrint(
       '>>> [AR Save analyze] labels=${_objectLabels.length}, '
@@ -297,26 +310,39 @@ class _ImageAnalysisPreviewScreenState
         ? (_searchMode == FoodSearchMode.product ? 'product' : 'food')
         : foodName;
 
-    final entry = FoodEntry()
-      ..foodName = effectiveName
-      ..mealType = _selectedMealType
-      ..timestamp = entryTimestamp
-      ..imagePath = imagePath
-      ..servingSize = quantity
-      ..servingUnit = _selectedUnit
-      ..calories = 0
-      ..protein = 0
-      ..carbs = 0
-      ..fat = 0
-      ..source = _hasImage ? DataSource.galleryScanned : DataSource.manual
-      ..isVerified = false
-      ..searchMode = _searchMode
-      // AR Label Overlay data
-      ..arLabelsJson = _objectLabels.isNotEmpty
-          ? DetectedObjectLabel.encode(_objectLabels) : null
-      ..arImageWidth = _imageSize.width > 0 ? _imageSize.width : null
-      ..arImageHeight = _imageSize.height > 0 ? _imageSize.height : null
-      ..arPixelPerCm = _calibrationResult?.pixelPerCm;
+    final entry = FoodEntry(
+      id: 0,
+      foodName: effectiveName,
+      mealType: _selectedMealType,
+      timestamp: entryTimestamp,
+      imagePath: imagePath,
+      servingSize: quantity,
+      servingUnit: _selectedUnit,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      baseCalories: 0,
+      baseProtein: 0,
+      baseCarbs: 0,
+      baseFat: 0,
+      source: _hasImage ? DataSource.galleryScanned : DataSource.manual,
+      isVerified: false,
+      searchMode: _searchMode,
+      arLabelsJson: _objectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(_objectLabels) : null,
+      arImageWidth: _imageSize.width > 0 ? _imageSize.width : null,
+      arImageHeight: _imageSize.height > 0 ? _imageSize.height : null,
+      arPixelPerCm: _calibrationResult?.pixelPerCm,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: now,
+      updatedAt: now,
+    );
 
     debugPrint(
       '>>> [AR Save diary] labels=${_objectLabels.length}, '
@@ -722,7 +748,7 @@ class _ImageAnalysisPreviewScreenState
                         Expanded(
                           flex: 3,
                           child: DropdownButtonFormField<String>(
-                            value: _selectedUnit,
+                            initialValue: _selectedUnit,
                             decoration: InputDecoration(
                               fillColor: isDark
                                   ? AppColors.surfaceVariantDark

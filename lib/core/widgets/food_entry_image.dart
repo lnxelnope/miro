@@ -1,9 +1,8 @@
 import 'dart:io';
 
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../features/health/models/food_entry.dart';
-
 /// Shared image widget for FoodEntry with 3-tier fallback:
 ///   1. Local file (imagePath) — available when on same device
 ///   2. Thumbnail URL (thumbnailUrl) — available after cloud restore

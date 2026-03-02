@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../models/my_meal.dart';
-
 class MyMealCard extends StatelessWidget {
   final MyMeal meal;
   final VoidCallback onUse;

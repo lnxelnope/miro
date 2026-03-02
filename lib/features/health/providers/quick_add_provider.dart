@@ -1,11 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
-import '../../../core/constants/enums.dart';
-import '../models/food_entry.dart';
-import '../models/my_meal.dart';
-import '../models/ingredient.dart';
-
+import '../../../core/database/model_extensions.dart';
 /// ข้อมูลสำหรับ Quick Add
 class QuickAddItem {
   final String name;
@@ -49,11 +46,10 @@ final topQuickAddItemsProvider =
   final items = <QuickAddItem>[];
 
   // 1. ดึง MyMeal ที่ใช้บ่อยสุด
-  final topMeals = await DatabaseService.myMeals
-      .where()
-      .sortByUsageCountDesc()
-      .limit(5)
-      .findAll();
+  final topMeals = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+      ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+      ..limit(5))
+      .get();
 
   for (final meal in topMeals) {
     if (meal.usageCount > 0) {
@@ -79,11 +75,10 @@ final topQuickAddItemsProvider =
   // 2. ดึง Ingredient ที่ใช้บ่อยสุด (เติมจนครบ 5)
   if (items.length < 5) {
     final remaining = 5 - items.length;
-    final topIngredients = await DatabaseService.ingredients
-        .where()
-        .sortByUsageCountDesc()
-        .limit(remaining)
-        .findAll();
+    final topIngredients = await (DatabaseService.db.select(DatabaseService.db.ingredients)
+        ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+        ..limit(remaining))
+        .get();
 
     for (final ing in topIngredients) {
       if (ing.usageCount > 0) {
@@ -120,10 +115,9 @@ final yesterdayEntriesProvider =
   final startOfDay = DateTime(yesterday.year, yesterday.month, yesterday.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
 
-  final entries = await DatabaseService.foodEntries
-      .filter()
-      .timestampBetween(startOfDay, endOfDay)
-      .findAll();
+  final entries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+      ..where((tbl) => tbl.timestamp.isBiggerOrEqualValue(startOfDay) & tbl.timestamp.isSmallerOrEqualValue(endOfDay)))
+      .get();
 
   final grouped = <MealType, List<FoodEntry>>{};
   for (final entry in entries) {

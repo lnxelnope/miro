@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,7 +9,6 @@ import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
-import '../../profile/models/user_profile.dart';
 import 'deficit_gauge.dart';
 
 class DailySummaryCard extends ConsumerWidget {

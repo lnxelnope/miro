@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/database/database_service.dart';
 import '../../../core/services/recovery_key_service.dart';
 import '../../../core/services/data_sync_service.dart';
 import '../../../core/services/energy_service.dart';
-import '../../../core/database/database_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../energy/providers/gamification_provider.dart';
 
 /// Screen for restoring an account on a new device using Recovery Key.
@@ -32,7 +33,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
   Future<void> _restore() async {
     final key = _keyController.text.trim().toUpperCase();
     if (key.isEmpty) {
-      setState(() => _error = 'กรุณาใส่ Recovery Key');
+      setState(() => _error = L10n.of(context)!.restoreEmptyKey);
       return;
     }
 
@@ -45,7 +46,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
       final data = await RecoveryKeyService.redeemRecoveryKey(key);
       if (data == null) {
         setState(() {
-          _error = 'ไม่สามารถกู้คืนได้ กรุณาตรวจสอบ Key';
+          _error = L10n.of(context)!.restoreFailedGeneric;
           _isLoading = false;
         });
         return;
@@ -53,7 +54,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
 
       // Restore balance
       final balance = (data['balance'] as num?)?.toInt() ?? 0;
-      final energyService = EnergyService(DatabaseService.isar);
+      final energyService = EnergyService(DatabaseService.db);
       await energyService.updateFromServerResponse(balance);
 
       // Restore food entries
@@ -102,19 +103,20 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
   }
 
   String _humanizeError(String error) {
+    final l10n = L10n.of(context)!;
     if (error.contains('not found') || error.contains('Invalid')) {
-      return 'Recovery Key ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+      return l10n.restoreInvalidKey;
     }
     if (error.contains('expired')) {
-      return 'Recovery Key หมดอายุแล้ว กรุณาสร้างใหม่จากเครื่องเดิม';
+      return l10n.restoreExpiredKey;
     }
     if (error.contains('same device')) {
-      return 'ไม่สามารถกู้คืนบนเครื่องเดิมได้';
+      return l10n.restoreSameDevice;
     }
     if (error.contains('network') || error.contains('internet')) {
-      return 'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่';
+      return l10n.restoreNoInternet;
     }
-    return 'เกิดข้อผิดพลาด: $error';
+    return l10n.restoreErrorGeneric(error);
   }
 
   @override
@@ -123,7 +125,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('กู้คืนบัญชี'),
+        title: Text(L10n.of(context)!.restoreAccountTitle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -141,14 +143,13 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
       children: [
         const Icon(Icons.restore_rounded, size: 48, color: AppColors.primary),
         const SizedBox(height: 16),
-        const Text(
-          'กู้คืนจาก Recovery Key',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        Text(
+          L10n.of(context)!.restoreFromRecoveryKey,
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          'ใส่ Recovery Key จากเครื่องเดิม\n'
-          'เพื่อกู้คืนประวัติการทานและ Energy',
+          L10n.of(context)!.restoreEnterKey,
           style: TextStyle(
             fontSize: 15,
             color: isDark ? Colors.white54 : Colors.black54,
@@ -209,9 +210,9 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
                       color: Colors.white,
                     ),
                   )
-                : const Text(
-                    'กู้คืนบัญชี',
-                    style: TextStyle(
+                : Text(
+                    L10n.of(context)!.restoreButton,
+                    style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w600),
                   ),
           ),
@@ -219,7 +220,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
         const SizedBox(height: 16),
         Center(
           child: Text(
-            'Recovery Key อยู่ใน Settings > Account ของเครื่องเดิม',
+            L10n.of(context)!.restoreKeyLocation,
             style: TextStyle(
               fontSize: 12,
               color: isDark ? Colors.white38 : Colors.black38,
@@ -238,23 +239,23 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
         const Icon(Icons.check_circle_rounded,
             size: 72, color: AppColors.success),
         const SizedBox(height: 20),
-        const Text(
-          'กู้คืนสำเร็จ!',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+        Text(
+          L10n.of(context)!.restoreSuccess,
+          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
         _buildResultRow(
             Icons.bolt, '${_result!['balance']} Energy', AppColors.warning),
         const SizedBox(height: 12),
         _buildResultRow(Icons.restaurant_menu,
-            '${_result!['entries']} รายการอาหาร', AppColors.health),
+            L10n.of(context)!.restoreFoodEntries(_result!['entries'] as int), AppColors.health),
         const SizedBox(height: 12),
         _buildResultRow(Icons.menu_book,
             '${_result!['meals']} My Meals', AppColors.primary),
         if (_result!['profileRestored'] == true) ...[
           const SizedBox(height: 12),
           _buildResultRow(Icons.person_outline,
-              'โปรไฟล์ & เป้าหมายกู้คืนแล้ว', AppColors.info),
+              L10n.of(context)!.restoreProfileRecovered, AppColors.info),
         ],
         if ((_result!['miroId'] as String).isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -276,8 +277,8 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('เริ่มใช้งาน',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+            child: Text(L10n.of(context)!.restoreStartUsing,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
           ),
         ),
       ],

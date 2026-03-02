@@ -10,11 +10,11 @@ import '../../../core/constants/enums.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
-import '../models/food_entry.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
-import 'package:isar/isar.dart';
-import '../../../core/database/database_service.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
 import 'ghost_meal_suggestion.dart';
@@ -994,13 +994,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
     }
 
     try {
-      final entry = await DatabaseService.foodEntries.get(food.id);
+      final entry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(food.id))).getSingleOrNull();
       if (entry != null) {
         entry.foodName = newName;
         entry.updatedAt = DateTime.now();
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.put(entry);
-        });
+        await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
         final today = dateOnly(DateTime.now());
         ref.invalidate(healthTimelineProvider(today));

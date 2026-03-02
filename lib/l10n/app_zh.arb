@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "无效的备份文件",
   "restoreFailed": "恢复失败",
   "analyticsDataCollection": "分析数据收集",
-  "analyticsEnabled": "启用分析 - ขอบคุณที่ช่วยปรับปรุงแอป",
-  "analyticsDisabled": "分析已禁用 - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "启用分析 - 感谢帮助改进应用",
+  "analyticsDisabled": "分析已禁用 - 不收集使用数据",
   "enabled": "启用",
-  "enabledSubtitle": "启用 - ช่วยปรับปรุงประสบการณ์ใช้งาน",
-  "disabled": "残疾人",
-  "disabledSubtitle": "已禁用 - ไม่เก็บข้อมูลการใช้งาน",
+  "enabledSubtitle": "启用 - 帮助改善用户体验",
+  "disabled": "已禁用",
+  "disabledSubtitle": "已禁用 - 不收集使用数据",
   "imagesPerDay": "每天的图像数",
   "scanUpToImagesPerDay": "每天最多扫描 {limit} 张图像",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "请添加至少 1 种成分",
   "hiddenIngredientsDiscovered": "AI发现的隐藏成分",
   "retroScanTitle": "扫描最近的照片？",
-  "retroScanDescription": "我们可以扫描您过去 7 天的照片，自动查找食物照片并将其添加到您的日记中。",
+  "retroScanDescription": "我们可以扫描您过去 1 天的照片，自动查找食物照片并将其添加到您的日记中。",
   "retroScanNote": "仅检测到食物照片 - 其他照片将被忽略。没有照片离开您的设备。",
   "retroScanStart": "扫描我的照片",
   "retroScanSkip": "暂时跳过",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO 正在改变您的\n食物照片转化为健康数据。",
   "retroScanFetchingPhotos": "正在获取最近的照片...",
   "retroScanAnalyzing": "正在检测食物照片...",
-  "retroScanPhotosFound": "过去 7 天内找到的 {count} 照片",
+  "retroScanPhotosFound": "过去 1 天内找到的 {count} 照片",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "未找到食物照片",
-  "retroScanNoResultsDesc": "过去 7 天内未检测到任何食物照片。尝试拍摄下一顿饭的照片！",
+  "retroScanNoResultsDesc": "过去 1 天内未检测到任何食物照片。尝试拍摄下一顿饭的照片！",
   "retroScanAnalyzeHint": "点击时间线上的“全部分析”即可获取这些条目的人工智能营养分析。",
   "retroScanDone": "知道了！",
   "welcomeEndTitle": "欢迎来到MiRO！",

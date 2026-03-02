@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/detected_object_label.dart';
 import 'ar_ruler_overlay.dart';

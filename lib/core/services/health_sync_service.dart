@@ -1,7 +1,7 @@
 import 'dart:io';
+import '../../../core/database/app_database.dart' as app_db show MealType;
 import 'package:health/health.dart';
 import 'package:permission_handler/permission_handler.dart' show openAppSettings;
-import '../constants/enums.dart' as app_enums;
 import '../utils/logger.dart';
 
 class HealthSyncService {
@@ -207,7 +207,7 @@ class HealthSyncService {
     required double carbs,
     required double fat,
     required DateTime timestamp,
-    app_enums.MealType? mealType,
+    app_db.MealType? mealType,
     double? fiber,
     double? sugar,
     double? sodium,
@@ -298,7 +298,7 @@ class HealthSyncService {
     required double carbs,
     required double fat,
     required DateTime timestamp,
-    app_enums.MealType? mealType,
+    app_db.MealType? mealType,
     double? fiber,
     double? sugar,
     double? sodium,
@@ -346,15 +346,15 @@ class HealthSyncService {
     }
   }
 
-  static MealType _mapMealType(app_enums.MealType? type) {
+  static MealType _mapMealType(app_db.MealType? type) {
     switch (type) {
-      case app_enums.MealType.breakfast:
+      case app_db.MealType.breakfast:
         return MealType.BREAKFAST;
-      case app_enums.MealType.lunch:
+      case app_db.MealType.lunch:
         return MealType.LUNCH;
-      case app_enums.MealType.dinner:
+      case app_db.MealType.dinner:
         return MealType.DINNER;
-      case app_enums.MealType.snack:
+      case app_db.MealType.snack:
         return MealType.SNACK;
       default:
         return MealType.UNKNOWN;

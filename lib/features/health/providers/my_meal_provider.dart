@@ -1,19 +1,16 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
-import '../models/ingredient.dart';
-import '../models/my_meal.dart';
-import '../models/my_meal_ingredient.dart';
-
 // ===== INGREDIENT PROVIDERS =====
 
 /// ดึง ingredients ทั้งหมด (เรียงตาม usageCount)
 final allIngredientsProvider =
     FutureProvider.autoDispose<List<Ingredient>>((ref) async {
-  final all = await DatabaseService.ingredients.where().findAll();
+  final all = await DatabaseService.db.select(DatabaseService.db.ingredients).get();
   all.sort((a, b) => b.usageCount.compareTo(a.usageCount));
   return all;
 });
@@ -23,7 +20,7 @@ final ingredientSearchProvider = FutureProvider.autoDispose
     .family<List<Ingredient>, String>((ref, query) async {
   if (query.isEmpty) return [];
 
-  final all = await DatabaseService.ingredients.where().findAll();
+  final all = await DatabaseService.db.select(DatabaseService.db.ingredients).get();
   final lowerQuery = query.toLowerCase();
 
   return all.where((ing) {
@@ -38,7 +35,7 @@ final ingredientSearchProvider = FutureProvider.autoDispose
 /// ดึง meals ทั้งหมด — เรียงจากล่าสุดที่เปลี่ยนแปลง/บันทึกด้านบน
 final allMyMealsProvider =
     FutureProvider.autoDispose<List<MyMeal>>((ref) async {
-  final all = await DatabaseService.myMeals.where().findAll();
+  final all = await DatabaseService.db.select(DatabaseService.db.myMeals).get();
   all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
   return all;
 });
@@ -48,7 +45,7 @@ final myMealSearchProvider =
     FutureProvider.autoDispose.family<List<MyMeal>, String>((ref, query) async {
   if (query.isEmpty) return [];
 
-  final all = await DatabaseService.myMeals.where().findAll();
+  final all = await DatabaseService.db.select(DatabaseService.db.myMeals).get();
   final lowerQuery = query.toLowerCase();
 
   return all.where((meal) {
@@ -61,11 +58,10 @@ final myMealSearchProvider =
 /// ดึง ingredients ของ meal
 final mealIngredientsProvider = FutureProvider.autoDispose
     .family<List<MyMealIngredient>, int>((ref, mealId) async {
-  return await DatabaseService.myMealIngredients
-      .filter()
-      .myMealIdEqualTo(mealId)
-      .sortBySortOrder()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.myMealIngredients)
+        ..where((tbl) => tbl.myMealId.equals(mealId))
+        ..orderBy([(tbl) => OrderingTerm.asc(tbl.sortOrder)]))
+      .get();
 });
 
 // ===== NOTIFIER =====
@@ -73,7 +69,7 @@ final mealIngredientsProvider = FutureProvider.autoDispose
 class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
   MyMealNotifier() : super(const AsyncValue.data(null));
 
-  /// Save new ingredient or update if exists
+  /// Save new ingredient or update if exists (delegates to IngredientActions.upsert)
   Future<Ingredient> saveIngredient({
     required String name,
     String? nameEn,
@@ -85,55 +81,18 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required double fat,
     String source = 'gemini',
   }) async {
-    // Validate and fallback unit
     final validUnit = UnitConverter.ensureValid(baseUnit);
-
-    // Search if already exists (by name)
-    final existing = await DatabaseService.ingredients
-        .filter()
-        .nameEqualTo(name)
-        .findFirst();
-
-    if (existing != null) {
-      // Update with latest values
-      existing.caloriesPerBase = calories;
-      existing.proteinPerBase = protein;
-      existing.carbsPerBase = carbs;
-      existing.fatPerBase = fat;
-      existing.baseAmount = baseAmount;
-      existing.baseUnit = validUnit;
-      existing.usageCount++;
-      existing.updatedAt = DateTime.now();
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.ingredients.put(existing);
-      });
-
-      AppLogger.info(
-          'Updated Ingredient: ${existing.name} (id=${existing.id})');
-      return existing;
-    }
-
-    // Create new
-    final ingredient = Ingredient()
-      ..name = name
-      ..nameEn = nameEn
-      ..baseAmount = baseAmount
-      ..baseUnit = validUnit
-      ..caloriesPerBase = calories
-      ..proteinPerBase = protein
-      ..carbsPerBase = carbs
-      ..fatPerBase = fat
-      ..source = source
-      ..usageCount = 1;
-
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.ingredients.put(ingredient);
-    });
-
-    debugPrint(
-        '✅ [MyMealNotifier] Created new Ingredient: ${ingredient.name} (id=${ingredient.id})');
-    return ingredient;
+    return IngredientActions.upsert(
+      name: name,
+      nameEn: nameEn,
+      baseAmount: baseAmount,
+      baseUnit: validUnit,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      source: source,
+    );
   }
 
   /// Save ingredient และ sub-ingredients แบบ recursive
@@ -158,29 +117,27 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
       source: meal.source,
     );
 
-    // 2. สร้าง MyMealIngredient จาก input
-    final mealIngredient = MyMealIngredient()
-      ..myMealId = meal.id
-      ..ingredientId = savedIngredient.id
-      ..ingredientName = input.name
-      ..amount = input.amount
-      ..unit = input.unit
-      ..calories = input.calories
-      ..protein = input.protein
-      ..carbs = input.carbs
-      ..fat = input.fat
-      ..parentId = parentId // NEW
-      ..depth = depth // NEW
-      ..isComposite = false // จะ update ทีหลังถ้ามี sub
-      ..detail = input.detail // NEW
-      ..sortOrder = sortOrder;
+    // 2. สร้าง MyMealIngredient และ insert
+    final mealIngredient = await DatabaseService.db
+        .into(DatabaseService.db.myMealIngredients)
+        .insertReturning(MyMealIngredientsCompanion.insert(
+          myMealId: meal.id,
+          ingredientId: savedIngredient.id,
+          ingredientName: input.name,
+          amount: input.amount,
+          unit: input.unit,
+          calories: input.calories,
+          protein: input.protein,
+          carbs: input.carbs,
+          fat: input.fat,
+          parentId: Value(parentId),
+          depth: Value(depth),
+          isComposite: const Value(false),
+          detail: Value(input.detail),
+          sortOrder: Value(sortOrder),
+        ));
 
-    // 3. Save parent ก่อน (ต้องได้ id มาก่อน)
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.myMealIngredients.put(mealIngredient);
-    });
-
-    // 4. ถ้ามี sub-ingredients → save recursively
+    // 3. ถ้ามี sub-ingredients → save recursively
     if (input.subIngredients != null && input.subIngredients!.isNotEmpty) {
       int subSortOrder = sortOrder + 1;
 
@@ -188,18 +145,18 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
         await _saveMealIngredient(
           meal: meal,
           input: subInput,
-          parentId: mealIngredient.id, // link to parent
-          depth: depth + 1, // increase depth
+          parentId: mealIngredient.id,
+          depth: depth + 1,
           sortOrder: subSortOrder,
         );
         subSortOrder++;
       }
 
-      // 5. Mark parent as composite
+      // 4. Mark parent as composite
+      await (DatabaseService.db.update(DatabaseService.db.myMealIngredients)
+            ..where((tbl) => tbl.id.equals(mealIngredient.id)))
+          .write(MyMealIngredientsCompanion(isComposite: const Value(true)));
       mealIngredient.isComposite = true;
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.myMealIngredients.put(mealIngredient);
-      });
     }
 
     return mealIngredient;
@@ -215,39 +172,37 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     String source = 'gemini',
   }) async {
     // คำนวณ total nutrition จาก ROOT ingredients เท่านั้น
-    // (SUB ingredients อยู่ใน input.subIngredients ไม่นับ)
     double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
     for (final ing in ingredients) {
-      totalCal += ing.calories; // ROOT only
+      totalCal += ing.calories;
       totalP += ing.protein;
       totalC += ing.carbs;
       totalF += ing.fat;
     }
 
     // สร้าง MyMeal
-    final meal = MyMeal()
-      ..name = name
-      ..nameEn = nameEn
-      ..totalCalories = totalCal
-      ..totalProtein = totalP
-      ..totalCarbs = totalC
-      ..totalFat = totalF
-      ..baseServingDescription = baseServingDescription
-      ..imagePath = imagePath
-      ..source = source
-      ..usageCount = 1;
+    final meal = await DatabaseService.db
+        .into(DatabaseService.db.myMeals)
+        .insertReturning(MyMealsCompanion.insert(
+          name: name,
+          totalCalories: totalCal,
+          totalProtein: totalP,
+          totalCarbs: totalC,
+          totalFat: totalF,
+          baseServingDescription: baseServingDescription,
+          source: source,
+          nameEn: Value(nameEn),
+          imagePath: Value(imagePath),
+          usageCount: const Value(1),
+        ));
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.myMeals.put(meal);
-    });
-
-    // สร้าง MyMealIngredient entries แบบ recursive (NEW)
+    // สร้าง MyMealIngredient entries แบบ recursive
     int sortIndex = 0;
     for (final input in ingredients) {
       await _saveMealIngredient(
         meal: meal,
         input: input,
-        parentId: null, // ROOT
+        parentId: null,
         depth: 0,
         sortOrder: sortIndex,
       );
@@ -273,13 +228,15 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     String? imagePath,
     required List<MealIngredientInput> ingredients,
   }) async {
-    final meal = await DatabaseService.myMeals.get(mealId);
+    final meal = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+          ..where((tbl) => tbl.id.equals(mealId)))
+        .getSingleOrNull();
     if (meal == null) throw Exception('Meal not found');
 
     // คำนวณ total nutrition จาก ROOT เท่านั้น
     double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
     for (final ing in ingredients) {
-      totalCal += ing.calories; // ROOT only
+      totalCal += ing.calories;
       totalP += ing.protein;
       totalC += ing.carbs;
       totalF += ing.fat;
@@ -296,14 +253,15 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     if (imagePath != null) meal.imagePath = imagePath;
     meal.updatedAt = DateTime.now();
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.myMeals.put(meal);
+    await DatabaseService.db.transaction(() async {
+      await DatabaseService.db
+          .into(DatabaseService.db.myMeals)
+          .insertOnConflictUpdate(meal);
 
       // ลบ MyMealIngredient เดิมทั้งหมด (รวม children)
-      await DatabaseService.myMealIngredients
-          .filter()
-          .myMealIdEqualTo(mealId)
-          .deleteAll();
+      await (DatabaseService.db.delete(DatabaseService.db.myMealIngredients)
+            ..where((tbl) => tbl.myMealId.equals(mealId)))
+          .go();
     });
 
     // สร้าง MyMealIngredient entries ใหม่แบบ recursive
@@ -312,7 +270,7 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
       await _saveMealIngredient(
         meal: meal,
         input: input,
-        parentId: null, // ROOT
+        parentId: null,
         depth: 0,
         sortOrder: sortIndex,
       );
@@ -340,22 +298,24 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required double carbs,
     required double fat,
   }) async {
-    final ingredient = await DatabaseService.ingredients.get(ingredientId);
+    final ingredient = await (DatabaseService.db.select(DatabaseService.db.ingredients)
+          ..where((tbl) => tbl.id.equals(ingredientId)))
+        .getSingleOrNull();
     if (ingredient == null) throw Exception('Ingredient not found');
 
     ingredient.name = name;
     ingredient.nameEn = nameEn;
     ingredient.baseAmount = baseAmount;
-    ingredient.baseUnit = UnitConverter.ensureValid(baseUnit); // Validate unit
+    ingredient.baseUnit = UnitConverter.ensureValid(baseUnit);
     ingredient.caloriesPerBase = calories;
     ingredient.proteinPerBase = protein;
     ingredient.carbsPerBase = carbs;
     ingredient.fatPerBase = fat;
     ingredient.updatedAt = DateTime.now();
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.ingredients.put(ingredient);
-    });
+    await DatabaseService.db
+        .into(DatabaseService.db.ingredients)
+        .insertOnConflictUpdate(ingredient);
 
     AppLogger.info(
         'Updated Ingredient: ${ingredient.name} (id=${ingredient.id})');
@@ -364,44 +324,39 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// ลบ MyMeal พร้อม ingredients
   Future<void> deleteMeal(int mealId) async {
-    await DatabaseService.isar.writeTxn(() async {
-      // ลบ ingredients ของ meal
-      await DatabaseService.myMealIngredients
-          .filter()
-          .myMealIdEqualTo(mealId)
-          .deleteAll();
-      // ลบ meal
-      await DatabaseService.myMeals.delete(mealId);
+    await DatabaseService.db.transaction(() async {
+      await (DatabaseService.db.delete(DatabaseService.db.myMealIngredients)
+            ..where((tbl) => tbl.myMealId.equals(mealId)))
+          .go();
+      await (DatabaseService.db.delete(DatabaseService.db.myMeals)
+            ..where((tbl) => tbl.id.equals(mealId)))
+          .go();
     });
   }
 
   /// ลบ ingredient
   Future<void> deleteIngredient(int ingredientId) async {
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.ingredients.delete(ingredientId);
-    });
+    await (DatabaseService.db.delete(DatabaseService.db.ingredients)
+          ..where((tbl) => tbl.id.equals(ingredientId)))
+        .go();
   }
 
   /// เพิ่ม usageCount ของ meal
   Future<void> incrementMealUsage(int mealId) async {
-    final meal = await DatabaseService.myMeals.get(mealId);
+    final meal = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+          ..where((tbl) => tbl.id.equals(mealId)))
+        .getSingleOrNull();
     if (meal != null) {
       meal.usageCount++;
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.myMeals.put(meal);
-      });
+      await DatabaseService.db
+          .into(DatabaseService.db.myMeals)
+          .insertOnConflictUpdate(meal);
     }
   }
 
   /// เพิ่ม usageCount ของ ingredient
   Future<void> incrementIngredientUsage(int ingredientId) async {
-    final ingredient = await DatabaseService.ingredients.get(ingredientId);
-    if (ingredient != null) {
-      ingredient.usageCount++;
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.ingredients.put(ingredient);
-      });
-    }
+    await IngredientActions.incrementUsage(ingredientId);
   }
 }
 
@@ -414,26 +369,26 @@ final myMealNotifierProvider =
 class MealIngredientInput {
   final String name;
   final String? nameEn;
-  final String? detail; // NEW
+  final String? detail;
   final double amount;
   final String unit;
   final double calories;
   final double protein;
   final double carbs;
   final double fat;
-  final List<MealIngredientInput>? subIngredients; // NEW: recursive
+  final List<MealIngredientInput>? subIngredients;
 
   MealIngredientInput({
     required this.name,
     this.nameEn,
-    this.detail, // NEW
+    this.detail,
     required this.amount,
     required this.unit,
     required this.calories,
     required this.protein,
     required this.carbs,
     required this.fat,
-    this.subIngredients, // NEW
+    this.subIngredients,
   });
 }
 
@@ -442,12 +397,11 @@ class MealIngredientInput {
 /// ดึง ingredients ของ meal เป็น tree structure (ROOT + children)
 final mealIngredientTreeProvider = FutureProvider.autoDispose
     .family<List<IngredientTreeNode>, int>((ref, mealId) async {
-  // Query all ingredients ของ meal นี้
-  final allIngredients = await DatabaseService.myMealIngredients
-      .filter()
-      .myMealIdEqualTo(mealId)
-      .sortBySortOrder()
-      .findAll();
+  final allIngredients = await (DatabaseService.db
+              .select(DatabaseService.db.myMealIngredients)
+            ..where((tbl) => tbl.myMealId.equals(mealId))
+            ..orderBy([(tbl) => OrderingTerm.asc(tbl.sortOrder)]))
+        .get();
 
   // แยก root vs sub
   final roots = allIngredients.where((e) => e.parentId == null).toList();

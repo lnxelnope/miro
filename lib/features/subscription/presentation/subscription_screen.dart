@@ -219,7 +219,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [AppColors.premium, AppColors.premiumDark],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -427,7 +427,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  const Icon(Icons.info_outline, color: AppColors.warning, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(

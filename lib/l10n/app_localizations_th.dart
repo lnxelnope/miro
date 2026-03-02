@@ -2326,6 +2326,14 @@ class L10nTh extends L10n {
   String get invalidBackupFile => 'ไฟล์สำรองข้อมูลไม่ถูกต้อง';
 
   @override
+  String get restoreSelectDataFile =>
+      'ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (miro_data_*.json) แทน';
+
+  @override
+  String get restoreZeroEntriesHint =>
+      'ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (miro_data_*.json) ไม่ใช่ไฟล์ energy';
+
+  @override
   String get restoreFailed => 'กู้คืนล้มเหลว';
 
   @override
@@ -2681,7 +2689,7 @@ class L10nTh extends L10n {
 
   @override
   String get retroScanDescription =>
-      'เราสามารถสแกนรูปภาพ 7 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ';
+      'เราสามารถสแกนรูปภาพ 1 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ';
 
   @override
   String get retroScanNote =>
@@ -2708,7 +2716,7 @@ class L10nTh extends L10n {
 
   @override
   String retroScanPhotosFound(int count) {
-    return 'พบ $count รูปใน 7 วันที่ผ่านมา';
+    return 'พบ $count รูปใน 1 วันที่ผ่านมา';
   }
 
   @override
@@ -2724,7 +2732,7 @@ class L10nTh extends L10n {
 
   @override
   String get retroScanNoResultsDesc =>
-      'ไม่พบรูปอาหารใน 7 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!';
+      'ไม่พบรูปอาหารใน 1 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!';
 
   @override
   String get retroScanAnalyzeHint =>
@@ -2885,8 +2893,7 @@ class L10nTh extends L10n {
   String get addButton => 'Add';
 
   @override
-  String get noIngredientsHint =>
-      'Tap \"Add\" button to add ingredients\nOr enter total nutrition below';
+  String get noIngredientsHint => 'ยังไม่มีวัตถุดิบ กดเพิ่มเพื่อบันทึก';
 
   @override
   String get totalNutritionTitle => 'Total Nutrition';
@@ -3318,4 +3325,257 @@ class L10nTh extends L10n {
   @override
   String get subscriptionCannotLoadPrices =>
       'ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้';
+
+  @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get cloudSyncSynced => 'ข้อมูลซิงค์แล้ว';
+
+  @override
+  String cloudSyncPending(int count) {
+    return '$count รายการรอซิงค์';
+  }
+
+  @override
+  String cloudSyncLastDate(String date) {
+    return 'ซิงค์ล่าสุด: $date';
+  }
+
+  @override
+  String get cloudSyncNever => 'ยังไม่เคยซิงค์';
+
+  @override
+  String get cloudSyncAutoDescription =>
+      'ซิงค์อัตโนมัติเมื่อเปิดแอปครั้งแรกของวัน';
+
+  @override
+  String get cloudSyncNow => 'ซิงค์ตอนนี้';
+
+  @override
+  String get cloudSyncSuccess => 'ซิงค์ข้อมูลสำเร็จ';
+
+  @override
+  String cloudSyncFailed(String error) {
+    return 'ซิงค์ไม่สำเร็จ: $error';
+  }
+
+  @override
+  String get backupExportSubtitle => 'ส่งออกไฟล์สำหรับย้ายเครื่อง';
+
+  @override
+  String get foodResearch => 'Food Research';
+
+  @override
+  String get foodResearchSubtitleOn => 'กำลังช่วยพัฒนา AI วิเคราะห์อาหาร';
+
+  @override
+  String get foodResearchSubtitleOff => 'ร่วมวิจัยด้านอาหารด้วยรูปอาหารของคุณ';
+
+  @override
+  String get foodResearchDialogTitle => 'Food Environment Research';
+
+  @override
+  String get foodResearchDialogDescription =>
+      'ช่วยเราพัฒนา AI วิเคราะห์อาหารให้ดีขึ้นด้วยการแชร์ข้อมูลรูปอาหาร';
+
+  @override
+  String get foodResearchWhatWeAnalyze => 'สิ่งที่วิเคราะห์:';
+
+  @override
+  String get foodResearchAnalyze1 => 'อาหาร, เครื่องดื่ม, ขนม ในรูป';
+
+  @override
+  String get foodResearchAnalyze2 =>
+      'ยี่ห้อ + ขนาดสินค้าอาหาร (ช่วย calibrate portion)';
+
+  @override
+  String get foodResearchAnalyze3 => 'ร้านอาหาร (ถ้าเห็นโลโก้)';
+
+  @override
+  String get foodResearchAnalyze4 => 'ภาชนะ, ช้อนส้อม';
+
+  @override
+  String get foodResearchWhatWeSkip => 'สิ่งที่ไม่เก็บ:';
+
+  @override
+  String get foodResearchSkip1 => 'ใบหน้า, ข้อมูลส่วนตัว';
+
+  @override
+  String get foodResearchSkip2 => 'ของใช้ส่วนตัว, เสื้อผ้า, กระเป๋า';
+
+  @override
+  String get foodResearchSkip3 => 'บัตรเครดิต, เอกสาร';
+
+  @override
+  String get foodResearchPrivacyNote =>
+      'ข้อมูลจะถูก anonymize และใช้เป็น aggregate เท่านั้น ปิดได้ทุกเมื่อ';
+
+  @override
+  String get foodResearchDecline => 'ไม่ร่วม';
+
+  @override
+  String get foodResearchAccept => 'ยินดีร่วม';
+
+  @override
+  String get foodResearchThanks => 'ขอบคุณที่ร่วมสนับสนุนงานวิจัยด้านอาหาร!';
+
+  @override
+  String get foodResearchDisabled => 'ปิดการแชร์ข้อมูลเพื่อวิจัยแล้ว';
+
+  @override
+  String get consentDialogTitle => 'ข้อมูล & งานวิจัย';
+
+  @override
+  String get consentAnalyticsSection => 'ข้อมูลการใช้งานแอป';
+
+  @override
+  String get consentAnalyticsDescription =>
+      'เราใช้ Firebase Analytics เพื่อพัฒนาประสบการณ์การใช้แอป';
+
+  @override
+  String get consentAnalyticsCollect => 'เก็บ: การใช้ฟีเจอร์, หน้าที่เข้าชม';
+
+  @override
+  String get consentAnalyticsNotCollect =>
+      'ไม่เก็บ: ข้อมูลอาหาร, รูปภาพ, ข้อมูลสุขภาพ';
+
+  @override
+  String get consentAnalyticsAnonymous => 'ข้อมูลถูกรวมและเป็นนิรนาม';
+
+  @override
+  String get consentFoodResearchSection => 'วิจัยด้านอาหาร (ทางเลือก)';
+
+  @override
+  String get consentChangeAnytime => 'เปลี่ยนได้ทุกเมื่อใน โปรไฟล์ → ตั้งค่า';
+
+  @override
+  String get ingredientSearchHintExample => 'เช่น ไข่, น้ำมันพืช, หมูสับ';
+
+  @override
+  String get freeIngredientSearch => 'ค้นหาวัตถุดิบฟรี ไม่เสีย Energy!';
+
+  @override
+  String get recoveryKeyRestoreTitle => 'กู้คืนด้วย Recovery Key';
+
+  @override
+  String get recoveryKeyRestoreSubtitle =>
+      'ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์';
+
+  @override
+  String get recoveryKeyRegenerateConfirm => 'สร้าง Key ใหม่?';
+
+  @override
+  String get recoveryKeyRegenerateWarning =>
+      'Key เก่าจะใช้ไม่ได้อีก\n\nถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน';
+
+  @override
+  String get recoveryKeyRegenerate => 'สร้างใหม่';
+
+  @override
+  String get recoveryKeyRegenerated => 'สร้าง Recovery Key ใหม่แล้ว';
+
+  @override
+  String get recoveryKeyDescription => 'ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง';
+
+  @override
+  String get recoveryKeyRegenerateTooltip => 'สร้าง Key ใหม่';
+
+  @override
+  String get recoveryKeyLoading => 'กำลังโหลด...';
+
+  @override
+  String get recoveryKeyHide => 'ซ่อน';
+
+  @override
+  String get recoveryKeyShow => 'แสดง';
+
+  @override
+  String get recoveryKeyCopied => 'คัดลอก Recovery Key แล้ว';
+
+  @override
+  String get recoveryKeyCopyTooltip => 'คัดลอก';
+
+  @override
+  String get recoveryKeyWarning => '⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น';
+
+  @override
+  String get restoreAccountTitle => 'กู้คืนบัญชี';
+
+  @override
+  String get restoreFromRecoveryKey => 'กู้คืนจาก Recovery Key';
+
+  @override
+  String get restoreEnterKey =>
+      'ใส่ Recovery Key จากเครื่องเดิม\nเพื่อกู้คืนประวัติการทานและ Energy';
+
+  @override
+  String get restoreButton => 'กู้คืนบัญชี';
+
+  @override
+  String get restoreKeyLocation =>
+      'Recovery Key อยู่ใน Settings > Account ของเครื่องเดิม';
+
+  @override
+  String get restoreSuccess => 'กู้คืนสำเร็จ!';
+
+  @override
+  String restoreFoodEntries(int count) {
+    return '$count รายการอาหาร';
+  }
+
+  @override
+  String get restoreProfileRecovered => 'โปรไฟล์ & เป้าหมายกู้คืนแล้ว';
+
+  @override
+  String get restoreStartUsing => 'เริ่มใช้งาน';
+
+  @override
+  String get restoreEmptyKey => 'กรุณาใส่ Recovery Key';
+
+  @override
+  String get restoreFailedGeneric => 'ไม่สามารถกู้คืนได้ กรุณาตรวจสอบ Key';
+
+  @override
+  String get restoreInvalidKey =>
+      'Recovery Key ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+
+  @override
+  String get restoreExpiredKey =>
+      'Recovery Key หมดอายุแล้ว กรุณาสร้างใหม่จากเครื่องเดิม';
+
+  @override
+  String get restoreSameDevice => 'ไม่สามารถกู้คืนบนเครื่องเดิมได้';
+
+  @override
+  String get restoreNoInternet => 'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่';
+
+  @override
+  String restoreErrorGeneric(String error) {
+    return 'เกิดข้อผิดพลาด: $error';
+  }
+
+  @override
+  String get nameChangeReAnalyzeTitle => 'ชื่ออาหารเปลี่ยน';
+
+  @override
+  String nameChangeReAnalyzeMessage(String newName) {
+    return 'คุณเปลี่ยนชื่อเป็น \"$newName\"\nวัตถุดิบที่ ✓ จะถูกวิเคราะห์ใหม่\nเอา ✓ ออก เพื่อเก็บไว้ตามเดิม';
+  }
+
+  @override
+  String get nameChangeReAnalyzeConfirm => 'วิเคราะห์ใหม่';
+
+  @override
+  String get nameChangeSaveAsIs => 'บันทึกตามเดิม';
+
+  @override
+  String get nameChangeAnalyzing => 'กำลังวิเคราะห์วัตถุดิบใหม่...';
+
+  @override
+  String get nameChangeAnalysisFailed => 'วิเคราะห์ใหม่ไม่สำเร็จ บันทึกตามเดิม';
+
+  @override
+  String get nameChangeNoIngredientToAnalyze =>
+      'ไม่มีวัตถุดิบที่ต้องวิเคราะห์ใหม่';
 }

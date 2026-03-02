@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "Tệp sao lưu không hợp lệ",
   "restoreFailed": "Khôi phục không thành công",
   "analyticsDataCollection": "Thu thập dữ liệu phân tích",
-  "analyticsEnabled": "Đã bật phân tích - ขอบคุณที่ช่วยปรับปรุงแอป",
-  "analyticsDisabled": "Analytics bị vô hiệu hóa - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "Đã bật phân tích - Cảm ơn đã giúp cải thiện ứng dụng",
+  "analyticsDisabled": "Phân tích bị tắt - Không thu thập dữ liệu sử dụng",
   "enabled": "Đã bật",
-  "enabledSubtitle": "Đã bật - ช่วยปรับปรุงประสบการณ์ใช้งาน",
-  "disabled": "Tàn tật",
-  "disabledSubtitle": "Đã tắt - ไม่เก็บข้อมูลการใช้งาน",
+  "enabledSubtitle": "Đã bật - Giúp cải thiện trải nghiệm người dùng",
+  "disabled": "Đã tắt",
+  "disabledSubtitle": "Đã tắt - Không thu thập dữ liệu sử dụng",
   "imagesPerDay": "Hình ảnh mỗi ngày",
   "scanUpToImagesPerDay": "Quét tối đa {limit} hình ảnh mỗi ngày",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "Vui lòng thêm ít nhất 1 thành phần",
   "hiddenIngredientsDiscovered": "Thành phần ẩn được phát hiện bởi AI",
   "retroScanTitle": "Quét ảnh gần đây?",
-  "retroScanDescription": "Chúng tôi có thể quét ảnh của bạn trong 7 ngày qua để tự động tìm ảnh đồ ăn và thêm chúng vào nhật ký của bạn.",
+  "retroScanDescription": "Chúng tôi có thể quét ảnh của bạn trong 1 ngày qua để tự động tìm ảnh đồ ăn và thêm chúng vào nhật ký của bạn.",
   "retroScanNote": "Chỉ phát hiện được ảnh đồ ăn - các ảnh khác sẽ bị bỏ qua. Không có ảnh nào rời khỏi thiết bị của bạn.",
   "retroScanStart": "Quét ảnh của tôi",
   "retroScanSkip": "Bỏ qua bây giờ",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO đang biến đổi bạn\nảnh thực phẩm vào dữ liệu sức khỏe.",
   "retroScanFetchingPhotos": "Đang tìm nạp các ảnh gần đây...",
   "retroScanAnalyzing": "Đang phát hiện ảnh đồ ăn...",
-  "retroScanPhotosFound": "{count} ảnh được tìm thấy trong 7 ngày qua",
+  "retroScanPhotosFound": "{count} ảnh được tìm thấy trong 1 ngày qua",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "Không tìm thấy ảnh đồ ăn",
-  "retroScanNoResultsDesc": "Không phát hiện thấy ảnh đồ ăn nào trong 7 ngày qua. Hãy thử chụp ảnh bữa ăn tiếp theo của bạn!",
+  "retroScanNoResultsDesc": "Không phát hiện thấy ảnh đồ ăn nào trong 1 ngày qua. Hãy thử chụp ảnh bữa ăn tiếp theo của bạn!",
   "retroScanAnalyzeHint": "Nhấn vào \"Phân tích tất cả\" trên dòng thời gian của bạn để nhận phân tích dinh dưỡng AI cho các mục này.",
   "retroScanDone": "Hiểu rồi!",
   "welcomeEndTitle": "Chào mừng đến với MiRO!",

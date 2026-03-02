@@ -1,12 +1,12 @@
 import 'dart:ui' as ui;
 
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
 import 'package:miro_hybrid/features/scanner/services/qr_parser.dart';
-import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
-import 'package:miro_hybrid/features/health/models/food_entry.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
 
@@ -70,10 +70,9 @@ class ScanController {
 
       // ⭐ เช็คว่ารูปนี้เคยถูกสแกนมาก่อนหรือไม่ (ไม่ว่าจะลบแล้วหรือยัง)
       // ถ้าเคยสแกน → skip เสมอ ป้องกันรูปที่ผู้ใช้ลบแล้วกลับมาหลัง refresh
-      final existingEntry = await DatabaseService.foodEntries
-          .filter()
-          .imagePathEqualTo(file.path)
-          .findFirst();
+      final existingEntry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+          ..where((tbl) => tbl.imagePath.equals(file.path)))
+          .getSingleOrNull();
 
       if (existingEntry != null) {
         AppLogger.info(
@@ -196,41 +195,33 @@ class ScanController {
 
     AppLogger.info('Saving entry with name: $displayName (from label: $label)');
 
-    final entry = FoodEntry()
-      ..foodName = displayName
-      ..foodNameEn = displayNameEn
-      ..timestamp = timestamp
-      ..imagePath = imagePath
-      ..mealType = mealType
-      ..servingSize = servingSize
-      ..servingUnit = servingUnit
-      ..servingGrams = servingGrams
-      ..calories = calories
-      ..protein = protein
-      ..carbs = carbs
-      ..fat = fat
-      ..source = DataSource.galleryScanned
-      ..aiConfidence = 0.7
-      ..isVerified = false
-      ..notes = 'ML Kit: ${allLabels.isNotEmpty ? allLabels.join(", ") : label}'
-      ..createdAt = DateTime.now()
-      ..updatedAt = DateTime.now()
-      // AR Scale calibration data (ถ้ามี)
-      ..referenceObjectUsed = arCalibration?.referenceObject.type.name
-      ..referenceConfidence = arCalibration?.referenceObject.confidence
-      ..plateDiameterCm = arCalibration?.plateDiameterCm
-      ..estimatedVolumeMl = arCalibration?.estimatedVolumeMl
-      ..isCalibrated = arCalibration?.shouldUseCalibration ?? false
-      // AR Label Overlay data
-      ..arLabelsJson = arObjectLabels.isNotEmpty
-          ? DetectedObjectLabel.encode(arObjectLabels) : null
-      ..arImageWidth = arImageWidth
-      ..arImageHeight = arImageHeight
-      ..arPixelPerCm = arCalibration?.pixelPerCm;
-
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.foodEntries.put(entry);
-    });
+    final entry = await DatabaseService.db.into(DatabaseService.db.foodEntries).insertReturning(FoodEntriesCompanion.insert(
+      foodName: displayName,
+      timestamp: timestamp,
+      mealType: mealType,
+      servingSize: servingSize,
+      servingUnit: servingUnit,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      source: DataSource.galleryScanned,
+      foodNameEn: Value(displayNameEn),
+      imagePath: Value(imagePath),
+      servingGrams: Value(servingGrams),
+      aiConfidence: const Value(0.7),
+      isVerified: const Value(false),
+      notes: Value('ML Kit: ${allLabels.isNotEmpty ? allLabels.join(", ") : label}'),
+      referenceObjectUsed: Value(arCalibration?.referenceObject.type.name),
+      referenceConfidence: Value(arCalibration?.referenceObject.confidence),
+      plateDiameterCm: Value(arCalibration?.plateDiameterCm),
+      estimatedVolumeMl: Value(arCalibration?.estimatedVolumeMl),
+      isCalibrated: Value(arCalibration?.shouldUseCalibration ?? false),
+      arLabelsJson: Value(arObjectLabels.isNotEmpty ? DetectedObjectLabel.encode(arObjectLabels) : null),
+      arImageWidth: Value(arImageWidth),
+      arImageHeight: Value(arImageHeight),
+      arPixelPerCm: Value(arCalibration?.pixelPerCm),
+    ));
 
     AppLogger.info('FoodEntry saved ID: ${entry.id}');
     AppLogger.info('   - Name: ${entry.foodName} ($label)');

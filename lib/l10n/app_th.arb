@@ -940,7 +940,6 @@
     }
   },
   "cancelDateChange": "ยกเลิกการเปลี่ยนวันที่",
-  "confirm": "ยืนยัน",
   "undo": "ยกเลิก",
 
   "chatHistory": "ประวัติการแชท",
@@ -1516,6 +1515,8 @@
   "appWillRefresh": "แอปจะรีเฟรชเพื่อแสดงข้อมูลที่กู้คืน",
   "backupFailed": "สร้างสำรองข้อมูลล้มเหลว",
   "invalidBackupFile": "ไฟล์สำรองข้อมูลไม่ถูกต้อง",
+  "restoreSelectDataFile": "ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (miro_data_*.json) แทน",
+  "restoreZeroEntriesHint": "ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (miro_data_*.json) ไม่ใช่ไฟล์ energy",
   "restoreFailed": "กู้คืนล้มเหลว",
   "analyticsDataCollection": "การเก็บข้อมูลการวิเคราะห์",
   "analyticsEnabled": "เปิดการวิเคราะห์แล้ว - ขอบคุณที่ช่วยปรับปรุงแอป",
@@ -1842,7 +1843,7 @@
   "pleaseAddAtLeastOneIngredient": "กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ",
   "hiddenIngredientsDiscovered": "วัตถุดิบที่ AI ค้นพบ",
   "retroScanTitle": "สแกนรูปย้อนหลัง?",
-  "retroScanDescription": "เราสามารถสแกนรูปภาพ 7 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ",
+  "retroScanDescription": "เราสามารถสแกนรูปภาพ 1 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ",
   "retroScanNote": "ตรวจจับเฉพาะรูปอาหาร — รูปอื่นจะถูกข้าม ไม่มีรูปถูกส่งออกนอกเครื่อง",
   "retroScanStart": "สแกนรูปของฉัน",
   "retroScanSkip": "ข้ามไปก่อน",
@@ -1850,7 +1851,7 @@
   "retroScanTagline": "MiRO กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ",
   "retroScanFetchingPhotos": "กำลังดึงรูปภาพล่าสุด...",
   "retroScanAnalyzing": "กำลังตรวจจับรูปอาหาร...",
-  "retroScanPhotosFound": "พบ {count} รูปใน 7 วันที่ผ่านมา",
+  "retroScanPhotosFound": "พบ {count} รูปใน 1 วันที่ผ่านมา",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1868,7 +1869,7 @@
     }
   },
   "retroScanNoResultsTitle": "ไม่พบรูปอาหาร",
-  "retroScanNoResultsDesc": "ไม่พบรูปอาหารใน 7 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!",
+  "retroScanNoResultsDesc": "ไม่พบรูปอาหารใน 1 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!",
   "retroScanAnalyzeHint": "กด \"วิเคราะห์ทั้งหมด\" บน timeline เพื่อให้ AI วิเคราะห์โภชนาการ",
   "retroScanDone": "เข้าใจแล้ว!",
   "welcomeEndTitle": "ยินดีต้อนรับสู่ MiRO!",
@@ -2022,5 +2023,115 @@
   "subscriptionAutoRenewOff": "ปิด — หมดอายุเมื่อสิ้นสุดรอบ",
   "subscriptionManagedByAppStore": "การสมัครสมาชิกจัดการผ่าน App Store",
   "subscriptionManagedByPlayStore": "การสมัครสมาชิกจัดการผ่าน Google Play",
-  "subscriptionCannotLoadPrices": "ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้"
+  "subscriptionCannotLoadPrices": "ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้",
+
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSynced": "ข้อมูลซิงค์แล้ว",
+  "cloudSyncPending": "{count} รายการรอซิงค์",
+  "@cloudSyncPending": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cloudSyncLastDate": "ซิงค์ล่าสุด: {date}",
+  "@cloudSyncLastDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cloudSyncNever": "ยังไม่เคยซิงค์",
+  "cloudSyncAutoDescription": "ซิงค์อัตโนมัติเมื่อเปิดแอปครั้งแรกของวัน",
+  "cloudSyncNow": "ซิงค์ตอนนี้",
+  "cloudSyncSuccess": "ซิงค์ข้อมูลสำเร็จ",
+  "cloudSyncFailed": "ซิงค์ไม่สำเร็จ: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "backupExportSubtitle": "ส่งออกไฟล์สำหรับย้ายเครื่อง",
+
+  "foodResearch": "Food Research",
+  "foodResearchSubtitleOn": "กำลังช่วยพัฒนา AI วิเคราะห์อาหาร",
+  "foodResearchSubtitleOff": "ร่วมวิจัยด้านอาหารด้วยรูปอาหารของคุณ",
+  "foodResearchDialogTitle": "Food Environment Research",
+  "foodResearchDialogDescription": "ช่วยเราพัฒนา AI วิเคราะห์อาหารให้ดีขึ้นด้วยการแชร์ข้อมูลรูปอาหาร",
+  "foodResearchWhatWeAnalyze": "สิ่งที่วิเคราะห์:",
+  "foodResearchAnalyze1": "อาหาร, เครื่องดื่ม, ขนม ในรูป",
+  "foodResearchAnalyze2": "ยี่ห้อ + ขนาดสินค้าอาหาร (ช่วย calibrate portion)",
+  "foodResearchAnalyze3": "ร้านอาหาร (ถ้าเห็นโลโก้)",
+  "foodResearchAnalyze4": "ภาชนะ, ช้อนส้อม",
+  "foodResearchWhatWeSkip": "สิ่งที่ไม่เก็บ:",
+  "foodResearchSkip1": "ใบหน้า, ข้อมูลส่วนตัว",
+  "foodResearchSkip2": "ของใช้ส่วนตัว, เสื้อผ้า, กระเป๋า",
+  "foodResearchSkip3": "บัตรเครดิต, เอกสาร",
+  "foodResearchPrivacyNote": "ข้อมูลจะถูก anonymize และใช้เป็น aggregate เท่านั้น ปิดได้ทุกเมื่อ",
+  "foodResearchDecline": "ไม่ร่วม",
+  "foodResearchAccept": "ยินดีร่วม",
+  "foodResearchThanks": "ขอบคุณที่ร่วมสนับสนุนงานวิจัยด้านอาหาร!",
+  "foodResearchDisabled": "ปิดการแชร์ข้อมูลเพื่อวิจัยแล้ว",
+  "noIngredientsHint": "ยังไม่มีวัตถุดิบ กดเพิ่มเพื่อบันทึก",
+
+  "consentDialogTitle": "ข้อมูล & งานวิจัย",
+  "consentAnalyticsSection": "ข้อมูลการใช้งานแอป",
+  "consentAnalyticsDescription": "เราใช้ Firebase Analytics เพื่อพัฒนาประสบการณ์การใช้แอป",
+  "consentAnalyticsCollect": "เก็บ: การใช้ฟีเจอร์, หน้าที่เข้าชม",
+  "consentAnalyticsNotCollect": "ไม่เก็บ: ข้อมูลอาหาร, รูปภาพ, ข้อมูลสุขภาพ",
+  "consentAnalyticsAnonymous": "ข้อมูลถูกรวมและเป็นนิรนาม",
+  "consentFoodResearchSection": "วิจัยด้านอาหาร (ทางเลือก)",
+  "consentChangeAnytime": "เปลี่ยนได้ทุกเมื่อใน โปรไฟล์ → ตั้งค่า",
+
+  "ingredientSearchHintExample": "เช่น ไข่, น้ำมันพืช, หมูสับ",
+  "freeIngredientSearch": "ค้นหาวัตถุดิบฟรี ไม่เสีย Energy!",
+
+  "recoveryKeyRestoreTitle": "กู้คืนด้วย Recovery Key",
+  "recoveryKeyRestoreSubtitle": "ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์",
+  "recoveryKeyRegenerateConfirm": "สร้าง Key ใหม่?",
+  "recoveryKeyRegenerateWarning": "Key เก่าจะใช้ไม่ได้อีก\n\nถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน",
+  "recoveryKeyRegenerate": "สร้างใหม่",
+  "recoveryKeyRegenerated": "สร้าง Recovery Key ใหม่แล้ว",
+  "recoveryKeyDescription": "ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง",
+  "recoveryKeyRegenerateTooltip": "สร้าง Key ใหม่",
+  "recoveryKeyLoading": "กำลังโหลด...",
+  "recoveryKeyHide": "ซ่อน",
+  "recoveryKeyShow": "แสดง",
+  "recoveryKeyCopied": "คัดลอก Recovery Key แล้ว",
+  "recoveryKeyCopyTooltip": "คัดลอก",
+  "recoveryKeyWarning": "⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น",
+
+  "restoreAccountTitle": "กู้คืนบัญชี",
+  "restoreFromRecoveryKey": "กู้คืนจาก Recovery Key",
+  "restoreEnterKey": "ใส่ Recovery Key จากเครื่องเดิม\nเพื่อกู้คืนประวัติการทานและ Energy",
+  "restoreButton": "กู้คืนบัญชี",
+  "restoreKeyLocation": "Recovery Key อยู่ใน Settings > Account ของเครื่องเดิม",
+  "restoreSuccess": "กู้คืนสำเร็จ!",
+  "restoreFoodEntries": "{count} รายการอาหาร",
+  "@restoreFoodEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreProfileRecovered": "โปรไฟล์ & เป้าหมายกู้คืนแล้ว",
+  "restoreStartUsing": "เริ่มใช้งาน",
+  "restoreEmptyKey": "กรุณาใส่ Recovery Key",
+  "restoreFailedGeneric": "ไม่สามารถกู้คืนได้ กรุณาตรวจสอบ Key",
+  "restoreInvalidKey": "Recovery Key ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+  "restoreExpiredKey": "Recovery Key หมดอายุแล้ว กรุณาสร้างใหม่จากเครื่องเดิม",
+  "restoreSameDevice": "ไม่สามารถกู้คืนบนเครื่องเดิมได้",
+  "restoreNoInternet": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่",
+  "restoreErrorGeneric": "เกิดข้อผิดพลาด: {error}",
+  "@restoreErrorGeneric": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "nameChangeReAnalyzeTitle": "ชื่ออาหารเปลี่ยน",
+  "nameChangeReAnalyzeMessage": "คุณเปลี่ยนชื่อเป็น \"{newName}\"\nวัตถุดิบที่ ✓ จะถูกวิเคราะห์ใหม่\nเอา ✓ ออก เพื่อเก็บไว้ตามเดิม",
+  "@nameChangeReAnalyzeMessage": {
+    "placeholders": {
+      "newName": {"type": "String"}
+    }
+  },
+  "nameChangeReAnalyzeConfirm": "วิเคราะห์ใหม่",
+  "nameChangeSaveAsIs": "บันทึกตามเดิม",
+  "nameChangeKeepIngredient": "เก็บไว้",
+  "nameChangeReAnalyzeIngredient": "วิเคราะห์ใหม่",
+  "nameChangeAnalyzing": "กำลังวิเคราะห์วัตถุดิบใหม่...",
+  "nameChangeAnalysisFailed": "วิเคราะห์ใหม่ไม่สำเร็จ บันทึกตามเดิม",
+  "nameChangeNoIngredientToAnalyze": "ไม่มีวัตถุดิบที่ต้องวิเคราะห์ใหม่"
 }

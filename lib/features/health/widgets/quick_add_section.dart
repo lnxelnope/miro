@@ -1,15 +1,14 @@
 import 'dart:async';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/constants/enums.dart';
 import '../providers/quick_add_provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
-import '../models/food_entry.dart';
-
 /// Section แสดง Quick Add buttons + Repeat Yesterday
 /// แสดงบน Timeline Tab ก่อนรายการอาหาร (ย่อ/ขยายได้)
 class QuickAddSection extends ConsumerStatefulWidget {
@@ -292,24 +291,35 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final date = widget.selectedDate;
     final ts = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
-    final entry = FoodEntry()
-      ..foodName = item.name
-      ..mealType = mealType
-      ..timestamp = ts
-      ..servingSize = item.servingSize
-      ..servingUnit = item.servingUnit
-      ..calories = item.calories
-      ..protein = item.protein
-      ..carbs = item.carbs
-      ..fat = item.fat
-      ..baseCalories = item.baseCalories
-      ..baseProtein = item.baseProtein
-      ..baseCarbs = item.baseCarbs
-      ..baseFat = item.baseFat
-      ..myMealId = item.myMealId
-      ..ingredientId = item.ingredientId
-      ..source = DataSource.manual
-      ..isVerified = true;
+    final entry = FoodEntry(
+      id: 0,
+      foodName: item.name,
+      mealType: mealType,
+      timestamp: ts,
+      servingSize: item.servingSize,
+      servingUnit: item.servingUnit,
+      calories: item.calories,
+      protein: item.protein,
+      carbs: item.carbs,
+      fat: item.fat,
+      baseCalories: item.baseCalories,
+      baseProtein: item.baseProtein,
+      baseCarbs: item.baseCarbs,
+      baseFat: item.baseFat,
+      myMealId: item.myMealId,
+      ingredientId: item.ingredientId,
+      source: DataSource.manual,
+      isVerified: true,
+      searchMode: FoodSearchMode.normal,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: now,
+      updatedAt: now,
+    );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);
@@ -438,31 +448,42 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final ts = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     for (final original in option.entries) {
-      final copy = FoodEntry()
-        ..foodName = original.foodName
-        ..foodNameEn = original.foodNameEn
-        ..mealType = original.mealType
-        ..timestamp = ts
-        ..imagePath = original.imagePath
-        ..servingSize = original.servingSize
-        ..servingUnit = original.servingUnit
-        ..servingGrams = original.servingGrams
-        ..calories = original.calories
-        ..protein = original.protein
-        ..carbs = original.carbs
-        ..fat = original.fat
-        ..baseCalories = original.baseCalories
-        ..baseProtein = original.baseProtein
-        ..baseCarbs = original.baseCarbs
-        ..baseFat = original.baseFat
-        ..fiber = original.fiber
-        ..sugar = original.sugar
-        ..sodium = original.sodium
-        ..myMealId = original.myMealId
-        ..ingredientId = original.ingredientId
-        ..source = original.source
-        ..isVerified = original.isVerified
-        ..notes = 'Copied from yesterday';
+      final copy = FoodEntry(
+        id: 0,
+        foodName: original.foodName,
+        foodNameEn: original.foodNameEn,
+        mealType: original.mealType,
+        timestamp: ts,
+        imagePath: original.imagePath,
+        servingSize: original.servingSize,
+        servingUnit: original.servingUnit,
+        servingGrams: original.servingGrams,
+        calories: original.calories,
+        protein: original.protein,
+        carbs: original.carbs,
+        fat: original.fat,
+        baseCalories: original.baseCalories,
+        baseProtein: original.baseProtein,
+        baseCarbs: original.baseCarbs,
+        baseFat: original.baseFat,
+        fiber: original.fiber,
+        sugar: original.sugar,
+        sodium: original.sodium,
+        myMealId: original.myMealId,
+        ingredientId: original.ingredientId,
+        source: original.source,
+        isVerified: original.isVerified,
+        notes: 'Copied from yesterday',
+        searchMode: original.searchMode,
+        isDeleted: false,
+        isGroupOriginal: false,
+        editCount: 0,
+        isUserCorrected: false,
+        isCalibrated: false,
+        isSynced: false,
+        createdAt: now,
+        updatedAt: now,
+      );
 
       await notifier.addFoodEntry(copy);
     }
@@ -592,31 +613,42 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
     final ts = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     for (final original in repeatDay.entries) {
-      final copy = FoodEntry()
-        ..foodName = original.foodName
-        ..foodNameEn = original.foodNameEn
-        ..mealType = original.mealType
-        ..timestamp = ts
-        ..imagePath = original.imagePath
-        ..servingSize = original.servingSize
-        ..servingUnit = original.servingUnit
-        ..servingGrams = original.servingGrams
-        ..calories = original.calories
-        ..protein = original.protein
-        ..carbs = original.carbs
-        ..fat = original.fat
-        ..baseCalories = original.baseCalories
-        ..baseProtein = original.baseProtein
-        ..baseCarbs = original.baseCarbs
-        ..baseFat = original.baseFat
-        ..fiber = original.fiber
-        ..sugar = original.sugar
-        ..sodium = original.sodium
-        ..myMealId = original.myMealId
-        ..ingredientId = original.ingredientId
-        ..source = original.source
-        ..isVerified = original.isVerified
-        ..notes = 'Copied from yesterday';
+      final copy = FoodEntry(
+        id: 0,
+        foodName: original.foodName,
+        foodNameEn: original.foodNameEn,
+        mealType: original.mealType,
+        timestamp: ts,
+        imagePath: original.imagePath,
+        servingSize: original.servingSize,
+        servingUnit: original.servingUnit,
+        servingGrams: original.servingGrams,
+        calories: original.calories,
+        protein: original.protein,
+        carbs: original.carbs,
+        fat: original.fat,
+        baseCalories: original.baseCalories,
+        baseProtein: original.baseProtein,
+        baseCarbs: original.baseCarbs,
+        baseFat: original.baseFat,
+        fiber: original.fiber,
+        sugar: original.sugar,
+        sodium: original.sodium,
+        myMealId: original.myMealId,
+        ingredientId: original.ingredientId,
+        source: original.source,
+        isVerified: original.isVerified,
+        notes: 'Copied from yesterday',
+        searchMode: original.searchMode,
+        isDeleted: false,
+        isGroupOriginal: false,
+        editCount: 0,
+        isUserCorrected: false,
+        isCalibrated: false,
+        isSynced: false,
+        createdAt: now,
+        updatedAt: now,
+      );
 
       await notifier.addFoodEntry(copy);
     }

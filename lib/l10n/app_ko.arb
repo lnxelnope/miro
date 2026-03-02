@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "잘못된 백업 파일",
   "restoreFailed": "복원 실패",
   "analyticsDataCollection": "분석 데이터 수집",
-  "analyticsEnabled": "분석 활성화됨 - ขאบคุณท่ช่ม้ปप्र्तบปप्र्ุแมป",
-  "analyticsDisabled": "분석이 비활성화되었습니다. - ไม่ม่่ม่่ม่่่่่่่่มูมูมูมูมูมูมูมชช้้้้้ม",
+  "analyticsEnabled": "분석 활성화됨 - 앱 개선에 도움을 주셔서 감사합니다",
+  "analyticsDisabled": "분석 비활성화됨 - 사용 데이터를 수집하지 않습니다",
   "enabled": "활성화됨",
-  "enabledSubtitle": "활성화됨 - ช่ม้ปप्र्तบปप्र्ุปप्रะมบมช้้้้넷",
-  "disabled": "장애가 있는",
-  "disabledSubtitle": "장애인 - ไม่ม่ม่่ม्่่่่่บข้้มูมูม้มูมูมูมูมูมช้้้้้ 이루고",
+  "enabledSubtitle": "활성화됨 - 사용자 경험 개선에 도움",
+  "disabled": "비활성화됨",
+  "disabledSubtitle": "비활성화됨 - 사용 데이터를 수집하지 않습니다",
   "imagesPerDay": "일일 이미지",
   "scanUpToImagesPerDay": "하루에 최대 {limit}개의 이미지를 스캔하세요.",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "재료를 1개 이상 추가해주세요.",
   "hiddenIngredientsDiscovered": "AI가 찾아낸 숨은 성분",
   "retroScanTitle": "최근 사진을 스캔하시겠습니까?",
-  "retroScanDescription": "지난 7일간의 사진을 스캔하여 자동으로 음식 사진을 찾아 일기에 추가할 수 있습니다.",
+  "retroScanDescription": "지난 1일간의 사진을 스캔하여 자동으로 음식 사진을 찾아 일기에 추가할 수 있습니다.",
   "retroScanNote": "음식 사진만 감지되며 다른 사진은 무시됩니다. 기기에 사진이 남지 않습니다.",
   "retroScanStart": "내 사진 스캔",
   "retroScanSkip": "지금은 건너뛰세요",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO이 당신을 변화시키고 있습니다\n음식 사진을 건강 데이터로 변환합니다.",
   "retroScanFetchingPhotos": "최근 사진을 가져오는 중...",
   "retroScanAnalyzing": "음식 사진 감지 중...",
-  "retroScanPhotosFound": "지난 7일 동안 {count} 사진이 검색되었습니다.",
+  "retroScanPhotosFound": "지난 1일 동안 {count} 사진이 검색되었습니다.",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "음식 사진을 찾을 수 없습니다.",
-  "retroScanNoResultsDesc": "지난 7일 동안 음식 사진이 감지되지 않았습니다. 다음 식사 사진을 찍어보세요!",
+  "retroScanNoResultsDesc": "지난 1일 동안 음식 사진이 감지되지 않았습니다. 다음 식사 사진을 찍어보세요!",
   "retroScanAnalyzeHint": "해당 항목에 대한 AI 영양 분석을 받으려면 타임라인에서 \"모두 분석\"을 탭하세요.",
   "retroScanDone": "알았어요!",
   "welcomeEndTitle": "MiRO에 오신 것을 환영합니다!",

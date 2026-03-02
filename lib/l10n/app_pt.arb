@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "Arquivo de backup inválido",
   "restoreFailed": "Falha na restauração",
   "analyticsDataCollection": "Coleta de dados analíticos",
-  "analyticsEnabled": "Analytics ativado -",
-  "analyticsDisabled": "Análise desativada -",
+  "analyticsEnabled": "Analytics ativado - Obrigado por ajudar a melhorar o app",
+  "analyticsDisabled": "Analytics desativado - Nenhum dado de uso coletado",
   "enabled": "Habilitado",
-  "enabledSubtitle": "Ativado -",
+  "enabledSubtitle": "Ativado - Ajuda a melhorar a experiência do usuário",
   "disabled": "Desabilitado",
-  "disabledSubtitle": "Desativado - ไม่เก็บข้อมูลการใช้งาน",
+  "disabledSubtitle": "Desativado - Nenhum dado de uso coletado",
   "imagesPerDay": "Imagens por dia",
   "scanUpToImagesPerDay": "Digitalize até {limit} imagens por dia",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "Adicione pelo menos 1 ingrediente",
   "hiddenIngredientsDiscovered": "Ingredientes ocultos descobertos pela IA",
   "retroScanTitle": "Digitalizar fotos recentes?",
-  "retroScanDescription": "Podemos digitalizar suas fotos dos últimos 7 dias para encontrar automaticamente fotos de alimentos e adicioná-las ao seu diário.",
+  "retroScanDescription": "Podemos digitalizar suas fotos do último 1 dia para encontrar automaticamente fotos de alimentos e adicioná-las ao seu diário.",
   "retroScanNote": "Apenas fotos de comida são detectadas – outras fotos são ignoradas. Nenhuma foto sai do seu dispositivo.",
   "retroScanStart": "Digitalizar minhas fotos",
   "retroScanSkip": "Pular por enquanto",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO está transformando seu\nfotos de alimentos em dados de saúde.",
   "retroScanFetchingPhotos": "Buscando fotos recentes...",
   "retroScanAnalyzing": "Detectando fotos de comida...",
-  "retroScanPhotosFound": "{count} fotos encontradas nos últimos 7 dias",
+  "retroScanPhotosFound": "{count} fotos encontradas no último 1 dia",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "Nenhuma foto de comida encontrada",
-  "retroScanNoResultsDesc": "Nenhuma foto de comida detectada nos últimos 7 dias. Experimente tirar uma foto da sua próxima refeição!",
+  "retroScanNoResultsDesc": "Nenhuma foto de comida detectada no último 1 dia. Experimente tirar uma foto da sua próxima refeição!",
   "retroScanAnalyzeHint": "Toque em “Analisar tudo” na sua linha do tempo para obter análises nutricionais de IA para essas entradas.",
   "retroScanDone": "Entendi!",
   "welcomeEndTitle": "Bem-vindo ao MiRO!",

@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "無効なバックアップ ファイル",
   "restoreFailed": "復元に失敗しました",
   "analyticsDataCollection": "分析データの収集",
-  "analyticsEnabled": "分析が有効になっています - 分析が有効です - 分析が有効です",
-  "analyticsDisabled": "分析が無効になっています - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "分析が有効になりました - アプリの改善にご協力ありがとうございます",
+  "analyticsDisabled": "分析が無効になりました - 使用データを収集しません",
   "enabled": "有効",
-  "enabledSubtitle": "有効 - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "enabledSubtitle": "有効 - ユーザー体験の向上に役立ちます",
   "disabled": "無効",
-  "disabledSubtitle": "無効 - ไม่เก็บข้อมูลการใช้งาน",
+  "disabledSubtitle": "無効 - 使用データを収集しません",
   "imagesPerDay": "1日あたりの画像",
   "scanUpToImagesPerDay": "1 日あたり最大 {limit} 枚の画像をスキャンします",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "少なくとも 1 つの材料を追加してください",
   "hiddenIngredientsDiscovered": "AIが発見した隠し食材",
   "retroScanTitle": "最近の写真をスキャンしますか?",
-  "retroScanDescription": "過去 7 日間の写真をスキャンして、食べ物の写真を自動的に見つけて日記に追加できます。",
+  "retroScanDescription": "過去 1 日間の写真をスキャンして、食べ物の写真を自動的に見つけて日記に追加できます。",
   "retroScanNote": "食べ物の写真のみが検出され、他の写真は無視されます。写真がデバイスから離れることはありません。",
   "retroScanStart": "私の写真をスキャンする",
   "retroScanSkip": "今のところスキップしてください",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO はあなたの変革をもたらします\n食べ物の写真を健康データに変換します。",
   "retroScanFetchingPhotos": "最近の写真を取得しています...",
   "retroScanAnalyzing": "食べ物の写真を検出しています...",
-  "retroScanPhotosFound": "過去 7 日間に {count} 枚の写真が見つかりました",
+  "retroScanPhotosFound": "過去 1 日間に {count} 枚の写真が見つかりました",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "食べ物の写真が見つかりません",
-  "retroScanNoResultsDesc": "過去 7 日間に食べ物の写真は検出されませんでした。次の食事の写真を撮ってみてください。",
+  "retroScanNoResultsDesc": "過去 1 日間に食べ物の写真は検出されませんでした。次の食事の写真を撮ってみてください。",
   "retroScanAnalyzeHint": "タイムラインで「すべて分析」をタップすると、これらのエントリの AI 栄養分析が行われます。",
   "retroScanDone": "わかった！",
   "welcomeEndTitle": "MiRO へようこそ!",

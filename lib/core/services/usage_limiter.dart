@@ -87,6 +87,53 @@ class UsageLimiter {
     return (freeAiCallsPerDay - count).clamp(0, freeAiCallsPerDay);
   }
 
+  // ============ Free Ingredient Edit Lookups ============
+  // Ingredient lookups from edit screen are free (limited per day)
+  // because user correction data is extremely valuable.
+
+  static const int freeEditLookupsPerDay = 10;
+  static const String _keyEditLookupDate = 'edit_lookup_date';
+  static const String _keyEditLookupCount = 'edit_lookup_count';
+
+  /// Check if user has free ingredient lookups remaining (edit screen only)
+  static Future<bool> canUseFreeEditLookup() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) return true;
+
+    final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+    return count < freeEditLookupsPerDay;
+  }
+
+  /// Record a free ingredient lookup usage
+  static Future<void> recordFreeEditLookup() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyEditLookupDate, today);
+      await prefs.setInt(_keyEditLookupCount, 1);
+    } else {
+      final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+      await prefs.setInt(_keyEditLookupCount, count + 1);
+    }
+  }
+
+  /// Remaining free edit lookups today
+  static Future<int> remainingFreeEditLookups() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) return freeEditLookupsPerDay;
+
+    final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+    return (freeEditLookupsPerDay - count).clamp(0, freeEditLookupsPerDay);
+  }
+
   // ============ Helper ============
 
   /// วันที่ปัจจุบัน format "2026-02-11"

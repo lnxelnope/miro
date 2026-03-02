@@ -2,41 +2,47 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-02 (Build 55 - Profile Data Persistence)
+**อัปเดตล่าสุด:** 2026-03-02 (Build 58)
 
 ---
 
-## ✅ Build 55 (v1.2.4) - Status: READY FOR RELEASE
+## ✅ Build 58 (v1.2.4) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.4+55`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 55`, `versionName = "1.2.4"`)
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.4+58`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 58`, `versionName = "1.2.4"`)
 - [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.4'`)
-- [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
+- [x] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [x] **Target SDK** - 35 (Android 15)
 - [x] **Compile SDK** - 36 (Android 16)
 - [x] **Version Naming** - ตาม Semantic Versioning (`1.2.4`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.4+55)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.4+58)
 - [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
-- **Profile Data Persistence** - TDEE/BMR calculator เก็บค่าลง profile:
-  - อายุ, น้ำหนัก, ส่วนสูง, เพศ, ระดับกิจกรรม, TDEE, BMR
-  - Pre-populate calculator จากข้อมูลที่มี
-  - เอา disclaimer "ไม่เก็บข้อมูล" ออก
-- **Locale & Cuisine** - เก็บภาษาและอาหารที่ชอบลง profile
-- **Clear Data Dialog** - เอารายละเอียดเทคนิค (Isar DB, SharedPreferences, Admin Panel) ออก
-- **Name Change Re-Analysis Feature** - เมื่อเปลี่ยนชื่ออาหารใน Edit Food Bottom Sheet:
-  - Dialog เลือกว่าจะ keep วัตถุดิบไหน (uncheck = keep, check = re-analyze)
-  - AI วิเคราะห์ใหม่เฉพาะวัตถุดิบที่ checked โดยใช้ `userIngredients` parameter
-  - วัตถุดิบที่ keep → `source: 'user_kept'` (ground truth data)
-  - วัตถุดิบที่ re-analyze → `source: 'ai_reanalyzed'`
-  - ฟรี ไม่เสีย energy (ใช้ free edit lookup)
-- **Data Mining Value** - เพิ่มมูลค่าข้อมูลสำหรับ research:
-  - `user_kept` ingredients = user-confirmed ground truth
-  - `ai_reanalyzed` ingredients = AI behavior tracking
-  - Original vs new name/ingredients comparison
+- **Billing Library Version Fix** - แก้ไข AndroidManifest.xml meta-data จาก `6.0.1` → `7.1.1` เพื่อให้ผ่าน Google Play policy (Billing Library 7.0+ requirement)
+
+---
+
+## ✅ Build 57 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- AD_ID Permission Fix, Remove flutter_native_splash, Build Fix for release
+
+---
+
+## ✅ Build 56 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Profile Data Persistence, Locale & Cuisine, Clear Data Dialog, AD_ID permission fix
+
+---
+
+## ✅ Build 55 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Profile Data Persistence, Locale & Cuisine, Clear Data Dialog
 
 ---
 
@@ -449,7 +455,7 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.4+54
+version: 1.2.4+58
 ```
 **Format:** `versionName+versionCode`
 - `1.2.3` = Version name (แสดงให้ user เห็น)
@@ -458,7 +464,7 @@ version: 1.2.4+54
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 54
+    versionCode = 58
     versionName = "1.2.4"
 }
 ```
@@ -466,7 +472,7 @@ defaultConfig {
 - `versionCode` = **Integer** (ไม่มี quotes)
 - `versionName` = **String** (ต้องมี quotes `""`)
 
-### 3. `lib/features/profile/presentation/profile_screen.dart` (บรรทัด ~310)
+### 3. `lib/features/profile/presentation/profile_screen.dart` (บรรทัด ~370)
 ```dart
 _buildModernSettingCard(
   context: context,
@@ -496,14 +502,14 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.3+53 → 1.2.4+54
-version: 1.2.4+54
+# ตัวอย่าง: จาก 1.2.4+57 → 1.2.4+58
+version: 1.2.4+58
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 54  // เพิ่มทีละ 1
+    versionCode = 58  // เพิ่มทีละ 1
     versionName = "1.2.4"  // ตรงกับ pubspec
 ```
 
@@ -538,7 +544,9 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 54 | 1.2.4 | 2026-03-01 | ✅ Current |
+| 58 | 1.2.4 | 2026-03-02 | ✅ Current |
+| 57 | 1.2.4 | 2026-03-02 | ✅ Released |
+| 54 | 1.2.4 | 2026-03-01 | ✅ Released |
 | 53 | 1.2.3 | 2026-03-01 | ✅ Released |
 | 51 | 1.2.3 | 2026-02-28 | ❌ Rejected (iOS) |
 | 50 | 1.2.2 | 2026-02-28 | ✅ Released |
@@ -578,8 +586,8 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.2.4+54`
-- `build.gradle.kts`: `versionCode = 54`, `versionName = "1.2.4"`
+- `pubspec.yaml`: `1.2.4+58`
+- `build.gradle.kts`: `versionCode = 58`, `versionName = "1.2.4"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
@@ -593,14 +601,14 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 54):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.4+54`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (53 → 54)
+### Pre-flight Checklist (Build 58):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.4+58`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (57 → 58)
 - [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.4'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.4+54)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.4+58)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
-- [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)
+- [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] Build และทดสอบ APK/AAB บนเครื่อง
 - [ ] Git commit และ push แล้ว
 

@@ -5,7 +5,6 @@ import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:miro_hybrid/main.dart';
 import 'package:miro_hybrid/features/energy/widgets/quest_bar.dart';
 import 'package:miro_hybrid/features/energy/widgets/claim_button.dart';
 import 'package:miro_hybrid/core/services/device_id_service.dart';

@@ -139,7 +139,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
 
       // Load canClaim status (from syncBalanceWithServer or local fallback)
       try {
-        final energyService = EnergyService(DatabaseService.isar);
+        final energyService = EnergyService(DatabaseService.db);
         final syncData = await energyService.syncBalanceWithServer();
         final tier = syncData['tier'] as String? ?? 'starter';
         final energyMap = {

@@ -4248,6 +4248,18 @@ abstract class L10n {
   /// **'Invalid Backup File'**
   String get invalidBackupFile;
 
+  /// No description provided for @restoreSelectDataFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.'**
+  String get restoreSelectDataFile;
+
+  /// No description provided for @restoreZeroEntriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.'**
+  String get restoreZeroEntriesHint;
+
   /// No description provided for @restoreFailed.
   ///
   /// In en, this message translates to:
@@ -4263,13 +4275,13 @@ abstract class L10n {
   /// No description provided for @analyticsEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป'**
+  /// **'Analytics enabled - Thanks for helping improve the app'**
   String get analyticsEnabled;
 
   /// No description provided for @analyticsDisabled.
   ///
   /// In en, this message translates to:
-  /// **'Analytics disabled - ไม่เก็บข้อมูลการใช้งาน'**
+  /// **'Analytics disabled - No usage data collected'**
   String get analyticsDisabled;
 
   /// No description provided for @enabled.
@@ -4281,7 +4293,7 @@ abstract class L10n {
   /// No description provided for @enabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน'**
+  /// **'Enabled - Helps improve user experience'**
   String get enabledSubtitle;
 
   /// No description provided for @disabled.
@@ -4293,7 +4305,7 @@ abstract class L10n {
   /// No description provided for @disabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Disabled - ไม่เก็บข้อมูลการใช้งาน'**
+  /// **'Disabled - No usage data collected'**
   String get disabledSubtitle;
 
   /// No description provided for @imagesPerDay.
@@ -4827,7 +4839,7 @@ abstract class L10n {
   /// No description provided for @retroScanDescription.
   ///
   /// In en, this message translates to:
-  /// **'We can scan your photos from the last 7 days to automatically find food photos and add them to your diary.'**
+  /// **'We can scan your photos from the last 1 day to automatically find food photos and add them to your diary.'**
   String get retroScanDescription;
 
   /// No description provided for @retroScanNote.
@@ -4875,7 +4887,7 @@ abstract class L10n {
   /// No description provided for @retroScanPhotosFound.
   ///
   /// In en, this message translates to:
-  /// **'{count} photos found in last 7 days'**
+  /// **'{count} photos found in last 1 day'**
   String retroScanPhotosFound(int count);
 
   /// No description provided for @retroScanCompleteTitle.
@@ -4899,7 +4911,7 @@ abstract class L10n {
   /// No description provided for @retroScanNoResultsDesc.
   ///
   /// In en, this message translates to:
-  /// **'No food photos detected in the last 7 days. Try taking a photo of your next meal!'**
+  /// **'No food photos detected in the last 1 day. Try taking a photo of your next meal!'**
   String get retroScanNoResultsDesc;
 
   /// No description provided for @retroScanAnalyzeHint.
@@ -5182,7 +5194,7 @@ abstract class L10n {
   /// No description provided for @noIngredientsHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap \"Add\" button to add ingredients\nOr enter total nutrition below'**
+  /// **'No ingredients yet. Tap add to record.'**
   String get noIngredientsHint;
 
   /// No description provided for @totalNutritionTitle.
@@ -5959,6 +5971,462 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Unable to load prices from the Store right now'**
   String get subscriptionCannotLoadPrices;
+
+  /// No description provided for @cloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get cloudSync;
+
+  /// No description provided for @cloudSyncSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Data synced'**
+  String get cloudSyncSynced;
+
+  /// No description provided for @cloudSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entries pending sync'**
+  String cloudSyncPending(int count);
+
+  /// No description provided for @cloudSyncLastDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {date}'**
+  String cloudSyncLastDate(String date);
+
+  /// No description provided for @cloudSyncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get cloudSyncNever;
+
+  /// No description provided for @cloudSyncAutoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-syncs when app opens for the first time each day'**
+  String get cloudSyncAutoDescription;
+
+  /// No description provided for @cloudSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get cloudSyncNow;
+
+  /// No description provided for @cloudSyncSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data synced successfully'**
+  String get cloudSyncSuccess;
+
+  /// No description provided for @cloudSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String cloudSyncFailed(String error);
+
+  /// No description provided for @backupExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export file for device transfer'**
+  String get backupExportSubtitle;
+
+  /// No description provided for @foodResearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Research'**
+  String get foodResearch;
+
+  /// No description provided for @foodResearchSubtitleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Helping improve food AI analysis'**
+  String get foodResearchSubtitleOn;
+
+  /// No description provided for @foodResearchSubtitleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Help food research with your food photos'**
+  String get foodResearchSubtitleOff;
+
+  /// No description provided for @foodResearchDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Environment Research'**
+  String get foodResearchDialogTitle;
+
+  /// No description provided for @foodResearchDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Help us improve food AI analysis by sharing your food photo data'**
+  String get foodResearchDialogDescription;
+
+  /// No description provided for @foodResearchWhatWeAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'What we analyze:'**
+  String get foodResearchWhatWeAnalyze;
+
+  /// No description provided for @foodResearchAnalyze1.
+  ///
+  /// In en, this message translates to:
+  /// **'Food, beverages, snacks in photos'**
+  String get foodResearchAnalyze1;
+
+  /// No description provided for @foodResearchAnalyze2.
+  ///
+  /// In en, this message translates to:
+  /// **'Food brand + size (helps calibrate portion)'**
+  String get foodResearchAnalyze2;
+
+  /// No description provided for @foodResearchAnalyze3.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant (if logo is visible)'**
+  String get foodResearchAnalyze3;
+
+  /// No description provided for @foodResearchAnalyze4.
+  ///
+  /// In en, this message translates to:
+  /// **'Utensils, plates, bowls'**
+  String get foodResearchAnalyze4;
+
+  /// No description provided for @foodResearchWhatWeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'What we do NOT collect:'**
+  String get foodResearchWhatWeSkip;
+
+  /// No description provided for @foodResearchSkip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Faces, personal info'**
+  String get foodResearchSkip1;
+
+  /// No description provided for @foodResearchSkip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal belongings, clothing, bags'**
+  String get foodResearchSkip2;
+
+  /// No description provided for @foodResearchSkip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit cards, documents'**
+  String get foodResearchSkip3;
+
+  /// No description provided for @foodResearchPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is anonymized and used in aggregate only. You can turn this off anytime.'**
+  String get foodResearchPrivacyNote;
+
+  /// No description provided for @foodResearchDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get foodResearchDecline;
+
+  /// No description provided for @foodResearchAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'d like to help'**
+  String get foodResearchAccept;
+
+  /// No description provided for @foodResearchThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for supporting food research!'**
+  String get foodResearchThanks;
+
+  /// No description provided for @foodResearchDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Food research sharing disabled'**
+  String get foodResearchDisabled;
+
+  /// No description provided for @consentDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Research'**
+  String get consentDialogTitle;
+
+  /// No description provided for @consentAnalyticsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App Usage Analytics'**
+  String get consentAnalyticsSection;
+
+  /// No description provided for @consentAnalyticsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We use Firebase Analytics to improve your app experience'**
+  String get consentAnalyticsDescription;
+
+  /// No description provided for @consentAnalyticsCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'What we collect: Feature usage, screens viewed'**
+  String get consentAnalyticsCollect;
+
+  /// No description provided for @consentAnalyticsNotCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Not collected: Food data, photos, health info'**
+  String get consentAnalyticsNotCollect;
+
+  /// No description provided for @consentAnalyticsAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is aggregated and anonymous'**
+  String get consentAnalyticsAnonymous;
+
+  /// No description provided for @consentFoodResearchSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Research (Optional)'**
+  String get consentFoodResearchSection;
+
+  /// No description provided for @consentChangeAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change these anytime in Profile → Settings'**
+  String get consentChangeAnytime;
+
+  /// No description provided for @ingredientSearchHintExample.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. egg, vegetable oil, ground pork'**
+  String get ingredientSearchHintExample;
+
+  /// No description provided for @freeIngredientSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Free ingredient search — no Energy cost!'**
+  String get freeIngredientSearch;
+
+  /// No description provided for @recoveryKeyRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore with Recovery Key'**
+  String get recoveryKeyRestoreTitle;
+
+  /// No description provided for @recoveryKeyRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Key from your old device, no file needed'**
+  String get recoveryKeyRestoreSubtitle;
+
+  /// No description provided for @recoveryKeyRegenerateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new Key?'**
+  String get recoveryKeyRegenerateConfirm;
+
+  /// No description provided for @recoveryKeyRegenerateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The old Key will no longer work.\n\nIf you wrote it down, you\'ll need to note the new one instead.'**
+  String get recoveryKeyRegenerateWarning;
+
+  /// No description provided for @recoveryKeyRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new'**
+  String get recoveryKeyRegenerate;
+
+  /// No description provided for @recoveryKeyRegenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'New Recovery Key generated'**
+  String get recoveryKeyRegenerated;
+
+  /// No description provided for @recoveryKeyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover your account when switching devices'**
+  String get recoveryKeyDescription;
+
+  /// No description provided for @recoveryKeyRegenerateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new Key'**
+  String get recoveryKeyRegenerateTooltip;
+
+  /// No description provided for @recoveryKeyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get recoveryKeyLoading;
+
+  /// No description provided for @recoveryKeyHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get recoveryKeyHide;
+
+  /// No description provided for @recoveryKeyShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get recoveryKeyShow;
+
+  /// No description provided for @recoveryKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key copied'**
+  String get recoveryKeyCopied;
+
+  /// No description provided for @recoveryKeyCopyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get recoveryKeyCopyTooltip;
+
+  /// No description provided for @recoveryKeyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ Keep this safe. Do not share with others.'**
+  String get recoveryKeyWarning;
+
+  /// No description provided for @restoreAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Account'**
+  String get restoreAccountTitle;
+
+  /// No description provided for @restoreFromRecoveryKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Recovery Key'**
+  String get restoreFromRecoveryKey;
+
+  /// No description provided for @restoreEnterKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the Recovery Key from your old device\nto recover your food history and Energy'**
+  String get restoreEnterKey;
+
+  /// No description provided for @restoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Account'**
+  String get restoreButton;
+
+  /// No description provided for @restoreKeyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key is in Settings > Account on your old device'**
+  String get restoreKeyLocation;
+
+  /// No description provided for @restoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore successful!'**
+  String get restoreSuccess;
+
+  /// No description provided for @restoreFoodEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} food entries'**
+  String restoreFoodEntries(int count);
+
+  /// No description provided for @restoreProfileRecovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile & goals recovered'**
+  String get restoreProfileRecovered;
+
+  /// No description provided for @restoreStartUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start using'**
+  String get restoreStartUsing;
+
+  /// No description provided for @restoreEmptyKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a Recovery Key'**
+  String get restoreEmptyKey;
+
+  /// No description provided for @restoreFailedGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to restore. Please check your Key.'**
+  String get restoreFailedGeneric;
+
+  /// No description provided for @restoreInvalidKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Recovery Key. Please check again.'**
+  String get restoreInvalidKey;
+
+  /// No description provided for @restoreExpiredKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key has expired. Please generate a new one from the original device.'**
+  String get restoreExpiredKey;
+
+  /// No description provided for @restoreSameDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot restore on the same device'**
+  String get restoreSameDevice;
+
+  /// No description provided for @restoreNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please try again.'**
+  String get restoreNoInternet;
+
+  /// No description provided for @restoreErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String restoreErrorGeneric(String error);
+
+  /// No description provided for @nameChangeReAnalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Name Changed'**
+  String get nameChangeReAnalyzeTitle;
+
+  /// No description provided for @nameChangeReAnalyzeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You changed the name to \"{newName}\"\nIngredients with ✓ will be re-analyzed\nUncheck to keep as-is'**
+  String nameChangeReAnalyzeMessage(String newName);
+
+  /// No description provided for @nameChangeReAnalyzeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze'**
+  String get nameChangeReAnalyzeConfirm;
+
+  /// No description provided for @nameChangeSaveAsIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as-is'**
+  String get nameChangeSaveAsIs;
+
+  /// No description provided for @nameChangeAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyzing ingredients...'**
+  String get nameChangeAnalyzing;
+
+  /// No description provided for @nameChangeAnalysisFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analysis failed. Saved as-is.'**
+  String get nameChangeAnalysisFailed;
+
+  /// No description provided for @nameChangeNoIngredientToAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients to re-analyze'**
+  String get nameChangeNoIngredientToAnalyze;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

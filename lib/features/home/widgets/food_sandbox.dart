@@ -1,14 +1,13 @@
 import 'dart:math';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/constants/enums.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../health/models/food_entry.dart';
-
 class FoodSandbox extends ConsumerStatefulWidget {
   final List<FoodEntry> entries;
   final void Function(FoodEntry entry) onTap;

@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "अमान्य बैकअप फ़ाइल",
   "restoreFailed": "पुनर्स्थापना विफल",
   "analyticsDataCollection": "विश्लेषिकी डेटा संग्रह",
-  "analyticsEnabled": "एनालिटिक्स सक्षम - डाउनलोड करें",
-  "analyticsDisabled": "एनालिटिक्स अक्षम - डाउनलोड करें",
+  "analyticsEnabled": "एनालिटिक्स सक्षम - ऐप सुधार में मदद के लिए धन्यवाद",
+  "analyticsDisabled": "एनालिटिक्स अक्षम - उपयोग डेटा एकत्र नहीं किया जाता",
   "enabled": "सक्रिय",
-  "enabledSubtitle": "सक्षम - सक्रिय",
+  "enabledSubtitle": "सक्षम - उपयोगकर्ता अनुभव में सुधार में मदद करता है",
   "disabled": "अक्षम",
-  "disabledSubtitle": "विकलांग - विकलांग व्यक्ति",
+  "disabledSubtitle": "अक्षम - उपयोग डेटा एकत्र नहीं किया जाता",
   "imagesPerDay": "प्रति दिन छवियां",
   "scanUpToImagesPerDay": "प्रति दिन {limit} छवियों तक स्कैन करें",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "कृपया कम से कम 1 सामग्री जोड़ें",
   "hiddenIngredientsDiscovered": "एआई द्वारा खोजे गए छिपे हुए तत्व",
   "retroScanTitle": "हाल की तस्वीरें स्कैन करें?",
-  "retroScanDescription": "हम स्वचालित रूप से भोजन की तस्वीरें ढूंढने और उन्हें आपकी डायरी में जोड़ने के लिए पिछले 7 दिनों की आपकी तस्वीरें स्कैन कर सकते हैं।",
+  "retroScanDescription": "हम स्वचालित रूप से भोजन की तस्वीरें ढूंढने और उन्हें आपकी डायरी में जोड़ने के लिए पिछले 1 दिन की आपकी तस्वीरें स्कैन कर सकते हैं।",
   "retroScanNote": "केवल भोजन की तस्वीरें पहचानी जाती हैं - अन्य तस्वीरें नजरअंदाज कर दी जाती हैं। कोई भी फ़ोटो आपके डिवाइस को नहीं छोड़ता.",
   "retroScanStart": "मेरी तस्वीरें स्कैन करें",
   "retroScanSkip": "अभी के लिए छोड़ दे",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO आपका परिवर्तन कर रहा है\nस्वास्थ्य डेटा में भोजन की तस्वीरें।",
   "retroScanFetchingPhotos": "हाल की तस्वीरें लाई जा रही हैं...",
   "retroScanAnalyzing": "खाने की फ़ोटो का पता लगाया जा रहा है...",
-  "retroScanPhotosFound": "पिछले 7 दिनों में {count} तस्वीरें मिलीं",
+  "retroScanPhotosFound": "पिछले 1 दिन में {count} तस्वीरें मिलीं",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "खाने की कोई फ़ोटो नहीं मिली",
-  "retroScanNoResultsDesc": "पिछले 7 दिनों में भोजन की कोई फ़ोटो नहीं मिली। अपने अगले भोजन की फ़ोटो लेने का प्रयास करें!",
+  "retroScanNoResultsDesc": "पिछले 1 दिन में भोजन की कोई फ़ोटो नहीं मिली। अपने अगले भोजन की फ़ोटो लेने का प्रयास करें!",
   "retroScanAnalyzeHint": "इन प्रविष्टियों के लिए एआई पोषण विश्लेषण प्राप्त करने के लिए अपनी टाइमलाइन पर \"सभी का विश्लेषण करें\" पर टैप करें।",
   "retroScanDone": "समझ गया!",
   "welcomeEndTitle": "MiRO में आपका स्वागत है!",

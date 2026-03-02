@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
@@ -9,14 +11,9 @@ import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
-import '../../../core/database/database_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
-import '../models/my_meal.dart';
-import '../models/my_meal_ingredient.dart';
-import '../models/ingredient.dart';
-
 /// Bottom sheet สำหรับสร้าง/แก้ไขเมนูอาหาร
 class CreateMealSheet extends ConsumerStatefulWidget {
   final Function(MyMeal) onSave;
@@ -100,12 +97,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   /// โหลด sub-ingredients สำหรับ parent ingredient (จาก MyMealIngredient)
   Future<void> _loadSubIngredients(
       _IngredientRow parentRow, int parentId) async {
-    // โหลดจาก Isar database - ใช้ filter ตรงๆ เร็วกว่าโหลดทั้งหมด
-    final allSubs = await DatabaseService.myMealIngredients
-        .filter()
-        .parentIdEqualTo(parentId)
-        .sortBySortOrder()
-        .findAll();
+    final allSubs = await (DatabaseService.db.select(DatabaseService.db.myMealIngredients)
+        ..where((tbl) => tbl.parentId.equals(parentId))
+        ..orderBy([(tbl) => OrderingTerm.asc(tbl.sortOrder)]))
+        .get();
 
     if (allSubs.isNotEmpty) {
       final subRows = allSubs.map((sub) {

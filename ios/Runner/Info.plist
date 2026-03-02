@@ -41,6 +41,8 @@
 	<string>MiRO ต้องการอ่านข้อมูลพลังงานที่เผาผลาญ เพื่อนำมาบวกเพิ่มในเป้าแคลอรี่ของคุณ</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>MiRO ต้องการบันทึกข้อมูลโภชนาการจากมื้ออาหารที่คุณบันทึก ไปยัง Apple Health</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>MiRO uses this to show relevant ads. You can still use all features if you decline.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Miro ต้องการบันทึกรูปภาพที่วิเคราะห์แล้ว</string>
 	<key>NSPhotoLibraryUsageDescription</key>

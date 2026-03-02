@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -6,8 +7,6 @@ import '../../../core/constants/enums.dart';
 import '../../../core/ar_scale/widgets/calibration_badge.dart';
 import '../../../core/ar_scale/constants/ar_scale_enums.dart';
 import '../../../core/widgets/food_entry_image.dart';
-import '../models/food_entry.dart';
-
 class FoodTimelineCard extends StatelessWidget {
   final FoodEntry entry;
   final VoidCallback? onTap;

@@ -1,17 +1,12 @@
 // ============================================
 // HEALTH ENUMS (Food only for v1.0)
+// Enum definitions live in app_database.dart (single source of truth for Drift).
+// This file only contains extension methods.
 // ============================================
 
 import 'package:flutter/material.dart';
+import '../database/app_database.dart';
 import '../theme/app_icons.dart';
-
-/// Meal type
-enum MealType {
-  breakfast,
-  lunch,
-  dinner,
-  snack,
-}
 
 extension MealTypeExtension on MealType {
   String get displayName {
@@ -72,12 +67,7 @@ extension MealTypeExtension on MealType {
 // GENERAL ENUMS
 // ============================================
 
-/// Search mode for AI food analysis
-/// Tells AI whether to analyze as regular food or packaged product
-enum FoodSearchMode {
-  normal, // อาหารทั่วไป — AI ประมาณค่าจากวัตถุดิบ
-  product, // สินค้ามี Nutrition Facts — AI ใช้ข้อมูลฉลากจริง
-}
+// FoodSearchMode enum is defined in app_database.dart
 
 extension FoodSearchModeExtension on FoodSearchMode {
   String get displayName {
@@ -118,14 +108,4 @@ extension FoodSearchModeExtension on FoodSearchMode {
   }
 }
 
-/// Data source
-enum DataSource {
-  manual, // User entered manually
-  aiAnalyzed, // AI analyzed
-  database, // From database (My Meal / Ingredient / Thai DB)
-  slipScan, // Legacy: Slip scan (kept for Isar backward compatibility)
-  healthConnect, // Legacy: Health Connect (kept for Isar backward compatibility)
-  googleCalendar, // Legacy: Google Calendar (kept for Isar backward compatibility)
-  barcode, // Barcode scan
-  galleryScanned, // Auto-scanned from Gallery
-}
+// DataSource enum is defined in app_database.dart

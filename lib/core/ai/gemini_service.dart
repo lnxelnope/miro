@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -12,7 +13,6 @@ import '../../features/energy/providers/gamification_provider.dart';
 import '../../features/energy/presentation/energy_store_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/logger.dart';
-import '../constants/enums.dart';
 
 class GeminiService {
   // Backend URL (Firebase Cloud Function)
@@ -1553,6 +1553,31 @@ IMPORTANT: Add "food_type" field:
 - If you clearly see a packaged product with a nutrition label → set "food_type": "product"
 - Otherwise → set "food_type": "food"
 
+Step 6 — SCENE CONTEXT (food, beverage & dining items ONLY):
+Scan the ENTIRE image for any ADDITIONAL food/beverage items or dining context
+that are visible but NOT the main dish being analyzed.
+This helps with portion calibration (known product dimensions) and meal pairing analysis.
+
+Add "scene_context" to your JSON (skip if nothing extra is visible):
+"scene_context": {
+  "dining_setting": "restaurant" | "home" | "office" | "outdoor" | "cafe" | "street_food" | "convenience_store" | "food_court",
+  "restaurant_chain": "chain/restaurant name if logo or branding is visible, else null",
+  "other_food_items": ["any other food visible in image that is NOT the main dish"],
+  "beverages": [
+    {"name": "brand + product name", "size": "volume", "container": "can|bottle|glass|cup|carton"}
+  ],
+  "packaged_products": [
+    {"name": "brand + product name", "size": "package size", "container": "bag|box|wrapper|cup"}
+  ]
+}
+
+RULES for scene_context:
+- ONLY report food, beverages, packaged food/snack products, and dining environment
+- DO NOT report personal belongings, clothing, accessories, electronics, or people
+- DO NOT report any personally identifiable information (faces, ID cards, etc.)
+- Beverage/product brand + size is useful for portion calibration (known standard dimensions)
+- If no additional items are visible, omit "scene_context" entirely
+
 Return ONLY valid JSON, no markdown or explanations.''';
   }
 
@@ -2365,6 +2390,18 @@ Return ONLY valid JSON, no markdown.''';
       ingredients: result.ingredients,
       ingredientsDetail: adjustedIngredients,
       notes: result.notes,
+      referenceObjectUsed: result.referenceObjectUsed,
+      referenceConfidence: result.referenceConfidence,
+      plateDiameterCm: result.plateDiameterCm,
+      estimatedVolumeMl: result.estimatedVolumeMl,
+      isCalibrated: result.isCalibrated,
+      brandName: result.brandName,
+      brandNameEn: result.brandNameEn,
+      productCategory: result.productCategory,
+      packageSize: result.packageSize,
+      chainName: result.chainName,
+      nutritionSource: result.nutritionSource,
+      sceneContext: result.sceneContext,
     );
   }
 }
@@ -2393,6 +2430,17 @@ class FoodAnalysisResult {
   final double? estimatedVolumeMl;
   final bool isCalibrated;
 
+  // Brand / Product metadata (parsed from AI response)
+  final String? brandName;
+  final String? brandNameEn;
+  final String? productCategory;
+  final String? packageSize;
+  final String? chainName;
+  final String? nutritionSource;
+
+  // Scene context (food/beverage/dining items around the main dish)
+  final Map<String, dynamic>? sceneContext;
+
   FoodAnalysisResult({
     required this.foodName,
     this.foodNameEn,
@@ -2410,6 +2458,13 @@ class FoodAnalysisResult {
     this.plateDiameterCm,
     this.estimatedVolumeMl,
     this.isCalibrated = false,
+    this.brandName,
+    this.brandNameEn,
+    this.productCategory,
+    this.packageSize,
+    this.chainName,
+    this.nutritionSource,
+    this.sceneContext,
   });
 
   factory FoodAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -2460,6 +2515,14 @@ class FoodAnalysisResult {
       plateDiameterCm: plateMeasure?['estimated_diameter_cm']?.toDouble(),
       estimatedVolumeMl: plateMeasure?['estimated_volume_ml']?.toDouble(),
       isCalibrated: refUsed != null && (refConf ?? 0) >= 0.65,
+      // Brand / Product metadata
+      brandName: json['brand_name'] ?? json['brand'],
+      brandNameEn: json['brand_name_en'] ?? json['brand_en'],
+      productCategory: json['product_category'] ?? json['category'],
+      packageSize: json['package_size'],
+      chainName: json['chain_name'] ?? json['restaurant_chain'],
+      nutritionSource: json['nutrition_source'],
+      sceneContext: json['scene_context'] as Map<String, dynamic>?,
     );
   }
 }

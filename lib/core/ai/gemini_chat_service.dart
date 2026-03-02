@@ -1,10 +1,9 @@
 import 'dart:convert';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
 import '../services/device_id_service.dart';
 import '../services/energy_service.dart';
-import '../../features/profile/models/user_profile.dart';
-
 /// Service for Chat with Miro AI (Gemini Backend)
 class GeminiChatService {
   static const String _functionUrl = FirebaseConfig.analyzeFoodUrl;

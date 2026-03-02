@@ -10,15 +10,15 @@ import '../../../core/utils/logger.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../core/database/database_service.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/providers/energy_provider.dart';
-import '../models/food_entry.dart';
-import '../models/ingredient.dart';
-import '../models/my_meal.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
+
+enum _NameChangeAction { reAnalyze, saveAsIs }
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -33,6 +33,9 @@ class _EditableIngredient {
   double calories, protein, carbs, fat;
   bool isLoading = false;
   bool isFromDb = false;
+
+  // Ingredient origin: 'ai' | 'user_db' | 'user_ai' | 'user'
+  String source;
   
   // Base nutrition without sub-ingredients (for additive calculation)
   double baseCaloriesWithoutSubs = 0;
@@ -53,6 +56,7 @@ class _EditableIngredient {
     required this.carbs,
     required this.fat,
     List<_EditableIngredient>? subIngredients,
+    this.source = 'ai',
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(
             text: amount > 0 ? amount.toStringAsFixed(0) : ''),
@@ -156,6 +160,7 @@ class _EditableIngredient {
       'protein': protein,
       'carbs': carbs,
       'fat': fat,
+      'source': source,
     };
     if (subIngredients.isNotEmpty) {
       map['sub_ingredients'] =
@@ -288,6 +293,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 protein: (subMap['protein'] as num?)?.toDouble() ?? 0,
                 carbs: (subMap['carbs'] as num?)?.toDouble() ?? 0,
                 fat: (subMap['fat'] as num?)?.toDouble() ?? 0,
+                source: subMap['source'] as String? ?? 'ai',
               );
             }).toList();
           }
@@ -302,6 +308,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
             carbs: (map['carbs'] as num?)?.toDouble() ?? 0,
             fat: (map['fat'] as num?)?.toDouble() ?? 0,
             subIngredients: subs,
+            source: map['source'] as String? ?? 'ai',
           ));
         }
         _ingredientsLoaded = true;
@@ -311,10 +318,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     }
   }
 
-  // serving size เดิมตอนเปิดหน้า → ใช้คำนวณ ratio
+  // ค่าเดิมตอนเปิดหน้า → ใช้คำนวณ ratio + correction tracking
   late final double _originalServing =
       widget.entry.servingSize > 0 ? widget.entry.servingSize : 1.0;
-  // ค่า calories เดิมตอนเปิดหน้า → สำหรับ ratio-based fallback
+  late final String _originalName = widget.entry.foodName;
   late final double _originalCalories = widget.entry.calories;
   late final double _originalProtein = widget.entry.protein;
   late final double _originalCarbs = widget.entry.carbs;
@@ -493,6 +500,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
 
       if (dbMatch.isNotEmpty) {
         final ing = dbMatch.first;
+        IngredientActions.incrementUsage(ing.id);
         final amount = double.tryParse(sub.amountController.text) ?? 1;
         final ratio = amount / ing.baseAmount;
         setState(() {
@@ -504,6 +512,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           sub.carbs = ing.carbsPerBase * ratio;
           sub.fat = ing.fatPerBase * ratio;
           sub.isFromDb = true;
+          sub.source = 'user_db';
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
@@ -555,6 +564,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           sub.carbs = result.nutrition.carbs;
           sub.fat = result.nutrition.fat;
           sub.isFromDb = false;
+          sub.source = 'user_ai';
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
@@ -691,18 +701,27 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       }
     }
 
-    // 3. Gemini lookup
-    // ────── ตรวจสอบ Energy ก่อนเรียก API ──────
-    final hasEnergy = await GeminiService.hasEnergy();
-    if (!hasEnergy) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(L10n.of(context)!.notEnoughEnergy),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      return;
+    // 3. Gemini lookup — free for ingredient edits (limited 10/day)
+    // User corrections are high-value data, so editing should be free.
+    final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
+    final bool useFreeEdit;
+
+    if (hasFreeEditLookup) {
+      useFreeEdit = true;
+    } else {
+      // Exhausted free edits → fall back to energy check
+      useFreeEdit = false;
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.notEnoughEnergy),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
     }
 
     setState(() => row.isLoading = true);
@@ -715,34 +734,32 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       );
 
       if (result != null && mounted) {
-        // === Record AI Usage หลังสำเร็จ ===
-        await UsageLimiter.recordAiUsage();
+        // === Record usage: free edit lookup or energy ===
+        if (useFreeEdit) {
+          await UsageLimiter.recordFreeEditLookup();
+        } else {
+          await UsageLimiter.recordAiUsage();
+        }
 
         // === อัพเดท Energy Badge ===
         if (!mounted) return;
         ref.invalidate(energyBalanceProvider);
         ref.invalidate(currentEnergyProvider);
 
-        // === บันทึกลง Ingredient DB ทันที (ผู้ใช้เสีย energy แล้ว) ===
+        // === บันทึกลง Ingredient DB (upsert: เช็คซ้ำ + นับ usageCount) ===
         final queryAmount = double.tryParse(row.amountController.text) ?? 100;
-        final savedIngredient = Ingredient()
-          ..name = name
-          ..nameEn = result.foodNameEn
-          ..baseAmount = queryAmount
-          ..baseUnit = row.unit
-          ..caloriesPerBase = result.nutrition.calories
-          ..proteinPerBase = result.nutrition.protein
-          ..carbsPerBase = result.nutrition.carbs
-          ..fatPerBase = result.nutrition.fat
-          ..source = 'gemini'
-          ..usageCount = 1;
-        
         try {
-          await DatabaseService.isar.writeTxn(() async {
-            await DatabaseService.ingredients.put(savedIngredient);
-          });
+          await IngredientActions.upsert(
+            name: name,
+            nameEn: result.foodNameEn,
+            baseAmount: queryAmount,
+            baseUnit: row.unit,
+            calories: result.nutrition.calories,
+            protein: result.nutrition.protein,
+            carbs: result.nutrition.carbs,
+            fat: result.nutrition.fat,
+          );
           ref.invalidate(allIngredientsProvider);
-          AppLogger.info('Saved AI result to Ingredient DB: $name (id=${savedIngredient.id})');
         } catch (e) {
           AppLogger.warn('Failed to save ingredient to DB', e);
         }
@@ -753,6 +770,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           row.carbs = result.nutrition.carbs;
           row.fat = result.nutrition.fat;
           row.nameEn = result.foodNameEn;
+          row.source = row.source == 'ai' ? 'user_ai' : row.source;
           row.isLoading = false;
           _lookingUpIndices.remove(index);
           row.saveBaseValues();
@@ -857,6 +875,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
             protein: 0,
             carbs: 0,
             fat: 0,
+            source: 'user',
           ));
     });
   }
@@ -1298,12 +1317,12 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.bookmark_add_rounded,
+                      const Icon(Icons.bookmark_add_rounded,
                           size: 18, color: AppColors.health),
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         L10n.of(context)!.saveToMyMeals,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.health,
@@ -1455,6 +1474,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     final amt = double.tryParse(row.amountController.text) ??
                         selection.baseAmount;
                     final ratio = amt / selection.baseAmount;
+                    IngredientActions.incrementUsage(selection.id);
                     setState(() {
                       row.nameController.text = selection.name;
                       row.nameEn = selection.nameEn;
@@ -1466,6 +1486,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                       row.carbs = selection.carbsPerBase * ratio;
                       row.fat = selection.fatPerBase * ratio;
                       row.isFromDb = true;
+                      row.source = 'user_db';
                       row.subIngredients = [];
                       row.saveBaseValues();
                       
@@ -1775,6 +1796,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                     final amt = double.tryParse(sub.amountController.text) ??
                                         selection.baseAmount;
                                     final ratio = amt / selection.baseAmount;
+                                    IngredientActions.incrementUsage(selection.id);
                                     setState(() {
                                       sub.nameController.text = selection.name;
                                       sub.nameEn = selection.nameEn;
@@ -1786,6 +1808,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                       sub.carbs = selection.carbsPerBase * ratio;
                                       sub.fat = selection.fatPerBase * ratio;
                                       sub.isFromDb = true;
+                                      sub.source = 'user_db';
                                       sub.saveBaseValues();
                                       _recalculateParentFromSubs(row);
                                       _recalculateFromIngredients();
@@ -2140,12 +2163,28 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     }
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(L10n.of(context)!.pleaseEnterFoodName)),
       );
       return;
+    }
+
+    final newName = _nameController.text.trim();
+    final nameChanged = newName != _originalName;
+
+    // If name changed AND has ingredients → offer re-analysis
+    if (nameChanged && _hasIngredients) {
+      final action = await _showNameChangeReAnalyzeDialog(newName);
+      if (!mounted) return;
+      if (action == null) return; // user dismissed
+
+      if (action == _NameChangeAction.reAnalyze) {
+        await _performNameChangeReAnalysis(newName);
+        if (!mounted) return;
+      }
+      // action == saveAsIs → continue saving without re-analysis
     }
 
     final calories = double.tryParse(_caloriesController.text) ?? 0;
@@ -2154,7 +2193,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     final fat = double.tryParse(_fatController.text) ?? 0;
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1.0;
 
-    widget.entry.foodName = _nameController.text.trim();
+    // === Correction tracking ===
+    _trackCorrections(calories, protein, carbs, fat);
+
+    widget.entry.foodName = newName;
     widget.entry.mealType = _selectedMealType;
     widget.entry.searchMode = _searchMode;
     widget.entry.servingSize = servingSize;
@@ -2163,10 +2205,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     widget.entry.protein = protein;
     widget.entry.carbs = carbs;
     widget.entry.fat = fat;
-    widget.entry.timestamp = _timestamp; // ใช้วัน/เวลาที่ผู้ใช้เลือก
+    widget.entry.timestamp = _timestamp;
     widget.entry.updatedAt = DateTime.now();
 
-    // อัปเดต base values
     if (!_hasIngredients &&
         !_hasBaseValues &&
         servingSize > 0 &&
@@ -2177,7 +2218,6 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       widget.entry.baseFat = fat / servingSize;
     }
 
-    // อัปเดต ingredientsJson ถ้ามี ingredients
     if (_hasIngredients) {
       widget.entry.ingredientsJson =
           jsonEncode(_ingredients.map((e) => e.toMap()).toList());
@@ -2191,6 +2231,306 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           backgroundColor: AppColors.success,
           duration: const Duration(seconds: 2)),
     );
+  }
+
+  // ─── Name-change ingredient re-analysis ─────────────────────
+
+  /// Shows a dialog with all ingredients as checkboxes.
+  /// Checked = will be re-analyzed, Unchecked = user wants to keep.
+  /// Returns the action or null if dismissed.
+  Future<_NameChangeAction?> _showNameChangeReAnalyzeDialog(
+      String newName) async {
+    final l10n = L10n.of(context)!;
+
+    // All ingredients start checked (= will be re-analyzed)
+    final checked = List<bool>.filled(_ingredients.length, true);
+
+    return showDialog<_NameChangeAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            final anyChecked = checked.any((v) => v);
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.edit_note_rounded,
+                      color: AppColors.premium, size: 28),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(l10n.nameChangeReAnalyzeTitle,
+                        style: const TextStyle(fontSize: 17)),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.nameChangeReAnalyzeMessage(newName),
+                        style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _ingredients.length,
+                        itemBuilder: (_, i) {
+                          final ing = _ingredients[i];
+                          final name = ing.nameController.text.trim();
+                          final amt = ing.amountController.text;
+                          return CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: checked[i],
+                            onChanged: (v) =>
+                                setDialogState(() => checked[i] = v ?? true),
+                            title: Text(name.isEmpty ? '—' : name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  decoration: checked[i]
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                                  color: checked[i]
+                                      ? Colors.grey
+                                      : null,
+                                )),
+                            subtitle: Text(
+                              '$amt ${ing.unit}  •  ${ing.calories.round()} kcal',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: checked[i]
+                                    ? Colors.grey.shade400
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pop(ctx, _NameChangeAction.saveAsIs),
+                  child: Text(l10n.nameChangeSaveAsIs),
+                ),
+                ElevatedButton.icon(
+                  onPressed: anyChecked
+                      ? () {
+                          // Store which indices to re-analyze
+                          _reAnalyzeChecked = List.of(checked);
+                          Navigator.pop(ctx, _NameChangeAction.reAnalyze);
+                        }
+                      : () {
+                          Navigator.pop(
+                              ctx, _NameChangeAction.saveAsIs);
+                        },
+                  icon: Icon(anyChecked
+                      ? Icons.auto_fix_high
+                      : Icons.save_rounded, size: 18),
+                  label: Text(anyChecked
+                      ? l10n.nameChangeReAnalyzeConfirm
+                      : l10n.nameChangeSaveAsIs),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        anyChecked ? AppColors.premium : AppColors.success,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Temporary storage for dialog checkbox state
+  List<bool> _reAnalyzeChecked = [];
+
+  /// Performs AI re-analysis: keeps unchecked ingredients, re-analyzes checked ones.
+  Future<void> _performNameChangeReAnalysis(String newName) async {
+    if (_reAnalyzeChecked.isEmpty) return;
+    final l10n = L10n.of(context)!;
+
+    // Separate kept vs to-reanalyze
+    final keptIngredients = <_EditableIngredient>[];
+    for (int i = 0; i < _ingredients.length; i++) {
+      if (!_reAnalyzeChecked[i]) {
+        // User unchecked → keep this ingredient, mark source
+        _ingredients[i].source = 'user_kept';
+        keptIngredients.add(_ingredients[i]);
+      }
+    }
+
+    // If everything is unchecked (all kept), nothing to re-analyze
+    if (keptIngredients.length == _ingredients.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.nameChangeNoIngredientToAnalyze)),
+      );
+      return;
+    }
+
+    // Build userIngredients for AI (the kept ones with exact amounts)
+    final userIngredients = keptIngredients.map((ing) => <String, dynamic>{
+          'name': ing.nameController.text.trim(),
+          'amount': double.tryParse(ing.amountController.text) ?? 0,
+          'unit': ing.unit,
+        }).toList();
+
+    // Show loading
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(
+            children: [
+              const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5)),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: Text(l10n.nameChangeAnalyzing)),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // Free for user corrections (same as ingredient lookup)
+      final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
+      if (!hasFreeEditLookup) {
+        final hasEnergy = await GeminiService.hasEnergy();
+        if (!hasEnergy) {
+          if (mounted) Navigator.pop(context); // dismiss loading
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.notEnoughEnergy)),
+            );
+          }
+          return;
+        }
+      }
+
+      final result = await GeminiService.analyzeFoodByName(
+        newName,
+        servingSize: double.tryParse(_servingSizeController.text),
+        servingUnit: _servingUnit,
+        searchMode: _searchMode,
+        userIngredients: userIngredients,
+      );
+
+      if (mounted) Navigator.pop(context); // dismiss loading
+
+      if (result == null || !mounted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.nameChangeAnalysisFailed)),
+          );
+        }
+        return;
+      }
+
+      // Record usage
+      if (hasFreeEditLookup) {
+        await UsageLimiter.recordFreeEditLookup();
+      } else {
+        await UsageLimiter.recordAiUsage();
+      }
+      if (mounted) {
+        ref.invalidate(energyBalanceProvider);
+        ref.invalidate(currentEnergyProvider);
+      }
+
+      // Build new ingredient list: kept (user_kept) + AI-returned (ai_reanalyzed)
+      setState(() {
+        _ingredients.clear();
+
+        // Add kept ingredients first (preserve user's exact amounts)
+        _ingredients.addAll(keptIngredients);
+
+        // Add AI-returned ingredients, skip duplicates of kept ones
+        final keptNames = keptIngredients
+            .map((e) => e.nameController.text.trim().toLowerCase())
+            .toSet();
+
+        if (result.ingredientsDetail != null) {
+          for (final aiIng in result.ingredientsDetail!) {
+            if (keptNames.contains(aiIng.name.toLowerCase())) continue;
+            if (aiIng.nameEn != null &&
+                keptNames.contains(aiIng.nameEn!.toLowerCase())) {
+              continue;
+            }
+
+            _ingredients.add(_EditableIngredient(
+              name: aiIng.name,
+              nameEn: aiIng.nameEn,
+              amount: aiIng.amount,
+              unit: aiIng.unit,
+              calories: aiIng.calories,
+              protein: aiIng.protein,
+              carbs: aiIng.carbs,
+              fat: aiIng.fat,
+              source: 'ai_reanalyzed',
+            ));
+          }
+        }
+
+        _recalculateFromIngredients();
+      });
+    } catch (e) {
+      AppLogger.error('Name-change re-analysis failed', e);
+      if (mounted) Navigator.pop(context); // dismiss loading
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.nameChangeAnalysisFailed)),
+        );
+      }
+    }
+  }
+
+  /// Capture what the AI originally returned before user edits.
+  /// Only sets original values on the first edit (when originalFoodName is null).
+  void _trackCorrections(
+      double newCal, double newProt, double newCarbs, double newFat) {
+    final entry = widget.entry;
+    final newName = _nameController.text.trim();
+    final newIngJson =
+        _hasIngredients ? jsonEncode(_ingredients.map((e) => e.toMap()).toList()) : null;
+
+    // Snapshot originals on first edit only
+    if (entry.originalFoodName == null && entry.source == DataSource.aiAnalyzed) {
+      entry.originalFoodName = _originalName;
+      entry.originalFoodNameEn = entry.foodNameEn;
+      entry.originalCalories = _originalCalories;
+      entry.originalProtein = _originalProtein;
+      entry.originalCarbs = _originalCarbs;
+      entry.originalFat = _originalFat;
+      entry.originalIngredientsJson = entry.ingredientsJson;
+    }
+
+    // Detect if anything meaningful changed
+    final nameChanged = newName != _originalName;
+    final calChanged = (newCal - _originalCalories).abs() > 1;
+    final protChanged = (newProt - _originalProtein).abs() > 0.5;
+    final carbChanged = (newCarbs - _originalCarbs).abs() > 0.5;
+    final fatChanged = (newFat - _originalFat).abs() > 0.5;
+    final ingChanged = newIngJson != entry.ingredientsJson;
+
+    if (nameChanged || calChanged || protChanged || carbChanged || fatChanged || ingChanged) {
+      entry.editCount += 1;
+      entry.isUserCorrected = true;
+    }
   }
 
   /// Save current food entry + add to My Meals

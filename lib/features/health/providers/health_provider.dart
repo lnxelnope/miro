@@ -1,15 +1,16 @@
 import 'dart:io';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/services/health_sync_service.dart';
+import '../../../core/services/daily_summary_service.dart';
 import '../../../core/services/rating_service.dart';
+import '../../../core/services/thumbnail_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/utils/logger.dart';
-import '../../../core/constants/enums.dart';
-import '../models/food_entry.dart';
-import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import 'my_meal_provider.dart';
 
@@ -27,12 +28,13 @@ final foodEntriesByDateProvider =
   final startOfDay = DateTime(date.year, date.month, date.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
 
-  return await DatabaseService.foodEntries
-      .filter()
-      .timestampBetween(startOfDay, endOfDay)
-      .isDeletedEqualTo(false) // ไม่แสดงรายการที่ถูกลบ
-      .sortByTimestampDesc()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+    ..where((tbl) =>
+        tbl.timestamp.isBiggerOrEqualValue(startOfDay) &
+        tbl.timestamp.isSmallerThanValue(endOfDay) &
+        tbl.isDeleted.equals(false))
+    ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
+      .get();
 });
 
 // Get today's total calories
@@ -140,48 +142,79 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
 
   Future<bool> _isHealthSyncEnabled() async {
     try {
-      final profiles = await DatabaseService.userProfiles
-          .filter()
-          .idGreaterThan(0)
-          .findFirst();
-      return profiles?.isHealthConnectConnected ?? false;
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+        ..limit(1))
+          .getSingleOrNull();
+      return profile?.isHealthConnectConnected ?? false;
     } catch (_) {
       return false;
     }
   }
 
   Future<void> addFoodEntry(FoodEntry entry) async {
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.foodEntries.put(entry);
-    });
+    if (entry.id == 0) {
+      // New entry: use insertReturning with id absent so SQLite auto-increments.
+      // insertOnConflictUpdate with id=0 would overwrite the previous entry at id=0.
+      final companion = entry.toCompanion(true).copyWith(
+        id: const Value.absent(),
+      );
+      final inserted = await DatabaseService.db
+          .into(DatabaseService.db.foodEntries)
+          .insertReturning(companion);
+      entry.id = inserted.id;
+    } else {
+      // Re-insert existing entry (e.g. undo delete) — keep original id
+      await DatabaseService.db
+          .into(DatabaseService.db.foodEntries)
+          .insertOnConflictUpdate(entry);
+    }
     AnalyticsService.logMealLogged(source: entry.source.name);
 
-    if (await _isHealthSyncEnabled()) {
+    // Only sync to Health if entry has nutrition data.
+    // Entries from _saveAndAnalyze have 0 kcal — they'll be synced
+    // when analysis completes via updateFoodEntry instead.
+    if (entry.hasNutritionData && await _isHealthSyncEnabled()) {
       _syncEntryToHealth(entry);
     }
 
+    // Upload thumbnail to Firebase Storage (fire-and-forget)
+    if (entry.hasLocalImage) {
+      ThumbnailService.uploadThumbnail(
+        entry: entry,
+        imageFile: File(entry.imagePath!),
+      );
+    }
+
+    // Snapshot daily energy balance (derived values only)
+    DailySummaryService.snapshotToday();
+
     // Check meal-count milestones for native review prompt
-    final totalMeals = await DatabaseService.foodEntries
-        .filter()
-        .isDeletedEqualTo(false)
-        .count();
+    final allEntries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+      ..where((tbl) => tbl.isDeleted.equals(false)))
+        .get();
+    final totalMeals = allEntries.length;
     RatingService.checkMealMilestone(totalMeals);
   }
 
   Future<void> updateFoodEntry(FoodEntry entry) async {
     entry.updatedAt = DateTime.now();
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.foodEntries.put(entry);
-    });
+    entry.isSynced = false;
+    await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
     if (await _isHealthSyncEnabled()) {
       _syncEntryToHealth(entry, oldSyncKey: entry.healthConnectId);
     }
+
+    // Update thumbnail metadata on Storage (fire-and-forget)
+    ThumbnailService.updateMetadataIfNeeded(entry);
+
+    // Snapshot daily energy balance (derived values only)
+    DailySummaryService.snapshotToday();
   }
 
   Future<void> deleteFoodEntry(int id) async {
     try {
-      final entry = await DatabaseService.foodEntries.get(id);
+      final entry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
       if (entry == null) {
         AppLogger.warn('FoodEntry not found id=$id');
         throw Exception('Entry not found');
@@ -198,12 +231,12 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
       entry.isDeleted = true;
       entry.updatedAt = DateTime.now();
 
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.foodEntries.put(entry);
-      });
+      await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
       AppLogger.info(
           'FoodEntry soft deleted: id=$id, name="${entry.foodName}", imagePath="${entry.imagePath}"');
+
+      DailySummaryService.snapshotToday();
     } catch (e, stackTrace) {
       AppLogger.error('Error deleting FoodEntry id=$id', e, stackTrace);
       rethrow;
@@ -213,6 +246,8 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
   /// Fire-and-forget sync to Health App.
   Future<void> _syncEntryToHealth(FoodEntry entry, {String? oldSyncKey}) async {
     try {
+      // Health Connect expects all nutrients in grams.
+      // AI returns sodium/cholesterol/potassium in mg → convert to g.
       final syncKey = await HealthSyncService.updateFoodEntry(
         oldHealthSyncKey: oldSyncKey,
         name: entry.foodName,
@@ -224,22 +259,27 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
         mealType: entry.mealType,
         fiber: entry.fiber,
         sugar: entry.sugar,
-        sodium: entry.sodium,
-        cholesterol: entry.cholesterol,
+        sodium: entry.sodium != null ? entry.sodium! / 1000 : null,
+        cholesterol: entry.cholesterol != null ? entry.cholesterol! / 1000 : null,
         saturatedFat: entry.saturatedFat,
         transFat: entry.transFat,
         unsaturatedFat: entry.unsaturatedFat,
         monounsaturatedFat: entry.monounsaturatedFat,
         polyunsaturatedFat: entry.polyunsaturatedFat,
-        potassium: entry.potassium,
+        potassium: entry.potassium != null ? entry.potassium! / 1000 : null,
       );
 
       if (syncKey != null) {
         entry.healthConnectId = syncKey;
         entry.syncedAt = DateTime.now();
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.put(entry);
-        });
+        // Only update health-related fields to avoid overwriting
+        // nutrition data that may have been updated by analysis.
+        await (DatabaseService.db.update(DatabaseService.db.foodEntries)
+              ..where((tbl) => tbl.id.equals(entry.id)))
+            .write(FoodEntriesCompanion(
+          healthConnectId: Value(syncKey),
+          syncedAt: Value(entry.syncedAt!),
+        ));
       }
     } catch (e) {
       AppLogger.warn('Health sync failed for "${entry.foodName}"', e);
@@ -308,7 +348,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     String? notes,
     String? ingredientsJson,
   }) async {
-    final entry = await DatabaseService.foodEntries.get(entryId);
+    final entry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(entryId))).getSingleOrNull();
     if (entry == null) {
       throw Exception('Food entry not found');
     }
@@ -343,9 +383,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
     entry.ingredientsJson = ingredientsJson;
     entry.updatedAt = DateTime.now();
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.foodEntries.put(entry);
-    });
+    await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
     AppLogger.info('FoodEntry updated successfully: id=$entryId');
   }
@@ -392,7 +430,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
           ingredientsData.map((data) => parseIngredient(data)).toList();
 
       if (overwriteIfExists) {
-        final allMeals = await DatabaseService.myMeals.where().findAll();
+        final allMeals = await DatabaseService.db.select(DatabaseService.db.myMeals).get();
         final existing = allMeals
             .where((m) => m.name.toLowerCase() == mealName.toLowerCase())
             .firstOrNull;

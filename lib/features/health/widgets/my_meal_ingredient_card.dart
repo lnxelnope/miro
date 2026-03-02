@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../models/my_meal_ingredient.dart';
-
 /// Widget สำหรับแสดง MyMealIngredient พร้อมรองรับ nested structure
 class MyMealIngredientCard extends StatelessWidget {
   final MyMealIngredient ingredient;

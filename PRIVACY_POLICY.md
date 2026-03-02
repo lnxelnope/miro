@@ -44,11 +44,16 @@ When you claim your daily Energy, MiRO automatically syncs a compact backup of y
 • Health profile: gender, age, weight, height, target weight, activity level
 • Nutrition goals: calorie goal, macro targets, meal budgets, cuisine preference, TDEE
 • AR Scale data: detected object labels, bounding box coordinates (px), image dimensions, pixel-per-cm calibration ratio
+• Scene context: dining setting, visible food/beverage products (brand, size, container type), restaurant/chain name — used for portion calibration and meal pairing analysis
+• User correction history: original AI-analyzed values vs user-edited values, edit count — used to improve AI accuracy
+• Food grouping: which food items were consumed together in the same meal
 
 ### What is NOT synced:
 
 • Full-resolution food photos (stay on your device only)
 • Your name or avatar
+• Non-food personal belongings, clothing, accessories, or electronics visible in photos
+• Faces or personally identifiable information from photos
 
 ### How it works:
 
@@ -65,14 +70,39 @@ When you claim your daily Energy, MiRO automatically syncs a compact backup of y
 
 ### Anonymized AI Training Data
 
-We may use **anonymized** food images and associated metadata (nutrition labels, detected object bounding boxes, calibration data) to improve AI food recognition models or license to third-party AI/ML companies. This data is:
+### Food Research Program (Opt-In)
 
-• Fully anonymized — no device ID, personal identity, or location data is included
-• Stripped of EXIF metadata and any identifying information
-• Aggregated at population level — individual users cannot be identified
-• Used solely for improving food recognition technology
+You may choose to participate in our Food Research Program by enabling "Food Research" in Profile settings. When enabled:
 
-You may opt out of AI training data usage by contacting support@tnbgrp.com.
+**What is shared:**
+• Food thumbnail images (~40-80 KB) with enriched metadata including:
+  - Nutrition data (calories, macros, micros)
+  - Object detection labels with bounding box coordinates (px)
+  - Scene context (dining setting, visible food/beverage products, restaurant/chain name)
+  - User correction history (original AI values vs your edits)
+  - Brand/product data for packaged food items
+  - Ingredient breakdown with detailed nutrition per component
+  - AR calibration data (pixel-per-cm ratio, plate measurements)
+
+**How this data is used:**
+• Improve AI food recognition accuracy
+• Train portion size estimation models
+• Food environment research (food pairing, dining context analysis)
+• May be licensed to third-party AI/ML companies as anonymized, labeled datasets
+
+**Privacy protections:**
+• All data is fully anonymized — no device ID, personal identity, or location data is included
+• EXIF metadata is stripped from all images before storage
+• Only food, beverages, and dining-related items are analyzed — never personal belongings, clothing, or accessories
+• Faces and personally identifiable information are never stored or processed
+• Data is aggregated at population level — individual users cannot be identified
+
+**Your control:**
+• Food Research is OFF by default — you must explicitly opt in
+• You can disable it anytime in Profile settings
+• Disabling stops future data sharing; previously shared data can be deleted upon request
+
+You may also contact support@tnbgrp.com to request deletion of any shared research data.
 
 ---
 
@@ -148,8 +178,9 @@ When you enable Health Sync, MiRO integrates with Apple Health (iOS) or Google H
 • Energy transactions secured via Firebase with device authentication
 • Local data stored in encrypted Local Database (Isar)
 • Firebase Analytics used for app improvement (requires user consent)
-• No advertising or third-party tracking SDKs
-• Payment processing handled securely by Google Play Billing
+• Advertising via Google AdMob with UMP consent flow (personalized ads require user consent)
+• SKAdNetwork (iOS) for anonymous ad attribution
+• Payment processing handled securely by Google Play Billing / Apple StoreKit
 • All data transmission encrypted via HTTPS
 
 ---
@@ -212,6 +243,68 @@ You have full control over analytics data collection:
 
 ---
 
+## GDPR Compliance (European Union)
+
+If you are a resident of the European Economic Area (EEA), you have the following rights under the General Data Protection Regulation:
+
+### Lawful Basis for Processing
+
+| Data | Lawful Basis |
+|------|-------------|
+| Food entries, nutrition data | Legitimate interest (core app functionality) |
+| Firebase Analytics | Consent (opt-in) |
+| Food Research Program | Consent (explicit opt-in) |
+| AdMob advertising data | Consent (UMP consent flow) |
+
+### Your GDPR Rights
+
+- **Right of Access:** Request a copy of your data
+- **Right to Rectification:** Correct inaccurate data
+- **Right to Erasure:** Request deletion of your data ("right to be forgotten")
+- **Right to Data Portability:** Export your data in JSON format via backup
+- **Right to Restrict Processing:** Opt out of analytics and research
+- **Right to Object:** Object to data processing for legitimate interests
+- **Right to Withdraw Consent:** Revoke consent at any time without affecting prior processing
+
+### Cross-Border Data Transfers
+
+Your data may be processed on servers located outside your country of residence. We use Google Cloud / Firebase infrastructure which may store data in the United States or other regions. These transfers are protected by:
+
+- Google Cloud's compliance with Standard Contractual Clauses (SCCs)
+- Firebase's data processing terms and security measures
+- All data is encrypted in transit (HTTPS/TLS) and at rest
+
+### Data Processing Contact
+
+For GDPR inquiries, contact: support@tnbgrp.com
+
+---
+
+## CCPA Compliance (California Consumer Privacy Act)
+
+If you are a California resident, you have the following rights under CCPA:
+
+### Your CCPA Rights
+
+- **Right to Know:** What personal information we collect, use, and disclose
+- **Right to Delete:** Request deletion of your personal information
+- **Right to Opt-Out of Sale:** You may opt out of the "sale" of your personal information
+- **Right to Non-Discrimination:** We will not discriminate against you for exercising your rights
+
+### Do Not Sell My Personal Information
+
+When you enable the **Food Research Program**, anonymized food data (photos, nutrition, corrections) may be licensed to third-party AI/ML companies. This may constitute a "sale" under CCPA.
+
+**To opt out:** Disable "Food Research" in Profile → Settings. This immediately stops future data sharing.
+
+**Note:** Food Research is OFF by default. You must explicitly opt in.
+
+### Financial Incentive Notice
+
+The Food Research Program provides **free ingredient lookups** (normally costs Energy) in exchange for contributing anonymized food data. You may withdraw from this program at any time without penalty. The value of the data contributed is estimated based on the cost of equivalent AI analysis.
+
+---
+
 ## PDPA Compliance (Thailand Personal Data Protection Act)
 
 ### Your Rights
@@ -227,14 +320,24 @@ Under the Personal Data Protection Act (PDPA), you have the right to:
 
 ### Data Categories
 
-• **General Data:** Device ID, Energy balance, purchase history, app usage (if opted-in), compact food history backups, thumbnail images, health profile, nutrition goals
-• **Sensitive Data:** Health-related information (weight, height, nutrition goals) — stored locally and synced as part of cloud backup (identified by anonymous device ID only)
+• **General Data:** Device ID (hashed), Energy balance, purchase history, app usage (if opted-in), compact food history backups, thumbnail images, health profile, nutrition goals, scene context (dining setting, food/beverage products visible in photos), user correction history, meal groupings, brand/product data, AR bounding box labels, ingredient breakdown
+• **Sensitive Data:** Health-related information (weight, height, nutrition goals) — stored locally and synced as part of cloud backup (identified by anonymous device ID only). HealthKit/Health Connect data is read on-device only and never sent to any server.
+
+### Cross-Border Data Transfer (การส่งข้อมูลข้ามประเทศ)
+
+ข้อมูลของคุณอาจถูกประมวลผลบน server ที่ตั้งอยู่นอกประเทศไทย (Google Cloud / Firebase ในสหรัฐอเมริกาหรือภูมิภาคอื่น) การส่งข้อมูลข้ามประเทศได้รับการปกป้องโดย:
+
+• มาตรการรักษาความปลอดภัยของ Google Cloud (Standard Contractual Clauses)
+• การเข้ารหัสข้อมูลระหว่างการส่ง (HTTPS/TLS) และขณะจัดเก็บ
+• ข้อมูลทั้งหมดถูก anonymize (ใช้ hashed device ID เท่านั้น)
 
 ### How to Exercise Your Rights
 
 • **Delete local data:** Profile → Clear Data
 • **Revoke analytics consent:** Profile → Settings → Analytics Data Collection (toggle off)
-• **Request data deletion:** Contact us through Google Play Store
+• **Opt out of Food Research:** Profile → Settings → Food Research (toggle off)
+• **Request cloud data deletion:** Contact support@tnbgrp.com
+• **Request data export:** Use backup feature in Profile
 
 ### Data Retention
 
@@ -252,4 +355,4 @@ If you have questions about this Privacy Policy, please contact us through Googl
 ---
 
 **Effective Date:** February 18, 2026  
-**Last Updated:** March 1, 2026
+**Last Updated:** March 2, 2026

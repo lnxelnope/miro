@@ -10,7 +10,8 @@ import '../../../core/widgets/search_mode_selector.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
-import '../models/food_entry.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -38,7 +39,7 @@ class FoodDetailBottomSheet extends ConsumerStatefulWidget {
 
 class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     with SingleTickerProviderStateMixin {
-  bool _isAnalyzing = false;
+  final bool _isAnalyzing = false;
   bool _notesExpanded = false;
   bool _ingredientsExpanded = false;
   final Set<int> _expandedSubIndices = {};
@@ -707,7 +708,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
           Container(
             width: 6,
             height: 6,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.health,
               shape: BoxShape.circle,
             ),
@@ -830,7 +831,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.restaurant_menu_rounded,
                     size: 18,
                     color: headerColor,
@@ -853,7 +854,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                     ),
                     child: Text(
                       '${ingredients.length}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: headerColor,

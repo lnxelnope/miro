@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import '../constants/ar_scale_enums.dart';
 import '../constants/reference_objects_data.dart';
 import '../models/bounding_box_data.dart';
 import '../models/calibration_result.dart';

@@ -7,12 +7,12 @@ import '../../../core/theme/app_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ai/gemini_chat_service.dart';
 import '../providers/chat_provider.dart';
-import '../models/chat_message.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import '../models/chat_ai_mode.dart';
 import '../services/greeting_service.dart';
 import '../widgets/message_bubble.dart';
 import '../../health/providers/health_provider.dart';
-import '../../health/models/food_entry.dart';
 import '../../health/presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/providers/energy_provider.dart';
@@ -536,17 +536,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
 
       // Add message to chat
-      final message = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = buffer.toString();
+      final message = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: buffer.toString(),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(message);
     } catch (e) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToLoadWeeklySummary(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToLoadWeeklySummary(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -611,17 +617,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
 
       // Add message to chat
-      final message = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = buffer.toString();
+      final message = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: buffer.toString(),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(message);
     } catch (e) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToLoadMonthlySummary(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToLoadMonthlySummary(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -639,10 +651,13 @@ ${L10n.of(context)!.localAiHelpExamples}
 ${L10n.of(context)!.localAiHelpNote}
 ''';
 
-    final message = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = helpText;
+    final message = ChatMessageData(
+      id: 0,
+      sessionId: ref.read(currentSessionIdProvider),
+      role: MessageRole.assistant,
+      content: helpText,
+      createdAt: DateTime.now(),
+    );
 
     await ref.read(chatNotifierProvider.notifier).addMessage(message);
   }
@@ -914,7 +929,7 @@ ${L10n.of(context)!.localAiHelpNote}
           return Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
           ),
           child: Column(
             children: [
@@ -1273,10 +1288,13 @@ ${L10n.of(context)!.localAiHelpNote}
 
       if (!mounted) return;
 
-      final greetingMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = greeting;
+      final greetingMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: greeting,
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(greetingMsg);
     } catch (e) {
@@ -1319,18 +1337,24 @@ ${L10n.of(context)!.localAiHelpNote}
       }
 
       // Add greeting message
-      final greetingMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = greeting;
+      final greetingMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: greeting,
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(greetingMsg);
     } catch (e) {
       // Fallback greeting
-      final fallbackMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.hiReadyToLog;
+      final fallbackMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.hiReadyToLog,
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(fallbackMsg);
     }
@@ -1343,21 +1367,26 @@ ${L10n.of(context)!.localAiHelpNote}
     final balance = await energyService.getBalance();
 
     if (balance < 2) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content =
-            L10n.of(context)!.notEnoughEnergy;
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.notEnoughEnergy,
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
       return;
     }
 
     // Show loading
-    final loadingMsg = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = L10n.of(context)!.thinkingMealIdeas;
+    final loadingMsg = ChatMessageData(
+      id: 0,
+      sessionId: ref.read(currentSessionIdProvider),
+      role: MessageRole.assistant,
+      content: L10n.of(context)!.thinkingMealIdeas,
+      createdAt: DateTime.now(),
+    );
 
     await ref.read(chatNotifierProvider.notifier).addMessage(loadingMsg);
 
@@ -1426,10 +1455,13 @@ ${L10n.of(context)!.localAiHelpNote}
       await ref.read(chatNotifierProvider.notifier).removeMessage(loadingMsg);
 
       // Show error
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToGetMenuSuggestions(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToGetMenuSuggestions(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -1469,10 +1501,13 @@ ${L10n.of(context)!.localAiHelpNote}
     buffer.writeln(L10n.of(context)!.energyCost(2));
 
     // Add message
-    final message = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = buffer.toString();
+    final message = ChatMessageData(
+      id: 0,
+      sessionId: ref.read(currentSessionIdProvider),
+      role: MessageRole.assistant,
+      content: buffer.toString(),
+      createdAt: DateTime.now(),
+    );
 
     await ref.read(chatNotifierProvider.notifier).addMessage(message);
   }

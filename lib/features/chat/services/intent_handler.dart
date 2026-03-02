@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:isar/isar.dart';
-import '../../../core/ai/llm_service.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
+import '../../../core/ai/llm_service.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/logger.dart';
-import '../../health/models/food_entry.dart';
 import '../models/action_result.dart';
 import 'food_lookup_service.dart';
 import '../../health/providers/my_meal_provider.dart';
@@ -169,33 +170,34 @@ class IntentHandler {
         foodName = lookupResult.displayName;
       }
 
-      final entry = FoodEntry()
-        ..foodName = foodName
-        ..calories = calories
-        ..protein = protein
-        ..carbs = carbs
-        ..fat = fat
-        ..baseCalories =
-            servingSizeFromAI > 0 ? calories / servingSizeFromAI : calories
-        ..baseProtein =
-            servingSizeFromAI > 0 ? protein / servingSizeFromAI : protein
-        ..baseCarbs = servingSizeFromAI > 0 ? carbs / servingSizeFromAI : carbs
-        ..baseFat = servingSizeFromAI > 0 ? fat / servingSizeFromAI : fat
-        ..mealType = mealType
-        ..timestamp = entryDate
-        ..servingSize = servingSizeFromAI
-        ..servingUnit = servingUnitFromAI
-        ..servingGrams = servingGramsFromAI
-        ..myMealId = lookupResult.meal?.id
-        ..ingredientId = lookupResult.ingredient?.id
-        ..source = source
-        ..isVerified = lookupResult.type != FoodLookupType.notFound
-        ..createdAt = DateTime.now()
-        ..updatedAt = DateTime.now();
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.foodEntries.put(entry);
-      });
+      final entry = await DatabaseService.db
+          .into(DatabaseService.db.foodEntries)
+          .insertReturning(FoodEntriesCompanion.insert(
+            foodName: foodName,
+            timestamp: entryDate,
+            mealType: mealType,
+            servingSize: servingSizeFromAI,
+            servingUnit: servingUnitFromAI,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            source: source,
+            baseCalories: Value(servingSizeFromAI > 0
+                ? calories / servingSizeFromAI
+                : calories),
+            baseProtein: Value(servingSizeFromAI > 0
+                ? protein / servingSizeFromAI
+                : protein),
+            baseCarbs: Value(
+                servingSizeFromAI > 0 ? carbs / servingSizeFromAI : carbs),
+            baseFat:
+                Value(servingSizeFromAI > 0 ? fat / servingSizeFromAI : fat),
+            servingGrams: Value(servingGramsFromAI),
+            myMealId: Value(lookupResult.meal?.id),
+            ingredientId: Value(lookupResult.ingredient?.id),
+            isVerified: Value(lookupResult.type != FoodLookupType.notFound),
+          ));
 
       AppLogger.info('FoodEntry saved: id=${entry.id}');
 
@@ -573,26 +575,29 @@ class IntentHandler {
           ? foodName
           : lookupResult.displayName;
 
-      final entry = FoodEntry()
-        ..foodName = displayName
-        ..calories = calories
-        ..protein = protein
-        ..carbs = carbs
-        ..fat = fat
-        ..baseCalories = servingSize > 0 ? calories / servingSize : calories
-        ..baseProtein = servingSize > 0 ? protein / servingSize : protein
-        ..baseCarbs = servingSize > 0 ? carbs / servingSize : carbs
-        ..baseFat = servingSize > 0 ? fat / servingSize : fat
-        ..mealType = mealType
-        ..timestamp = entryDate
-        ..servingSize = servingSize
-        ..servingUnit = servingUnit
-        ..myMealId = lookupResult.meal?.id
-        ..ingredientId = lookupResult.ingredient?.id
-        ..source = source
-        ..isVerified = lookupResult.type != FoodLookupType.notFound
-        ..createdAt = DateTime.now()
-        ..updatedAt = DateTime.now();
+      final entry = await DatabaseService.db
+          .into(DatabaseService.db.foodEntries)
+          .insertReturning(FoodEntriesCompanion.insert(
+            foodName: displayName,
+            timestamp: entryDate,
+            mealType: mealType,
+            servingSize: servingSize,
+            servingUnit: servingUnit,
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            source: source,
+            baseCalories:
+                Value(servingSize > 0 ? calories / servingSize : calories),
+            baseProtein:
+                Value(servingSize > 0 ? protein / servingSize : protein),
+            baseCarbs: Value(servingSize > 0 ? carbs / servingSize : carbs),
+            baseFat: Value(servingSize > 0 ? fat / servingSize : fat),
+            myMealId: Value(lookupResult.meal?.id),
+            ingredientId: Value(lookupResult.ingredient?.id),
+            isVerified: Value(lookupResult.type != FoodLookupType.notFound),
+          ));
 
       entries.add(entry);
 
@@ -605,13 +610,6 @@ class IntentHandler {
       replyParts.add(
           '$sourceIcon **$displayName** ($servingSize $servingUnit) — $calText');
     }
-
-    // Save all entries
-    await DatabaseService.isar.writeTxn(() async {
-      for (final entry in entries) {
-        await DatabaseService.foodEntries.put(entry);
-      }
-    });
 
     AppLogger.info('Saved ${entries.length} food entries successfully');
 
@@ -803,11 +801,10 @@ class IntentHandler {
     }
 
     if (queryType == 'calories' || queryType == 'unknown') {
-      // Query food entries
-      final entries = await DatabaseService.foodEntries
-          .filter()
-          .timestampGreaterThan(startDate, include: true)
-          .findAll();
+      final entries = await (DatabaseService.db
+              .select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.timestamp.isBiggerOrEqualValue(startDate)))
+          .get();
 
       final totalCalories =
           entries.fold<double>(0, (sum, e) => sum + e.calories);

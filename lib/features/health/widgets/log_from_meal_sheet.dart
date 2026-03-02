@@ -1,12 +1,12 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
-import '../models/my_meal.dart';
-import '../models/food_entry.dart';
 import '../providers/my_meal_provider.dart';
 
 /// Bottom sheet สำหรับบันทึกอาหารจาก MyMeal
@@ -436,25 +436,37 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
       ingredientsJsonStr = jsonEncode(ingredientsData);
     }
 
-    final entry = FoodEntry()
-      ..foodName = widget.meal.name
-      ..foodNameEn = widget.meal.nameEn
-      ..mealType = _selectedMealType
-      ..timestamp = DateTime.now()
-      ..servingSize = _servingSize
-      ..servingUnit = widget.meal.parsedServingUnit
-      ..calories = _calories
-      ..protein = _protein
-      ..carbs = _carbs
-      ..fat = _fat
-      // Base values per 1 unit (เช่น kcal ต่อ 1 ลูก)
-      ..baseCalories = _baseCalPerUnit
-      ..baseProtein = _baseProtPerUnit
-      ..baseCarbs = _baseCarbPerUnit
-      ..baseFat = _baseFatPerUnit
-      ..myMealId = widget.meal.id
-      ..ingredientsJson = ingredientsJsonStr // บันทึก ingredients JSON
-      ..source = DataSource.database;
+    final logNow = DateTime.now();
+    final entry = FoodEntry(
+      id: 0,
+      foodName: widget.meal.name,
+      foodNameEn: widget.meal.nameEn,
+      mealType: _selectedMealType,
+      timestamp: logNow,
+      servingSize: _servingSize,
+      servingUnit: widget.meal.parsedServingUnit,
+      calories: _calories,
+      protein: _protein,
+      carbs: _carbs,
+      fat: _fat,
+      baseCalories: _baseCalPerUnit,
+      baseProtein: _baseProtPerUnit,
+      baseCarbs: _baseCarbPerUnit,
+      baseFat: _baseFatPerUnit,
+      myMealId: widget.meal.id,
+      ingredientsJson: ingredientsJsonStr,
+      source: DataSource.database,
+      searchMode: FoodSearchMode.normal,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: logNow,
+      updatedAt: logNow,
+    );
 
     widget.onConfirm(entry);
     Navigator.pop(context);

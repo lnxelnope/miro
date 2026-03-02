@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/services/energy_service.dart';
 import '../../../core/services/ad_service.dart';
-import '../../../core/database/database_service.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../energy/providers/energy_provider.dart';
 import '../presentation/energy_store_screen.dart';
 
 /// Dialog shown when Energy runs out

@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import '../models/energy_transaction.dart';
+import '../database/app_database.dart';
 import 'data_sync_service.dart';
 import 'device_id_service.dart';
 import 'energy_token_service.dart';
@@ -21,9 +21,9 @@ class EnergyService {
 
   static const _storage = FlutterSecureStorage();
 
-  final Isar _isar;
+  final AppDatabase _db;
 
-  EnergyService(this._isar);
+  EnergyService(this._db);
 
   // ───────────────────────────────────────────────────────────
   // 1. BALANCE MANAGEMENT
@@ -433,7 +433,7 @@ class EnergyService {
   // 4. TRANSACTION HISTORY
   // ───────────────────────────────────────────────────────────
 
-  /// บันทึก transaction ลง Isar database
+  /// บันทึก transaction ลง Drift database
   Future<void> _saveTransaction({
     required String type,
     required int amount,
@@ -444,39 +444,40 @@ class EnergyService {
   }) async {
     final deviceId = await DeviceIdService.getDeviceId();
 
-    final transaction = EnergyTransaction(
-      type: type,
-      amount: amount,
-      balanceAfter: balanceAfter,
-      packageId: packageId,
-      purchaseToken: purchaseToken,
-      description: description,
-      deviceId: deviceId,
-    );
-
-    await _isar.writeTxn(() async {
-      await _isar.energyTransactions.put(transaction);
-    });
+    await _db.into(_db.energyTransactions).insert(
+          EnergyTransactionsCompanion.insert(
+            type: type,
+            amount: amount,
+            balanceAfter: balanceAfter,
+            packageId: Value(packageId),
+            purchaseToken: Value(purchaseToken),
+            description: Value(description),
+            deviceId: Value(deviceId),
+            timestamp: Value(DateTime.now()),
+          ),
+        );
   }
 
   /// ดึงประวัติ transaction ทั้งหมด (ใหม่สุดก่อน)
-  Future<List<EnergyTransaction>> getTransactionHistory(
+  Future<List<EnergyTransactionData>> getTransactionHistory(
       {int limit = 50}) async {
-    return await _isar.energyTransactions
-        .where()
-        .sortByTimestampDesc()
-        .limit(limit)
-        .findAll();
+    return await (_db.select(_db.energyTransactions)
+          ..orderBy([
+            (tbl) => OrderingTerm.desc(tbl.timestamp),
+          ])
+          ..limit(limit))
+        .get();
   }
 
   /// ดึงประวัติการใช้ (เฉพาะ type='usage')
-  Future<List<EnergyTransaction>> getUsageHistory({int limit = 30}) async {
-    return await _isar.energyTransactions
-        .filter()
-        .typeEqualTo('usage')
-        .sortByTimestampDesc()
-        .limit(limit)
-        .findAll();
+  Future<List<EnergyTransactionData>> getUsageHistory({int limit = 30}) async {
+    return await (_db.select(_db.energyTransactions)
+          ..where((tbl) => tbl.type.equals('usage'))
+          ..orderBy([
+            (tbl) => OrderingTerm.desc(tbl.timestamp),
+          ])
+          ..limit(limit))
+        .get();
   }
 
   // ───────────────────────────────────────────────────────────
@@ -611,6 +612,9 @@ class EnergyService {
           if (entryIds.isNotEmpty) {
             await DataSyncService.markEntriesSynced(entryIds);
           }
+          // Track backup date for greeting reminders
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('last_backup_date', DateTime.now().millisecondsSinceEpoch);
           debugPrint('[EnergyService] ✅ Data sync acknowledged by server');
         }
 

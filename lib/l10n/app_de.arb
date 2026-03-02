@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "Ungültige Sicherungsdatei",
   "restoreFailed": "Wiederherstellung fehlgeschlagen",
   "analyticsDataCollection": "Analytics-Datenerfassung",
-  "analyticsEnabled": "Analytics aktiviert – ขอบคุณที่ช่วยปรับปรุงแอป",
-  "analyticsDisabled": "Analytics deaktiviert – nicht verfügbar",
-  "enabled": "Ermöglicht",
-  "enabledSubtitle": "Aktiviert – aktiviert",
+  "analyticsEnabled": "Analytics aktiviert – Danke für die Hilfe bei der Verbesserung der App",
+  "analyticsDisabled": "Analytics deaktiviert – Keine Nutzungsdaten werden gesammelt",
+  "enabled": "Aktiviert",
+  "enabledSubtitle": "Aktiviert – Hilft, die Benutzererfahrung zu verbessern",
   "disabled": "Deaktiviert",
-  "disabledSubtitle": "Deaktiviert – nicht verfügbar",
+  "disabledSubtitle": "Deaktiviert – Keine Nutzungsdaten werden gesammelt",
   "imagesPerDay": "Bilder pro Tag",
   "scanUpToImagesPerDay": "Scannen Sie bis zu {limit} Bilder pro Tag",
   "@scanUpToImagesPerDay": {
@@ -1704,7 +1704,7 @@
   "pleaseAddAtLeastOneIngredient": "Bitte fügen Sie mindestens 1 Zutat hinzu",
   "hiddenIngredientsDiscovered": "Versteckte Zutaten von KI entdeckt",
   "retroScanTitle": "Aktuelle Fotos scannen?",
-  "retroScanDescription": "Wir können Ihre Fotos der letzten 7 Tage scannen, um automatisch Lebensmittelfotos zu finden und sie Ihrem Tagebuch hinzuzufügen.",
+  "retroScanDescription": "Wir können Ihre Fotos des letzten 1 Tages scannen, um automatisch Lebensmittelfotos zu finden und sie Ihrem Tagebuch hinzuzufügen.",
   "retroScanNote": "Es werden nur Lebensmittelfotos erkannt – andere Fotos werden ignoriert. Es verlassen keine Fotos Ihr Gerät.",
   "retroScanStart": "Scannen Sie meine Fotos",
   "retroScanSkip": "Überspringen Sie es vorerst",
@@ -1712,7 +1712,7 @@
   "retroScanTagline": "MiRO verändert Ihr\nLebensmittelfotos in Gesundheitsdaten umwandeln.",
   "retroScanFetchingPhotos": "Aktuelle Fotos werden abgerufen...",
   "retroScanAnalyzing": "Lebensmittelfotos werden erkannt...",
-  "retroScanPhotosFound": "{count} Fotos in den letzten 7 Tagen gefunden",
+  "retroScanPhotosFound": "{count} Fotos in den letzten 1 Tag gefunden",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1730,7 +1730,7 @@
     }
   },
   "retroScanNoResultsTitle": "Keine Lebensmittelfotos gefunden",
-  "retroScanNoResultsDesc": "In den letzten 7 Tagen wurden keine Lebensmittelfotos erkannt. Versuchen Sie, ein Foto von Ihrer nächsten Mahlzeit zu machen!",
+  "retroScanNoResultsDesc": "In den letzten 1 Tag wurden keine Lebensmittelfotos erkannt. Versuchen Sie, ein Foto von Ihrer nächsten Mahlzeit zu machen!",
   "retroScanAnalyzeHint": "Tippen Sie in Ihrer Chronik auf „Alle analysieren“, um eine KI-Ernährungsanalyse für diese Einträge zu erhalten.",
   "retroScanDone": "Habe es!",
   "welcomeEndTitle": "Willkommen bei MiRO!",

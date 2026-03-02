@@ -1,13 +1,13 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ai/gemini_service.dart';
 import '../services/thumbnail_service.dart';
 import '../services/usage_limiter.dart';
 import '../utils/logger.dart';
-import '../constants/enums.dart';
 import '../ar_scale/models/detected_object_label.dart';
-import '../../features/health/models/food_entry.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/my_meal_provider.dart';
 import '../../features/energy/providers/energy_provider.dart';
@@ -151,6 +151,33 @@ class BatchAnalysisHelper {
       entry.ingredientsJson = jsonEncode(
         result.ingredientsDetail!.map((item) => item.toJson()).toList(),
       );
+    }
+
+    // Capture user's raw input text before AI overwrites foodName
+    if (entry.userInputText == null && entry.foodName != result.foodName) {
+      entry.userInputText = entry.foodName;
+    }
+
+    // Brand / Product metadata from AI response
+    entry.brandName ??= result.brandName;
+    entry.brandNameEn ??= result.brandNameEn;
+    entry.productCategory ??= result.productCategory;
+    entry.packageSize ??= result.packageSize;
+    entry.chainName ??= result.chainName;
+    entry.nutritionSource ??= result.nutritionSource;
+
+    // Auto-set searchMode from AI food_type
+    if (result.foodType == 'product') {
+      entry.searchMode = FoodSearchMode.product;
+    }
+
+    // Scene context (food/beverage/dining items in the image)
+    if (result.sceneContext != null && result.sceneContext!.isNotEmpty) {
+      entry.sceneContextJson = jsonEncode(result.sceneContext);
+
+      // Also extract chain name from scene_context if not already set
+      entry.chainName ??=
+          result.sceneContext!['restaurant_chain'] as String?;
     }
   }
 

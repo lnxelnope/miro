@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "File Cadangan Tidak Valid",
   "restoreFailed": "Pemulihan Gagal",
   "analyticsDataCollection": "Pengumpulan Data Analisis",
-  "analyticsEnabled": "Analytics diaktifkan -",
-  "analyticsDisabled": "Analytics dinonaktifkan - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "Analytics diaktifkan - Terima kasih telah membantu meningkatkan aplikasi",
+  "analyticsDisabled": "Analytics dinonaktifkan - Tidak mengumpulkan data penggunaan",
   "enabled": "Diaktifkan",
-  "enabledSubtitle": "Diaktifkan - ช่วยปรับปรุงประสบการณ์ใช้งาน",
-  "disabled": "Dengan disabilitas",
-  "disabledSubtitle": "Disabilitas - ไม่เก็บข้อมูลการใช้งาน",
+  "enabledSubtitle": "Diaktifkan - Membantu meningkatkan pengalaman pengguna",
+  "disabled": "Dinonaktifkan",
+  "disabledSubtitle": "Dinonaktifkan - Tidak mengumpulkan data penggunaan",
   "imagesPerDay": "Gambar per hari",
   "scanUpToImagesPerDay": "Pindai hingga {limit} gambar per hari",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "Silakan tambahkan setidaknya 1 bahan",
   "hiddenIngredientsDiscovered": "Bahan tersembunyi ditemukan oleh AI",
   "retroScanTitle": "Pindai Foto Terbaru?",
-  "retroScanDescription": "Kami dapat memindai foto Anda dari 7 hari terakhir untuk secara otomatis menemukan foto makanan dan menambahkannya ke buku harian Anda.",
+  "retroScanDescription": "Kami dapat memindai foto Anda dari 1 hari terakhir untuk secara otomatis menemukan foto makanan dan menambahkannya ke buku harian Anda.",
   "retroScanNote": "Hanya foto makanan yang terdeteksi — foto lainnya diabaikan. Tidak ada foto yang keluar dari perangkat Anda.",
   "retroScanStart": "Pindai Foto Saya",
   "retroScanSkip": "Lewati untuk saat ini",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO mengubah Anda\nfoto makanan menjadi data kesehatan.",
   "retroScanFetchingPhotos": "Mengambil foto terbaru...",
   "retroScanAnalyzing": "Mendeteksi foto makanan...",
-  "retroScanPhotosFound": "{count} foto ditemukan dalam 7 hari terakhir",
+  "retroScanPhotosFound": "{count} foto ditemukan dalam 1 hari terakhir",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "Tidak Ada Foto Makanan Ditemukan",
-  "retroScanNoResultsDesc": "Tidak ada foto makanan yang terdeteksi dalam 7 hari terakhir. Coba ambil foto makanan Anda berikutnya!",
+  "retroScanNoResultsDesc": "Tidak ada foto makanan yang terdeteksi dalam 1 hari terakhir. Coba ambil foto makanan Anda berikutnya!",
   "retroScanAnalyzeHint": "Ketuk \"Analisis Semua\" di timeline Anda untuk mendapatkan analisis nutrisi AI untuk entri ini.",
   "retroScanDone": "Mengerti!",
   "welcomeEndTitle": "Selamat datang di MiRO!",

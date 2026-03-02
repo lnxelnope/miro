@@ -940,7 +940,6 @@
     }
   },
   "cancelDateChange": "Cancel Date Change",
-  "confirm": "Confirm",
   "undo": "Undo",
 
   "chatHistory": "Chat History",
@@ -1536,14 +1535,16 @@
   "appWillRefresh": "Your app will refresh to show the restored data.",
   "backupFailed": "Backup Failed",
   "invalidBackupFile": "Invalid Backup File",
+  "restoreSelectDataFile": "This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.",
+  "restoreZeroEntriesHint": "No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.",
   "restoreFailed": "Restore Failed",
   "analyticsDataCollection": "Analytics Data Collection",
-  "analyticsEnabled": "Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป",
-  "analyticsDisabled": "Analytics disabled - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "Analytics enabled - Thanks for helping improve the app",
+  "analyticsDisabled": "Analytics disabled - No usage data collected",
   "enabled": "Enabled",
-  "enabledSubtitle": "Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "enabledSubtitle": "Enabled - Helps improve user experience",
   "disabled": "Disabled",
-  "disabledSubtitle": "Disabled - ไม่เก็บข้อมูลการใช้งาน",
+  "disabledSubtitle": "Disabled - No usage data collected",
   "imagesPerDay": "Images per day",
   "scanUpToImagesPerDay": "Scan up to {limit} images per day",
   "@scanUpToImagesPerDay": {
@@ -1862,7 +1863,7 @@
   "pleaseAddAtLeastOneIngredient": "Please add at least 1 ingredient",
   "hiddenIngredientsDiscovered": "Hidden ingredients discovered by AI",
   "retroScanTitle": "Scan Recent Photos?",
-  "retroScanDescription": "We can scan your photos from the last 7 days to automatically find food photos and add them to your diary.",
+  "retroScanDescription": "We can scan your photos from the last 1 day to automatically find food photos and add them to your diary.",
   "retroScanNote": "Only food photos are detected — other photos are ignored. No photos leave your device.",
   "retroScanStart": "Scan My Photos",
   "retroScanSkip": "Skip for now",
@@ -1870,7 +1871,7 @@
   "retroScanTagline": "MiRO is transforming your\nfood photos into health data.",
   "retroScanFetchingPhotos": "Fetching recent photos...",
   "retroScanAnalyzing": "Detecting food photos...",
-  "retroScanPhotosFound": "{count} photos found in last 7 days",
+  "retroScanPhotosFound": "{count} photos found in last 1 day",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1888,7 +1889,7 @@
     }
   },
   "retroScanNoResultsTitle": "No Food Photos Found",
-  "retroScanNoResultsDesc": "No food photos detected in the last 7 days. Try taking a photo of your next meal!",
+  "retroScanNoResultsDesc": "No food photos detected in the last 1 day. Try taking a photo of your next meal!",
   "retroScanAnalyzeHint": "Tap \"Analyze All\" on your timeline to get AI nutrition analysis for these entries.",
   "retroScanDone": "Got it!",
   "welcomeEndTitle": "Welcome to MiRO!",
@@ -2198,5 +2199,113 @@
   "subscriptionAutoRenewOff": "Off — expires at end of period",
   "subscriptionManagedByAppStore": "Subscription is managed through the App Store",
   "subscriptionManagedByPlayStore": "Subscription is managed through Google Play",
-  "subscriptionCannotLoadPrices": "Unable to load prices from the Store right now"
+  "subscriptionCannotLoadPrices": "Unable to load prices from the Store right now",
+
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSynced": "Data synced",
+  "cloudSyncPending": "{count} entries pending sync",
+  "@cloudSyncPending": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cloudSyncLastDate": "Last sync: {date}",
+  "@cloudSyncLastDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cloudSyncNever": "Never synced",
+  "cloudSyncAutoDescription": "Auto-syncs when app opens for the first time each day",
+  "cloudSyncNow": "Sync now",
+  "cloudSyncSuccess": "Data synced successfully",
+  "cloudSyncFailed": "Sync failed: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "backupExportSubtitle": "Export file for device transfer",
+
+  "foodResearch": "Food Research",
+  "foodResearchSubtitleOn": "Helping improve food AI analysis",
+  "foodResearchSubtitleOff": "Help food research with your food photos",
+  "foodResearchDialogTitle": "Food Environment Research",
+  "foodResearchDialogDescription": "Help us improve food AI analysis by sharing your food photo data",
+  "foodResearchWhatWeAnalyze": "What we analyze:",
+  "foodResearchAnalyze1": "Food, beverages, snacks in photos",
+  "foodResearchAnalyze2": "Food brand + size (helps calibrate portion)",
+  "foodResearchAnalyze3": "Restaurant (if logo is visible)",
+  "foodResearchAnalyze4": "Utensils, plates, bowls",
+  "foodResearchWhatWeSkip": "What we do NOT collect:",
+  "foodResearchSkip1": "Faces, personal info",
+  "foodResearchSkip2": "Personal belongings, clothing, bags",
+  "foodResearchSkip3": "Credit cards, documents",
+  "foodResearchPrivacyNote": "Data is anonymized and used in aggregate only. You can turn this off anytime.",
+  "foodResearchDecline": "Decline",
+  "foodResearchAccept": "I'd like to help",
+  "foodResearchThanks": "Thank you for supporting food research!",
+  "foodResearchDisabled": "Food research sharing disabled",
+  "noIngredientsHint": "No ingredients yet. Tap add to record.",
+
+  "consentDialogTitle": "Data & Research",
+  "consentAnalyticsSection": "App Usage Analytics",
+  "consentAnalyticsDescription": "We use Firebase Analytics to improve your app experience",
+  "consentAnalyticsCollect": "What we collect: Feature usage, screens viewed",
+  "consentAnalyticsNotCollect": "Not collected: Food data, photos, health info",
+  "consentAnalyticsAnonymous": "Data is aggregated and anonymous",
+  "consentFoodResearchSection": "Food Research (Optional)",
+  "consentChangeAnytime": "You can change these anytime in Profile → Settings",
+
+  "ingredientSearchHintExample": "e.g. egg, vegetable oil, ground pork",
+  "freeIngredientSearch": "Free ingredient search — no Energy cost!",
+
+  "recoveryKeyRestoreTitle": "Restore with Recovery Key",
+  "recoveryKeyRestoreSubtitle": "Use Key from your old device, no file needed",
+  "recoveryKeyRegenerateConfirm": "Generate new Key?",
+  "recoveryKeyRegenerateWarning": "The old Key will no longer work.\n\nIf you wrote it down, you'll need to note the new one instead.",
+  "recoveryKeyRegenerate": "Generate new",
+  "recoveryKeyRegenerated": "New Recovery Key generated",
+  "recoveryKeyDescription": "Recover your account when switching devices",
+  "recoveryKeyRegenerateTooltip": "Generate new Key",
+  "recoveryKeyLoading": "Loading...",
+  "recoveryKeyHide": "Hide",
+  "recoveryKeyShow": "Show",
+  "recoveryKeyCopied": "Recovery Key copied",
+  "recoveryKeyCopyTooltip": "Copy",
+  "recoveryKeyWarning": "⚠️ Keep this safe. Do not share with others.",
+
+  "restoreAccountTitle": "Restore Account",
+  "restoreFromRecoveryKey": "Restore from Recovery Key",
+  "restoreEnterKey": "Enter the Recovery Key from your old device\nto recover your food history and Energy",
+  "restoreButton": "Restore Account",
+  "restoreKeyLocation": "Recovery Key is in Settings > Account on your old device",
+  "restoreSuccess": "Restore successful!",
+  "restoreFoodEntries": "{count} food entries",
+  "@restoreFoodEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreProfileRecovered": "Profile & goals recovered",
+  "restoreStartUsing": "Start using",
+  "restoreEmptyKey": "Please enter a Recovery Key",
+  "restoreFailedGeneric": "Unable to restore. Please check your Key.",
+  "restoreInvalidKey": "Invalid Recovery Key. Please check again.",
+  "restoreExpiredKey": "Recovery Key has expired. Please generate a new one from the original device.",
+  "restoreSameDevice": "Cannot restore on the same device",
+  "restoreNoInternet": "No internet connection. Please try again.",
+  "restoreErrorGeneric": "Error: {error}",
+  "@restoreErrorGeneric": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "nameChangeReAnalyzeTitle": "Food Name Changed",
+  "nameChangeReAnalyzeMessage": "You changed the name to \"{newName}\"\nIngredients with ✓ will be re-analyzed\nUncheck to keep as-is",
+  "@nameChangeReAnalyzeMessage": {
+    "placeholders": {
+      "newName": {"type": "String"}
+    }
+  },
+  "nameChangeReAnalyzeConfirm": "Re-analyze",
+  "nameChangeSaveAsIs": "Save as-is",
+  "nameChangeAnalyzing": "Re-analyzing ingredients...",
+  "nameChangeAnalysisFailed": "Re-analysis failed. Saved as-is.",
+  "nameChangeNoIngredientToAnalyze": "No ingredients to re-analyze"
 }

@@ -1,4 +1,6 @@
 import 'dart:io';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -9,12 +11,10 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../widgets/gemini_analysis_sheet.dart';
-import '../models/food_entry.dart';
 import 'nutrition_label_screen.dart';
 import 'image_analysis_preview_screen.dart';
 
@@ -438,30 +438,42 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         analysisResult: result,
         onConfirm: (confirmedData) async {
           // สร้าง FoodEntry
-          final entry = FoodEntry()
-            ..foodName = confirmedData.foodName
-            ..foodNameEn = confirmedData.foodNameEn
-            ..mealType = _guessMealType()
-            ..timestamp = DateTime.now()
-            ..imagePath = imagePath
-            ..servingSize = confirmedData.servingSize
-            ..servingUnit = confirmedData.servingUnit
-            ..servingGrams = confirmedData.servingGrams
-            ..calories = confirmedData.calories
-            ..protein = confirmedData.protein
-            ..carbs = confirmedData.carbs
-            ..fat = confirmedData.fat
-            ..baseCalories = confirmedData.baseCalories
-            ..baseProtein = confirmedData.baseProtein
-            ..baseCarbs = confirmedData.baseCarbs
-            ..baseFat = confirmedData.baseFat
-            ..fiber = confirmedData.fiber
-            ..sugar = confirmedData.sugar
-            ..sodium = confirmedData.sodium
-            ..source = DataSource.aiAnalyzed
-            ..aiConfidence = confirmedData.confidence
-            ..isVerified = true
-            ..notes = 'Barcode scan: $barcodeValue';
+          final barcodeNow = DateTime.now();
+          final entry = FoodEntry(
+            id: 0,
+            foodName: confirmedData.foodName,
+            foodNameEn: confirmedData.foodNameEn,
+            mealType: _guessMealType(),
+            timestamp: barcodeNow,
+            imagePath: imagePath,
+            servingSize: confirmedData.servingSize,
+            servingUnit: confirmedData.servingUnit,
+            servingGrams: confirmedData.servingGrams,
+            calories: confirmedData.calories,
+            protein: confirmedData.protein,
+            carbs: confirmedData.carbs,
+            fat: confirmedData.fat,
+            baseCalories: confirmedData.baseCalories,
+            baseProtein: confirmedData.baseProtein,
+            baseCarbs: confirmedData.baseCarbs,
+            baseFat: confirmedData.baseFat,
+            fiber: confirmedData.fiber,
+            sugar: confirmedData.sugar,
+            sodium: confirmedData.sodium,
+            source: DataSource.aiAnalyzed,
+            aiConfidence: confirmedData.confidence,
+            isVerified: true,
+            notes: 'Barcode scan: $barcodeValue',
+            searchMode: FoodSearchMode.product,
+            isDeleted: false,
+            isGroupOriginal: false,
+            editCount: 0,
+            isUserCorrected: false,
+            isCalibrated: false,
+            isSynced: false,
+            createdAt: barcodeNow,
+            updatedAt: barcodeNow,
+          );
 
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);

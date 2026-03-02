@@ -9,7 +9,7 @@ import '../services/vision_processor.dart';
 import '../services/qr_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Dialog that offers to scan the user's gallery photos from the last 7 days
+/// Dialog that offers to scan the user's gallery photos from the last 1 day
 /// on first launch, after the Feature Tour completes.
 class RetroScanDialog extends StatefulWidget {
   const RetroScanDialog({super.key});
@@ -85,11 +85,11 @@ class _RetroScanDialogState extends State<RetroScanDialog>
         qrParser,
       );
 
-      final threeDaysAgo = DateTime.now().subtract(const Duration(days: 3));
+      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
 
-      AppLogger.info('RetroScan: Starting scan for images from last 3 days...');
+      AppLogger.info('RetroScan: Starting scan for images from last 1 day...');
 
-      final images = await galleryService.fetchNewImages(after: threeDaysAgo);
+      final images = await galleryService.fetchNewImages(after: oneDayAgo);
 
       if (!mounted) return;
 
@@ -107,7 +107,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
         return;
       }
 
-      final savedCount = await scanController.scanNewImages(after: threeDaysAgo);
+      final savedCount = await scanController.scanNewImages(after: oneDayAgo);
 
       visionProcessor.dispose();
 

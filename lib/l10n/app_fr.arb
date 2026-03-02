@@ -1386,12 +1386,12 @@
   "invalidBackupFile": "Fichier de sauvegarde invalide",
   "restoreFailed": "Échec de la restauration",
   "analyticsDataCollection": "Collecte de données analytiques",
-  "analyticsEnabled": "Analyses activées",
-  "analyticsDisabled": "Analyse désactivée",
+  "analyticsEnabled": "Analyses activées - Merci d'aider à améliorer l'app",
+  "analyticsDisabled": "Analyses désactivées - Aucune donnée d'utilisation collectée",
   "enabled": "Activé",
-  "enabledSubtitle": "Activé -",
+  "enabledSubtitle": "Activé - Aide à améliorer l'expérience utilisateur",
   "disabled": "Désactivé",
-  "disabledSubtitle": "Désactivé",
+  "disabledSubtitle": "Désactivé - Aucune donnée d'utilisation collectée",
   "imagesPerDay": "Images par jour",
   "scanUpToImagesPerDay": "Numérisez jusqu'à {limit} images par jour",
   "@scanUpToImagesPerDay": {
@@ -1706,7 +1706,7 @@
   "pleaseAddAtLeastOneIngredient": "Veuillez ajouter au moins 1 ingrédient",
   "hiddenIngredientsDiscovered": "Ingrédients cachés découverts par l'IA",
   "retroScanTitle": "Scanner les photos récentes ?",
-  "retroScanDescription": "Nous pouvons numériser vos photos des 7 derniers jours pour trouver automatiquement des photos de plats et les ajouter à votre agenda.",
+  "retroScanDescription": "Nous pouvons numériser vos photos du dernier 1 jour pour trouver automatiquement des photos de plats et les ajouter à votre agenda.",
   "retroScanNote": "Seules les photos de nourriture sont détectées – les autres photos sont ignorées. Aucune photo ne quitte votre appareil.",
   "retroScanStart": "Scanner mes photos",
   "retroScanSkip": "Passer pour l'instant",
@@ -1714,7 +1714,7 @@
   "retroScanTagline": "MiRO transforme votre\nphotos alimentaires en données de santé.",
   "retroScanFetchingPhotos": "Récupération de photos récentes...",
   "retroScanAnalyzing": "Détection de photos de nourriture...",
-  "retroScanPhotosFound": "{count} photos trouvées au cours des 7 derniers jours",
+  "retroScanPhotosFound": "{count} photos trouvées au cours du dernier 1 jour",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1732,7 +1732,7 @@
     }
   },
   "retroScanNoResultsTitle": "Aucune photo de nourriture trouvée",
-  "retroScanNoResultsDesc": "Aucune photo de nourriture détectée au cours des 7 derniers jours. Essayez de prendre une photo de votre prochain repas !",
+  "retroScanNoResultsDesc": "Aucune photo de nourriture détectée au cours du dernier 1 jour. Essayez de prendre une photo de votre prochain repas !",
   "retroScanAnalyzeHint": "Appuyez sur « Tout analyser » sur votre chronologie pour obtenir une analyse nutritionnelle par l'IA pour ces entrées.",
   "retroScanDone": "J'ai compris!",
   "welcomeEndTitle": "Bienvenue sur MiRO !",

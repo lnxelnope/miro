@@ -1,16 +1,19 @@
 import 'dart:convert';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../core/widgets/food_entry_image.dart';
+import '../../../core/ai/gemini_service.dart';
+import '../../../core/services/usage_limiter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
-import '../../health/models/food_entry.dart';
-import '../../health/providers/health_provider.dart';
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
+import '../../health/providers/health_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -30,6 +33,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   bool _isEditingName = false;
   bool _hasChanges = false;
   List<Map<String, dynamic>> _ingredients = [];
+  final bool _isAddingIngredient = false;
 
   // Local nutrition state (recalculated when ingredients change)
   late double _calories;
@@ -272,9 +276,301 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     _fat = f;
   }
 
+  /// Show dialog to add a new ingredient with DB autocomplete + free AI lookup
+  Future<void> _showAddIngredientDialog() async {
+    final nameController = TextEditingController();
+    final amountController = TextEditingController(text: '100');
+    String unit = 'g';
+    bool isSearching = false;
+    List<Ingredient> dbResults = [];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setDialogState) {
+          Future<void> searchDb(String query) async {
+            if (query.length < 2) {
+              setDialogState(() => dbResults = []);
+              return;
+            }
+            final results = await (DatabaseService.db.select(DatabaseService.db.ingredients)
+                ..where((tbl) => tbl.name.lower().like('%${query.toLowerCase()}%') | tbl.nameEn.lower().like('%${query.toLowerCase()}%'))
+                ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+                ..limit(5))
+                .get();
+            if (ctx.mounted) setDialogState(() => dbResults = results);
+          }
+
+          void selectFromDb(Ingredient ing) {
+            final amount = double.tryParse(amountController.text) ?? 100;
+            final newIng = <String, dynamic>{
+              'name': ing.name,
+              'name_en': ing.nameEn ?? ing.name,
+              'amount': amount,
+              'unit': ing.baseUnit,
+              'calories': ing.calcCalories(amount),
+              'protein': ing.calcProtein(amount),
+              'carbs': ing.calcCarbs(amount),
+              'fat': ing.calcFat(amount),
+              'source': 'user_db',
+            };
+            IngredientActions.incrementUsage(ing.id);
+            setState(() {
+              _ingredients.insert(0, newIng);
+              _recalculateNutrition();
+              _hasChanges = true;
+            });
+            Navigator.pop(ctx);
+          }
+
+          Future<void> searchAi() async {
+            final name = nameController.text.trim();
+            if (name.isEmpty) return;
+
+            // Free lookup first, then energy
+            final hasFree = await UsageLimiter.canUseFreeEditLookup();
+            if (!hasFree) {
+              final hasEnergy = await GeminiService.hasEnergy();
+              if (!hasEnergy) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(L10n.of(context)!.notEnoughEnergy),
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+                return;
+              }
+            }
+
+            final amount = double.tryParse(amountController.text) ?? 100;
+            setDialogState(() => isSearching = true);
+
+            try {
+              final result = await GeminiService.analyzeFoodByName(
+                name,
+                servingSize: amount,
+                servingUnit: unit,
+              );
+
+              if (result != null) {
+                if (hasFree) {
+                  await UsageLimiter.recordFreeEditLookup();
+                } else {
+                  await UsageLimiter.recordAiUsage();
+                }
+
+                final newIng = <String, dynamic>{
+                  'name': result.foodName,
+                  'name_en': result.foodNameEn ?? result.foodName,
+                  'amount': amount,
+                  'unit': unit,
+                  'calories': result.nutrition.calories,
+                  'protein': result.nutrition.protein,
+                  'carbs': result.nutrition.carbs,
+                  'fat': result.nutrition.fat,
+                  'source': 'user_ai',
+                };
+
+                // Save to ingredient DB for future autocomplete
+                _saveToIngredientDb(result, amount, unit);
+
+                setState(() {
+                  _ingredients.insert(0, newIng);
+                  _recalculateNutrition();
+                  _hasChanges = true;
+                });
+
+                if (ctx.mounted) Navigator.pop(ctx);
+              } else {
+                if (ctx.mounted) {
+                  setDialogState(() => isSearching = false);
+                }
+              }
+            } catch (_) {
+              if (ctx.mounted) setDialogState(() => isSearching = false);
+            }
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
+            title: Row(
+              children: [
+                const Icon(Icons.restaurant_outlined, size: 20, color: AppColors.success),
+                const SizedBox(width: 8),
+                Text(L10n.of(context)!.addIngredient,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Name field
+                  TextField(
+                    controller: nameController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: L10n.of(context)!.ingredientNameHint,
+                      hintText: L10n.of(context)!.ingredientSearchHintExample,
+                      border: OutlineInputBorder(borderRadius: AppRadius.md),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                      suffixIcon: isSearching
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(width: 18, height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2)),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.search_rounded,
+                                  size: 20, color: AppColors.premium),
+                              tooltip: 'AI Lookup (Free)',
+                              onPressed: searchAi,
+                            ),
+                    ),
+                    onChanged: searchDb,
+                    onSubmitted: (_) => searchAi(),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Amount + Unit row
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: amountController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            labelText: L10n.of(context)!.quantity,
+                            border: OutlineInputBorder(borderRadius: AppRadius.md),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: unit,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: L10n.of(context)!.servingUnit,
+                            border: OutlineInputBorder(borderRadius: AppRadius.md),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'g', child: Text('g')),
+                            DropdownMenuItem(value: 'ml', child: Text('ml')),
+                            DropdownMenuItem(value: 'piece', child: Text('piece')),
+                            DropdownMenuItem(value: 'tbsp', child: Text('tbsp')),
+                            DropdownMenuItem(value: 'cup', child: Text('cup')),
+                            DropdownMenuItem(value: 'serving', child: Text('serving')),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => unit = v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // DB search results
+                  if (dbResults.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 150),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: dbResults.length,
+                        itemBuilder: (_, i) {
+                          final ing = dbResults[i];
+                          return ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            leading: Container(
+                              width: 28, height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: AppRadius.sm,
+                              ),
+                              child: const Icon(Icons.restaurant, size: 14, color: AppColors.primary),
+                            ),
+                            title: Text(ing.name,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                            subtitle: Text(
+                              '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toInt()} ${ing.baseUnit}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            onTap: () => selectFromDb(ing),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+
+                  // Free lookup hint
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      const Icon(Icons.bolt_rounded, size: 14, color: AppColors.success),
+                      const SizedBox(width: 4),
+                      Text(
+                        L10n.of(context)!.freeIngredientSearch,
+                        style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(L10n.of(context)!.cancel),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  /// Save AI result to ingredient DB for future autocomplete
+  Future<void> _saveToIngredientDb(FoodAnalysisResult result, double amount, String unit) async {
+    try {
+      await IngredientActions.upsert(
+        name: result.foodName,
+        nameEn: result.foodNameEn,
+        baseAmount: amount,
+        baseUnit: unit,
+        calories: result.nutrition.calories,
+        protein: result.nutrition.protein,
+        carbs: result.nutrition.carbs,
+        fat: result.nutrition.fat,
+      );
+    } catch (_) {}
+  }
+
   Future<void> _save() async {
     final entry = widget.entry;
     bool changed = false;
+
+    // Snapshot originals BEFORE any modifications (same object reference!)
+    final snapName = entry.foodName;
+    final snapNameEn = entry.foodNameEn;
+    final snapCalories = entry.calories;
+    final snapProtein = entry.protein;
+    final snapCarbs = entry.carbs;
+    final snapFat = entry.fat;
+    final snapIngredientsJson = entry.ingredientsJson;
 
     if (_nameController.text.trim() != entry.foodName) {
       entry.foodName = _nameController.text.trim();
@@ -311,11 +607,24 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       changed = true;
     }
 
+    // Correction tracking — applies to ALL edits (qty, name, unit, ingredients)
     if (changed) {
-      entry.updatedAt = DateTime.now();
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.foodEntries.put(entry);
-      });
+      if (entry.originalFoodName == null &&
+          entry.source == DataSource.aiAnalyzed) {
+        entry.originalFoodName = snapName;
+        entry.originalFoodNameEn = snapNameEn;
+        entry.originalCalories = snapCalories;
+        entry.originalProtein = snapProtein;
+        entry.originalCarbs = snapCarbs;
+        entry.originalFat = snapFat;
+        entry.originalIngredientsJson = snapIngredientsJson;
+      }
+      entry.editCount += 1;
+      entry.isUserCorrected = true;
+
+      await ref
+          .read(foodEntriesNotifierProvider.notifier)
+          .updateFoodEntry(entry);
       refreshFoodProviders(ref, entry.timestamp);
     }
 
@@ -485,7 +794,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedUnit,
+                          initialValue: _selectedUnit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: _ingredients.isNotEmpty
@@ -559,29 +868,111 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             _macroChip('F', _fat, AppColors.fat),
                           ],
                         ),
+                        if (entry.aiConfidence != null && _hasNutrition) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                entry.aiConfidence! >= 0.85
+                                    ? Icons.verified_rounded
+                                    : Icons.auto_awesome_rounded,
+                                size: 13,
+                                color: _confidenceColor(entry.aiConfidence!),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'AI ${(entry.aiConfidence! * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: _confidenceColor(entry.aiConfidence!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
 
-                  // 4. Ingredients (ถ้ามี)
-                  if (_ingredients.isNotEmpty) ...[
-                    Text(
-                      l10n.ingredients,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white70 : AppColors.textPrimary,
+                  // 4. Ingredients (view/add/edit/remove)
+                  Row(
+                    children: [
+                      Text(
+                        l10n.ingredients,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white70 : AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
+                      if (_ingredients.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_ingredients.length}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _isAddingIngredient ? null : _showAddIngredientDialog,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.sm,
+                            border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add_rounded, size: 14, color: AppColors.success),
+                              const SizedBox(width: 2),
+                              Text(
+                                l10n.addIngredient,
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (_ingredients.isNotEmpty)
                     ..._ingredients.asMap().entries.map((e) {
                       final i = e.key;
                       final ing = e.value;
-                      return _buildIngredientRow(i, ing, isDark);
+                      final ingName = ing['name'] as String? ?? '';
+                      final ingAmt = (ing['amount'] as num?)?.toDouble() ?? 0;
+                      return KeyedSubtree(
+                        key: ValueKey('ing_${i}_${ingName}_$ingAmt'),
+                        child: _buildIngredientRow(i, ing, isDark),
+                      );
                     }),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
+                  if (_ingredients.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        L10n.of(context)!.noIngredientsHint,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white38 : AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // 4.5 Detected Objects (simple chips)
                   _buildDetectedObjectsChips(entry, isDark),
@@ -714,14 +1105,14 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                               children: [
                                 Text(
                                   '$amountStr $unit',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primary,
                                   ),
                                 ),
                                 const SizedBox(width: 3),
-                                Icon(Icons.edit_rounded, size: 10, color: AppColors.primary),
+                                const Icon(Icons.edit_rounded, size: 10, color: AppColors.primary),
                               ],
                             ),
                           ),
@@ -824,6 +1215,12 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         ],
       ),
     );
+  }
+
+  Color _confidenceColor(double confidence) {
+    if (confidence >= 0.85) return AppColors.success;
+    if (confidence >= 0.70) return AppColors.warning;
+    return AppColors.error;
   }
 
   Widget _macroChip(String prefix, double value, Color color) {

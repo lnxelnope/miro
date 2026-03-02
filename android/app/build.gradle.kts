@@ -36,8 +36,8 @@ android {
         applicationId = "com.tanabun.miro"
         minSdk = 26  // Android 8.0+ (required by health plugin)
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
-        versionCode = 53
-        versionName = "1.2.3"
+        versionCode = 58
+        versionName = "1.2.4"
     }
 
     signingConfigs {
@@ -48,6 +48,12 @@ android {
                 storeFile = keystoreProperties["storeFile"]?.let { file(it) }
                 storePassword = keystoreProperties["storePassword"] as String?
             }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 
@@ -62,7 +68,6 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                // Fallback to debug signing if key.properties doesn't exist
                 signingConfig = signingConfigs.getByName("debug")
             }
         }

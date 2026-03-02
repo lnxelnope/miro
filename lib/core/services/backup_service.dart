@@ -1,21 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-import '../../features/health/models/food_entry.dart';
-import '../../features/health/models/my_meal.dart';
+import '../database/app_database.dart';
 import '../database/database_service.dart';
+import '../database/model_extensions.dart';
 import '../services/device_id_service.dart';
 import '../services/energy_service.dart';
-import '../constants/enums.dart';
 
 // ============================================================
 // Data Models
@@ -117,26 +116,21 @@ class BackupService {
 
   /// App version (อัปเดตตาม pubspec.yaml)
   static const String _appVersion = '1.1.3';
-  static const int _backupVersion = 2; // ← อัพเดทเป็น 2 เพื่อรองรับ MiRO ID + Streak
+  static const int _backupVersion = 2;
 
   // ============================================================
   // 1. CREATE BACKUP
   // ============================================================
 
   /// สร้างไฟล์ Backup (2 ไฟล์: data + energy)
-  /// 
-  /// - Data file: food entries + meals + MiRO ID (restore ได้เรื่อยๆ)
-  /// - Energy file: transfer key + energy balance (ใช้ได้ครั้งเดียว)
   static Future<BackupFiles> createBackup() async {
     try {
-      debugPrint('🔍 [Backup] Starting backup...');
+      debugPrint('[Backup] Starting backup...');
       
-      // 1. Get Device ID
       final deviceId = await DeviceIdService.getDeviceId();
-      debugPrint('🔍 [Backup] Device ID: $deviceId');
+      debugPrint('[Backup] Device ID: $deviceId');
 
-      // 2. เรียก Cloud Function: generateTransferKey
-      debugPrint('🔍 [Backup] Calling generateTransferKey...');
+      debugPrint('[Backup] Calling generateTransferKey...');
       final callable = FirebaseFunctions.instanceFor(
         region: 'asia-southeast1',
       ).httpsCallable('generateTransferKey');
@@ -147,23 +141,19 @@ class BackupService {
 
       final transferKey = result.data['transferKey'] as String;
       final energyBalance = result.data['energyBalance'] as int;
-      debugPrint('🔍 [Backup] Transfer Key generated, Energy: $energyBalance');
+      debugPrint('[Backup] Transfer Key generated, Energy: $energyBalance');
 
-      // 3. ดึงข้อมูลจาก Isar
-      debugPrint('🔍 [Backup] Loading local data from Isar...');
-      final isar = DatabaseService.isar;
+      debugPrint('[Backup] Loading local data...');
 
-      final foodEntries = await isar.foodEntrys
-          .where()
-          .sortByTimestampDesc()
-          .findAll();
+      final foodEntries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+        ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
+          .get();
 
-      final myMeals = await isar.myMeals.where().findAll();
-      debugPrint('🔍 [Backup] Loaded ${foodEntries.length} food entries, ${myMeals.length} meals');
+      final myMeals = await DatabaseService.db.select(DatabaseService.db.myMeals).get();
+      debugPrint('[Backup] Loaded ${foodEntries.length} food entries, ${myMeals.length} meals');
 
-      // 4. Get Device Info & MiRO ID
       final deviceInfo = await _getDeviceInfo();
-      final energyService = EnergyService(DatabaseService.isar);
+      final energyService = EnergyService(DatabaseService.db);
       final miroId = await energyService.getMiroId();
 
       final now = DateTime.now();
@@ -209,6 +199,28 @@ class BackupService {
           'photoFileName': entry.imagePath?.split('/').last,
           'ingredientsJson': entry.ingredientsJson,
           'createdAt': entry.createdAt.toUtc().toIso8601String(),
+          // Scene context
+          if (entry.sceneContext != null) 'sceneContextJson': entry.sceneContext,
+          // Group data
+          if (entry.groupId != null) 'groupId': entry.groupId,
+          if (entry.groupSource != null) 'groupSource': entry.groupSource,
+          if (entry.groupOrder != null) 'groupOrder': entry.groupOrder,
+          if (entry.isGroupOriginal) 'isGroupOriginal': true,
+          // User input & correction tracking
+          if (entry.userInputText != null) 'userInputText': entry.userInputText,
+          if (entry.originalFoodName != null) 'originalFoodName': entry.originalFoodName,
+          if (entry.originalCalories != null) 'originalCalories': entry.originalCalories,
+          if (entry.originalProtein != null) 'originalProtein': entry.originalProtein,
+          if (entry.originalCarbs != null) 'originalCarbs': entry.originalCarbs,
+          if (entry.originalFat != null) 'originalFat': entry.originalFat,
+          if (entry.originalIngredientsJson != null) 'originalIngredientsJson': entry.originalIngredientsJson,
+          if (entry.editCount > 0) 'editCount': entry.editCount,
+          if (entry.isUserCorrected) 'isUserCorrected': true,
+          // Brand / product data
+          if (entry.brandName != null) 'brandName': entry.brandName,
+          if (entry.productName != null) 'productName': entry.productName,
+          if (entry.productBarcode != null) 'productBarcode': entry.productBarcode,
+          'searchMode': entry.searchMode.name,
         }).toList(),
         'myMeals': myMeals.map((meal) => {
           'name': meal.name,
@@ -228,7 +240,7 @@ class BackupService {
       await dataFile.writeAsString(
         const JsonEncoder.withIndent('  ').convert(dataBackup),
       );
-      debugPrint('✅ [Backup] Data file created: ${dataFile.path}');
+      debugPrint('[Backup] Data file created: ${dataFile.path}');
 
       // ──────────────────────────────────────────────
       // 5B. สร้าง ENERGY FILE (ใช้ได้ครั้งเดียว)
@@ -247,12 +259,12 @@ class BackupService {
       await energyFile.writeAsString(
         const JsonEncoder.withIndent('  ').convert(energyBackup),
       );
-      debugPrint('✅ [Backup] Energy file created: ${energyFile.path}');
+      debugPrint('[Backup] Energy file created: ${energyFile.path}');
 
       return BackupFiles(dataFile: dataFile, energyFile: energyFile);
 
     } catch (e) {
-      debugPrint('❌ [Backup] Error: $e');
+      debugPrint('[Backup] Error: $e');
       
       String errorMessage = 'Failed to create backup: ';
       
@@ -315,19 +327,17 @@ class BackupService {
       );
 
       if (outputPath != null) {
-        // บาง platform saveFile(bytes:) เขียนให้เสร็จแล้ว
-        // แต่บาง platform แค่คืน path → ต้องเขียนเอง
         final savedFile = File(outputPath);
         if (!await savedFile.exists()) {
           await backupFile.copy(outputPath);
         }
-        debugPrint('✅ [Backup] Saved to user directory: $outputPath');
+        debugPrint('[Backup] Saved to user directory: $outputPath');
         return outputPath;
       }
 
       return null;
     } catch (e) {
-      debugPrint('❌ [Backup] Save to directory error: $e');
+      debugPrint('[Backup] Save to directory error: $e');
       throw Exception('Failed to save backup file: $e');
     }
   }
@@ -355,13 +365,11 @@ class BackupService {
   }
 
   /// Validate ไฟล์ Backup และ Return ข้อมูล Preview
-  /// รองรับทั้ง data file, energy file, และ legacy combined file
   static Future<BackupInfo?> validateBackupFile(File file) async {
     try {
       final jsonString = await file.readAsString();
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      // ตรวจสอบ format พื้นฐาน
       if (!jsonData.containsKey('backupVersion') ||
           !jsonData.containsKey('createdAt')) {
         throw Exception('Invalid backup file format');
@@ -369,9 +377,6 @@ class BackupService {
 
       final backupType = jsonData['backupType'] as String?;
 
-      // data file ไม่ต้องมี transferKey
-      // energy file ต้องมี transferKey
-      // legacy file ต้องมี transferKey
       if (backupType != 'data' && !jsonData.containsKey('transferKey')) {
         throw Exception('Invalid backup file format');
       }
@@ -390,21 +395,16 @@ class BackupService {
   }
 
   /// Restore จากไฟล์ Backup
-  /// 
-  /// รองรับ 3 ประเภท:
-  /// - data: import food entries + meals (ไม่ต้องใช้ transfer key, restore ได้เรื่อยๆ)
-  /// - energy: redeem transfer key → ย้าย energy (ใช้ได้ครั้งเดียว, ห้ามเครื่องเดียวกัน)
-  /// - legacy: ทำทั้งสองอย่าง (backward compatible)
   static Future<BackupRestoreResult> restoreFromBackup(
     File file, {
     bool importSettings = false,
   }) async {
     try {
-      debugPrint('🔍 [Restore] Starting restore from: ${file.path}');
+      debugPrint('[Restore] Starting restore from: ${file.path}');
       
       final jsonString = await file.readAsString();
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-      debugPrint('🔍 [Restore] Backup file loaded successfully');
+      debugPrint('[Restore] Backup file loaded successfully');
 
       final backupType = jsonData['backupType'] as String?;
       
@@ -416,7 +416,7 @@ class BackupService {
         return _restoreLegacyFile(jsonData, importSettings: importSettings);
       }
     } catch (e) {
-      debugPrint('❌ [Restore] Error: $e');
+      debugPrint('[Restore] Error: $e');
       return BackupRestoreResult(
         success: false,
         errorMessage: _humanizeError(e.toString()),
@@ -424,36 +424,32 @@ class BackupService {
     }
   }
 
-  /// Restore DATA file — food entries + meals (ไม่มี key, restore ได้เรื่อยๆ)
+  /// Restore DATA file — food entries + meals
   static Future<BackupRestoreResult> _restoreDataFile(
     Map<String, dynamic> jsonData, {
     bool importSettings = false,
   }) async {
-    debugPrint('🔍 [Restore] Type: DATA (no transfer key needed)');
+    debugPrint('[Restore] Type: DATA (no transfer key needed)');
 
-    // Restore MiRO ID (ถ้ามี)
     await _restoreMiroId(jsonData);
 
-    // Import Food Entries
     final foodEntriesImported = await _importFoodEntries(
       jsonData['foodEntries'] as List<dynamic>? ?? [],
     );
-    debugPrint('✅ [Restore] Imported $foodEntriesImported food entries');
+    debugPrint('[Restore] Imported $foodEntriesImported food entries');
 
-    // Import My Meals
     final myMealsImported = await _importMyMeals(
       jsonData['myMeals'] as List<dynamic>? ?? [],
     );
-    debugPrint('✅ [Restore] Imported $myMealsImported my meals');
+    debugPrint('[Restore] Imported $myMealsImported my meals');
 
-    // Import Settings (if requested)
     bool settingsImported = false;
     if (importSettings && jsonData.containsKey('profile')) {
       await _importSettings(jsonData['profile'] as Map<String, dynamic>);
       settingsImported = true;
     }
 
-    debugPrint('✅ [Restore] Data restore completed!');
+    debugPrint('[Restore] Data restore completed!');
     return BackupRestoreResult(
       success: true,
       foodEntriesImported: foodEntriesImported,
@@ -463,11 +459,11 @@ class BackupService {
     );
   }
 
-  /// Restore ENERGY file — transfer key + energy (กฎเดิม: ครั้งเดียว, ห้ามเครื่องเดียวกัน)
+  /// Restore ENERGY file — transfer key + energy
   static Future<BackupRestoreResult> _restoreEnergyFile(
     Map<String, dynamic> jsonData,
   ) async {
-    debugPrint('🔍 [Restore] Type: ENERGY (transfer key required)');
+    debugPrint('[Restore] Type: ENERGY (transfer key required)');
 
     try {
       final newDeviceId = await DeviceIdService.getDeviceId();
@@ -484,7 +480,7 @@ class BackupService {
 
       final energyTransferred = result.data['energyTransferred'] as int;
       final newBalance = result.data['newBalance'] as int;
-      debugPrint('✅ [Restore] Energy transferred: $energyTransferred → New balance: $newBalance');
+      debugPrint('[Restore] Energy transferred: $energyTransferred → New balance: $newBalance');
 
       return BackupRestoreResult(
         success: true,
@@ -506,7 +502,7 @@ class BackupService {
     Map<String, dynamic> jsonData, {
     bool importSettings = false,
   }) async {
-    debugPrint('🔍 [Restore] Type: LEGACY (combined file)');
+    debugPrint('[Restore] Type: LEGACY (combined file)');
 
     final newDeviceId = await DeviceIdService.getDeviceId();
     final transferKey = jsonData['transferKey'] as String;
@@ -522,31 +518,27 @@ class BackupService {
 
     final energyTransferred = result.data['energyTransferred'] as int;
     final newBalance = result.data['newBalance'] as int;
-    debugPrint('✅ [Restore] Energy transferred: $energyTransferred → New balance: $newBalance');
+    debugPrint('[Restore] Energy transferred: $energyTransferred → New balance: $newBalance');
 
-    // Restore MiRO ID
     await _restoreMiroId(jsonData);
 
-    // Import Food Entries
     final foodEntriesImported = await _importFoodEntries(
       jsonData['foodEntries'] as List<dynamic>? ?? [],
     );
-    debugPrint('✅ [Restore] Imported $foodEntriesImported food entries');
+    debugPrint('[Restore] Imported $foodEntriesImported food entries');
 
-    // Import My Meals
     final myMealsImported = await _importMyMeals(
       jsonData['myMeals'] as List<dynamic>? ?? [],
     );
-    debugPrint('✅ [Restore] Imported $myMealsImported my meals');
+    debugPrint('[Restore] Imported $myMealsImported my meals');
 
-    // Import Settings
     bool settingsImported = false;
     if (importSettings && jsonData.containsKey('profile')) {
       await _importSettings(jsonData['profile'] as Map<String, dynamic>);
       settingsImported = true;
     }
 
-    debugPrint('✅ [Restore] Legacy restore completed!');
+    debugPrint('[Restore] Legacy restore completed!');
     return BackupRestoreResult(
       success: true,
       energyTransferred: energyTransferred,
@@ -572,7 +564,7 @@ class BackupService {
         ),
       );
       await storage.write(key: 'miro_id', value: miroId);
-      debugPrint('✅ [Restore] MiRO ID restored: $miroId');
+      debugPrint('[Restore] MiRO ID restored: $miroId');
     }
   }
 
@@ -605,77 +597,111 @@ class BackupService {
   static Future<int> _importFoodEntries(List<dynamic> entries) async {
     if (entries.isEmpty) return 0;
 
-    final isar = DatabaseService.isar;
     int importedCount = 0;
+    int failedCount = 0;
 
-    for (final entryJson in entries) {
+    for (var i = 0; i < entries.length; i++) {
+      final entryJson = entries[i];
       try {
-        final foodName = entryJson['foodName'] as String;
-        final timestampStr = entryJson['timestamp'] as String;
-        final timestamp = DateTime.parse(timestampStr);
-
-        // ตรวจสอบ Duplicate (foodName + timestamp)
-        final existingEntry = await isar.foodEntrys
-            .filter()
-            .foodNameEqualTo(foodName)
-            .timestampEqualTo(timestamp)
-            .findFirst();
-
-        if (existingEntry != null) {
-          // Skip duplicate
+        final foodName = entryJson['foodName'] as String?;
+        final timestampStr = entryJson['timestamp'] as String?;
+        if (foodName == null || foodName.isEmpty || timestampStr == null) {
+          debugPrint('[Restore] Skip entry $i: missing foodName or timestamp');
+          failedCount++;
           continue;
         }
+        final timestamp = DateTime.parse(timestampStr);
 
-        // สร้าง FoodEntry ใหม่
-        final newEntry = FoodEntry()
-          ..foodName = foodName
-          ..foodNameEn = entryJson['foodNameEn']
-          ..timestamp = timestamp
-          ..mealType = MealType.values.firstWhere(
-            (e) => e.name == entryJson['mealType'],
+        final existingEntry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+          ..where((tbl) =>
+              tbl.foodName.equals(foodName) &
+              tbl.timestamp.equals(timestamp))
+          ..limit(1))
+            .getSingleOrNull();
+
+        if (existingEntry != null) continue;
+
+        final now = DateTime.now();
+        final newEntry = FoodEntry(
+          id: 0,
+          foodName: foodName,
+          foodNameEn: entryJson['foodNameEn'] as String?,
+          timestamp: timestamp,
+          mealType: MealType.values.firstWhere(
+            (e) => e.name == (entryJson['mealType'] as String?),
             orElse: () => MealType.breakfast,
-          )
-          ..servingSize = (entryJson['servingSize'] as num).toDouble()
-          ..servingUnit = entryJson['servingUnit'] as String
-          ..servingGrams = (entryJson['servingGrams'] as num?)?.toDouble()
-          ..calories = (entryJson['calories'] as num).toDouble()
-          ..protein = (entryJson['protein'] as num).toDouble()
-          ..carbs = (entryJson['carbs'] as num).toDouble()
-          ..fat = (entryJson['fat'] as num).toDouble()
-          ..baseCalories = (entryJson['baseCalories'] as num).toDouble()
-          ..baseProtein = (entryJson['baseProtein'] as num).toDouble()
-          ..baseCarbs = (entryJson['baseCarbs'] as num).toDouble()
-          ..baseFat = (entryJson['baseFat'] as num).toDouble()
-          ..fiber = (entryJson['fiber'] as num?)?.toDouble()
-          ..sugar = (entryJson['sugar'] as num?)?.toDouble()
-          ..sodium = (entryJson['sodium'] as num?)?.toDouble()
-          ..cholesterol = (entryJson['cholesterol'] as num?)?.toDouble()
-          ..saturatedFat = (entryJson['saturatedFat'] as num?)?.toDouble()
-          ..source = DataSource.values.firstWhere(
+          ),
+          servingSize: ((entryJson['servingSize'] as num?) ?? 1).toDouble(),
+          servingUnit: entryJson['servingUnit'] as String? ?? 'serving',
+          servingGrams: (entryJson['servingGrams'] as num?)?.toDouble(),
+          calories: ((entryJson['calories'] as num?) ?? 0).toDouble(),
+          protein: ((entryJson['protein'] as num?) ?? 0).toDouble(),
+          carbs: ((entryJson['carbs'] as num?) ?? 0).toDouble(),
+          fat: ((entryJson['fat'] as num?) ?? 0).toDouble(),
+          baseCalories: ((entryJson['baseCalories'] as num?) ?? 0).toDouble(),
+          baseProtein: ((entryJson['baseProtein'] as num?) ?? 0).toDouble(),
+          baseCarbs: ((entryJson['baseCarbs'] as num?) ?? 0).toDouble(),
+          baseFat: ((entryJson['baseFat'] as num?) ?? 0).toDouble(),
+          fiber: (entryJson['fiber'] as num?)?.toDouble(),
+          sugar: (entryJson['sugar'] as num?)?.toDouble(),
+          sodium: (entryJson['sodium'] as num?)?.toDouble(),
+          cholesterol: (entryJson['cholesterol'] as num?)?.toDouble(),
+          saturatedFat: (entryJson['saturatedFat'] as num?)?.toDouble(),
+          source: DataSource.values.firstWhere(
             (e) => e.name == entryJson['source'],
             orElse: () => DataSource.manual,
-          )
-          ..aiConfidence = (entryJson['aiConfidence'] as num?)?.toDouble()
-          ..isVerified = entryJson['isVerified'] ?? false
-          ..notes = entryJson['notes']
-          ..imagePath = null // รูปไม่ import
-          ..ingredientsJson = entryJson['ingredientsJson']
-          ..createdAt = entryJson['createdAt'] != null 
-              ? DateTime.parse(entryJson['createdAt']) 
-              : DateTime.now();
+          ),
+          aiConfidence: (entryJson['aiConfidence'] as num?)?.toDouble(),
+          isVerified: entryJson['isVerified'] ?? false,
+          isDeleted: false,
+          notes: entryJson['notes'] as String?,
+          ingredientsJson: entryJson['ingredientsJson'] as String?,
+          searchMode: entryJson['searchMode'] != null
+              ? FoodSearchMode.values.firstWhere(
+                  (e) => e.name == entryJson['searchMode'],
+                  orElse: () => FoodSearchMode.normal,
+                )
+              : FoodSearchMode.normal,
+          sceneContext: entryJson['sceneContextJson'] as String?,
+          groupId: entryJson['groupId'] as String?,
+          groupSource: entryJson['groupSource'] as String?,
+          groupOrder: entryJson['groupOrder'] as int?,
+          isGroupOriginal: entryJson['isGroupOriginal'] as bool? ?? false,
+          userInputText: entryJson['userInputText'] as String?,
+          originalFoodName: entryJson['originalFoodName'] as String?,
+          originalCalories: (entryJson['originalCalories'] as num?)?.toDouble(),
+          originalProtein: (entryJson['originalProtein'] as num?)?.toDouble(),
+          originalCarbs: (entryJson['originalCarbs'] as num?)?.toDouble(),
+          originalFat: (entryJson['originalFat'] as num?)?.toDouble(),
+          originalIngredientsJson: entryJson['originalIngredientsJson'] as String?,
+          editCount: entryJson['editCount'] as int? ?? 0,
+          isUserCorrected: entryJson['isUserCorrected'] as bool? ?? false,
+          brandName: entryJson['brandName'] as String?,
+          productName: entryJson['productName'] as String?,
+          productBarcode: entryJson['productBarcode'] as String?,
+          isSynced: false,
+          isCalibrated: false,
+          imagePath: null,
+          createdAt: entryJson['createdAt'] != null
+              ? DateTime.parse(entryJson['createdAt'])
+              : now,
+          updatedAt: now,
+        );
 
-        // บันทึกลง Isar
-        await isar.writeTxn(() async {
-          await isar.foodEntrys.put(newEntry);
-        });
+        await DatabaseService.db
+            .into(DatabaseService.db.foodEntries)
+            .insertOnConflictUpdate(newEntry);
 
         importedCount++;
       } catch (e) {
-        // Log error แต่ทำต่อ
-        debugPrint('Error importing food entry: $e');
+        failedCount++;
+        debugPrint('[Restore] Error importing food entry $i: $e');
       }
     }
 
+    if (failedCount > 0) {
+      debugPrint('[Restore] Failed to import $failedCount of ${entries.length} entries');
+    }
     return importedCount;
   }
 
@@ -683,43 +709,40 @@ class BackupService {
   static Future<int> _importMyMeals(List<dynamic> meals) async {
     if (meals.isEmpty) return 0;
 
-    final isar = DatabaseService.isar;
     int importedCount = 0;
 
     for (final mealJson in meals) {
       try {
         final name = mealJson['name'] as String;
 
-        // ตรวจสอบ Duplicate (name)
-        final existingMeal = await isar.myMeals
-            .filter()
-            .nameEqualTo(name)
-            .findFirst();
+        final existingMeal = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+          ..where((tbl) => tbl.name.equals(name))
+          ..limit(1))
+            .getSingleOrNull();
 
-        if (existingMeal != null) {
-          // Skip duplicate
-          continue;
-        }
+        if (existingMeal != null) continue;
 
-        // สร้าง MyMeal ใหม่
-        final newMeal = MyMeal()
-          ..name = name
-          ..nameEn = mealJson['nameEn']
-          ..totalCalories = (mealJson['totalCalories'] as num).toDouble()
-          ..totalProtein = (mealJson['totalProtein'] as num).toDouble()
-          ..totalCarbs = (mealJson['totalCarbs'] as num).toDouble()
-          ..totalFat = (mealJson['totalFat'] as num).toDouble()
-          ..baseServingDescription = mealJson['baseServingDescription'] as String
-          ..source = mealJson['source'] as String
-          ..usageCount = mealJson['usageCount'] ?? 0
-          ..createdAt = mealJson['createdAt'] != null 
-              ? DateTime.parse(mealJson['createdAt']) 
-              : DateTime.now();
+        final now = DateTime.now();
+        final newMeal = MyMeal(
+          id: 0,
+          name: name,
+          nameEn: mealJson['nameEn'] as String?,
+          totalCalories: ((mealJson['totalCalories'] as num?) ?? 0).toDouble(),
+          totalProtein: ((mealJson['totalProtein'] as num?) ?? 0).toDouble(),
+          totalCarbs: ((mealJson['totalCarbs'] as num?) ?? 0).toDouble(),
+          totalFat: ((mealJson['totalFat'] as num?) ?? 0).toDouble(),
+          baseServingDescription: mealJson['baseServingDescription'] as String? ?? '',
+          source: mealJson['source'] as String? ?? 'manual',
+          usageCount: mealJson['usageCount'] ?? 0,
+          createdAt: mealJson['createdAt'] != null
+              ? DateTime.parse(mealJson['createdAt'])
+              : now,
+          updatedAt: now,
+        );
 
-        // บันทึกลง Isar
-        await isar.writeTxn(() async {
-          await isar.myMeals.put(newMeal);
-        });
+        await DatabaseService.db
+            .into(DatabaseService.db.myMeals)
+            .insertOnConflictUpdate(newMeal);
 
         importedCount++;
       } catch (e) {
@@ -731,12 +754,7 @@ class BackupService {
   }
 
   /// Import Settings (Profile)
-  /// 
-  /// ⚠️ TODO: แก้ไขให้เหมาะกับโครงสร้างของคุณ
-  /// ตัวอย่างนี้ใช้ SharedPreferences — ถ้าใช้ Riverpod/Provider ต้องแก้
   static Future<void> _importSettings(Map<String, dynamic> profile) async {
-    // TODO: Implement based on your app's architecture
-    // Example: Save to SharedPreferences or update Provider state
     debugPrint('Settings import not implemented yet');
   }
 
@@ -744,7 +762,7 @@ class BackupService {
   // 4. UTILITIES
   // ============================================================
 
-  /// ดึงข้อมูลเครื่อง (สำหรับแสดงใน Preview)
+  /// ดึงข้อมูลเครื่อง
   static Future<String> _getDeviceInfo() async {
     try {
       final deviceInfo = DeviceInfoPlugin();

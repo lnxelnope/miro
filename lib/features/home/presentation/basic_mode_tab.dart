@@ -1,13 +1,13 @@
 import 'dart:io';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
+import '../../../core/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
-import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../health/models/food_entry.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/analysis_provider.dart';
 import '../../health/providers/fulfill_calorie_provider.dart';

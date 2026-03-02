@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_tokens.dart';
-import '../../features/health/models/food_entry.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/analysis_provider.dart';
 import '../../l10n/app_localizations.dart';

@@ -254,10 +254,16 @@ Download free today and start your health journey!
 ## 🛡️ Privacy & Compliance
 
 ### Data Collection
-- ✅ Analytics (Firebase Analytics) - Opt-in
-- ✅ Crash Reports - Anonymous
-- ❌ Personal Identifiable Information - Not collected without permission
-- ❌ Third-party advertising - None
+- ✅ Analytics (Firebase Analytics) — Opt-in
+- ✅ Crash Reports — Anonymous
+- ✅ Advertising — AdMob with UMP consent (personalized if consent, non-personalized fallback)
+- ✅ Food thumbnails (~40-80 KB) — Uploaded to Firebase Storage after AI analysis
+- ✅ Compact nutrition data — Synced daily to Firebase Firestore
+- ✅ HealthKit — Read Active Energy Burned, Write Dietary Nutrition (opt-in)
+- ✅ Food Research Program — Opt-in, anonymized data may be shared with third parties
+- ❌ PII — No name, email, phone number collected
+- ❌ Location — Not collected
+- ❌ Full-resolution photos — Never leave device
 
 ### Permissions Used
 
@@ -345,41 +351,51 @@ Password: ReviewDemo2024
 ```
 Hi Apple Review Team,
 
-Thank you for reviewing Miro!
+Thank you for reviewing MiRO!
 
 Key Points:
 
 1. Food Analysis Feature:
    - Uses Google Gemini API for image analysis
    - Requires internet for AI analysis only
-   - Works offline for database lookups
+   - Works offline for database lookups and manual logging
 
 2. In-App Purchases:
-   - Energy packs are consumable items
-   - Used to unlock AI food analysis
-   - Can earn Energy free by daily check-ins
-   - Premium subscriptions for unlimited access
+   - Energy packs are consumable items used to unlock AI food analysis
+   - Can earn Energy free by daily check-ins and quests
+   - Auto-renewable subscriptions (weekly/monthly/yearly Energy Pass)
+   - Subscriptions managed entirely through Apple StoreKit
 
 3. Permissions:
-   - Camera: For taking food photos and barcode scanning
-   - Photo Library: For selecting existing food photos
-   - Notifications (optional): For meal reminders
+   - Camera: Taking food photos for AI nutrition analysis
+   - Photo Library: Selecting existing food photos
+   - HealthKit (optional): Read Active Energy Burned, Write Dietary Nutrition
+   - Tracking (optional): For personalized ads via AdMob
 
-4. Privacy:
-   - All user data stored locally on device
-   - No server-side user data storage
-   - Firebase Analytics: Anonymous only
-   - Privacy policy: [URL]
+4. Data & Privacy:
+   - Food data stored locally on device (Isar database)
+   - Compact text-only nutrition backups synced to Firebase Firestore (daily)
+   - Small thumbnails (~40-80 KB) uploaded to Firebase Storage after analysis
+   - Full-resolution photos never leave the device
+   - Firebase Analytics: Anonymous, opt-in only
+   - AdMob: Shows ads with UMP consent flow
+   - Food Research Program: Opt-in only, anonymized data may be shared with third parties for AI training
+   - HealthKit data is never sent to any server — only derived values (net energy) are stored locally
+   - Privacy policy: https://tnbgrp.com/miro/privacy
 
-5. Testing Tips:
-   - Try taking a photo of food (Home > Camera icon)
-   - Test barcode scanner (My Meals > Scan icon)
-   - View statistics and charts
+5. HealthKit Usage:
+   - READ: Active Energy Burned — to add exercise bonus to daily calorie goal
+   - WRITE: Dietary Energy, Protein, Carbs, Fat — when user logs a meal
+   - Health data stays on device only; never uploaded to cloud
+
+6. Testing Tips:
+   - Take a photo of food (Home > Camera icon)
+   - Type food name to search (Home > + button)
+   - View daily summary and statistics
+   - Enable Health Sync in Settings
    - Test in-app purchase (use Sandbox account)
 
-Please feel free to contact me if you have any questions!
-
-Contact: support@miroapp.com
+Contact: support@tnbgrp.com
 ```
 
 ### Contact Information

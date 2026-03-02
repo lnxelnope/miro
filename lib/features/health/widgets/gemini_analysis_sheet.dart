@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -9,12 +11,10 @@ import '../../../core/services/usage_limiter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
 import '../../../features/energy/providers/energy_provider.dart';
-import '../../../core/constants/enums.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../core/ar_scale/widgets/calibration_badge.dart';
 import '../../../core/ar_scale/constants/ar_scale_enums.dart';
 import '../providers/my_meal_provider.dart';
-import '../models/ingredient.dart';
 import '../../../l10n/app_localizations.dart';
 
 // ===== Editable Ingredient Row Model =====
@@ -44,6 +44,9 @@ class _EditableIngredient {
   bool isFromDb = false;
   bool isExpanded = false; // NEW: สำหรับ collapse/expand sub-ingredients
 
+  // Ingredient origin: 'ai' | 'user_db' | 'user_ai' | 'user'
+  String source;
+
   // NEW: Sub-ingredients
   List<_EditableIngredient>? subIngredients; // NEW
 
@@ -58,6 +61,7 @@ class _EditableIngredient {
     required this.carbs,
     required this.fat,
     this.subIngredients, // NEW
+    this.source = 'ai',
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(
             text: amount > 0 ? amount.toStringAsFixed(0) : ''),
@@ -112,19 +116,19 @@ class _EditableIngredient {
   }
 
   Map<String, dynamic> toMap() {
-    final map = {
+    final map = <String, dynamic>{
       'name': nameController.text.trim(),
       'name_en': nameEn,
-      'detail': detail, // NEW
+      'detail': detail,
       'amount': double.tryParse(amountController.text) ?? 0,
       'unit': unit,
       'calories': calories,
       'protein': protein,
       'carbs': carbs,
       'fat': fat,
+      'source': source,
     };
 
-    // NEW: เพิ่ม sub_ingredients ถ้ามี
     if (subIngredients != null && subIngredients!.isNotEmpty) {
       map['sub_ingredients'] =
           subIngredients!.map((sub) => sub.toMap()).toList();
@@ -533,6 +537,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           row.carbs = result.nutrition.carbs;
           row.fat = result.nutrition.fat;
           row.nameEn = result.foodNameEn;
+          row.source = row.source == 'ai' ? 'user_ai' : row.source;
           row.isLoading = false;
           _lookingUpIndices.remove(index);
           row.saveBaseValues();
@@ -666,6 +671,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
             protein: 0,
             carbs: 0,
             fat: 0,
+            source: 'user',
           ));
     });
   }
@@ -1109,6 +1115,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                         final amt = double.tryParse(row.amountController.text) ??
                             selection.baseAmount;
                         final ratio = amt / selection.baseAmount;
+                        IngredientActions.incrementUsage(selection.id);
                         setState(() {
                           row.nameController.text = selection.name;
                           row.nameEn = selection.nameEn;
@@ -1120,6 +1127,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                           row.carbs = selection.carbsPerBase * ratio;
                           row.fat = selection.fatPerBase * ratio;
                           row.isFromDb = true;
+                          row.source = 'user_db';
                           row.subIngredients = [];
                           row.saveBaseValues();
                         });
@@ -1460,6 +1468,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                     final amt = double.tryParse(sub.amountController.text) ??
                         selection.baseAmount;
                     final ratio = amt / selection.baseAmount;
+                    IngredientActions.incrementUsage(selection.id);
                     setState(() {
                       sub.nameController.text = selection.name;
                       sub.nameEn = selection.nameEn;
@@ -1471,6 +1480,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       sub.carbs = selection.carbsPerBase * ratio;
                       sub.fat = selection.fatPerBase * ratio;
                       sub.isFromDb = true;
+                      sub.source = 'user_db';
                       sub.saveBaseValues();
                       _recalculateParentFromSubs(parentIndex);
                       _recalculate();
@@ -1792,6 +1802,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                     'protein': e.protein,
                     'carbs': e.carbs,
                     'fat': e.fat,
+                    'source': 'ai',
                   })
               .toList(),
       notes: widget.analysisResult.notes,
@@ -1819,6 +1830,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       final dbResult = await ref.read(ingredientSearchProvider(subName).future);
       if (dbResult.isNotEmpty) {
         final ing = dbResult.first;
+        IngredientActions.incrementUsage(ing.id);
         setState(() {
           sub.nameController.text = ing.name;
           sub.nameEn = ing.nameEn;
@@ -1837,6 +1849,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           sub.fat = (ing.fatPerBase / ing.baseAmount) * amount;
 
           sub.isFromDb = true;
+          sub.source = 'user_db';
           sub.isLoading = false;
           _recalculateParentFromSubs(parentIndex);
         });
@@ -1903,6 +1916,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           sub.fat = result.nutrition.fat;
 
           sub.isFromDb = false;
+          sub.source = 'user_ai';
           sub.isLoading = false;
           _recalculateParentFromSubs(parentIndex);
         });

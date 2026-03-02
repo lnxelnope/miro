@@ -6,12 +6,12 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/services/consent_service.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/constants/cuisine_options.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
-import '../../../core/constants/enums.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
 import '../providers/locale_provider.dart';
@@ -25,6 +25,8 @@ import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 import '../../home/widgets/feature_tour.dart';
 import '../../../core/services/backup_service.dart';
+import '../../../core/services/data_sync_service.dart';
+import '../../chat/services/greeting_service.dart';
 import '../../../features/energy/providers/gamification_provider.dart';
 import '../../subscription/presentation/subscription_screen.dart';
 import '../../subscription/providers/subscription_provider.dart';
@@ -38,7 +40,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/health_sync_service.dart';
 import '../../../core/services/recovery_key_service.dart';
 import 'restore_account_screen.dart';
-import '../models/user_profile.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -280,17 +281,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         setState(() => _dataExpanded = !_dataExpanded),
                     child: Column(
                       children: [
+                        const _AutoSyncStatusCard(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.backupData,
-                          subtitle: L10n.of(context)!.backupDataSubtitle,
+                          subtitle: L10n.of(context)!.backupExportSubtitle,
                           leading: Container(
                             padding: AppSpacing.paddingSm,
                             decoration: BoxDecoration(
                               color: AppColors.info.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: const Icon(Icons.backup,
+                            child: const Icon(Icons.ios_share_rounded,
                                 color: AppColors.info, size: 20),
                           ),
                           onTap: () => _handleBackup(context),
@@ -312,8 +314,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                         _buildModernSettingCard(
                           context: context,
-                          title: 'กู้คืนด้วย Recovery Key',
-                          subtitle: 'ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์',
+                          title: L10n.of(context)!.recoveryKeyRestoreTitle,
+                          subtitle: L10n.of(context)!.recoveryKeyRestoreSubtitle,
                           leading: Container(
                             padding: AppSpacing.paddingSm,
                             decoration: BoxDecoration(
@@ -331,6 +333,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ),
                         const _AnalyticsConsentToggle(),
+                        const _FoodResearchConsentToggle(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.clearAllData,
@@ -367,7 +370,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.2.3',
+                          subtitle: '1.2.4',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -1366,6 +1369,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onTap: () {
                     ref.read(localeProvider.notifier).state = null;
                     GeminiService.setUserLanguage('en');
+                    _saveLocaleToProfile(null);
                     Navigator.pop(ctx);
                     _showLanguageChangedSnackbar(
                         L10n.of(context)!.systemDefault);
@@ -1386,6 +1390,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       onTap: () {
                         ref.read(localeProvider.notifier).state = Locale(code);
                         GeminiService.setUserLanguage(code);
+                        _saveLocaleToProfile(code);
                         Navigator.pop(ctx);
                         _showLanguageChangedSnackbar(
                             _getLanguageLabel(context, code));
@@ -1496,6 +1501,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  void _saveLocaleToProfile(String? localeCode) {
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    if (profile != null) {
+      profile.locale = localeCode;
+      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+    }
   }
 
   void _showLanguageChangedSnackbar(String language) {
@@ -1762,11 +1775,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Text(L10n.of(context)!.clearAllDataTitle),
           ],
         ),
-        content: Text(
-          '${L10n.of(context)!.clearAllDataContent}\n\n'
-          '${L10n.of(context)!.clearAllDataStorageDetails}\n'
-          '${L10n.of(context)!.clearAllDataFactoryResetHint}',
-        ),
+        content: Text(L10n.of(context)!.clearAllDataContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1784,14 +1793,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (confirmed == true) {
       try {
-        // 1. Clear Isar DB
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.clear();
-          await DatabaseService.myMeals.clear();
-          await DatabaseService.ingredients.clear();
-          await DatabaseService.userProfiles.clear();
-          await DatabaseService.chatMessages.clear();
-          await DatabaseService.chatSessions.clear();
+        // 1. Clear Drift DB
+        await DatabaseService.db.transaction(() async {
+          await DatabaseService.db.delete(DatabaseService.db.foodEntries).go();
+          await DatabaseService.db.delete(DatabaseService.db.myMeals).go();
+          await DatabaseService.db.delete(DatabaseService.db.ingredients).go();
+          await DatabaseService.db.delete(DatabaseService.db.userProfiles).go();
+          await DatabaseService.db.delete(DatabaseService.db.chatMessages).go();
+          await DatabaseService.db.delete(DatabaseService.db.chatSessions).go();
         });
 
         // 2. Clear SharedPreferences (dismissed_offers, welcome_claimed, balance cache, etc.)
@@ -1896,6 +1905,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           backupFiles.dataFile,
           backupFiles.energyFile,
         );
+        // Track last backup date for greeting reminders
+        await GreetingService.setLastBackupDate(DateTime.now());
       }
     } catch (e) {
       // ปิด Loading (ถ้ายังอยู่)
@@ -2043,6 +2054,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
 
       if (info == null) return;
+
+      // 2b. ถ้าเป็น energy file — แจ้งให้เลือก data file แทน
+      if (info.fileType == BackupFileType.energy) {
+        if (context.mounted) {
+          _showErrorDialog(
+            context,
+            L10n.of(context)!.invalidBackupFile,
+            L10n.of(context)!.restoreSelectDataFile,
+          );
+        }
+        return;
+      }
 
       // 3. แสดง Preview + Confirmation
       if (context.mounted) {
@@ -2228,6 +2251,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 '${result.foodEntriesImported}'),
             _buildInfoRow(
                 '${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
+            if (result.foodEntriesImported == 0 && result.fileType == BackupFileType.data) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: AppSpacing.paddingSm,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
+                ),
+                child: Text(
+                  L10n.of(context)!.restoreZeroEntriesHint,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
@@ -2441,24 +2478,22 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     if (confirm == true) {
       try {
         // ลบ food entries ที่มาจาก gallery scan (hard delete)
-        final scanEntries = await DatabaseService.foodEntries
-            .filter()
-            .sourceEqualTo(DataSource.galleryScanned)
-            .findAll();
+        final scanEntries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.source.equalsValue(DataSource.galleryScanned)))
+            .get();
 
         // ลบ entries ที่ถูก analyze แล้ว (source เปลี่ยนเป็น aiAnalyzed) แต่มี imagePath (มาจาก gallery)
-        final analyzedFromGallery = await DatabaseService.foodEntries
-            .filter()
-            .sourceEqualTo(DataSource.aiAnalyzed)
-            .imagePathIsNotNull()
-            .imagePathIsNotEmpty()
-            .findAll();
+        final analyzedFromGallery = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.source.equalsValue(DataSource.aiAnalyzed) & tbl.imagePath.isNotNull() & tbl.imagePath.length.isBiggerThanValue(0)))
+            .get();
 
         final allEntries = [...scanEntries, ...analyzedFromGallery];
         final ids = allEntries.map((e) => e.id).toSet().toList();
 
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.deleteAll(ids);
+        await DatabaseService.db.transaction(() async {
+          for (final id in ids) {
+            await (DatabaseService.db.delete(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(id))).go();
+          }
         });
 
         // Reset retro scan flag เพื่อให้สแกนรูปเก่าได้อีกครั้ง
@@ -2484,6 +2519,167 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+/// Auto Sync Status Card
+/// Shows last cloud sync date and unsynced entry count.
+class _AutoSyncStatusCard extends ConsumerStatefulWidget {
+  const _AutoSyncStatusCard();
+
+  @override
+  ConsumerState<_AutoSyncStatusCard> createState() =>
+      _AutoSyncStatusCardState();
+}
+
+class _AutoSyncStatusCardState extends ConsumerState<_AutoSyncStatusCard> {
+  String? _lastSyncDate;
+  int _unsyncedCount = 0;
+  bool _isSyncing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSyncStatus();
+  }
+
+  Future<void> _loadSyncStatus() async {
+    final lastSync = await DataSyncService.getLastAutoSyncDate();
+    final unsynced = await DataSyncService.getUnsyncedCount();
+    if (mounted) {
+      setState(() {
+        _lastSyncDate = lastSync;
+        _unsyncedCount = unsynced;
+      });
+    }
+  }
+
+  Future<void> _syncNow() async {
+    if (_isSyncing) return;
+    setState(() => _isSyncing = true);
+    try {
+      await DataSyncService.syncNow();
+      await GreetingService.setLastBackupDate(DateTime.now());
+      await _loadSyncStatus();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cloudSyncSuccess),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cloudSyncFailed(e.toString())),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final synced = _unsyncedCount == 0;
+    final statusColor = synced ? AppColors.success : AppColors.warning;
+    final statusText = synced
+        ? l10n.cloudSyncSynced
+        : l10n.cloudSyncPending(_unsyncedCount);
+    final dateText = _lastSyncDate != null
+        ? l10n.cloudSyncLastDate(_lastSyncDate!)
+        : l10n.cloudSyncNever;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: AppSpacing.paddingSm,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: AppRadius.md,
+            ),
+            child: Icon(
+              synced ? Icons.cloud_done_rounded : Icons.cloud_upload_rounded,
+              color: statusColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.cloudSync,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$statusText • $dateText',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white54 : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.cloudSyncAutoDescription,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!synced)
+            GestureDetector(
+              onTap: _isSyncing ? null : _syncNow,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
+                ),
+                child: _isSyncing
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        l10n.cloudSyncNow,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -2826,21 +3022,20 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange),
-            SizedBox(width: 12),
-            Flexible(child: Text('สร้าง Key ใหม่?')),
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 12),
+            Flexible(child: Text(L10n.of(context)!.recoveryKeyRegenerateConfirm)),
           ],
         ),
-        content: const Text(
-          'Key เก่าจะใช้ไม่ได้อีก\n\n'
-          'ถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน',
+        content: Text(
+          L10n.of(context)!.recoveryKeyRegenerateWarning,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('ยกเลิก'),
+            child: Text(L10n.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -2848,7 +3043,7 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
               backgroundColor: Colors.orange,
               foregroundColor: Colors.white,
             ),
-            child: const Text('สร้างใหม่'),
+            child: Text(L10n.of(context)!.recoveryKeyRegenerate),
           ),
         ],
       ),
@@ -2866,7 +3061,7 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
       });
       if (newKey != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('สร้าง Recovery Key ใหม่แล้ว')),
+          SnackBar(content: Text(L10n.of(context)!.recoveryKeyRegenerated)),
         );
       }
     }
@@ -2901,11 +3096,11 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                       color: AppColors.warning, size: 20),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Recovery Key',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
@@ -2913,8 +3108,8 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                         ),
                       ),
                       Text(
-                        'ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง',
-                        style: TextStyle(
+                        L10n.of(context)!.recoveryKeyDescription,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                         ),
@@ -2925,7 +3120,7 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                 // Regenerate button
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded, size: 20),
-                  tooltip: 'สร้าง Key ใหม่',
+                  tooltip: L10n.of(context)!.recoveryKeyRegenerateTooltip,
                   onPressed: _isLoading ? null : _regenerate,
                 ),
               ],
@@ -2950,8 +3145,8 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                 children: [
                   Expanded(
                     child: _isLoading
-                        ? const Text('กำลังโหลด...',
-                            style: TextStyle(color: Colors.grey))
+                        ? Text(L10n.of(context)!.recoveryKeyLoading,
+                            style: const TextStyle(color: Colors.grey))
                         : Text(
                             _isRevealed ? (_recoveryKey ?? '-') : _maskedKey,
                             style: TextStyle(
@@ -2976,7 +3171,7 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                     onPressed: _isLoading
                         ? null
                         : () => setState(() => _isRevealed = !_isRevealed),
-                    tooltip: _isRevealed ? 'ซ่อน' : 'แสดง',
+                    tooltip: _isRevealed ? L10n.of(context)!.recoveryKeyHide : L10n.of(context)!.recoveryKeyShow,
                   ),
                   // Copy button
                   if (_isRevealed && _recoveryKey != null)
@@ -2986,20 +3181,20 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
                         Clipboard.setData(
                             ClipboardData(text: _recoveryKey!));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('คัดลอก Recovery Key แล้ว'),
-                            duration: Duration(seconds: 2),
+                          SnackBar(
+                            content: Text(L10n.of(context)!.recoveryKeyCopied),
+                            duration: const Duration(seconds: 2),
                           ),
                         );
                       },
-                      tooltip: 'คัดลอก',
+                      tooltip: L10n.of(context)!.recoveryKeyCopyTooltip,
                     ),
                 ],
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              '⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น',
+              L10n.of(context)!.recoveryKeyWarning,
               style: TextStyle(
                 fontSize: 11,
                 color: isDark ? Colors.white38 : Colors.black45,
@@ -3007,6 +3202,207 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Food Research Consent Toggle
+/// Users opt-in to allow food photos to be analyzed for food environment research.
+/// Photos with consent are flagged as "researchable" and may include
+/// bounding box labels for food, beverages, and dining context.
+class _FoodResearchConsentToggle extends ConsumerStatefulWidget {
+  const _FoodResearchConsentToggle();
+
+  @override
+  ConsumerState<_FoodResearchConsentToggle> createState() =>
+      _FoodResearchConsentToggleState();
+}
+
+class _FoodResearchConsentToggleState
+    extends ConsumerState<_FoodResearchConsentToggle> {
+  bool _isLoading = true;
+  bool _isEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatus();
+  }
+
+  Future<void> _loadStatus() async {
+    try {
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+          ..where((tbl) => tbl.id.equals(1)))
+          .getSingleOrNull();
+      if (mounted) {
+        setState(() {
+          _isEnabled = profile?.foodResearchConsent ?? false;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _toggle(bool value) async {
+    if (value) {
+      final confirmed = await _showConsentDialog();
+      if (confirmed != true) return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+          ..where((tbl) => tbl.id.equals(1)))
+          .getSingleOrNull();
+      if (profile != null) {
+        profile.foodResearchConsent = value;
+        profile.foodResearchConsentAt = value ? DateTime.now() : null;
+        profile.updatedAt = DateTime.now();
+        await DatabaseService.db.into(DatabaseService.db.userProfiles).insertOnConflictUpdate(profile);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isEnabled = value;
+          _isLoading = false;
+        });
+
+        final l10n = L10n.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value
+                ? l10n.foodResearchThanks
+                : l10n.foodResearchDisabled),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<bool?> _showConsentDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final l10n = L10n.of(ctx)!;
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.science_outlined, color: AppColors.premium),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(l10n.foodResearchDialogTitle,
+                    style: const TextStyle(fontSize: 17)),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.foodResearchDialogDescription,
+                  style: const TextStyle(fontSize: 15)),
+              const SizedBox(height: 16),
+              Text(l10n.foodResearchWhatWeAnalyze,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 6),
+              Text('✅ ${l10n.foodResearchAnalyze1}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze2}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze3}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze4}', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Text(l10n.foodResearchWhatWeSkip,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 6),
+              Text('❌ ${l10n.foodResearchSkip1}', style: const TextStyle(fontSize: 13)),
+              Text('❌ ${l10n.foodResearchSkip2}', style: const TextStyle(fontSize: 13)),
+              Text('❌ ${l10n.foodResearchSkip3}', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Text(l10n.foodResearchPrivacyNote,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.foodResearchDecline),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.premium,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.foodResearchAccept),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: AppRadius.md,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        leading: Container(
+          padding: AppSpacing.paddingSm,
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.premium.withValues(alpha: 0.2)
+                : AppColors.premium.withValues(alpha: 0.1),
+            borderRadius: AppRadius.md,
+          ),
+          child: Icon(
+            Icons.science_outlined,
+            color: isDark
+                ? AppColors.premium.withValues(alpha: 0.7)
+                : AppColors.premium,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          L10n.of(context)!.foodResearch,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          _isEnabled
+              ? L10n.of(context)!.foodResearchSubtitleOn
+              : L10n.of(context)!.foodResearchSubtitleOff,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+          ),
+        ),
+        trailing: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Switch(
+                value: _isEnabled,
+                onChanged: _toggle,
+              ),
       ),
     );
   }

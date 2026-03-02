@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_colors.dart';
@@ -6,9 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/cuisine_options.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
-import '../../../core/database/database_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../profile/providers/locale_provider.dart';
 import '../../../core/services/analytics_service.dart';
@@ -770,17 +770,40 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   // ============ Complete Onboarding ============
 
   Future<void> _completeOnboarding() async {
-    final profile = await DatabaseService.userProfiles.get(1) ?? UserProfile();
+    final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)..where((tbl) => tbl.id.equals(1))).getSingleOrNull() ??
+        UserProfileData(
+          id: 1,
+          calorieGoal: 2000,
+          proteinGoal: 120,
+          carbGoal: 250,
+          fatGoal: 65,
+          waterGoal: 2500,
+          breakfastBudget: 560,
+          lunchBudget: 700,
+          dinnerBudget: 600,
+          snackBudget: 140,
+          suggestionThreshold: 0.85,
+          mealSuggestionsEnabled: true,
+          isDarkMode: false,
+          cuisinePreference: 'thai',
+          hasGeminiApiKey: false,
+          isGoogleCalendarConnected: false,
+          isHealthConnectConnected: false,
+          customBmr: 1500,
+          tdee: 0,
+          onboardingComplete: false,
+          foodResearchConsent: false,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
 
     profile.cuisinePreference = _selectedCuisine;
     final calorieGoal = double.tryParse(_calorieGoalController.text) ?? 2000.0;
     profile.calorieGoal = calorieGoal;
     profile.onboardingComplete = true;
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.userProfiles.put(profile);
-      await DatabaseService.foodEntries.clear();
-    });
+    await DatabaseService.db.into(DatabaseService.db.userProfiles).insertOnConflictUpdate(profile);
+    await DatabaseService.db.delete(DatabaseService.db.foodEntries).go();
 
     ref.invalidate(userProfileProvider);
 

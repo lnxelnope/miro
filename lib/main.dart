@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/database/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -10,13 +11,13 @@ import 'firebase_options.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
-import 'core/database/database_service.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/energy_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/analytics_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/services/admob_consent_service.dart';
+import 'core/services/data_sync_service.dart';
 import 'core/ai/llm_service.dart';
 import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
@@ -71,7 +72,7 @@ void main() async {
 
 void _initServicesInBackground() async {
   try {
-    final energyService = EnergyService(DatabaseService.isar);
+    final energyService = EnergyService(DatabaseService.db);
 
     try {
       await energyService.migrateToSecureStorage()
@@ -146,6 +147,14 @@ void _initServicesInBackground() async {
       AppLogger.warn('⚠️ AdmobConsentService: $e');
     }
 
+    // Auto cloud sync — once per day on first app open
+    try {
+      await DataSyncService.autoSyncIfNeeded()
+          .timeout(const Duration(seconds: 15), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ AutoSync: $e');
+    }
+
     AppLogger.info('✅ All background services initialized');
   } catch (e) {
     AppLogger.warn('⚠️ Background init error: $e');
@@ -182,17 +191,16 @@ class _MiroAppState extends ConsumerState<MiroApp> {
         _languageSelected = prefs.getBool('language_selected') ?? false;
       }
 
-      final count = await DatabaseService.userProfiles.count();
+      final allProfiles = await DatabaseService.db.select(DatabaseService.db.userProfiles).get();
+      final count = allProfiles.length;
       if (count > 0) {
-        final profile = await DatabaseService.userProfiles.get(1);
+        final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)..where((tbl) => tbl.id.equals(1))).getSingleOrNull();
         _onboardingComplete = profile?.onboardingComplete ?? false;
 
         if (profile != null && profile.platform == null) {
           profile.platform = Platform.isIOS ? 'ios' : 'android';
           profile.updatedAt = DateTime.now();
-          await DatabaseService.isar.writeTxn(() async {
-            await DatabaseService.userProfiles.put(profile);
-          });
+          await DatabaseService.db.into(DatabaseService.db.userProfiles).insertOnConflictUpdate(profile);
         }
       }
     } catch (e) {
@@ -251,7 +259,7 @@ class _MiroAppState extends ConsumerState<MiroApp> {
                 ),
               ),
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'M I R O',
                 style: TextStyle(
                   fontSize: 28,
@@ -271,7 +279,7 @@ class _MiroAppState extends ConsumerState<MiroApp> {
                 ),
               ),
               const SizedBox(height: 40),
-              SizedBox(
+              const SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(

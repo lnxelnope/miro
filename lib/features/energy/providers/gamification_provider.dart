@@ -8,7 +8,7 @@ import 'package:miro_hybrid/core/database/database_service.dart';
 
 final gamificationProvider =
     StateNotifierProvider<GamificationNotifier, GamificationState>((ref) {
-  final energyService = EnergyService(DatabaseService.isar);
+  final energyService = EnergyService(DatabaseService.db);
   return GamificationNotifier(energyService);
 });
 

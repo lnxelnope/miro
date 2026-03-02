@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -7,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
-import '../../features/health/models/food_entry.dart';
 import '../database/database_service.dart';
+import '../database/model_extensions.dart';
 import 'device_id_service.dart';
 
 /// Uploads food entry thumbnails to Firebase Storage after AI analysis.
@@ -42,10 +41,17 @@ class ThumbnailService {
 
       final ref = _storage.ref(path);
 
-      // Custom metadata with all nutrition data
+      // Check if user has opted into food research
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+          ..where((tbl) => tbl.id.equals(1)))
+          .getSingleOrNull();
+      final isResearchable = profile?.foodResearchConsent ?? false;
+
+      // Custom metadata with all nutrition data + research labels if opted in
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
-        customMetadata: _buildNutritionMetadata(entry, hashedId),
+        customMetadata: _buildNutritionMetadata(entry, hashedId,
+            isResearchable: isResearchable),
       );
 
       await ref.putData(thumbnailBytes, metadata);
@@ -55,16 +61,53 @@ class ThumbnailService {
           '(${(thumbnailBytes.length / 1024).toStringAsFixed(0)} KB)');
 
       // Update entry with thumbnail URL
-      final isar = DatabaseService.isar;
-      await isar.writeTxn(() async {
-        entry.thumbnailUrl = downloadUrl;
-        await isar.foodEntrys.put(entry);
-      });
+      entry.thumbnailUrl = downloadUrl;
+      await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
       return downloadUrl;
     } catch (e) {
       debugPrint('[Thumbnail] Upload failed (non-fatal): $e');
       return null;
+    }
+  }
+
+  /// Ensure thumbnail exists and metadata is up-to-date.
+  /// - If thumbnailUrl exists → update metadata only (fast)
+  /// - If thumbnailUrl is null but local image exists → upload thumbnail
+  /// - If neither → skip
+  static Future<void> updateMetadataIfNeeded(FoodEntry entry) async {
+    try {
+      if (entry.hasThumbnailUrl) {
+        // Thumbnail already uploaded → just update metadata
+        final deviceId = await DeviceIdService.getDeviceId();
+        final hashedId = _hashDeviceId(deviceId);
+        final date = _formatDate(entry.timestamp);
+        final path = 'food_images/$hashedId/$date/${entry.id}.jpg';
+
+        final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+            ..where((tbl) => tbl.id.equals(1)))
+            .getSingleOrNull();
+        final isResearchable = profile?.foodResearchConsent ?? false;
+
+        final metadata = SettableMetadata(
+          customMetadata: _buildNutritionMetadata(entry, hashedId,
+              isResearchable: isResearchable),
+        );
+
+        await _storage.ref(path).updateMetadata(metadata);
+        debugPrint('[Thumbnail] Metadata updated: $path');
+      } else if (entry.hasLocalImage) {
+        // No thumbnail yet but local image exists → upload with metadata
+        debugPrint('[Thumbnail] No thumbnailUrl, uploading from local image');
+        await uploadThumbnail(
+          entry: entry,
+          imageFile: File(entry.imagePath!),
+        );
+      } else {
+        debugPrint('[Thumbnail] No image available for entry ${entry.id}');
+      }
+    } catch (e) {
+      debugPrint('[Thumbnail] Metadata update failed (non-fatal): $e');
     }
   }
 
@@ -96,8 +139,9 @@ class ThumbnailService {
   /// All values stored as strings (Firebase Storage requirement).
   static Map<String, String> _buildNutritionMetadata(
     FoodEntry entry,
-    String hashedId,
-  ) {
+    String hashedId, {
+    bool isResearchable = false,
+  }) {
     final meta = <String, String>{
       'uid': hashedId,
       'foodName': entry.foodName,
@@ -144,6 +188,54 @@ class ThumbnailService {
     if (entry.isCalibrated) meta['calibrated'] = 'true';
     if (entry.referenceObjectUsed != null) {
       meta['refObject'] = entry.referenceObjectUsed!;
+    }
+
+    // Correction tracking — data quality (always included)
+    if (entry.isUserCorrected) {
+      meta['corrected'] = 'true';
+      meta['editCount'] = entry.editCount.toString();
+      if (entry.originalFoodName != null) {
+        meta['origName'] = entry.originalFoodName!;
+      }
+      if (entry.originalCalories != null) {
+        meta['origKcal'] = entry.originalCalories!.toStringAsFixed(0);
+      }
+    }
+
+    // Research-grade metadata (only when user has consented)
+    if (isResearchable) {
+      meta['researchable'] = 'true';
+
+      // AR bounding box labels — pre-labeled object detection data
+      if (entry.arLabelsJson != null) meta['arLabels'] = entry.arLabelsJson!;
+      if (entry.arImageWidth != null) {
+        meta['imgW'] = entry.arImageWidth!.toStringAsFixed(0);
+      }
+      if (entry.arImageHeight != null) {
+        meta['imgH'] = entry.arImageHeight!.toStringAsFixed(0);
+      }
+      if (entry.arPixelPerCm != null) {
+        meta['pxPerCm'] = entry.arPixelPerCm!.toStringAsFixed(2);
+      }
+
+      // Scene context — food/beverage/dining items
+      if (entry.sceneContextJson != null) {
+        meta['sceneContext'] = entry.sceneContextJson!;
+      }
+
+      // Brand/product data
+      if (entry.brandName != null) meta['brand'] = entry.brandName!;
+      if (entry.chainName != null) meta['chain'] = entry.chainName!;
+      if (entry.productCategory != null) meta['prodCat'] = entry.productCategory!;
+      if (entry.packageSize != null) meta['pkgSize'] = entry.packageSize!;
+
+      // User's raw input text
+      if (entry.userInputText != null) meta['userInput'] = entry.userInputText!;
+
+      // Ingredients detail
+      if (entry.ingredientsJson != null) {
+        meta['ingredients'] = entry.ingredientsJson!;
+      }
     }
 
     return meta;

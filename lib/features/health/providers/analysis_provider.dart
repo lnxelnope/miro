@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/utils/batch_analysis_helper.dart';
-import '../models/food_entry.dart';
-
 class _AnalysisJob {
   final List<FoodEntry> entries;
   final DateTime selectedDate;
