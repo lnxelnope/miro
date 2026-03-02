@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../health/providers/analysis_provider.dart';
 class FoodSandbox extends ConsumerStatefulWidget {
   final List<FoodEntry> entries;
   final void Function(FoodEntry entry) onTap;
@@ -81,6 +82,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
   Widget build(BuildContext context) {
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final analysisState = ref.watch(analysisProvider);
     // Sort: items with images first, then text-only; within each group by timestamp descending (ล่าสุดด้านบน)
     final sorted = List<FoodEntry>.from(widget.entries)
       ..sort((a, b) {
@@ -125,11 +127,16 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
               runSpacing: AppSpacing.sm,
               children: sorted.map((entry) {
                 final isSelected = _selectedIds.contains(entry.id);
+                final isAnalyzing = analysisState.isItemAnalyzing(entry.id);
+                final isPending = analysisState.isItemPending(entry.id);
                 return _FoodBubble(
                   entry: entry,
                   isSelectionMode: _selectionMode,
                   isSelected: isSelected,
+                  isAnalyzing: isAnalyzing,
+                  isPending: isPending,
                   onTap: () {
+                    if (isAnalyzing || isPending) return;
                     if (_selectionMode) {
                       _toggleSelection(entry.id);
                     } else {
@@ -137,6 +144,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
                     }
                   },
                   onLongPress: () {
+                    if (isAnalyzing || isPending) return;
                     if (!_selectionMode) {
                       _enterSelectionMode(entry.id);
                     }
@@ -277,6 +285,8 @@ class _FoodBubble extends StatefulWidget {
   final FoodEntry entry;
   final bool isSelectionMode;
   final bool isSelected;
+  final bool isAnalyzing;
+  final bool isPending;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
@@ -284,6 +294,8 @@ class _FoodBubble extends StatefulWidget {
     required this.entry,
     required this.isSelectionMode,
     required this.isSelected,
+    required this.isAnalyzing,
+    required this.isPending,
     required this.onTap,
     required this.onLongPress,
   });
@@ -346,7 +358,9 @@ class _FoodBubbleState extends State<_FoodBubble>
 
     // Border color differs between normal items and products
     Color borderColor;
-    if (widget.isSelected) {
+    if (widget.isAnalyzing) {
+      borderColor = AppColors.primary.withValues(alpha: 0.4);
+    } else if (widget.isSelected) {
       borderColor = AppColors.primary;
     } else if (isUnanalyzed) {
       borderColor = AppColors.warning.withValues(alpha: 0.4);
@@ -361,25 +375,30 @@ class _FoodBubbleState extends State<_FoodBubble>
     Widget bubble = GestureDetector(
       onTap: widget.onTap,
       onLongPress: widget.onLongPress,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        width: 105,
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: widget.isSelected
-              ? AppColors.primary.withValues(alpha: 0.15)
-              : isProduct
-                  ? (isDark
-                      ? AppColors.health.withValues(alpha: 0.08)
-                      : AppColors.health.withValues(alpha: 0.05))
-                  : isDark
-                      ? AppColors.surfaceDark
-                      : AppColors.surface,
-          borderRadius: AppRadius.md,
-          border: Border.all(
-            color: borderColor,
-            width: widget.isSelected ? 2 : (isProduct ? 1.5 : 1),
-          ),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: widget.isPending ? 0.4 : 1.0,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          width: 105,
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: widget.isAnalyzing
+                ? AppColors.primary.withValues(alpha: 0.06)
+                : widget.isSelected
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : isProduct
+                        ? (isDark
+                            ? AppColors.health.withValues(alpha: 0.08)
+                            : AppColors.health.withValues(alpha: 0.05))
+                        : isDark
+                            ? AppColors.surfaceDark
+                            : AppColors.surface,
+            borderRadius: AppRadius.md,
+            border: Border.all(
+              color: borderColor,
+              width: widget.isAnalyzing || widget.isSelected ? 2 : (isProduct ? 1.5 : 1),
+            ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -388,19 +407,22 @@ class _FoodBubbleState extends State<_FoodBubble>
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            // Image (แสดงเฉพาะเมื่อมีรูป)
-            if (hasImage) ...[
-              FoodEntryImage(
-                entry: entry,
-                width: double.infinity,
-                height: 56,
-                borderRadius: AppRadius.sm,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-            ],
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Image (แสดงเฉพาะเมื่อมีรูป)
+                if (hasImage) ...[
+                  FoodEntryImage(
+                    entry: entry,
+                    width: double.infinity,
+                    height: 56,
+                    borderRadius: AppRadius.sm,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                ],
             // Name
             Text(
               entry.foodName,
@@ -434,23 +456,63 @@ class _FoodBubbleState extends State<_FoodBubble>
                 ],
               ),
 
-            // Selection checkbox overlay
-            if (widget.isSelectionMode)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  widget.isSelected
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  size: 18,
-                  color: widget.isSelected
-                      ? AppColors.primary
-                      : (isDark ? AppColors.textSecondaryDark : AppColors.textTertiary),
+                // Selection checkbox overlay
+                if (widget.isSelectionMode)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      widget.isSelected
+                          ? Icons.check_circle_rounded
+                          : Icons.radio_button_unchecked_rounded,
+                      size: 18,
+                      color: widget.isSelected
+                          ? AppColors.primary
+                          : (isDark ? AppColors.textSecondaryDark : AppColors.textTertiary),
+                    ),
+                  ),
+              ],
+            ),
+            // Analyzing overlay — spinner บน icon
+            if (widget.isAnalyzing)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            // Pending overlay — hourglass
+            if (widget.isPending)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.hourglass_top_rounded,
+                      size: 18,
+                      color: Colors.white70,
+                    ),
+                  ),
                 ),
               ),
           ],
         ),
       ),
+    ),
     );
 
     // Wiggle animation ตอนอยู่ใน selection mode

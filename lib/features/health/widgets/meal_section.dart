@@ -716,8 +716,13 @@ class _MealSectionState extends ConsumerState<MealSection> {
     bool isDark,
     bool isSelected,
   ) {
+    final analysisState = ref.watch(analysisProvider);
+    final isThisAnalyzing = analysisState.isItemAnalyzing(food.id);
+    final isThisPending = analysisState.isItemPending(food.id);
+
     return GestureDetector(
       onTap: () {
+        if (isThisAnalyzing || isThisPending) return;
         if (_isSelectMode) {
           _toggleSelect(food.id);
         } else {
@@ -725,6 +730,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
         }
       },
       onLongPress: () {
+        if (isThisAnalyzing || isThisPending) return;
         if (!_isSelectMode) {
           HapticFeedback.mediumImpact();
           setState(() {
@@ -733,26 +739,33 @@ class _MealSectionState extends ConsumerState<MealSection> {
           });
         }
       },
-      child: AnimatedContainer(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: isThisPending ? 0.4 : 1.0,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.error.withValues(alpha: 0.08)
-              : Theme.of(context).cardColor,
+          color: isThisAnalyzing
+              ? AppColors.primary.withValues(alpha: 0.06)
+              : isSelected
+                  ? AppColors.error.withValues(alpha: 0.08)
+                  : Theme.of(context).cardColor,
           borderRadius: AppRadius.md,
           border: Border.all(
-            color: isSelected
-                ? AppColors.error.withValues(alpha: 0.4)
-                : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-            width: isSelected ? 1.5 : 1,
+            color: isThisAnalyzing
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : isSelected
+                    ? AppColors.error.withValues(alpha: 0.4)
+                    : Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: isThisAnalyzing || isSelected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
             // Checkbox (in select mode) or Image/icon
-            if (_isSelectMode) ...[
+            if (_isSelectMode && !isThisAnalyzing && !isThisPending) ...[
               SizedBox(
                 width: 40,
                 height: 40,
@@ -808,7 +821,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
                           ),
                           child: _buildSourceIcon(food),
                         ),
-                  if (food.hasAnyImage)
+                  if (food.hasAnyImage && !isThisAnalyzing)
                     Positioned(
                       bottom: 2,
                       right: 2,
@@ -822,6 +835,43 @@ class _MealSectionState extends ConsumerState<MealSection> {
                           _getSourceIconData(food),
                           size: 10,
                           color: _getSourceIconColor(food),
+                        ),
+                      ),
+                    ),
+                  // iOS-style analyzing overlay on the item icon
+                  if (isThisAnalyzing)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: AppRadius.sm,
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Pending indicator
+                  if (isThisPending)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: AppRadius.sm,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.hourglass_top_rounded,
+                            size: 18,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ),
@@ -973,6 +1023,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

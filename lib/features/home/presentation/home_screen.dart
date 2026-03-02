@@ -20,6 +20,8 @@ import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../../scanner/widgets/retro_scan_dialog.dart';
+import '../../scanner/providers/scanner_provider.dart';
+import '../../health/providers/health_provider.dart';
 import '../widgets/feature_tour.dart';
 import '../widgets/welcome_message_dialog.dart';
 import '../../../core/providers/app_mode_provider.dart';
@@ -72,6 +74,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         GeminiService.setUserLanguage(locale?.languageCode ?? 'en');
       } catch (_) {
         // Silent fail — defaults to 'international' / 'en'
+      }
+
+      // 6. Auto-scan gallery for food photos on fresh launch (background, silent)
+      if (mounted) {
+        _autoScanGallery();
       }
     });
   }
@@ -457,6 +464,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       AppLogger.info('✅ Welcome message shown');
     } catch (e) {
       AppLogger.warn('⚠️ Failed to show welcome message: $e');
+    }
+  }
+
+  /// Auto-scan gallery for food photos (silent, background)
+  /// Runs on every fresh launch — scans today's images
+  Future<void> _autoScanGallery() async {
+    try {
+      final permissionService = PermissionService();
+      final hasGallery = await permissionService.hasGalleryPermission();
+      if (!hasGallery) {
+        AppLogger.info('[AutoScan] Skipped: no gallery permission');
+        return;
+      }
+
+      AppLogger.info('[AutoScan] Starting background gallery scan...');
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
+
+      final count = await ref
+          .read(galleryScanNotifierProvider.notifier)
+          .scanNewImages(specificDate: todayDate);
+
+      if (count > 0 && mounted) {
+        AppLogger.info('[AutoScan] Found $count new food images');
+        refreshFoodProviders(ref, todayDate);
+      } else {
+        AppLogger.info('[AutoScan] No new food images found');
+      }
+    } catch (e) {
+      AppLogger.warn('[AutoScan] Failed: $e');
     }
   }
 

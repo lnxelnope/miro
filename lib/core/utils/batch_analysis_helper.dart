@@ -218,13 +218,13 @@ class BatchAnalysisHelper {
   }
 
   /// Analyze รายการที่เลือก (ใช้ได้ทั้ง analyze all และ analyze selected)
-  /// [onProgress] callback: (currentIndex, totalCount, currentItemName)
+  /// [onProgress] callback: (currentIndex, totalCount, currentItemName, {itemId})
   /// [shouldCancel] callback: return true เพื่อยกเลิก
   static Future<BatchAnalysisResult> analyzeEntries({
     required Ref ref,
     required List<FoodEntry> entries,
     required DateTime selectedDate,
-    required void Function(int current, int total, String itemName) onProgress,
+    required void Function(int current, int total, String itemName, {int? itemId}) onProgress,
     required bool Function() shouldCancel,
   }) async {
     int totalSuccessCount = 0;
@@ -255,7 +255,8 @@ class BatchAnalysisHelper {
         onProgress(
           totalSuccessCount + batchSuccessCount + failedIds.length + 1,
           entries.length,
-          '${chunk.length} items',
+          chunk.first.foodName,
+          itemId: chunk.first.id,
         );
 
         try {
@@ -293,10 +294,13 @@ class BatchAnalysisHelper {
               batchSuccessCount++;
 
               // Refresh UI immediately so user sees each completed item
+              final nextIdx = i + 1;
+              final nextId = nextIdx < chunk.length ? chunk[nextIdx].id : null;
               onProgress(
                 totalSuccessCount + batchSuccessCount + failedIds.length,
                 entries.length,
-                entry.foodName,
+                nextIdx < chunk.length ? chunk[nextIdx].foodName : entry.foodName,
+                itemId: nextId,
               );
               _refreshProviders(ref, selectedDate);
             } else {
@@ -312,6 +316,7 @@ class BatchAnalysisHelper {
                 totalSuccessCount + batchSuccessCount + failedIds.length + 1,
                 entries.length,
                 entry.foodName,
+                itemId: entry.id,
               );
 
               final extracted = extractIngredientsFromJson(entry);
@@ -363,6 +368,7 @@ class BatchAnalysisHelper {
           totalSuccessCount + batchSuccessCount + failedIds.length + 1,
           entries.length,
           entry.foodName,
+          itemId: entry.id,
         );
 
         try {

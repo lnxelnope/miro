@@ -6,7 +6,6 @@ import '../../../l10n/app_localizations.dart';
 import '../logic/scan_controller.dart';
 import '../services/gallery_service.dart';
 import '../services/vision_processor.dart';
-import '../services/qr_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Dialog that offers to scan the user's gallery photos from the last 1 day
@@ -75,16 +74,13 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       _statusText = L10n.of(context)!.retroScanFetchingPhotos;
     });
 
-    try {
-      final galleryService = GalleryService();
-      final visionProcessor = VisionProcessor();
-      final qrParser = QRParser();
-      final scanController = ScanController(
-        galleryService,
-        visionProcessor,
-        qrParser,
-      );
+    final galleryService = GalleryService();
+    final scanController = ScanController(
+      galleryService,
+      VisionProcessor(),
+    );
 
+    try {
       final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
 
       AppLogger.info('RetroScan: Starting scan for images from last 1 day...');
@@ -109,8 +105,6 @@ class _RetroScanDialogState extends State<RetroScanDialog>
 
       final savedCount = await scanController.scanNewImages(after: oneDayAgo);
 
-      visionProcessor.dispose();
-
       if (!mounted) return;
 
       setState(() {
@@ -131,6 +125,8 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       });
 
       await RetroScanDialog.markRetroScanDone();
+    } finally {
+      scanController.dispose();
     }
   }
 

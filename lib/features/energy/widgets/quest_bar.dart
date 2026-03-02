@@ -325,11 +325,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       );
     }
 
+    // Subscriber (Energy Pass) → ซ่อน offer ทั้งหมด (ซื้อไปแล้ว ไม่ต้องโชว์)
+    final isSubscriber = gamification.isSubscriber;
+
     // Check if we have active offers (after filtering dismissed)
     final visibleOffers = _activeOffers
         .where((o) => !_dismissedOffers.contains(o['id'] as String?))
         .toList();
-    final hasActiveOffer = visibleOffers.isNotEmpty;
+    final hasActiveOffer = visibleOffers.isNotEmpty && !isSubscriber;
 
     // ถ้ายังมี offer → แสดงแค่ offer banner, ซ่อน quest bar
     // ผู้ใช้ต้องปิด offer ก่อนถึงจะเห็น streak

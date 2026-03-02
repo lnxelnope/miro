@@ -7,7 +7,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:miro_hybrid/features/scanner/logic/scan_controller.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
-import 'package:miro_hybrid/features/scanner/services/qr_parser.dart';
 import 'package:miro_hybrid/core/services/permission_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,11 +18,12 @@ part 'scanner_provider.g.dart';
 /// ใช้สำหรับสแกนรูปจาก Gallery
 @riverpod
 ScanController scanController(Ref ref) {
-  return ScanController(
+  final controller = ScanController(
     GalleryService(),
     VisionProcessor(),
-    QRParser(),
   );
+  ref.onDispose(() => controller.dispose());
+  return controller;
 }
 
 /// Provider สำหรับ PermissionService
@@ -51,6 +51,11 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
     }
     state = const AsyncValue.loading();
 
+    final controller = ScanController(
+      GalleryService(),
+      VisionProcessor(),
+    );
+
     try {
       // ตรวจสอบ permission
       AppLogger.info('Checking Gallery permission...');
@@ -69,15 +74,12 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
         }
       }
 
-      final controller = ref.read(scanControllerProvider);
       int savedCount;
 
       if (specificDate != null) {
-        // สแกนเฉพาะวันที่ที่กำหนด
         AppLogger.info('Calling ScanController.scanNewImages() for date: ${specificDate.toString()}');
         savedCount = await controller.scanNewImages(specificDate: specificDate);
       } else {
-        // สแกนรูปล่าสุด (ตาม scan limit)
         AppLogger.info('Calling ScanController.scanNewImages() for recent images');
         savedCount = await controller.scanNewImages();
       }
@@ -95,13 +97,15 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
       AppLogger.error('Error occurred', e, stack);
       state = AsyncValue.error(e, stack);
       return 0;
+    } finally {
+      controller.dispose();
     }
   }
 }
 
 /// ผลลัพธ์การ scan รูปภาพ
 class ScanResult {
-  final String type; // 'health' หรือ 'finance'
+  final String type; // 'health'
   final int? entryId;
   final String? message;
 

@@ -17,13 +17,32 @@ class AnalysisState {
   final String currentItemName;
   final bool cancelRequested;
 
+  /// ID of the entry currently being analyzed (for per-item UI)
+  final int? currentItemId;
+
+  /// IDs of entries waiting to be analyzed (for grey-out UI)
+  final Set<int> pendingItemIds;
+
   const AnalysisState({
     this.isAnalyzing = false,
     this.total = 0,
     this.current = 0,
     this.currentItemName = '',
     this.cancelRequested = false,
+    this.currentItemId,
+    this.pendingItemIds = const {},
   });
+
+  /// Check if a specific entry is currently being analyzed
+  bool isItemAnalyzing(int id) => currentItemId == id;
+
+  /// Check if a specific entry is pending (queued but not yet started)
+  bool isItemPending(int id) =>
+      pendingItemIds.contains(id) && currentItemId != id;
+
+  /// Check if a specific entry is in any analysis state (analyzing or pending)
+  bool isItemInQueue(int id) =>
+      currentItemId == id || pendingItemIds.contains(id);
 
   AnalysisState copyWith({
     bool? isAnalyzing,
@@ -31,6 +50,8 @@ class AnalysisState {
     int? current,
     String? currentItemName,
     bool? cancelRequested,
+    int? Function()? currentItemId,
+    Set<int>? pendingItemIds,
   }) {
     return AnalysisState(
       isAnalyzing: isAnalyzing ?? this.isAnalyzing,
@@ -38,6 +59,9 @@ class AnalysisState {
       current: current ?? this.current,
       currentItemName: currentItemName ?? this.currentItemName,
       cancelRequested: cancelRequested ?? this.cancelRequested,
+      currentItemId:
+          currentItemId != null ? currentItemId() : this.currentItemId,
+      pendingItemIds: pendingItemIds ?? this.pendingItemIds,
     );
   }
 }
@@ -62,10 +86,18 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     if (entries.isEmpty) return;
     _queue.add(_AnalysisJob(entries: entries, selectedDate: selectedDate));
     if (!_processing) _completedItems = 0;
+
+    // Collect all pending IDs from queue
+    final allPendingIds = <int>{};
+    for (final job in _queue) {
+      allPendingIds.addAll(job.entries.map((e) => e.id));
+    }
+
     state = state.copyWith(
       isAnalyzing: true,
       total: _completedItems + _queuedItemCount,
       cancelRequested: false,
+      pendingItemIds: allPendingIds,
     );
     _processQueue();
   }
@@ -87,7 +119,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
           await BatchAnalysisHelper.checkEnergy(ref, job.entries.length);
       if (!hasEnergy) {
         _completedItems += job.entries.length;
-        _emitProgress(0, 0, '');
+        _emitProgress(0, 0, '', null);
         continue;
       }
 
@@ -95,8 +127,8 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
         ref: ref,
         entries: job.entries,
         selectedDate: job.selectedDate,
-        onProgress: (batchCurrent, batchTotal, itemName) {
-          _emitProgress(batchCurrent, batchTotal, itemName);
+        onProgress: (batchCurrent, batchTotal, itemName, {int? itemId}) {
+          _emitProgress(batchCurrent, batchTotal, itemName, itemId);
         },
         shouldCancel: () => state.cancelRequested,
       );
@@ -112,13 +144,21 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
     }
   }
 
-  void _emitProgress(int batchCurrent, int batchTotal, String itemName) {
+  void _emitProgress(
+      int batchCurrent, int batchTotal, String itemName, int? itemId) {
     if (!mounted) return;
+
+    // Remove completed item from pending set
+    final updatedPending = Set<int>.from(state.pendingItemIds);
+    if (itemId != null) updatedPending.remove(itemId);
+
     state = state.copyWith(
       isAnalyzing: true,
       current: _completedItems + batchCurrent,
       total: _completedItems + batchTotal + _queuedItemCount,
       currentItemName: itemName,
+      currentItemId: () => itemId,
+      pendingItemIds: updatedPending,
     );
   }
 }

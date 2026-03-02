@@ -5,7 +5,6 @@ import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
-import 'package:miro_hybrid/features/scanner/services/qr_parser.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
@@ -13,12 +12,10 @@ import 'package:miro_hybrid/core/ar_scale/ar_scale.dart';
 class ScanController {
   final GalleryService _galleryService;
   final VisionProcessor _visionProcessor;
-  final QRParser _qrParser;
 
   ScanController(
     this._galleryService,
     this._visionProcessor,
-    this._qrParser,
   );
 
   /// กำหนดมื้ออาหารตามเวลา
@@ -62,89 +59,94 @@ class ScanController {
       processedCount++;
       AppLogger.info('Processing image $processedCount/${images.length}...');
 
-      final file = await _galleryService.getFile(asset);
-      if (file == null) {
-        AppLogger.warn('Cannot load image file - skipping');
-        continue;
-      }
-
-      // ⭐ เช็คว่ารูปนี้เคยถูกสแกนมาก่อนหรือไม่ (ไม่ว่าจะลบแล้วหรือยัง)
-      // ถ้าเคยสแกน → skip เสมอ ป้องกันรูปที่ผู้ใช้ลบแล้วกลับมาหลัง refresh
-      final existingEntry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
-          ..where((tbl) => tbl.imagePath.equals(file.path)))
-          .getSingleOrNull();
-
-      if (existingEntry != null) {
-        AppLogger.info(
-            'Image already scanned - skipping (ID: ${existingEntry.id}, deleted: ${existingEntry.isDeleted}, path: ${file.path})');
-        skippedDuplicate++;
-        continue;
-      }
-      
-      AppLogger.info('Image not in database - processing (path: ${file.path})');
-
-      final result = await _visionProcessor.processImage(file);
-      if (result == null) {
-        AppLogger.info('Image not relevant (not food/receipt) - skipping');
-        continue; // Ignore irrelevant images
-      }
-
-      AppLogger.info('Found data! Type: ${result['type']}');
-
-      if (result['type'] == 'health') {
-        final allLabels = result['all_labels'] as List<String>? ?? [];
-
-        // AR Scale: detect objects + calibrate
-        CalibrationResult? arCalibration;
-        List<DetectedObjectLabel> objectLabels = [];
-        double imgW = 0, imgH = 0;
-        try {
-          final detector = ReferenceDetectorService.instance;
-
-          final imgBytes = await file.readAsBytes();
-          final codec = await ui.instantiateImageCodec(imgBytes);
-          final frame = await codec.getNextFrame();
-          imgW = frame.image.width.toDouble();
-          imgH = frame.image.height.toDouble();
-          frame.image.dispose();
-
-          final detected = await detector.detectFromImage(file);
-          if (detected.isNotEmpty) {
-            final plate = await detector.detectPlate(file);
-            arCalibration = ScaleCalibrationService.calibrate(
-              referenceObject: detected.first,
-              plateBoundingBox: plate?.boundingBox,
-              imageWidth: imgW,
-              imageHeight: imgH,
-            );
-          }
-
-          objectLabels = await detector.detectAllObjectLabels(file);
-          if (objectLabels.isNotEmpty) {
-            AppLogger.info(
-              '[AR] Gallery scan: ${objectLabels.length} labels, '
-              'calibration=${arCalibration != null}',
-            );
-          }
-        } catch (e) {
-          AppLogger.warn('[AR] Gallery scan detection error: $e');
+      try {
+        final file = await _galleryService.getFile(asset);
+        if (file == null) {
+          AppLogger.warn('Cannot load image file - skipping');
+          continue;
         }
 
-        await _saveFoodEntry(
-          imagePath: file.path,
-          timestamp: asset.createDateTime,
-          label: result['label'] as String? ?? 'Food',
-          allLabels: allLabels,
-          arCalibration: arCalibration,
-          arObjectLabels: objectLabels,
-          arImageWidth: imgW > 0 ? imgW : null,
-          arImageHeight: imgH > 0 ? imgH : null,
-        );
-        savedCount++;
-        AppLogger.info('FoodEntry saved successfully!');
-      }
+        // ⭐ เช็คว่ารูปนี้เคยถูกสแกนมาก่อนหรือไม่ (ไม่ว่าจะลบแล้วหรือยัง)
+        // ถ้าเคยสแกน → skip เสมอ ป้องกันรูปที่ผู้ใช้ลบแล้วกลับมาหลัง refresh
+        final existingEntry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.imagePath.equals(file.path)))
+            .getSingleOrNull();
 
-      AppLogger.info('Saved successfully! ($savedCount/${images.length})');
+        if (existingEntry != null) {
+          AppLogger.info(
+              'Image already scanned - skipping (ID: ${existingEntry.id}, deleted: ${existingEntry.isDeleted}, path: ${file.path})');
+          skippedDuplicate++;
+          continue;
+        }
+        
+        AppLogger.info('Image not in database - processing (path: ${file.path})');
+
+        final result = await _visionProcessor.processImage(file);
+        if (result == null) {
+          AppLogger.info('Image not relevant (not food/receipt) - skipping');
+          continue;
+        }
+
+        AppLogger.info('Found data! Type: ${result['type']}');
+
+        if (result['type'] == 'health') {
+          final allLabels = result['all_labels'] as List<String>? ?? [];
+
+          // AR Scale: detect objects + calibrate
+          CalibrationResult? arCalibration;
+          List<DetectedObjectLabel> objectLabels = [];
+          double imgW = 0, imgH = 0;
+          try {
+            final detector = ReferenceDetectorService.instance;
+
+            final imgBytes = await file.readAsBytes();
+            final codec = await ui.instantiateImageCodec(imgBytes);
+            final frame = await codec.getNextFrame();
+            imgW = frame.image.width.toDouble();
+            imgH = frame.image.height.toDouble();
+            frame.image.dispose();
+
+            final detected = await detector.detectFromImage(file);
+            if (detected.isNotEmpty) {
+              final plate = await detector.detectPlate(file);
+              arCalibration = ScaleCalibrationService.calibrate(
+                referenceObject: detected.first,
+                plateBoundingBox: plate?.boundingBox,
+                imageWidth: imgW,
+                imageHeight: imgH,
+              );
+            }
+
+            objectLabels = await detector.detectAllObjectLabels(file);
+            if (objectLabels.isNotEmpty) {
+              AppLogger.info(
+                '[AR] Gallery scan: ${objectLabels.length} labels, '
+                'calibration=${arCalibration != null}',
+              );
+            }
+          } catch (e) {
+            AppLogger.warn('[AR] Gallery scan detection error: $e');
+          }
+
+          await _saveFoodEntry(
+            imagePath: file.path,
+            timestamp: asset.createDateTime,
+            label: result['label'] as String? ?? 'Food',
+            allLabels: allLabels,
+            arCalibration: arCalibration,
+            arObjectLabels: objectLabels,
+            arImageWidth: imgW > 0 ? imgW : null,
+            arImageHeight: imgH > 0 ? imgH : null,
+          );
+          savedCount++;
+          AppLogger.info('FoodEntry saved successfully!');
+        }
+
+        AppLogger.info('Saved successfully! ($savedCount/${images.length})');
+      } catch (e, stack) {
+        AppLogger.error('Error processing image $processedCount - skipping', e, stack);
+        continue;
+      }
     }
 
     AppLogger.info(
