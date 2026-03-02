@@ -57,9 +57,22 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
     );
 
     try {
-      // ไม่ใช้ permission_handler ตรวจสอบ — มีบั๊กบน Android 13+ (คืนค่า denied แม้ผู้ใช้อนุญาตแล้ว)
-      // ให้ GalleryService จัดการ permission ผ่าน PhotoManager โดยตรง (ทำงานถูกต้อง)
+      // ตรวจสอบ permission
+      AppLogger.info('Checking Gallery permission...');
       final permService = ref.read(permissionServiceProvider);
+      final hasPermission = await permService.hasGalleryPermission();
+      AppLogger.info('Permission status: $hasPermission');
+
+      if (!hasPermission) {
+        AppLogger.warn('No permission - requesting permission...');
+        final granted = await permService.requestGalleryPermission();
+        AppLogger.info('Permission granted: $granted');
+        if (!granted) {
+          AppLogger.error('Gallery access denied');
+          state = AsyncValue.error('Gallery access denied', StackTrace.current);
+          return 0;
+        }
+      }
 
       int savedCount;
 

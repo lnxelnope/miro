@@ -20,10 +20,7 @@ import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../../scanner/widgets/retro_scan_dialog.dart';
-import '../../scanner/providers/scanner_provider.dart';
-import '../../health/providers/health_provider.dart';
 import '../widgets/feature_tour.dart';
-import '../widgets/welcome_message_dialog.dart';
 import '../../../core/providers/app_mode_provider.dart';
 import '../../../core/widgets/mode_toggle.dart';
 import 'basic_mode_tab.dart';
@@ -76,10 +73,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // Silent fail — defaults to 'international' / 'en'
       }
 
-      // 6. Auto-scan gallery for food photos on fresh launch (background, silent)
-      if (mounted) {
-        _autoScanGallery();
-      }
     });
   }
 
@@ -430,8 +423,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final alreadyDone = await RetroScanDialog.hasCompletedRetroScan();
       if (alreadyDone) return;
 
-      // ไม่เช็ค hasGalleryPermission — permission_handler มีบั๊กบน Android 13+
-      // RetroScanDialog ใช้ GalleryService ซึ่งขอ permission ผ่าน PhotoManager โดยตรง
+      final permissionService = PermissionService();
+      final hasGallery = await permissionService.hasGalleryPermission();
+      if (!hasGallery) {
+        AppLogger.info('RetroScan skipped: no gallery permission');
+        await RetroScanDialog.markRetroScanDone();
+        return;
+      }
 
       if (!mounted) return;
 
@@ -439,52 +437,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       if (!mounted) return;
 
+      // Mark done before showing dialog to prevent re-showing
+      // if user kills the app or presses back while dialog is open
+      await RetroScanDialog.markRetroScanDone();
+
       final result = await RetroScanDialog.show(context);
       AppLogger.info('RetroScan result: $result food entries found');
     } catch (e) {
       AppLogger.warn('RetroScan failed: $e');
-    }
-  }
-
-  /// Show welcome message after retro scan completes
-  Future<void> _showWelcomeMessage() async {
-    try {
-      if (!mounted) return;
-
-      await Future.delayed(const Duration(milliseconds: 400));
-
-      if (!mounted) return;
-
-      await WelcomeMessageDialog.show(context);
-      AppLogger.info('✅ Welcome message shown');
-    } catch (e) {
-      AppLogger.warn('⚠️ Failed to show welcome message: $e');
-    }
-  }
-
-  /// Auto-scan gallery for food photos (silent, background)
-  /// Runs on every fresh launch — scans today's images
-  Future<void> _autoScanGallery() async {
-    try {
-      // ไม่เช็ค hasGalleryPermission — permission_handler มีบั๊กบน Android 13+
-      // galleryScanNotifierProvider ใช้ GalleryService ซึ่งขอ permission ผ่าน PhotoManager โดยตรง
-
-      AppLogger.info('[AutoScan] Starting background gallery scan...');
-      final today = DateTime.now();
-      final todayDate = DateTime(today.year, today.month, today.day);
-
-      final count = await ref
-          .read(galleryScanNotifierProvider.notifier)
-          .scanNewImages(specificDate: todayDate);
-
-      if (count > 0 && mounted) {
-        AppLogger.info('[AutoScan] Found $count new food images');
-        refreshFoodProviders(ref, todayDate);
-      } else {
-        AppLogger.info('[AutoScan] No new food images found');
-      }
-    } catch (e) {
-      AppLogger.warn('[AutoScan] Failed: $e');
     }
   }
 
