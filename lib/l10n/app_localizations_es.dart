@@ -3675,4 +3675,106 @@ class L10nEs extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'ACTIVO';
+
+  @override
+  String get freepassUnlimitedAI => 'Análisis IA ilimitado';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '$days días restantes';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Días de Freepass';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'Tienes $days días guardados';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '${days}d';
+  }
+
+  @override
+  String get freepassConvertTitle => 'Convertir Energy a Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 día de IA ilimitada';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Los días de Freepass nunca expiran. Se activan automáticamente cuando finaliza tu suscripción Energy Pass.';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'Convertir (hasta $days días)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'Se necesitan $energy Energy mínimo';
+  }
+
+  @override
+  String get freepassConvertConverting => 'Convirtiendo...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Convertir a Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => '¿Cuántos días?';
+
+  @override
+  String get freepassConvertDialogDay => 'día';
+
+  @override
+  String get freepassConvertDialogDays => 'días';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Costo de Energy';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'Saldo restante';
+
+  @override
+  String get freepassConvertDialogConfirm => 'Convertir';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return '¡$energy Energy convertidos a $days días de Freepass!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'Error en la conversión';
+
+  @override
+  String get freepassConvertError =>
+      'Se produjo un error durante la conversión';
+
+  @override
+  String get subscriptionChangePlan => 'Cambiar plan';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'Puedes cambiar tu plan a través de la gestión de suscripciones de Google Play. El nuevo plan se aplicará en el próximo ciclo de facturación.';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'Puedes mejorar o reducir tu plan a través de la gestión de suscripciones de App Store.';
+
+  @override
+  String get subscriptionCurrentPlan => 'ACTUAL';
+
+  @override
+  String get subscriptionChangePlanButton => 'Cambiar';
 }

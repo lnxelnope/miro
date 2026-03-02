@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/energy_service.dart';
 import '../ai/gemini_service.dart';
 import '../../features/subscription/providers/subscription_provider.dart';
+import '../../features/energy/providers/gamification_provider.dart';
 
-/// Wrapper for GeminiService to handle subscription features
-/// 
-/// This provides unlimited AI analysis for subscribers
+/// Wrapper for GeminiService to handle subscription + freepass features
+///
+/// Provides unlimited AI analysis for subscribers and active freepass users
 class SubscriptionAwareGeminiService {
   final EnergyService _energyService;
   final GeminiService _geminiService;
@@ -19,37 +20,35 @@ class SubscriptionAwareGeminiService {
         _geminiService = GeminiService(energyService),
         _ref = ref;
 
-  /// Check if user can use AI (has energy OR has subscription)
-  Future<bool> canUseAI() async {
-    // Subscribers always have access
+  bool get _hasUnlimitedAccess {
     final hasSubscription = _ref.read(hasActiveSubscriptionProvider);
-    if (hasSubscription) {
-      debugPrint('[SubscriptionAware] ⚡ Subscriber - unlimited access');
+    if (hasSubscription) return true;
+    final gamification = _ref.read(gamificationProvider);
+    return gamification.freepass.isActive;
+  }
+
+  /// Check if user can use AI (has energy OR has subscription/freepass)
+  Future<bool> canUseAI() async {
+    if (_hasUnlimitedAccess) {
+      debugPrint('[SubscriptionAware] Unlimited access (subscription or freepass)');
       return true;
     }
-
-    // Non-subscribers need energy
     return await _energyService.hasEnergy();
   }
 
-  /// Consume energy (or skip if subscribed)
+  /// Consume energy (or skip if subscribed/freepass)
   Future<bool> consumeEnergyIfNeeded({String? description}) async {
-    final hasSubscription = _ref.read(hasActiveSubscriptionProvider);
-    
     return await _energyService.consumeEnergy(
       description: description,
-      hasSubscription: hasSubscription,
+      hasSubscription: _hasUnlimitedAccess,
     );
   }
 
   /// Show appropriate error message
   String getInsufficientEnergyMessage() {
-    final hasSubscription = _ref.read(hasActiveSubscriptionProvider);
-    
-    if (hasSubscription) {
+    if (_hasUnlimitedAccess) {
       return 'Subscription error. Please try again.';
     }
-    
     return 'Insufficient energy. Please purchase more energy or subscribe to Energy Pass.';
   }
 

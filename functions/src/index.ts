@@ -71,6 +71,9 @@ export {verifySubscription} from "./subscription/verifySubscription";
 export {handleRTDN} from "./subscription/handleRTDN";
 export {winbackScheduler} from "./subscription/winbackScheduler";
 
+// Freepass API (energy → days conversion)
+export {convertEnergyToFreepass} from "./freepass/convertEnergyToFreepass";
+
 // ─── V3: Energy Marketing ───────────────────────────────────
 
 // Milestone V3 (10 steps)

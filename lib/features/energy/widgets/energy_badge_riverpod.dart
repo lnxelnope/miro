@@ -31,6 +31,7 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
     bool isError = false,
   }) {
     final isSubscriber = gamification.isSubscriber;
+    final isFreepassActive = gamification.freepass.isActive;
     final hasTier = gamification.tier != 'none';
 
     Color accentColor;
@@ -38,6 +39,8 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
       accentColor = AppColors.textSecondary;
     } else if (isSubscriber) {
       accentColor = AppColors.premium;
+    } else if (isFreepassActive) {
+      accentColor = const Color(0xFF2196F3);
     } else if (balance < 10) {
       accentColor = AppColors.error;
     } else if (balance < 30) {
@@ -52,9 +55,11 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         ? '–'
         : isSubscriber
             ? '∞'
-            : balance >= 1000
-                ? '${(balance / 1000).toStringAsFixed(1)}K'
-                : balance.toString();
+            : isFreepassActive
+                ? '${gamification.freepass.totalDays}d'
+                : balance >= 1000
+                    ? '${(balance / 1000).toStringAsFixed(1)}K'
+                    : balance.toString();
 
     return GestureDetector(
       onTap: () {
@@ -68,7 +73,7 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         decoration: BoxDecoration(
           color: accentColor.withValues(alpha: 0.1),
           borderRadius: AppRadius.lg,
-          border: isSubscriber
+          border: (isSubscriber || isFreepassActive)
               ? Border.all(color: accentColor.withValues(alpha: 0.3), width: 1)
               : null,
         ),
@@ -83,7 +88,11 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
               const SizedBox(width: 2),
             ],
             Icon(
-              isSubscriber ? Icons.diamond_rounded : Icons.bolt_rounded,
+              isSubscriber
+                  ? Icons.diamond_rounded
+                  : isFreepassActive
+                      ? Icons.card_membership_rounded
+                      : Icons.bolt_rounded,
               size: 18,
               color: accentColor,
             ),

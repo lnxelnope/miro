@@ -1035,9 +1035,70 @@ export const analyzeFood = onRequest(
       const subscription = userData.subscription;
       const isSubscriber = subscription?.status === "active";
 
-      if (isSubscriber) {
-        // Subscriber → ใช้ AI ฟรีไม่จำกัด!
-        console.log(`💎 [analyzeFood] Subscriber ${deviceId} — free unlimited!`);
+      // ────── Freepass: auto-activate if subscription expired & has days ──────
+      const freepass = userData.freepass ?? {};
+      let isFreepassActive = freepass.isActive === true;
+      const freepassTotalDays = freepass.totalDays ?? 0;
+
+      // Auto-activate freepass when:
+      // 1. Not a subscriber (subscription expired/cancelled/none)
+      // 2. Has freepass days available
+      // 3. Freepass is not yet active
+      if (!isSubscriber && !isFreepassActive && freepassTotalDays > 0) {
+        const now = new Date();
+        const periodEnd = new Date(now.getTime() + freepassTotalDays * 24 * 60 * 60 * 1000);
+        await userDoc.ref.update({
+          "freepass.isActive": true,
+          "freepass.activatedAt": admin.firestore.FieldValue.serverTimestamp(),
+          "freepass.currentPeriodEnd": admin.firestore.Timestamp.fromDate(periodEnd),
+        });
+        isFreepassActive = true;
+        console.log(`🎫 [Freepass] Auto-activated ${freepassTotalDays} days for ${deviceId}`);
+      }
+
+      // Deduct freepass day if active and new day
+      if (isFreepassActive && freepassTotalDays > 0) {
+        const today = getTodayString(timezoneOffset);
+        const lastDeducted = freepass.lastDeductedDate ?? "";
+
+        if (lastDeducted !== today) {
+          const newTotalDays = freepassTotalDays - 1;
+          const updateData: any = {
+            "freepass.totalDays": newTotalDays,
+            "freepass.lastDeductedDate": today,
+          };
+
+          if (newTotalDays <= 0) {
+            updateData["freepass.isActive"] = false;
+            updateData["freepass.currentPeriodEnd"] = null;
+            console.log(`🎫 [Freepass] Expired for ${deviceId} — no days remaining`);
+          }
+
+          await userDoc.ref.update(updateData);
+          console.log(`🎫 [Freepass] Deducted 1 day for ${deviceId}, remaining: ${newTotalDays}`);
+        }
+      }
+
+      // Check if freepass expired (currentPeriodEnd passed)
+      if (isFreepassActive && freepass.currentPeriodEnd) {
+        const periodEnd = freepass.currentPeriodEnd.toDate
+          ? freepass.currentPeriodEnd.toDate()
+          : new Date(freepass.currentPeriodEnd);
+        if (periodEnd < new Date()) {
+          await userDoc.ref.update({
+            "freepass.isActive": false,
+            "freepass.totalDays": 0,
+            "freepass.currentPeriodEnd": null,
+          });
+          isFreepassActive = false;
+          console.log(`🎫 [Freepass] Period expired for ${deviceId}`);
+        }
+      }
+
+      if (isSubscriber || isFreepassActive) {
+        // Subscriber or Freepass → ใช้ AI ฟรีไม่จำกัด!
+        const accessType = isSubscriber ? "Subscriber" : "Freepass";
+        console.log(`💎 [analyzeFood] ${accessType} ${deviceId} — free unlimited!`);
 
         try {
           // เรียก Gemini API ได้เลย
@@ -1077,21 +1138,26 @@ export const analyzeFood = onRequest(
             await db.collection("transactions").add({
               deviceId,
               miroId,
-              type: "subscription_usage",
+              type: isFreepassActive ? "freepass_usage" : "subscription_usage",
               amount: 0,
               balanceAfter: currentBalance,
-              description: `AI analysis (Subscriber): ${type}`,
+              description: `AI analysis (${accessType}): ${type}`,
               metadata: {
                 requestType: type,
-                isSubscriber: true,
+                isSubscriber,
+                isFreepass: isFreepassActive,
               },
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Increment totalMealsLogged for subscriber
             await userDoc.ref.update({
               totalMealsLogged: admin.firestore.FieldValue.increment(1),
             });
+
+            // Re-read freepass in case it was updated
+            const latestFreepass = isFreepassActive
+              ? (await db.collection("users").doc(deviceId).get()).data()?.freepass ?? {}
+              : userData.freepass ?? {};
 
             res.status(200).json({
               success: true,
@@ -1100,7 +1166,8 @@ export const analyzeFood = onRequest(
               energyUsed: 0,
               energyCost: 0,
               wasFreeAi: false,
-              isSubscriber: true,
+              isSubscriber: isSubscriber,
+              isFreepass: isFreepassActive,
               streak: {
                 current: userData.currentStreak || 0,
                 longest: userData.longestStreak || 0,
@@ -1115,6 +1182,7 @@ export const analyzeFood = onRequest(
               milestones: userData.milestones || {},
               totalSpent: userData.totalSpent || 0,
               tierCelebration: userData.tierCelebration || {},
+              freepass: latestFreepass,
             });
             return;
           } else {
@@ -1147,21 +1215,25 @@ export const analyzeFood = onRequest(
             await db.collection("transactions").add({
               deviceId,
               miroId,
-              type: "subscription_usage",
+              type: isFreepassActive ? "freepass_usage" : "subscription_usage",
               amount: 0,
               balanceAfter: currentBalance,
-              description: `AI analysis (Subscriber): ${type}`,
+              description: `AI analysis (${accessType}): ${type}`,
               metadata: {
                 requestType: type,
-                isSubscriber: true,
+                isSubscriber,
+                isFreepass: isFreepassActive,
               },
               createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Increment totalMealsLogged for subscriber
             await userDoc.ref.update({
               totalMealsLogged: admin.firestore.FieldValue.increment(1),
             });
+
+            const latestFreepass2 = isFreepassActive
+              ? (await db.collection("users").doc(deviceId).get()).data()?.freepass ?? {}
+              : userData.freepass ?? {};
 
             res.status(200).json({
               success: true,
@@ -1170,7 +1242,8 @@ export const analyzeFood = onRequest(
               energyUsed: 0,
               energyCost: 0,
               wasFreeAi: false,
-              isSubscriber: true,
+              isSubscriber: isSubscriber,
+              isFreepass: isFreepassActive,
               streak: {
                 current: userData.currentStreak || 0,
                 longest: userData.longestStreak || 0,
@@ -1185,6 +1258,7 @@ export const analyzeFood = onRequest(
               milestones: userData.milestones || {},
               totalSpent: userData.totalSpent || 0,
               tierCelebration: userData.tierCelebration || {},
+              freepass: latestFreepass2,
             });
             return;
           }
@@ -1392,6 +1466,7 @@ export const analyzeFood = onRequest(
           milestones: milestonesData,
           totalSpent: milestoneResult?.newTotalSpent ?? 0,
           tierCelebration: updatedData.tierCelebration || {},
+          freepass: updatedData.freepass || {},
         });
         return;
       }
@@ -1492,6 +1567,7 @@ export const analyzeFood = onRequest(
         milestones: milestonesData2,
         totalSpent: milestoneResult2?.newTotalSpent ?? 0,
         tierCelebration: updatedData2.tierCelebration || {},
+        freepass: updatedData2.freepass || {},
       });
     } catch (error: any) {
       console.error("❌ Error:", error);

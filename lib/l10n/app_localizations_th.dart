@@ -3578,4 +3578,105 @@ class L10nTh extends L10n {
   @override
   String get nameChangeNoIngredientToAnalyze =>
       'ไม่มีวัตถุดิบที่ต้องวิเคราะห์ใหม่';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'ใช้งานอยู่';
+
+  @override
+  String get freepassUnlimitedAI => 'ใช้ AI ได้ไม่จำกัด';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return 'เหลืออีก $days วัน';
+  }
+
+  @override
+  String get freepassDaysTitle => 'วัน Freepass';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'คุณมี $days วันสะสม';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$daysว';
+  }
+
+  @override
+  String get freepassConvertTitle => 'แลก Energy เป็น Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 วัน ใช้ AI ได้ไม่จำกัด';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'วัน Freepass ไม่มีวันหมดอายุ จะเปิดใช้อัตโนมัติเมื่อ Energy Pass หมดอายุ';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'แลก (สูงสุด $days วัน)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'ต้องมี Energy อย่างน้อย $energy';
+  }
+
+  @override
+  String get freepassConvertConverting => 'กำลังแลก...';
+
+  @override
+  String get freepassConvertDialogTitle => 'แลกเป็น Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => 'ต้องการกี่วัน?';
+
+  @override
+  String get freepassConvertDialogDay => 'วัน';
+
+  @override
+  String get freepassConvertDialogDays => 'วัน';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'ใช้ Energy';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'Energy คงเหลือ';
+
+  @override
+  String get freepassConvertDialogConfirm => 'แลก';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return 'แลก $energy Energy → $days วัน Freepass สำเร็จ!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'แลกไม่สำเร็จ';
+
+  @override
+  String get freepassConvertError => 'เกิดข้อผิดพลาดในการแลก';
+
+  @override
+  String get subscriptionChangePlan => 'เปลี่ยนแพ็กเกจ';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'คุณสามารถเปลี่ยนแพ็กเกจผ่านการจัดการ subscription ของ Google Play แพ็กเกจใหม่จะเริ่มในรอบบิลถัดไป';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'คุณสามารถอัปเกรดหรือดาวน์เกรดแพ็กเกจผ่านการจัดการ subscription ของ App Store';
+
+  @override
+  String get subscriptionCurrentPlan => 'ปัจจุบัน';
+
+  @override
+  String get subscriptionChangePlanButton => 'เปลี่ยน';
 }

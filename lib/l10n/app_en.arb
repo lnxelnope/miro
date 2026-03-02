@@ -2307,5 +2307,71 @@
   "nameChangeSaveAsIs": "Save as-is",
   "nameChangeAnalyzing": "Re-analyzing ingredients...",
   "nameChangeAnalysisFailed": "Re-analysis failed. Saved as-is.",
-  "nameChangeNoIngredientToAnalyze": "No ingredients to re-analyze"
+  "nameChangeNoIngredientToAnalyze": "No ingredients to re-analyze",
+
+  "freepassTitle": "Freepass",
+  "freepassActive": "ACTIVE",
+  "freepassUnlimitedAI": "Unlimited AI Analysis",
+  "freepassDaysRemaining": "{days} days remaining",
+  "@freepassDaysRemaining": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassDaysTitle": "Freepass Days",
+  "freepassDaysSaved": "You have {days} days saved",
+  "@freepassDaysSaved": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassDaysBadge": "{days}d",
+  "@freepassDaysBadge": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertTitle": "Convert Energy to Freepass",
+  "freepassConvertRate": "{energy} Energy = 1 Day of Unlimited AI",
+  "@freepassConvertRate": {
+    "placeholders": {
+      "energy": {"type": "int"}
+    }
+  },
+  "freepassConvertDescription": "Freepass days never expire. They auto-activate when your Energy Pass subscription ends.",
+  "freepassConvertButton": "Convert (up to {days} days)",
+  "@freepassConvertButton": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertMinimum": "Need {energy} Energy minimum",
+  "@freepassConvertMinimum": {
+    "placeholders": {
+      "energy": {"type": "int"}
+    }
+  },
+  "freepassConvertConverting": "Converting...",
+  "freepassConvertDialogTitle": "Convert to Freepass",
+  "freepassConvertDialogQuestion": "How many days?",
+  "freepassConvertDialogDay": "day",
+  "freepassConvertDialogDays": "days",
+  "freepassConvertDialogEnergyCost": "Energy Cost",
+  "freepassConvertDialogRemainingBalance": "Remaining Balance",
+  "freepassConvertDialogConfirm": "Convert",
+  "freepassConvertSuccess": "Converted {energy} Energy → {days} Freepass days!",
+  "@freepassConvertSuccess": {
+    "placeholders": {
+      "energy": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertFailed": "Conversion failed",
+  "freepassConvertError": "Error occurred during conversion",
+
+  "subscriptionChangePlan": "Change Plan",
+  "subscriptionChangePlanDescAndroid": "You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.",
+  "subscriptionChangePlanDescIos": "You can upgrade or downgrade your plan through App Store subscription management.",
+  "subscriptionCurrentPlan": "CURRENT",
+  "subscriptionChangePlanButton": "Change"
 }

@@ -3572,4 +3572,105 @@ class L10nKo extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => '활성';
+
+  @override
+  String get freepassUnlimitedAI => '무제한 AI 분석';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '$days일 남음';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Freepass 일수';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return '$days일이 저장되어 있습니다';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$days일';
+  }
+
+  @override
+  String get freepassConvertTitle => 'Energy를 Freepass로 변환';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 무제한 AI 1일';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Freepass 일수는 만료되지 않습니다. Energy Pass 구독이 종료되면 자동으로 활성화됩니다.';
+
+  @override
+  String freepassConvertButton(int days) {
+    return '변환 (최대 $days일)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return '최소 $energy Energy 필요';
+  }
+
+  @override
+  String get freepassConvertConverting => '변환 중...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Freepass로 변환';
+
+  @override
+  String get freepassConvertDialogQuestion => '며칠로 변환할까요?';
+
+  @override
+  String get freepassConvertDialogDay => '일';
+
+  @override
+  String get freepassConvertDialogDays => '일';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Energy 비용';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => '잔여 잔액';
+
+  @override
+  String get freepassConvertDialogConfirm => '변환';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return '$energy Energy → $days일 Freepass로 변환 완료!';
+  }
+
+  @override
+  String get freepassConvertFailed => '변환 실패';
+
+  @override
+  String get freepassConvertError => '변환 중 오류가 발생했습니다';
+
+  @override
+  String get subscriptionChangePlan => '플랜 변경';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'Google Play 구독 관리를 통해 플랜을 변경할 수 있습니다. 새 플랜은 다음 결제 주기부터 적용됩니다.';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'App Store 구독 관리를 통해 플랜을 업그레이드하거나 다운그레이드할 수 있습니다.';
+
+  @override
+  String get subscriptionCurrentPlan => '현재 플랜';
+
+  @override
+  String get subscriptionChangePlanButton => '변경';
 }

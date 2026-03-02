@@ -3664,4 +3664,105 @@ class L10nVi extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'ĐANG HOẠT ĐỘNG';
+
+  @override
+  String get freepassUnlimitedAI => 'Phân tích AI không giới hạn';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return 'Còn $days ngày';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Số ngày Freepass';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'Bạn đã lưu $days ngày';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '${days}ng';
+  }
+
+  @override
+  String get freepassConvertTitle => 'Chuyển đổi Energy sang Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 ngày AI không giới hạn';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Số ngày Freepass không bao giờ hết hạn. Chúng tự động kích hoạt khi đăng ký Energy Pass của bạn kết thúc.';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'Chuyển đổi (tối đa $days ngày)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'Cần tối thiểu $energy Energy';
+  }
+
+  @override
+  String get freepassConvertConverting => 'Đang chuyển đổi...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Chuyển đổi sang Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => 'Bao nhiêu ngày?';
+
+  @override
+  String get freepassConvertDialogDay => 'ngày';
+
+  @override
+  String get freepassConvertDialogDays => 'ngày';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Chi phí Energy';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'Số dư còn lại';
+
+  @override
+  String get freepassConvertDialogConfirm => 'Chuyển đổi';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return 'Đã chuyển đổi $energy Energy → $days ngày Freepass!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'Chuyển đổi thất bại';
+
+  @override
+  String get freepassConvertError => 'Đã xảy ra lỗi trong quá trình chuyển đổi';
+
+  @override
+  String get subscriptionChangePlan => 'Đổi gói';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'Bạn có thể đổi gói thông qua quản lý đăng ký Google Play. Gói mới sẽ được áp dụng vào chu kỳ thanh toán tiếp theo.';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'Bạn có thể nâng cấp hoặc hạ cấp gói thông qua quản lý đăng ký App Store.';
+
+  @override
+  String get subscriptionCurrentPlan => 'HIỆN TẠI';
+
+  @override
+  String get subscriptionChangePlanButton => 'Đổi';
 }

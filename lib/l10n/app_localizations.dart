@@ -6427,6 +6427,174 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'No ingredients to re-analyze'**
   String get nameChangeNoIngredientToAnalyze;
+
+  /// No description provided for @freepassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass'**
+  String get freepassTitle;
+
+  /// No description provided for @freepassActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get freepassActive;
+
+  /// No description provided for @freepassUnlimitedAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Analysis'**
+  String get freepassUnlimitedAI;
+
+  /// No description provided for @freepassDaysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days remaining'**
+  String freepassDaysRemaining(int days);
+
+  /// No description provided for @freepassDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass Days'**
+  String get freepassDaysTitle;
+
+  /// No description provided for @freepassDaysSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {days} days saved'**
+  String freepassDaysSaved(int days);
+
+  /// No description provided for @freepassDaysBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d'**
+  String freepassDaysBadge(int days);
+
+  /// No description provided for @freepassConvertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert Energy to Freepass'**
+  String get freepassConvertTitle;
+
+  /// No description provided for @freepassConvertRate.
+  ///
+  /// In en, this message translates to:
+  /// **'{energy} Energy = 1 Day of Unlimited AI'**
+  String freepassConvertRate(int energy);
+
+  /// No description provided for @freepassConvertDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass days never expire. They auto-activate when your Energy Pass subscription ends.'**
+  String get freepassConvertDescription;
+
+  /// No description provided for @freepassConvertButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert (up to {days} days)'**
+  String freepassConvertButton(int days);
+
+  /// No description provided for @freepassConvertMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Need {energy} Energy minimum'**
+  String freepassConvertMinimum(int energy);
+
+  /// No description provided for @freepassConvertConverting.
+  ///
+  /// In en, this message translates to:
+  /// **'Converting...'**
+  String get freepassConvertConverting;
+
+  /// No description provided for @freepassConvertDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to Freepass'**
+  String get freepassConvertDialogTitle;
+
+  /// No description provided for @freepassConvertDialogQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How many days?'**
+  String get freepassConvertDialogQuestion;
+
+  /// No description provided for @freepassConvertDialogDay.
+  ///
+  /// In en, this message translates to:
+  /// **'day'**
+  String get freepassConvertDialogDay;
+
+  /// No description provided for @freepassConvertDialogDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get freepassConvertDialogDays;
+
+  /// No description provided for @freepassConvertDialogEnergyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Cost'**
+  String get freepassConvertDialogEnergyCost;
+
+  /// No description provided for @freepassConvertDialogRemainingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance'**
+  String get freepassConvertDialogRemainingBalance;
+
+  /// No description provided for @freepassConvertDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert'**
+  String get freepassConvertDialogConfirm;
+
+  /// No description provided for @freepassConvertSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted {energy} Energy → {days} Freepass days!'**
+  String freepassConvertSuccess(int energy, int days);
+
+  /// No description provided for @freepassConvertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion failed'**
+  String get freepassConvertFailed;
+
+  /// No description provided for @freepassConvertError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error occurred during conversion'**
+  String get freepassConvertError;
+
+  /// No description provided for @subscriptionChangePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Plan'**
+  String get subscriptionChangePlan;
+
+  /// No description provided for @subscriptionChangePlanDescAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.'**
+  String get subscriptionChangePlanDescAndroid;
+
+  /// No description provided for @subscriptionChangePlanDescIos.
+  ///
+  /// In en, this message translates to:
+  /// **'You can upgrade or downgrade your plan through App Store subscription management.'**
+  String get subscriptionChangePlanDescIos;
+
+  /// No description provided for @subscriptionCurrentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT'**
+  String get subscriptionCurrentPlan;
+
+  /// No description provided for @subscriptionChangePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get subscriptionChangePlanButton;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

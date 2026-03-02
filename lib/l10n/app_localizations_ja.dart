@@ -3569,4 +3569,105 @@ class L10nJa extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => '有効';
+
+  @override
+  String get freepassUnlimitedAI => '無制限AI分析';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '残り$days日';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Freepassの日数';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return '$days日分保存されています';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$days日';
+  }
+
+  @override
+  String get freepassConvertTitle => 'EnergyをFreepassに変換';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 無制限AI 1日分';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Freepassの日数は期限切れになりません。Energy Passサブスクリプション終了時に自動的に有効になります。';
+
+  @override
+  String freepassConvertButton(int days) {
+    return '変換（最大$days日）';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return '最低$energy Energy必要';
+  }
+
+  @override
+  String get freepassConvertConverting => '変換中...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Freepassに変換';
+
+  @override
+  String get freepassConvertDialogQuestion => '何日分？';
+
+  @override
+  String get freepassConvertDialogDay => '日';
+
+  @override
+  String get freepassConvertDialogDays => '日';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Energy消費';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => '残高';
+
+  @override
+  String get freepassConvertDialogConfirm => '変換';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return '$energy Energyを$days日分のFreepassに変換しました！';
+  }
+
+  @override
+  String get freepassConvertFailed => '変換に失敗しました';
+
+  @override
+  String get freepassConvertError => '変換中にエラーが発生しました';
+
+  @override
+  String get subscriptionChangePlan => 'プラン変更';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'Google Playのサブスクリプション管理からプランを変更できます。新しいプランは次の請求サイクルから適用されます。';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'App Storeのサブスクリプション管理からプランのアップグレードまたはダウングレードができます。';
+
+  @override
+  String get subscriptionCurrentPlan => '現在のプラン';
+
+  @override
+  String get subscriptionChangePlanButton => '変更';
 }

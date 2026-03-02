@@ -3547,4 +3547,104 @@ class L10nZh extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => '已激活';
+
+  @override
+  String get freepassUnlimitedAI => '无限AI分析';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '剩余$days天';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Freepass天数';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return '您已保存$days天';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$days天';
+  }
+
+  @override
+  String get freepassConvertTitle => '将Energy转换为Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1天无限AI';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Freepass天数永不过期。当您的Energy Pass订阅结束时，它们会自动激活。';
+
+  @override
+  String freepassConvertButton(int days) {
+    return '转换（最多$days天）';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return '最少需要$energy Energy';
+  }
+
+  @override
+  String get freepassConvertConverting => '转换中...';
+
+  @override
+  String get freepassConvertDialogTitle => '转换为Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => '转换几天？';
+
+  @override
+  String get freepassConvertDialogDay => '天';
+
+  @override
+  String get freepassConvertDialogDays => '天';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Energy消耗';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => '剩余余额';
+
+  @override
+  String get freepassConvertDialogConfirm => '转换';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return '已将$energy Energy转换为$days天Freepass！';
+  }
+
+  @override
+  String get freepassConvertFailed => '转换失败';
+
+  @override
+  String get freepassConvertError => '转换过程中出错';
+
+  @override
+  String get subscriptionChangePlan => '更换套餐';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      '您可以通过Google Play订阅管理更换套餐。新套餐将在下一个计费周期生效。';
+
+  @override
+  String get subscriptionChangePlanDescIos => '您可以通过App Store订阅管理升级或降级您的套餐。';
+
+  @override
+  String get subscriptionCurrentPlan => '当前';
+
+  @override
+  String get subscriptionChangePlanButton => '更换';
 }

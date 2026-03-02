@@ -12,6 +12,7 @@ import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
+import 'package:miro_hybrid/features/subscription/models/freepass_data.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 
@@ -37,6 +38,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   Duration? _remainingTime;
   DateTime? _offerExpiryTime;
   bool _isClaimingFreeEnergy = false;
+  bool _isConvertingToFreepass = false;
   final Map<String, GlobalKey> _offerKeys = {};
   String? _userLocale;
 
@@ -221,6 +223,18 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               const SizedBox(height: 20),
             ],
 
+            // ────── Active Freepass Badge (if freepass active & not subscriber) ──────
+            if (!isSubscriber && gamification.freepass.isActive) ...[
+              _buildFreepassActiveBadge(gamification.freepass),
+              const SizedBox(height: 20),
+            ],
+
+            // ────── Freepass Days Bank (show if has days, even inactive) ──────
+            if (gamification.freepass.totalDays > 0 && !gamification.freepass.isActive) ...[
+              _buildFreepassDaysCard(gamification.freepass),
+              const SizedBox(height: 20),
+            ],
+
             // ────── Energy Pass Subscription CTA (only for non-subscribers) ──────
             if (!isSubscriber) ...[
               _buildSubscriptionCTA(),
@@ -296,7 +310,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // ────── Convert Energy to Freepass ──────
+            _buildConvertToFreepassCard(balance),
+
+            const SizedBox(height: 24),
 
             // ────── Info Card ──────
             _buildModernInfoCard(),
@@ -1386,6 +1405,529 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         ),
       ),
     );
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // FREEPASS WIDGETS
+  // ───────────────────────────────────────────────────────────
+
+  Widget _buildFreepassActiveBadge(FreepassData freepass) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2196F3), Color(0xFF1565C0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppRadius.xl,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2196F3).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: AppRadius.lg,
+                  ),
+                  child: const Icon(
+                    Icons.card_membership_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            L10n.of(context)!.freepassTitle,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                              borderRadius: AppRadius.sm,
+                            ),
+                            child: Text(
+                              L10n.of(context)!.freepassActive,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        L10n.of(context)!.freepassUnlimitedAI,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: AppRadius.md,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.timer_rounded,
+                    size: 16,
+                    color: Colors.white.withOpacity(0.8),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    L10n.of(context)!.freepassDaysRemaining(freepass.totalDays),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFreepassDaysCard(FreepassData freepass) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2196F3).withValues(alpha: isDark ? 0.15 : 0.08),
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: const Color(0xFF2196F3).withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3).withValues(alpha: 0.15),
+              borderRadius: AppRadius.md,
+            ),
+            child: const Icon(
+              Icons.card_membership_rounded,
+              size: 24,
+              color: Color(0xFF2196F3),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                    Text(
+                      L10n.of(context)!.freepassDaysTitle,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      L10n.of(context)!.freepassDaysSaved(freepass.totalDays),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2196F3),
+              borderRadius: AppRadius.md,
+            ),
+            child: Text(
+              '${freepass.totalDays}d',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConvertToFreepassCard(int balance) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final maxDays = (balance / FreepassData.energyPerDay).floor();
+    final canConvert = maxDays >= FreepassData.minDays;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF2196F3).withValues(alpha: isDark ? 0.2 : 0.1),
+            const Color(0xFF1565C0).withValues(alpha: isDark ? 0.15 : 0.05),
+          ],
+        ),
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: const Color(0xFF2196F3).withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2196F3).withValues(alpha: 0.15),
+                  borderRadius: AppRadius.md,
+                ),
+                child: const Icon(
+                  Icons.swap_horiz_rounded,
+                  size: 24,
+                  color: Color(0xFF2196F3),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      L10n.of(context)!.freepassConvertTitle,
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      L10n.of(context)!.freepassConvertRate(FreepassData.energyPerDay),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            L10n.of(context)!.freepassConvertDescription,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: canConvert && !_isConvertingToFreepass
+                  ? () => _showConvertDialog(balance)
+                  : null,
+              icon: _isConvertingToFreepass
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.card_membership_rounded, size: 18),
+              label: Text(
+                _isConvertingToFreepass
+                    ? L10n.of(context)!.freepassConvertConverting
+                    : canConvert
+                        ? L10n.of(context)!.freepassConvertButton(maxDays)
+                        : L10n.of(context)!.freepassConvertMinimum(FreepassData.energyPerDay),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2196F3),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: AppRadius.md,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showConvertDialog(int balance) async {
+    final maxDays = (balance / FreepassData.energyPerDay).floor()
+        .clamp(0, FreepassData.maxDaysPerConversion);
+    if (maxDays < 1) return;
+
+    int selectedDays = 1;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          final cost = FreepassData.energyCost(selectedDays);
+          return AlertDialog(
+            backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.xl),
+            title: Row(
+              children: [
+                const Icon(Icons.card_membership_rounded, color: Color(0xFF2196F3)),
+                const SizedBox(width: 8),
+                Text(
+                  L10n.of(context)!.freepassConvertDialogTitle,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  L10n.of(context)!.freepassConvertDialogQuestion,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '$selectedDays',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  selectedDays == 1
+                      ? L10n.of(context)!.freepassConvertDialogDay
+                      : L10n.of(context)!.freepassConvertDialogDays,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Slider(
+                  value: selectedDays.toDouble(),
+                  min: 1,
+                  max: maxDays.toDouble(),
+                  divisions: maxDays > 1 ? maxDays - 1 : 1,
+                  activeColor: const Color(0xFF2196F3),
+                  onChanged: (v) => setDialogState(() => selectedDays = v.round()),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+                    borderRadius: AppRadius.md,
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            L10n.of(context)!.freepassConvertDialogEnergyCost,
+                            style: TextStyle(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$cost',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            L10n.of(context)!.freepassConvertDialogRemainingBalance,
+                            style: TextStyle(
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(AppIcons.energy, size: 14, color: AppIcons.energyColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${balance - cost}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  L10n.of(context)!.cancel,
+                  style: TextStyle(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, selectedDays),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2196F3),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
+                ),
+                child: Text(L10n.of(context)!.freepassConvertDialogConfirm),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (result != null && result > 0) {
+      await _convertToFreepass(result);
+    }
+  }
+
+  Future<void> _convertToFreepass(int days) async {
+    setState(() => _isConvertingToFreepass = true);
+
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+      final response = await http.post(
+        Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/convertEnergyToFreepass'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'deviceId': deviceId, 'days': days}),
+      );
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (data['success'] == true) {
+        final daysConverted = data['daysConverted'] as int? ?? days;
+        final energySpent = data['energySpent'] as int? ?? 0;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(L10n.of(context)!.freepassConvertSuccess(energySpent, daysConverted)),
+              backgroundColor: const Color(0xFF2196F3),
+            ),
+          );
+        }
+
+        ref.invalidate(currentEnergyProvider);
+        ref.invalidate(energyBalanceProvider);
+        await ref.read(gamificationProvider.notifier).refresh();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['error'] as String? ?? L10n.of(context)!.freepassConvertFailed),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[EnergyStore] Error converting to freepass: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.freepassConvertError),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isConvertingToFreepass = false);
+    }
   }
 
   Widget _buildModernInfoCard() {

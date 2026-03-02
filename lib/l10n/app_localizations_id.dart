@@ -3659,4 +3659,105 @@ class L10nId extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'AKTIF';
+
+  @override
+  String get freepassUnlimitedAI => 'Analisis AI Tanpa Batas';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '$days hari tersisa';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Hari Freepass';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'Anda memiliki $days hari tersimpan';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '${days}h';
+  }
+
+  @override
+  String get freepassConvertTitle => 'Konversi Energy ke Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 Hari AI Tanpa Batas';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Hari Freepass tidak pernah kedaluwarsa. Mereka akan aktif otomatis saat langganan Energy Pass Anda berakhir.';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'Konversi (maks $days hari)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'Butuh minimal $energy Energy';
+  }
+
+  @override
+  String get freepassConvertConverting => 'Mengonversi...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Konversi ke Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => 'Berapa hari?';
+
+  @override
+  String get freepassConvertDialogDay => 'hari';
+
+  @override
+  String get freepassConvertDialogDays => 'hari';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Biaya Energy';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'Sisa Saldo';
+
+  @override
+  String get freepassConvertDialogConfirm => 'Konversi';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return 'Berhasil mengonversi $energy Energy → $days hari Freepass!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'Konversi gagal';
+
+  @override
+  String get freepassConvertError => 'Terjadi kesalahan saat konversi';
+
+  @override
+  String get subscriptionChangePlan => 'Ubah Paket';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'Anda dapat mengubah paket melalui manajemen langganan Google Play. Paket baru akan berlaku pada siklus tagihan berikutnya.';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'Anda dapat meningkatkan atau menurunkan paket melalui manajemen langganan App Store.';
+
+  @override
+  String get subscriptionCurrentPlan => 'SAAT INI';
+
+  @override
+  String get subscriptionChangePlanButton => 'Ubah';
 }

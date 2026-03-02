@@ -158,6 +158,7 @@ export const registerUser = onRequest(
           subscription: data.subscription ?? {},
           tierCelebration: finalTierCelebration,
           seasonalQuests: seasonalQuests,
+          freepass: data.freepass ?? {},
         });
         return;
       }

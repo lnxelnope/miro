@@ -3648,4 +3648,105 @@ class L10nHi extends L10n {
 
   @override
   String get nameChangeNoIngredientToAnalyze => 'No ingredients to re-analyze';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'सक्रिय';
+
+  @override
+  String get freepassUnlimitedAI => 'असीमित AI विश्लेषण';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return '$days दिन शेष';
+  }
+
+  @override
+  String get freepassDaysTitle => 'Freepass दिन';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'आपके पास $days दिन सहेजे हुए हैं';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$daysदि';
+  }
+
+  @override
+  String get freepassConvertTitle => 'Energy को Freepass में बदलें';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 दिन असीमित AI';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'Freepass दिन कभी समाप्त नहीं होते। जब आपका Energy Pass सब्सक्रिप्शन समाप्त होता है तो ये स्वचालित रूप से सक्रिय हो जाते हैं।';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'बदलें (अधिकतम $days दिन)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'न्यूनतम $energy Energy आवश्यक';
+  }
+
+  @override
+  String get freepassConvertConverting => 'बदल रहा है...';
+
+  @override
+  String get freepassConvertDialogTitle => 'Freepass में बदलें';
+
+  @override
+  String get freepassConvertDialogQuestion => 'कितने दिन?';
+
+  @override
+  String get freepassConvertDialogDay => 'दिन';
+
+  @override
+  String get freepassConvertDialogDays => 'दिन';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'Energy लागत';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'शेष राशि';
+
+  @override
+  String get freepassConvertDialogConfirm => 'बदलें';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return '$energy Energy → $days Freepass दिनों में बदला गया!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'बदलना विफल';
+
+  @override
+  String get freepassConvertError => 'बदलने के दौरान त्रुटि हुई';
+
+  @override
+  String get subscriptionChangePlan => 'प्लान बदलें';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'आप Google Play सब्सक्रिप्शन प्रबंधन से अपना प्लान बदल सकते हैं। नया प्लान अगले बिलिंग चक्र से लागू होगा।';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'आप App Store सब्सक्रिप्शन प्रबंधन से अपने प्लान को अपग्रेड या डाउनग्रेड कर सकते हैं।';
+
+  @override
+  String get subscriptionCurrentPlan => 'वर्तमान';
+
+  @override
+  String get subscriptionChangePlanButton => 'बदलें';
 }
