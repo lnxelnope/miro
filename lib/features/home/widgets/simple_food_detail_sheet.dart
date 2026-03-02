@@ -13,6 +13,7 @@ import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/utils/unit_converter.dart';
 import '../../health/providers/health_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
@@ -45,9 +46,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late double _originalServingSize;
   List<Map<String, dynamic>> _baseIngredients = [];
 
-  static const _unitOptions = [
-    'serving', 'piece', 'g', 'ml', 'cup', 'tbsp', 'plate', 'bowl',
-  ];
+  // Unit options ใช้จาก UnitConverter (single source of truth)
 
   @override
   void initState() {
@@ -58,12 +57,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
           ? widget.entry.servingSize.toString()
           : '1',
     );
-    _selectedUnit = widget.entry.servingUnit.isNotEmpty
-        ? widget.entry.servingUnit
-        : 'serving';
-    if (!_unitOptions.contains(_selectedUnit)) {
-      _selectedUnit = 'serving';
-    }
+    _selectedUnit = UnitConverter.ensureValid(
+      widget.entry.servingUnit.isNotEmpty ? widget.entry.servingUnit : 'serving',
+    );
     _searchMode = widget.entry.searchMode;
     _calories = widget.entry.calories;
     _protein = widget.entry.protein;
@@ -457,7 +453,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 2,
                         child: DropdownButtonFormField<String>(
-                          initialValue: unit,
+                          value: unit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: L10n.of(context)!.servingUnit,
@@ -466,14 +462,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                           ),
-                          items: const [
-                            DropdownMenuItem(value: 'g', child: Text('g')),
-                            DropdownMenuItem(value: 'ml', child: Text('ml')),
-                            DropdownMenuItem(value: 'piece', child: Text('piece')),
-                            DropdownMenuItem(value: 'tbsp', child: Text('tbsp')),
-                            DropdownMenuItem(value: 'cup', child: Text('cup')),
-                            DropdownMenuItem(value: 'serving', child: Text('serving')),
-                          ],
+                          items: UnitConverter.compactDropdownItems,
                           onChanged: (v) {
                             if (v != null) setDialogState(() => unit = v);
                           },
@@ -637,9 +626,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     final qty =
         double.tryParse(_quantityController.text) ?? widget.entry.servingSize;
     if (qty != widget.entry.servingSize) return true;
-    final originalUnit = widget.entry.servingUnit.isNotEmpty
-        ? widget.entry.servingUnit
-        : 'serving';
+    final originalUnit = UnitConverter.ensureValid(widget.entry.servingUnit);
     if (_selectedUnit != originalUnit) return true;
     if (_searchMode != widget.entry.searchMode) return true;
     return false;
@@ -794,7 +781,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          initialValue: _selectedUnit,
+                          value: _selectedUnit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: _ingredients.isNotEmpty
@@ -809,14 +796,13 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                               vertical: AppSpacing.sm,
                             ),
                           ),
-                          items: _unitOptions
-                              .map((u) => DropdownMenuItem(
-                                  value: u, child: Text(u)))
-                              .toList(),
+                          items: UnitConverter.allDropdownItems,
                           onChanged: _ingredients.isNotEmpty
                               ? null
                               : (v) {
-                                  if (v != null) setState(() => _selectedUnit = v);
+                                  if (v != null && v.isNotEmpty) {
+                                    setState(() => _selectedUnit = v);
+                                  }
                                 },
                         ),
                       ),
