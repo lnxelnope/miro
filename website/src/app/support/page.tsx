@@ -232,7 +232,7 @@ export default function SupportPage() {
             <p className="text-sm text-gray-400">
               Available on{' '}
               <a
-                href="https://play.google.com/store/apps/details?id=com.tnbgrp.miro"
+                href="https://play.google.com/store/apps/details?id=com.tanabun.miro"
                 className="text-brand-400 underline"
                 target="_blank"
                 rel="noopener noreferrer"
