@@ -679,7 +679,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   if (hasImage) ...[
                     GestureDetector(
                       onTap: () => showFoodEntryImage(context, entry),
-                      child: FoodEntryImage(
+                      child: FoodEntryImageWithOverlay(
                         entry: entry,
                         width: double.infinity,
                         height: 200,

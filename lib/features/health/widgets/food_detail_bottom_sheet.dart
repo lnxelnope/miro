@@ -228,14 +228,12 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                         borderRadius: BorderRadius.circular(16),
                         child: Stack(
                           children: [
-                            FoodEntryImage(
+                            FoodEntryImageWithOverlay(
                               entry: entry,
                               width: double.infinity,
                               height: 220,
                               borderRadius: BorderRadius.circular(16),
-                              placeholder: _buildImagePlaceholder(isDark),
                             ),
-                          // Gradient overlay at bottom of image
                           Positioned(
                             bottom: 0,
                             left: 0,
@@ -254,7 +252,6 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                               ),
                             ),
                           ),
-                          // Verified badge overlay
                           if (entry.isVerified)
                             Positioned(
                               top: 12,
@@ -573,27 +570,6 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // Image Placeholder
-  // ============================================================
-  Widget _buildImagePlaceholder(bool isDark) {
-    return Container(
-      width: double.infinity,
-      height: 220,
-      decoration: BoxDecoration(
-        color: AppColors.health.withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.restaurant_rounded,
-          size: 56,
-          color: AppColors.health.withValues(alpha: 0.4),
-        ),
       ),
     );
   }

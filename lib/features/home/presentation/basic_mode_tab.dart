@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/database/app_database.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/image_picker_service.dart';
+import '../../../core/ar_scale/ar_scale.dart';
 import '../../../core/utils/logger.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../widgets/food_sandbox.dart';
@@ -436,11 +438,45 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     final savedEntries = <FoodEntry>[];
 
+    final detector = ReferenceDetectorService.instance;
+
     for (final image in images) {
       try {
         final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
         final destPath = '${appDir.path}/$fileName';
         await image.copy(destPath);
+        final destFile = File(destPath);
+
+        // AR detection
+        String? arLabelsJson;
+        double? arImgW, arImgH, arPixelPerCm;
+        try {
+          final bytes = await destFile.readAsBytes();
+          final codec = await ui.instantiateImageCodec(bytes);
+          final frame = await codec.getNextFrame();
+          arImgW = frame.image.width.toDouble();
+          arImgH = frame.image.height.toDouble();
+          frame.image.dispose();
+
+          final allLabels = await detector.detectAllObjectLabels(destFile);
+          if (allLabels.isNotEmpty) {
+            arLabelsJson = DetectedObjectLabel.encode(allLabels);
+          }
+
+          final detected = await detector.detectFromImage(destFile);
+          if (detected.isNotEmpty) {
+            final plate = await detector.detectPlate(destFile);
+            final calibration = ScaleCalibrationService.calibrate(
+              referenceObject: detected.first,
+              plateBoundingBox: plate?.boundingBox,
+              imageWidth: arImgW,
+              imageHeight: arImgH,
+            );
+            arPixelPerCm = calibration?.pixelPerCm;
+          }
+        } catch (e) {
+          AppLogger.warn('AR detection failed for image: $e');
+        }
 
         final entry = FoodEntry(
           id: 0,
@@ -455,11 +491,15 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
           source: DataSource.galleryScanned,
           isVerified: false,
           searchMode: FoodSearchMode.normal,
+          arLabelsJson: arLabelsJson,
+          arImageWidth: arImgW,
+          arImageHeight: arImgH,
+          arPixelPerCm: arPixelPerCm,
           isDeleted: false,
           isGroupOriginal: false,
           editCount: 0,
           isUserCorrected: false,
-          isCalibrated: false,
+          isCalibrated: arPixelPerCm != null,
           isSynced: false,
           createdAt: now,
           updatedAt: now,

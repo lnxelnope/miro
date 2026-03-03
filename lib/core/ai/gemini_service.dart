@@ -975,7 +975,8 @@ CRITICAL RULES:
 - If nutrition label is visible, use label values as primary source
 - If ingredients list is visible, parse each one separately with specificity
 - If not visible, estimate main components based on product type
-- All ingredient names must be in English with descriptive detail
+- ingredient "name": Use the user's language ($_userLang) with descriptive detail
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 
 Respond in JSON format:
 {
@@ -1003,8 +1004,8 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Specific Ingredient Name",
-      "name_en": "Specific Ingredient Name in English",
+      "name": "Ingredient name in $_userLang language",
+      "name_en": "Ingredient name in English",
       "detail": "Preparation state and composition details",
       "amount": 0,
       "unit": "g",
@@ -1061,7 +1062,7 @@ Return ONLY valid JSON.''';
     try {
       final base64Image = await _compressImageToBase64(imageFile, maxWidth: 1600);
 
-      const prompt = '''You are an AI expert in reading Nutrition Facts Labels.
+      final prompt = '''You are an AI expert in reading Nutrition Facts Labels.
 
 This is a photo of a nutrition label.
 
@@ -1109,7 +1110,7 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Ingredient from ingredients list",
+      "name": "Ingredient in $_userLang language",
       "name_en": "Ingredient name in English",
       "amount": 0,
       "unit": "gram",
@@ -1402,7 +1403,8 @@ The user's language is: "$_userLang".
 - food_name: Use the user's language ($_userLang). For example, Thai user → "ข้าวผัด", Japanese user → "チャーハン", English user → "Fried Rice". If the food is clearly foreign, keep its original name with a $_userLang translation in parentheses.
 - food_name_en: MUST ALWAYS be in English for database standardization
 - notes: Write in $_userLang language so the user can understand directly
-- ingredient names in ingredients_detail: MUST be in English with descriptive cooking state
+- ingredient "name" in ingredients_detail: Use the user's language ($_userLang) with descriptive cooking state. Example for Thai: "ข้าวสวยหอมมะลิ", for English: "Steamed Jasmine Rice"
+- ingredient "name_en" in ingredients_detail: MUST ALWAYS be in English for database standardization
 - serving_unit: "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc. Do NOT use "g" or "ml" as serving_unit for dishes.
 
 INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
@@ -1426,8 +1428,8 @@ INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
    - Multi-item foods → show per-unit breakdown as subs
 
 5. Each ingredient and sub_ingredient should include:
-   - "name": English name with cooking state
-   - "name_en": English name (same as name)
+   - "name": Name in the user's language ($_userLang) with cooking state
+   - "name_en": ALWAYS in English for database standardization
    - "detail": Preparation/composition description (optional)
    - "amount", "unit": Quantity
    - "calories", "protein", "carbs", "fat": Macros
@@ -1449,7 +1451,7 @@ CORRECT (hierarchical):
   "nutrition": {"calories": 250, ...},
   "ingredients_detail": [
     {
-      "name": "Deep-fried Battered Chicken Breast Pieces",
+      "name": "Name in $_userLang with cooking state",
       "name_en": "Deep-fried Battered Chicken Breast Pieces",
       "detail": "Bite-sized chicken coated in seasoned flour, deep-fried",
       "calories": 250,
@@ -1457,9 +1459,9 @@ CORRECT (hierarchical):
       "carbs": 12,
       "fat": 15,
       "sub_ingredients": [
-        {"name": "Chicken Breast Meat", "name_en": "Chicken Breast Meat", "detail": "Lean white meat", "amount": 80, "unit": "g", "calories": 132, "protein": 17, "carbs": 0, "fat": 3},
-        {"name": "Seasoned Flour Batter", "name_en": "Seasoned Flour Batter", "detail": "Contains wheat flour, corn starch, salt, spices", "amount": 25, "unit": "g", "calories": 48, "protein": 1, "carbs": 12, "fat": 0},
-        {"name": "Absorbed Frying Oil", "name_en": "Absorbed Frying Oil", "detail": "Oil absorbed during deep-frying", "amount": 8, "unit": "ml", "calories": 70, "protein": 0, "carbs": 0, "fat": 8}
+        {"name": "Name in $_userLang", "name_en": "Chicken Breast Meat", "detail": "Lean white meat", "amount": 80, "unit": "g", "calories": 132, "protein": 17, "carbs": 0, "fat": 3},
+        {"name": "Name in $_userLang", "name_en": "Seasoned Flour Batter", "detail": "Contains wheat flour, corn starch, salt, spices", "amount": 25, "unit": "g", "calories": 48, "protein": 1, "carbs": 12, "fat": 0},
+        {"name": "Name in $_userLang", "name_en": "Absorbed Frying Oil", "detail": "Oil absorbed during deep-frying", "amount": 8, "unit": "ml", "calories": 70, "protein": 0, "carbs": 0, "fat": 8}
       ]
     }
   ]
@@ -1501,7 +1503,7 @@ Example for "Kimchi Fried Rice with Pork":
   },
   "ingredients_detail": [
     {
-      "name": "Steamed Jasmine Rice",
+      "name": "Name in $_userLang (e.g. Thai: ข้าวสวยหอมมะลิ, EN: Steamed Jasmine Rice)",
       "name_en": "Steamed Jasmine Rice",
       "detail": "Day-old rice, stir-fried — absorbs oil during cooking",
       "amount": 200,
@@ -1512,7 +1514,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 1
     },
     {
-      "name": "Stir-fried Pork Belly Slices",
+      "name": "Name in $_userLang (e.g. Thai: หมูสามชั้นผัด, EN: Stir-fried Pork Belly Slices)",
       "name_en": "Stir-fried Pork Belly Slices",
       "detail": "High-fat cut, rendered in own fat during stir-frying",
       "amount": 60,
@@ -1523,7 +1525,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 13
     },
     {
-      "name": "Fermented Napa Cabbage Kimchi",
+      "name": "Name in $_userLang (e.g. Thai: กิมจิผักกาดขาว, EN: Fermented Napa Cabbage Kimchi)",
       "name_en": "Fermented Napa Cabbage Kimchi",
       "detail": "Contains gochugaru chili flakes, garlic, fish sauce, sugar",
       "amount": 50,
@@ -1534,7 +1536,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 0.5
     },
     {
-      "name": "Gochujang Chili Paste",
+      "name": "Name in $_userLang (e.g. Thai: พริกแกงโกชูจัง, EN: Gochujang Chili Paste)",
       "name_en": "Gochujang Chili Paste",
       "detail": "Fermented red pepper paste — contains corn syrup and rice flour",
       "amount": 15,
@@ -1545,7 +1547,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 0.3
     },
     {
-      "name": "Vegetable Oil (cooking)",
+      "name": "Name in $_userLang (e.g. Thai: น้ำมันพืช (ผัด), EN: Vegetable Oil (cooking))",
       "name_en": "Vegetable Oil for Stir-frying",
       "detail": "Absorbed during high-heat stir-frying of rice and pork",
       "amount": 12,
@@ -1556,7 +1558,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 12
     },
     {
-      "name": "Sesame Oil (finishing)",
+      "name": "Name in $_userLang (e.g. Thai: น้ำมันงา, EN: Sesame Oil (finishing))",
       "name_en": "Sesame Oil Drizzle",
       "detail": "Added at the end for aroma",
       "amount": 3,
@@ -1567,7 +1569,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 3
     },
     {
-      "name": "Soy Sauce",
+      "name": "Name in $_userLang (e.g. Thai: ซอสถั่วเหลือง, EN: Soy Sauce)",
       "name_en": "Light Soy Sauce",
       "detail": "Seasoning — high sodium",
       "amount": 8,
@@ -1994,7 +1996,8 @@ ${_isWeightUnit(servingUnitJson) ? '- The user specified weight in grams/kg. Kee
 - food_name: Use $_userLang language. Keep the user's original name if already in $_userLang, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
 - notes: Write in $_userLang language
-- All ingredient names: MUST be in English with cooking state description
+- ingredient "name": Use $_userLang language with cooking state description. Example for Thai: "กุ้งสดปอกเปลือก (ผัด)", for English: "Peeled Fresh Shrimp (stir-fried)"
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - Include "detail" field for each ingredient
 
 INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
@@ -2030,7 +2033,7 @@ CORRECT example (hierarchical):
 {
   "ingredients_detail": [
     {
-      "name": "Deep-fried Chicken Pieces",
+      "name": "Name in $_userLang with cooking state",
       "name_en": "Deep-fried Chicken Pieces",
       "detail": "Coated in batter and deep-fried",
       "amount": 100,
@@ -2040,9 +2043,9 @@ CORRECT example (hierarchical):
       "carbs": 8,
       "fat": 8,
       "sub_ingredients": [
-        {"name": "Chicken Meat", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
-        {"name": "Flour Batter", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
-        {"name": "Absorbed Oil", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
+        {"name": "Name in $_userLang", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
+        {"name": "Name in $_userLang", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
+        {"name": "Name in $_userLang", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
       ]
     }
   ]
@@ -2078,8 +2081,8 @@ Respond in JSON only:
   "ingredients": ["ingredient1", "ingredient2"],
   "ingredients_detail": [
     {
-      "name": "Specific Ingredient with Cooking State",
-      "name_en": "Specific Ingredient with Cooking State",
+      "name": "Ingredient name in $_userLang with cooking state",
+      "name_en": "Ingredient name in English with cooking state",
       "detail": "Preparation method, composition, hidden calories note",
       "amount": 100,
       "unit": "g",
@@ -2193,6 +2196,8 @@ The user's language is: "$_userLang".
 - food_name: Use $_userLang language. Keep brand name in original form, translate generic descriptors.
 - food_name_en: MUST ALWAYS be in English (include brand name)
 - notes: Write in $_userLang language
+- ingredient "name": Use $_userLang language. Keep brand names in original form.
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - "ingredients_detail" array is MANDATORY (for multi-piece items, list EACH piece separately)
 
 Respond in JSON only:
@@ -2298,7 +2303,8 @@ The user's language is: "$_userLang".
 - food_name: Use $_userLang language. Keep user's original name if already in $_userLang, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
 - notes: Write in $_userLang language
-- ingredient names: MUST be in English with cooking state
+- ingredient "name": Use $_userLang language with cooking state description
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - serving_unit: Use "plate", "bowl", "cup", "piece", "serving", etc. NOT "g" or "ml" for dishes
 - Valid serving_unit values: g, kg, mg, oz, lbs, ml, l, fl oz, cup, tbsp, tsp, serving, piece, slice, plate, bowl, cup_c, glass, egg, ball, fruit, skewer, whole, sheet, pair, bunch, leaf, stick, scoop, handful, pack, bag, wrap, box, can, bottle, bar
 - Items marked [PRODUCT] are packaged products — reference nutrition labels and known databases
@@ -2336,8 +2342,8 @@ Return ONLY valid JSON:
       },
       "ingredients_detail": [
         {
-          "name": "Ingredient with Cooking State",
-          "name_en": "Ingredient with Cooking State",
+          "name": "Ingredient name in $_userLang with cooking state",
+          "name_en": "Ingredient name in English with cooking state",
           "detail": "Preparation notes",
           "amount": 100,
           "unit": "g",

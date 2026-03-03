@@ -2,25 +2,35 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-02 (Build 58)
+**อัปเดตล่าสุด:** 2026-03-03 (Build 59)
 
 ---
 
-## ✅ Build 58 (v1.2.4) - Status: READY FOR RELEASE
+## ✅ Build 59 (v1.2.5) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.4+58`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 58`, `versionName = "1.2.4"`)
-- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.4'`)
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.5+59`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 59`, `versionName = "1.2.5"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.5'`)
 - [x] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [x] **Target SDK** - 35 (Android 15)
 - [x] **Compile SDK** - 36 (Android 16)
-- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.4`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.4+58)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.5`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.5+59)
 - [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
+- **Unified Privacy Consent Bottom Sheet** - รวมสิทธิ์ privacy ทั้งหมด (Notifications, Analytics, Food Research, Ads) ใน bottom sheet เดียว
+- **Scroll-to-bottom requirement** - บังคับให้ผู้ใช้เลื่อนลงจนสุดก่อนกดยอมรับ (มืออาชีพตาม store policy)
+- แทนที่ AnalyticsConsentDialog ด้วย PrivacyConsentSheet บน first launch
+- Defer NotificationService init จนกว่าผู้ใช้จะยอมรับใน consent sheet
+
+---
+
+## ✅ Build 58 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
 - **Billing Library Version Fix** - แก้ไข AndroidManifest.xml meta-data จาก `6.0.1` → `7.1.1` เพื่อให้ผ่าน Google Play policy (Billing Library 7.0+ requirement)
 
 ---
@@ -455,17 +465,17 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.4+58
+version: 1.2.5+59
 ```
 **Format:** `versionName+versionCode`
-- `1.2.3` = Version name (แสดงให้ user เห็น)
-- `53` = Build number / Version code (internal)
+- `1.2.5` = Version name (แสดงให้ user เห็น)
+- `59` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 58
-    versionName = "1.2.4"
+    versionCode = 59
+    versionName = "1.2.5"
 }
 ```
 **Format:**
@@ -477,7 +487,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.4',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.5',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -502,22 +512,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.4+57 → 1.2.4+58
-version: 1.2.4+58
+# ตัวอย่าง: จาก 1.2.4+58 → 1.2.5+59
+version: 1.2.5+59
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 58  // เพิ่มทีละ 1
-    versionName = "1.2.4"  // ตรงกับ pubspec
+    versionCode = 59  // เพิ่มทีละ 1
+    versionName = "1.2.5"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.2.4',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.2.5',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -544,7 +554,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 58 | 1.2.4 | 2026-03-02 | ✅ Current |
+| 59 | 1.2.5 | 2026-03-03 | ✅ Current |
+| 58 | 1.2.4 | 2026-03-02 | ✅ Released |
 | 57 | 1.2.4 | 2026-03-02 | ✅ Released |
 | 54 | 1.2.4 | 2026-03-01 | ✅ Released |
 | 53 | 1.2.3 | 2026-03-01 | ✅ Released |
@@ -601,11 +612,11 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 58):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.4+58`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (57 → 58)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.4'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.4+58)
+### Pre-flight Checklist (Build 59):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.5+59`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (58 → 59)
+- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.5'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.5+59)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
