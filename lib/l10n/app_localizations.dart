@@ -5028,6 +5028,12 @@ abstract class L10n {
   /// **'Exit'**
   String get exitButton;
 
+  /// No description provided for @imageFoodNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything special? e.g. has hidden meat inside'**
+  String get imageFoodNameHint;
+
   /// No description provided for @amountAutoAdjust.
   ///
   /// In en, this message translates to:

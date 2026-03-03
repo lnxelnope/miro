@@ -2806,6 +2806,9 @@ class L10nTh extends L10n {
   String get exitButton => 'Exit';
 
   @override
+  String get imageFoodNameHint => 'มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่';
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override

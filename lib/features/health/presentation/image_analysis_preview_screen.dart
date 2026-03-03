@@ -65,7 +65,7 @@ class _ImageAnalysisPreviewScreenState
     super.initState();
     _currentImageFile = widget.imageFile;
     _foodNameController = TextEditingController(
-      text: widget.initialFoodName ?? (_hasImage ? 'food' : ''),
+      text: widget.initialFoodName ?? '',
     );
     _quantityController = TextEditingController(
       text: (widget.initialQuantity ?? 1.0).toString(),
@@ -204,9 +204,7 @@ class _ImageAnalysisPreviewScreenState
       quantity = parsed;
     }
 
-    final effectiveName = foodName.isEmpty
-        ? (_searchMode == FoodSearchMode.product ? 'product' : 'food')
-        : foodName;
+    final effectiveName = foodName.isEmpty ? '--' : foodName;
     final imagePath = _hasImage
         ? (_permanentImagePath ?? _currentImageFile!.path)
         : null;
@@ -306,9 +304,7 @@ class _ImageAnalysisPreviewScreenState
         ? (_permanentImagePath ?? _currentImageFile!.path)
         : null;
 
-    final effectiveName = foodName.isEmpty
-        ? (_searchMode == FoodSearchMode.product ? 'product' : 'food')
-        : foodName;
+    final effectiveName = foodName.isEmpty ? '--' : foodName;
 
     final entry = FoodEntry(
       id: 0,
@@ -574,7 +570,7 @@ class _ImageAnalysisPreviewScreenState
                           : AppColors.textPrimary,
                     ),
                     decoration: InputDecoration(
-                      hintText: l10n.foodNameHint,
+                      hintText: _hasImage ? l10n.imageFoodNameHint : l10n.foodNameHint,
                       hintStyle: TextStyle(
                         color: isDark
                             ? AppColors.textSecondaryDark

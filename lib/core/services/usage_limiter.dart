@@ -87,6 +87,51 @@ class UsageLimiter {
     return (freeAiCallsPerDay - count).clamp(0, freeAiCallsPerDay);
   }
 
+  // ============ Daily Analysis Safety Cap ============
+  // Hard cap to prevent abuse (applies to ALL users including Pro/Energy Pass)
+  static const int maxAnalysesPerDay = 100;
+  static const String _keyAnalysisDate = 'analysis_cap_date';
+  static const String _keyAnalysisCount = 'analysis_cap_count';
+
+  /// Check if user has reached daily analysis cap
+  static Future<bool> hasReachedDailyCap() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) return false;
+
+    final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+    return count >= maxAnalysesPerDay;
+  }
+
+  /// Record an analysis usage (for daily cap)
+  static Future<void> recordAnalysisForCap() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyAnalysisDate, today);
+      await prefs.setInt(_keyAnalysisCount, 1);
+    } else {
+      final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+      await prefs.setInt(_keyAnalysisCount, count + 1);
+    }
+  }
+
+  /// Remaining analyses today
+  static Future<int> remainingAnalysesToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) return maxAnalysesPerDay;
+
+    final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+    return (maxAnalysesPerDay - count).clamp(0, maxAnalysesPerDay);
+  }
+
   // ============ Free Ingredient Edit Lookups ============
   // Ingredient lookups from edit screen are free (limited per day)
   // because user correction data is extremely valuable.

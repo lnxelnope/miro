@@ -233,6 +233,12 @@ class BatchAnalysisHelper {
     final d = dateOnly(selectedDate);
 
     while (entriesToProcess.isNotEmpty && !shouldCancel()) {
+      // Daily safety cap check
+      if (await UsageLimiter.hasReachedDailyCap()) {
+        AppLogger.warn('[BatchAnalyze] Daily cap of ${UsageLimiter.maxAnalysesPerDay} reached');
+        break;
+      }
+
       int batchSuccessCount = 0;
 
       final textEntries = entriesToProcess
@@ -290,6 +296,7 @@ class BatchAnalysisHelper {
                   .updateFoodEntry(entry);
               await autoSaveToDatabase(ref, entry, result);
               await UsageLimiter.recordAiUsage();
+              await UsageLimiter.recordAnalysisForCap();
               _uploadThumbnailInBackground(entry);
               batchSuccessCount++;
 
@@ -340,6 +347,7 @@ class BatchAnalysisHelper {
                     .updateFoodEntry(entry);
                 await autoSaveToDatabase(ref, entry, result);
                 await UsageLimiter.recordAiUsage();
+                await UsageLimiter.recordAnalysisForCap();
                 _uploadThumbnailInBackground(entry);
                 batchSuccessCount++;
                 _refreshProviders(ref, selectedDate);
@@ -391,6 +399,7 @@ class BatchAnalysisHelper {
                 .updateFoodEntry(entry);
             await autoSaveToDatabase(ref, entry, result);
             await UsageLimiter.recordAiUsage();
+            await UsageLimiter.recordAnalysisForCap();
             _uploadThumbnailInBackground(entry);
             batchSuccessCount++;
             _refreshProviders(ref, selectedDate);

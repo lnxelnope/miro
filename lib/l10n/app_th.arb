@@ -2189,5 +2189,6 @@
   "privacyConsentHealthNote": "การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings",
   "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
   "privacyConsentAccept": "ดำเนินการต่อ",
-  "privacyConsentOptional": "ไม่บังคับ"
+  "privacyConsentOptional": "ไม่บังคับ",
+  "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่"
 }

@@ -318,6 +318,8 @@ class BoundingBoxPainter extends CustomPainter {
       final h = label.bboxHeight * scale;
       final rect = Rect.fromLTWH(left, top, w, h);
 
+      final confPct = (label.confidence * 100).toStringAsFixed(0);
+
       if (isFood) {
         final boxPaint = Paint()
           ..color = const Color(0xFF4CAF50)
@@ -335,7 +337,7 @@ class BoundingBoxPainter extends CustomPainter {
           boxPaint,
         );
 
-        _drawLabel(canvas, 'Food', rect.left, rect.top - 20,
+        _drawLabel(canvas, 'Food $confPct%', rect.left, rect.top - 20,
             const Color(0xFF4CAF50), Colors.white);
       } else {
         final badgePaint = Paint()
@@ -347,7 +349,7 @@ class BoundingBoxPainter extends CustomPainter {
           badgePaint,
         );
 
-        _drawLabel(canvas, label.label, rect.left, rect.top - 18,
+        _drawLabel(canvas, '${label.label} $confPct%', rect.left, rect.top - 18,
             const Color(0xFF212121), Colors.white);
       }
     }

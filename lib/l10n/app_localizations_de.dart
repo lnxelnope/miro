@@ -2914,6 +2914,10 @@ class L10nDe extends L10n {
   String get exitButton => 'Exit';
 
   @override
+  String get imageFoodNameHint =>
+      'Anything special? e.g. has hidden meat inside';
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override

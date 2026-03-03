@@ -480,7 +480,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
 
         final entry = FoodEntry(
           id: 0,
-          foodName: 'food',
+          foodName: '--',
           mealType: mealType,
           timestamp: entryTimestamp,
           imagePath: destPath,

@@ -1934,6 +1934,7 @@
   "waitButton": "Wait",
   "exitButton": "Exit",
   "foodNameHint": "e.g. Fried Rice with Shrimp",
+  "imageFoodNameHint": "Anything special? e.g. has hidden meat inside",
   "amountAutoAdjust": "Change → calories adjust automatically",
   "processingImageData": "PROCESSING IMAGE DATA...",
   "unableToAnalyzeTitle": "Unable to analyze",

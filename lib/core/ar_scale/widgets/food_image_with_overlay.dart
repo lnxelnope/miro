@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/detected_object_label.dart';
-import 'ar_ruler_overlay.dart';
+import '../../widgets/food_entry_image.dart';
 
 /// แสดงรูปอาหารพร้อม AR label overlay ซ้อนทับ
 /// รองรับ BoxFit.cover / contain / fill — คำนวณ coordinate mapping ให้ถูก
@@ -134,10 +134,11 @@ class FoodImageWithOverlay extends StatelessWidget {
               Positioned.fill(child: image),
               Positioned.fill(
                 child: CustomPaint(
-                  painter: ArLabelOverlayPainter(
+                  painter: BoundingBoxPainter(
                     labels: adjusted,
-                    imageSize: Size(containerW, containerH),
-                    pixelPerCm: arPixelPerCm,
+                    imageWidth: containerW,
+                    imageHeight: containerH,
+                    boxFit: fit,
                   ),
                 ),
               ),

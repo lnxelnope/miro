@@ -116,7 +116,7 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
       final job = _queue.removeAt(0);
 
       final hasEnergy =
-          await BatchAnalysisHelper.checkEnergy(ref, job.entries.length);
+          await BatchAnalysisHelper.checkEnergy(ref, 1);
       if (!hasEnergy) {
         _completedItems += job.entries.length;
         _emitProgress(0, 0, '', null);
