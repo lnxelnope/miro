@@ -5034,6 +5034,42 @@ abstract class L10n {
   /// **'Anything special? e.g. has hidden meat inside'**
   String get imageFoodNameHint;
 
+  /// No description provided for @reanalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze'**
+  String get reanalyze;
+
+  /// No description provided for @reanalyzeFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get reanalyzeFree;
+
+  /// No description provided for @reanalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get reanalyzing;
+
+  /// No description provided for @reanalyzeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis updated!'**
+  String get reanalyzeSuccess;
+
+  /// No description provided for @keepOrReanalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which ingredients to keep?'**
+  String get keepOrReanalyzeTitle;
+
+  /// No description provided for @keepOrReanalyzeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked items will be kept, unchecked will be re-analyzed'**
+  String get keepOrReanalyzeDesc;
+
   /// No description provided for @amountAutoAdjust.
   ///
   /// In en, this message translates to:

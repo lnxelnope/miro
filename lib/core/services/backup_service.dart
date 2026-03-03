@@ -217,6 +217,7 @@ class BackupService {
           if (entry.originalIngredientsJson != null) 'originalIngredientsJson': entry.originalIngredientsJson,
           if (entry.editCount > 0) 'editCount': entry.editCount,
           if (entry.isUserCorrected) 'isUserCorrected': true,
+          if (entry.correctionHistoryJson != null) 'correctionHistoryJson': entry.correctionHistoryJson,
           // Brand / product data
           if (entry.brandName != null) 'brandName': entry.brandName,
           if (entry.productName != null) 'productName': entry.productName,
@@ -677,6 +678,7 @@ class BackupService {
           originalIngredientsJson: entryJson['originalIngredientsJson'] as String?,
           editCount: entryJson['editCount'] as int? ?? 0,
           isUserCorrected: entryJson['isUserCorrected'] as bool? ?? false,
+          correctionHistoryJson: entryJson['correctionHistoryJson'] as String?,
           brandName: entryJson['brandName'] as String?,
           productName: entryJson['productName'] as String?,
           productBarcode: entryJson['productBarcode'] as String?,

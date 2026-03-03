@@ -332,6 +332,12 @@ class $FoodEntriesTable extends FoodEntries
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("is_user_corrected" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _correctionHistoryJsonMeta =
+      const VerificationMeta('correctionHistoryJson');
+  @override
+  late final GeneratedColumn<String> correctionHistoryJson =
+      GeneratedColumn<String>('correction_history_json', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _brandNameMeta =
       const VerificationMeta('brandName');
   @override
@@ -692,6 +698,7 @@ class $FoodEntriesTable extends FoodEntries
         originalIngredientsJson,
         editCount,
         isUserCorrected,
+        correctionHistoryJson,
         brandName,
         brandNameEn,
         productName,
@@ -1010,6 +1017,12 @@ class $FoodEntriesTable extends FoodEntries
           _isUserCorrectedMeta,
           isUserCorrected.isAcceptableOrUnknown(
               data['is_user_corrected']!, _isUserCorrectedMeta));
+    }
+    if (data.containsKey('correction_history_json')) {
+      context.handle(
+          _correctionHistoryJsonMeta,
+          correctionHistoryJson.isAcceptableOrUnknown(
+              data['correction_history_json']!, _correctionHistoryJsonMeta));
     }
     if (data.containsKey('brand_name')) {
       context.handle(_brandNameMeta,
@@ -1384,6 +1397,9 @@ class $FoodEntriesTable extends FoodEntries
           .read(DriftSqlType.int, data['${effectivePrefix}edit_count'])!,
       isUserCorrected: attachedDatabase.typeMapping.read(
           DriftSqlType.bool, data['${effectivePrefix}is_user_corrected'])!,
+      correctionHistoryJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}correction_history_json']),
       brandName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}brand_name']),
       brandNameEn: attachedDatabase.typeMapping
@@ -1552,6 +1568,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
   String? originalIngredientsJson;
   int editCount;
   bool isUserCorrected;
+  String? correctionHistoryJson;
   String? brandName;
   String? brandNameEn;
   String? productName;
@@ -1653,6 +1670,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       this.originalIngredientsJson,
       required this.editCount,
       required this.isUserCorrected,
+      this.correctionHistoryJson,
       this.brandName,
       this.brandNameEn,
       this.productName,
@@ -1824,6 +1842,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
     }
     map['edit_count'] = Variable<int>(editCount);
     map['is_user_corrected'] = Variable<bool>(isUserCorrected);
+    if (!nullToAbsent || correctionHistoryJson != null) {
+      map['correction_history_json'] = Variable<String>(correctionHistoryJson);
+    }
     if (!nullToAbsent || brandName != null) {
       map['brand_name'] = Variable<String>(brandName);
     }
@@ -2075,6 +2096,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           : Value(originalIngredientsJson),
       editCount: Value(editCount),
       isUserCorrected: Value(isUserCorrected),
+      correctionHistoryJson: correctionHistoryJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(correctionHistoryJson),
       brandName: brandName == null && nullToAbsent
           ? const Value.absent()
           : Value(brandName),
@@ -2275,6 +2299,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           serializer.fromJson<String?>(json['originalIngredientsJson']),
       editCount: serializer.fromJson<int>(json['editCount']),
       isUserCorrected: serializer.fromJson<bool>(json['isUserCorrected']),
+      correctionHistoryJson:
+          serializer.fromJson<String?>(json['correctionHistoryJson']),
       brandName: serializer.fromJson<String?>(json['brandName']),
       brandNameEn: serializer.fromJson<String?>(json['brandNameEn']),
       productName: serializer.fromJson<String?>(json['productName']),
@@ -2391,6 +2417,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           serializer.toJson<String?>(originalIngredientsJson),
       'editCount': serializer.toJson<int>(editCount),
       'isUserCorrected': serializer.toJson<bool>(isUserCorrected),
+      'correctionHistoryJson':
+          serializer.toJson<String?>(correctionHistoryJson),
       'brandName': serializer.toJson<String?>(brandName),
       'brandNameEn': serializer.toJson<String?>(brandNameEn),
       'productName': serializer.toJson<String?>(productName),
@@ -2496,6 +2524,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           Value<String?> originalIngredientsJson = const Value.absent(),
           int? editCount,
           bool? isUserCorrected,
+          Value<String?> correctionHistoryJson = const Value.absent(),
           Value<String?> brandName = const Value.absent(),
           Value<String?> brandNameEn = const Value.absent(),
           Value<String?> productName = const Value.absent(),
@@ -2620,6 +2649,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
             : this.originalIngredientsJson,
         editCount: editCount ?? this.editCount,
         isUserCorrected: isUserCorrected ?? this.isUserCorrected,
+        correctionHistoryJson: correctionHistoryJson.present
+            ? correctionHistoryJson.value
+            : this.correctionHistoryJson,
         brandName: brandName.present ? brandName.value : this.brandName,
         brandNameEn: brandNameEn.present ? brandNameEn.value : this.brandNameEn,
         productName: productName.present ? productName.value : this.productName,
@@ -2803,6 +2835,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       isUserCorrected: data.isUserCorrected.present
           ? data.isUserCorrected.value
           : this.isUserCorrected,
+      correctionHistoryJson: data.correctionHistoryJson.present
+          ? data.correctionHistoryJson.value
+          : this.correctionHistoryJson,
       brandName: data.brandName.present ? data.brandName.value : this.brandName,
       brandNameEn:
           data.brandNameEn.present ? data.brandNameEn.value : this.brandNameEn,
@@ -2962,6 +2997,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           ..write('originalIngredientsJson: $originalIngredientsJson, ')
           ..write('editCount: $editCount, ')
           ..write('isUserCorrected: $isUserCorrected, ')
+          ..write('correctionHistoryJson: $correctionHistoryJson, ')
           ..write('brandName: $brandName, ')
           ..write('brandNameEn: $brandNameEn, ')
           ..write('productName: $productName, ')
@@ -3068,6 +3104,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
         originalIngredientsJson,
         editCount,
         isUserCorrected,
+        correctionHistoryJson,
         brandName,
         brandNameEn,
         productName,
@@ -3173,6 +3210,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           other.originalIngredientsJson == this.originalIngredientsJson &&
           other.editCount == this.editCount &&
           other.isUserCorrected == this.isUserCorrected &&
+          other.correctionHistoryJson == this.correctionHistoryJson &&
           other.brandName == this.brandName &&
           other.brandNameEn == this.brandNameEn &&
           other.productName == this.productName &&
@@ -3276,6 +3314,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
   Value<String?> originalIngredientsJson;
   Value<int> editCount;
   Value<bool> isUserCorrected;
+  Value<String?> correctionHistoryJson;
   Value<String?> brandName;
   Value<String?> brandNameEn;
   Value<String?> productName;
@@ -3377,6 +3416,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.originalIngredientsJson = const Value.absent(),
     this.editCount = const Value.absent(),
     this.isUserCorrected = const Value.absent(),
+    this.correctionHistoryJson = const Value.absent(),
     this.brandName = const Value.absent(),
     this.brandNameEn = const Value.absent(),
     this.productName = const Value.absent(),
@@ -3479,6 +3519,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.originalIngredientsJson = const Value.absent(),
     this.editCount = const Value.absent(),
     this.isUserCorrected = const Value.absent(),
+    this.correctionHistoryJson = const Value.absent(),
     this.brandName = const Value.absent(),
     this.brandNameEn = const Value.absent(),
     this.productName = const Value.absent(),
@@ -3590,6 +3631,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     Expression<String>? originalIngredientsJson,
     Expression<int>? editCount,
     Expression<bool>? isUserCorrected,
+    Expression<String>? correctionHistoryJson,
     Expression<String>? brandName,
     Expression<String>? brandNameEn,
     Expression<String>? productName,
@@ -3694,6 +3736,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
         'original_ingredients_json': originalIngredientsJson,
       if (editCount != null) 'edit_count': editCount,
       if (isUserCorrected != null) 'is_user_corrected': isUserCorrected,
+      if (correctionHistoryJson != null)
+        'correction_history_json': correctionHistoryJson,
       if (brandName != null) 'brand_name': brandName,
       if (brandNameEn != null) 'brand_name_en': brandNameEn,
       if (productName != null) 'product_name': productName,
@@ -3802,6 +3846,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
       Value<String?>? originalIngredientsJson,
       Value<int>? editCount,
       Value<bool>? isUserCorrected,
+      Value<String?>? correctionHistoryJson,
       Value<String?>? brandName,
       Value<String?>? brandNameEn,
       Value<String?>? productName,
@@ -3904,6 +3949,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
           originalIngredientsJson ?? this.originalIngredientsJson,
       editCount: editCount ?? this.editCount,
       isUserCorrected: isUserCorrected ?? this.isUserCorrected,
+      correctionHistoryJson:
+          correctionHistoryJson ?? this.correctionHistoryJson,
       brandName: brandName ?? this.brandName,
       brandNameEn: brandNameEn ?? this.brandNameEn,
       productName: productName ?? this.productName,
@@ -4115,6 +4162,10 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     if (isUserCorrected.present) {
       map['is_user_corrected'] = Variable<bool>(isUserCorrected.value);
     }
+    if (correctionHistoryJson.present) {
+      map['correction_history_json'] =
+          Variable<String>(correctionHistoryJson.value);
+    }
     if (brandName.present) {
       map['brand_name'] = Variable<String>(brandName.value);
     }
@@ -4324,6 +4375,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
           ..write('originalIngredientsJson: $originalIngredientsJson, ')
           ..write('editCount: $editCount, ')
           ..write('isUserCorrected: $isUserCorrected, ')
+          ..write('correctionHistoryJson: $correctionHistoryJson, ')
           ..write('brandName: $brandName, ')
           ..write('brandNameEn: $brandNameEn, ')
           ..write('productName: $productName, ')
@@ -10109,6 +10161,7 @@ typedef $$FoodEntriesTableCreateCompanionBuilder = FoodEntriesCompanion
   Value<String?> originalIngredientsJson,
   Value<int> editCount,
   Value<bool> isUserCorrected,
+  Value<String?> correctionHistoryJson,
   Value<String?> brandName,
   Value<String?> brandNameEn,
   Value<String?> productName,
@@ -10212,6 +10265,7 @@ typedef $$FoodEntriesTableUpdateCompanionBuilder = FoodEntriesCompanion
   Value<String?> originalIngredientsJson,
   Value<int> editCount,
   Value<bool> isUserCorrected,
+  Value<String?> correctionHistoryJson,
   Value<String?> brandName,
   Value<String?> brandNameEn,
   Value<String?> productName,
@@ -10438,6 +10492,10 @@ class $$FoodEntriesTableFilterComposer
 
   ColumnFilters<bool> get isUserCorrected => $composableBuilder(
       column: $table.isUserCorrected,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get correctionHistoryJson => $composableBuilder(
+      column: $table.correctionHistoryJson,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get brandName => $composableBuilder(
@@ -10781,6 +10839,10 @@ class $$FoodEntriesTableOrderingComposer
       column: $table.isUserCorrected,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get correctionHistoryJson => $composableBuilder(
+      column: $table.correctionHistoryJson,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get brandName => $composableBuilder(
       column: $table.brandName, builder: (column) => ColumnOrderings(column));
 
@@ -11115,6 +11177,9 @@ class $$FoodEntriesTableAnnotationComposer
   GeneratedColumn<bool> get isUserCorrected => $composableBuilder(
       column: $table.isUserCorrected, builder: (column) => column);
 
+  GeneratedColumn<String> get correctionHistoryJson => $composableBuilder(
+      column: $table.correctionHistoryJson, builder: (column) => column);
+
   GeneratedColumn<String> get brandName =>
       $composableBuilder(column: $table.brandName, builder: (column) => column);
 
@@ -11342,6 +11407,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> originalIngredientsJson = const Value.absent(),
             Value<int> editCount = const Value.absent(),
             Value<bool> isUserCorrected = const Value.absent(),
+            Value<String?> correctionHistoryJson = const Value.absent(),
             Value<String?> brandName = const Value.absent(),
             Value<String?> brandNameEn = const Value.absent(),
             Value<String?> productName = const Value.absent(),
@@ -11444,6 +11510,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             originalIngredientsJson: originalIngredientsJson,
             editCount: editCount,
             isUserCorrected: isUserCorrected,
+            correctionHistoryJson: correctionHistoryJson,
             brandName: brandName,
             brandNameEn: brandNameEn,
             productName: productName,
@@ -11546,6 +11613,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> originalIngredientsJson = const Value.absent(),
             Value<int> editCount = const Value.absent(),
             Value<bool> isUserCorrected = const Value.absent(),
+            Value<String?> correctionHistoryJson = const Value.absent(),
             Value<String?> brandName = const Value.absent(),
             Value<String?> brandNameEn = const Value.absent(),
             Value<String?> productName = const Value.absent(),
@@ -11648,6 +11716,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             originalIngredientsJson: originalIngredientsJson,
             editCount: editCount,
             isUserCorrected: isUserCorrected,
+            correctionHistoryJson: correctionHistoryJson,
             brandName: brandName,
             brandNameEn: brandNameEn,
             productName: productName,

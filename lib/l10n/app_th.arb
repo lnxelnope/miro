@@ -2190,5 +2190,11 @@
   "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
   "privacyConsentAccept": "ดำเนินการต่อ",
   "privacyConsentOptional": "ไม่บังคับ",
-  "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่"
+  "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่",
+  "reanalyze": "วิเคราะห์ใหม่",
+  "reanalyzeFree": "ฟรี",
+  "reanalyzing": "กำลังวิเคราะห์...",
+  "reanalyzeSuccess": "อัพเดทผลวิเคราะห์แล้ว!",
+  "keepOrReanalyzeTitle": "เก็บวัตถุดิบไหนไว้?",
+  "keepOrReanalyzeDesc": "รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่"
 }

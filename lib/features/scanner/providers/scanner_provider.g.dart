@@ -6,7 +6,7 @@ part of 'scanner_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$scanControllerHash() => r'c7ce9fae86ba2e75566ec3af89f1fd2f807b6abf';
+String _$scanControllerHash() => r'550173420bbc5587381c8709766a9e51b3089527';
 
 /// Provider สำหรับ ScanController
 /// ใช้สำหรับสแกนรูปจาก Gallery
@@ -47,7 +47,7 @@ final permissionServiceProvider =
 // ignore: unused_element
 typedef PermissionServiceRef = AutoDisposeProviderRef<PermissionService>;
 String _$galleryScanNotifierHash() =>
-    r'96c072098d4499ba4c04adccd09dbd7cfefc1618';
+    r'c0c49239b555e6345127dbfb6e06c11160246b75';
 
 /// Provider สำหรับสแกนรูปทั้งหมดใน Gallery
 /// return จำนวนรูปที่สแกนได้

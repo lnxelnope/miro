@@ -2797,6 +2797,25 @@ class L10nJa extends L10n {
       'Anything special? e.g. has hidden meat inside';
 
   @override
+  String get reanalyze => 'Re-analyze';
+
+  @override
+  String get reanalyzeFree => 'Free';
+
+  @override
+  String get reanalyzing => 'Analyzing...';
+
+  @override
+  String get reanalyzeSuccess => 'Analysis updated!';
+
+  @override
+  String get keepOrReanalyzeTitle => 'Which ingredients to keep?';
+
+  @override
+  String get keepOrReanalyzeDesc =>
+      'Checked items will be kept, unchecked will be re-analyzed';
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override

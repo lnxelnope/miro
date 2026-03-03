@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,12 +9,14 @@ import '../../../core/widgets/search_mode_selector.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
+import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../../core/utils/batch_analysis_helper.dart';
 import '../../health/providers/health_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
@@ -33,6 +36,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late FoodSearchMode _searchMode;
   bool _isEditingName = false;
   bool _hasChanges = false;
+  bool _isReanalyzing = false;
   List<Map<String, dynamic>> _ingredients = [];
   final bool _isAddingIngredient = false;
 
@@ -620,6 +624,292 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     if (mounted) Navigator.pop(context);
   }
 
+  Future<void> _reanalyze() async {
+    if (_isReanalyzing) return;
+    
+    final entry = widget.entry;
+    final l10n = L10n.of(context)!;
+    final newName = _nameController.text.trim();
+    
+    // Check if name changed and has ingredients
+    final nameChanged = newName != entry.foodName;
+    final hasIngredients = _ingredients.isNotEmpty;
+    
+    List<Map<String, dynamic>>? keptIngredients;
+    
+    // If name changed AND has ingredients → show checkbox dialog
+    if (nameChanged && hasIngredients) {
+      final checkedFlags = List<bool>.filled(_ingredients.length, true);
+      
+      final shouldProceed = await showDialog<List<bool>>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: AppColors.premium, size: 28),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(l10n.keepOrReanalyzeTitle, style: const TextStyle(fontSize: 17)),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.keepOrReanalyzeDesc, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _ingredients.length,
+                        itemBuilder: (_, i) {
+                          final ing = _ingredients[i];
+                          final name = ing['name'] ?? '—';
+                          final amount = ing['amount'] ?? 0;
+                          final unit = ing['unit'] ?? '';
+                          final cal = ing['calories'] ?? 0;
+                          return CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: checkedFlags[i],
+                            onChanged: (v) => setDialogState(() => checkedFlags[i] = v ?? true),
+                            title: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 14,
+                                decoration: checkedFlags[i] ? TextDecoration.lineThrough : null,
+                                color: checkedFlags[i] ? Colors.grey : null,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '$amount $unit  •  ${cal.round()} kcal',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: checkedFlags[i] ? Colors.grey.shade400 : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, null),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Store kept ingredients indices (unchecked)
+                    Navigator.pop(ctx, checkedFlags);
+                  },
+                  icon: const Icon(Icons.auto_fix_high, size: 18),
+                  label: Text(l10n.reanalyze),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.premium,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      
+      if (shouldProceed == null || !mounted) return;
+      
+      // Build kept ingredients (unchecked)
+      keptIngredients = [];
+      for (int i = 0; i < _ingredients.length; i++) {
+        if (!shouldProceed[i]) {
+          keptIngredients.add(_ingredients[i]);
+        }
+      }
+    }
+    
+    // Snapshot original before re-analysis
+    final snapName = entry.foodName;
+    final snapNameEn = entry.foodNameEn;
+    final snapCalories = entry.calories;
+    final snapProtein = entry.protein;
+    final snapCarbs = entry.carbs;
+    final snapFat = entry.fat;
+    final snapIngredientsJson = entry.ingredientsJson;
+    
+    // Set reanalyzing state
+    setState(() => _isReanalyzing = true);
+    
+    try {
+      // Check free edit lookup first (free for user corrections)
+      final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
+      if (!hasFreeEditLookup) {
+        final hasEnergy = await GeminiService.hasEnergy();
+        if (!hasEnergy) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.notEnoughEnergy)),
+            );
+          }
+          setState(() => _isReanalyzing = false);
+          return;
+        }
+      }
+      
+      // Prepare user ingredients for kept items
+      final userIngredients = keptIngredients?.map((ing) => <String, dynamic>{
+        'name': ing['name'],
+        'amount': ing['amount'],
+        'unit': ing['unit'],
+      }).toList();
+      
+      // Call Gemini
+      FoodAnalysisResult? result;
+      if (entry.hasAnyImage && entry.imagePath != null) {
+        result = await GeminiService.analyzeFoodImage(
+          File(entry.imagePath!),
+          foodName: newName,
+          searchMode: _searchMode,
+          userIngredients: userIngredients,
+        );
+      } else {
+        result = await GeminiService.analyzeFoodByName(
+          newName,
+          searchMode: _searchMode,
+          userIngredients: userIngredients,
+        );
+      }
+      
+      if (result == null || !mounted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.reanalyzeSuccess)),
+          );
+        }
+        setState(() => _isReanalyzing = false);
+        return;
+      }
+      
+      // Record usage
+      if (hasFreeEditLookup) {
+        await UsageLimiter.recordFreeEditLookup();
+      } else {
+        await UsageLimiter.recordAiUsage();
+      }
+      
+      // Apply result
+      BatchAnalysisHelper.applyResultToEntry(entry, result);
+      
+      // Save correction history
+      final correctionHistory = _buildCorrectionHistory(
+        snapName, snapNameEn, snapCalories, snapProtein, snapCarbs, snapFat, snapIngredientsJson,
+        entry, result,
+      );
+      entry.correctionHistoryJson = correctionHistory;
+      
+      // Mark as user corrected
+      if (entry.originalFoodName == null && entry.source == DataSource.aiAnalyzed) {
+        entry.originalFoodName = snapName;
+        entry.originalFoodNameEn = snapNameEn;
+        entry.originalCalories = snapCalories;
+        entry.originalProtein = snapProtein;
+        entry.originalCarbs = snapCarbs;
+        entry.originalFat = snapFat;
+        entry.originalIngredientsJson = snapIngredientsJson;
+      }
+      entry.editCount += 1;
+      entry.isUserCorrected = true;
+      
+      // Save to database
+      await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+      refreshFoodProviders(ref, entry.timestamp);
+      
+      // Update UI inline
+      setState(() {
+        _nameController.text = entry.foodName;
+        _calories = entry.calories;
+        _protein = entry.protein;
+        _carbs = entry.carbs;
+        _fat = entry.fat;
+        _loadIngredients();
+        _hasChanges = false;
+        _isReanalyzing = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.reanalyzeSuccess)),
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Re-analysis failed', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.analysisFailed)),
+        );
+      }
+      setState(() => _isReanalyzing = false);
+    }
+  }
+  
+  String? _buildCorrectionHistory(
+    String snapName, String? snapNameEn, double snapCalories, double snapProtein, double snapCarbs, double snapFat, String? snapIngredientsJson,
+    FoodEntry entry, FoodAnalysisResult result,
+  ) {
+    final history = <Map<String, dynamic>>[];
+    
+    // Try to parse existing history
+    if (entry.correctionHistoryJson != null) {
+      try {
+        final existing = jsonDecode(entry.correctionHistoryJson!) as List;
+        history.addAll(existing.cast<Map<String, dynamic>>());
+      } catch (_) {}
+    }
+    
+    // Add new correction
+    history.add({
+      'timestamp': DateTime.now().toIso8601String(),
+      'action': 'reanalyze',
+      'before': {
+        'foodName': snapName,
+        'foodNameEn': snapNameEn,
+        'calories': snapCalories,
+        'protein': snapProtein,
+        'carbs': snapCarbs,
+        'fat': snapFat,
+        'ingredientsJson': snapIngredientsJson,
+      },
+      'after': {
+        'foodName': entry.foodName,
+        'foodNameEn': entry.foodNameEn,
+        'calories': entry.calories,
+        'protein': entry.protein,
+        'carbs': entry.carbs,
+        'fat': entry.fat,
+        'ingredientsJson': entry.ingredientsJson,
+      },
+      'aiResult': {
+        'foodName': result.foodName,
+        'foodNameEn': result.foodNameEn,
+        'calories': result.nutrition.calories,
+        'protein': result.nutrition.protein,
+        'carbs': result.nutrition.carbs,
+        'fat': result.nutrition.fat,
+        'confidence': result.confidence,
+      },
+    });
+    
+    return jsonEncode(history);
+  }
+
   bool get _isDirty {
     if (_hasChanges) return true;
     if (_nameController.text.trim() != widget.entry.foodName) return true;
@@ -995,15 +1285,15 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // 6. OK / Save button
+                  // 6. Re-analyze / Save / OK button
                   SizedBox(
                     width: double.infinity,
                     height: AppSizes.buttonMedium,
                     child: ElevatedButton(
-                      onPressed: _save,
+                      onPressed: _isReanalyzing ? null : (_isDirty ? _reanalyze : () => Navigator.pop(context)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _isDirty
-                            ? AppColors.primary
+                            ? AppColors.premium
                             : isDark
                                 ? AppColors.surfaceVariantDark
                                 : AppColors.surfaceVariant,
@@ -1016,13 +1306,48 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                           borderRadius: AppRadius.md,
                         ),
                       ),
-                      child: Text(
-                        _isDirty ? l10n.saveChanges : l10n.ok,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
+                      child: _isReanalyzing
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isDirty) ...[
+                                const Icon(Icons.auto_awesome, size: 18),
+                                const SizedBox(width: AppSpacing.xs),
+                              ],
+                              Text(
+                                _isDirty ? l10n.reanalyze : l10n.ok,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              if (_isDirty) ...[
+                                const SizedBox(width: AppSpacing.xs),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: AppRadius.sm,
+                                  ),
+                                  child: Text(
+                                    l10n.reanalyzeFree,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                     ),
                   ),
 

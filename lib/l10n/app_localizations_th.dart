@@ -2809,6 +2809,25 @@ class L10nTh extends L10n {
   String get imageFoodNameHint => 'มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่';
 
   @override
+  String get reanalyze => 'วิเคราะห์ใหม่';
+
+  @override
+  String get reanalyzeFree => 'ฟรี';
+
+  @override
+  String get reanalyzing => 'กำลังวิเคราะห์...';
+
+  @override
+  String get reanalyzeSuccess => 'อัพเดทผลวิเคราะห์แล้ว!';
+
+  @override
+  String get keepOrReanalyzeTitle => 'เก็บวัตถุดิบไหนไว้?';
+
+  @override
+  String get keepOrReanalyzeDesc =>
+      'รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่';
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override

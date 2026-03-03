@@ -483,6 +483,7 @@ class DataSyncService {
     if (e.originalIngredientsJson != null) map['oij'] = e.originalIngredientsJson;
     if (e.editCount > 0) map['ec'] = e.editCount;
     if (e.isUserCorrected) map['uc'] = true;
+    if (e.correctionHistoryJson != null) map['chj'] = e.correctionHistoryJson;
 
     // Brand / product data
     if (e.brandName != null) map['bn'] = e.brandName;
@@ -571,6 +572,7 @@ class DataSyncService {
         originalIngredientsJson: j['oij'] as String?,
         editCount: j['ec'] as int? ?? 0,
         isUserCorrected: j['uc'] as bool? ?? false,
+        correctionHistoryJson: j['chj'] as String?,
         brandName: j['bn'] as String?,
         productName: j['bne'] as String?,
         productBarcode: j['bc2'] as String?,

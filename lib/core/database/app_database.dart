@@ -122,6 +122,7 @@ class FoodEntries extends Table {
   IntColumn get editCount => integer().withDefault(const Constant(0))();
   BoolColumn get isUserCorrected =>
       boolean().withDefault(const Constant(false))();
+  TextColumn get correctionHistoryJson => text().nullable()();
 
   // Brand / Product Data
   TextColumn get brandName => text().nullable()();
@@ -434,7 +435,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -442,11 +443,9 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (Migrator m, int from, int to) async {
-          // Future migrations go here.
-          // Example for schemaVersion 2:
-          // if (from < 2) {
-          //   await m.addColumn(foodEntries, foodEntries.newColumn);
-          // }
+          if (from < 2) {
+            await m.addColumn(foodEntries, foodEntries.correctionHistoryJson);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
