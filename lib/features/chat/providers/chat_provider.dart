@@ -8,8 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_chat_service.dart';
-import '../models/chat_ai_mode.dart';
-import '../services/intent_handler.dart';
+import '../../../core/services/usage_limiter.dart';
 import '../services/food_lookup_service.dart';
 import '../../health/providers/health_provider.dart';
 import '../../energy/providers/energy_provider.dart';
@@ -67,7 +66,6 @@ final sessionMessagesProvider =
 // Chat notifier
 class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   final Ref ref;
-  final IntentHandler _intentHandler = IntentHandler();
 
   ChatNotifier(this.ref) : super([]);
 
@@ -108,45 +106,8 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final sessionId = ref.read(currentSessionIdProvider);
 
     try {
-      // Get current AI mode
-      final aiMode = ref.read(chatAiModeProvider);
-
-      String replyMessage;
-      String? detectedIntent;
-
-      if (aiMode == ChatAiMode.local) {
-        // LOCAL AI — Free, use existing IntentHandler flow
-        final response = await _intentHandler.processMessage(userMessage,
-            pageContext: pageContext);
-        replyMessage = response.replyMessage;
-        detectedIntent = response.actionResult?.entryType ?? 'unknown';
-
-        // Refresh providers if food entry was created
-        if (response.actionResult != null &&
-            response.actionResult!.entryType == 'food') {
-          debugPrint(
-              '🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
-          final today = dateOnly(DateTime.now());
-          DateTime entryDate = today;
-          if (response.actionResult!.data != null &&
-              response.actionResult!.data!['date'] != null) {
-            final parsedDate = DateTime.tryParse(
-                response.actionResult!.data!['date'] as String);
-            if (parsedDate != null) entryDate = dateOnly(parsedDate);
-          }
-          ref.invalidate(foodEntriesByDateProvider(entryDate));
-          ref.invalidate(foodEntriesByDateProvider(today));
-          ref.invalidate(todayCaloriesProvider);
-          ref.invalidate(todayMacrosProvider);
-          ref.invalidate(healthTimelineProvider(entryDate));
-          ref.invalidate(healthTimelineProvider(today));
-        }
-      } else {
-        // MIRO AI — 1 Energy cost, use Gemini Backend
-        final miroResponse = await _handleMiroAi(userMessage);
-        replyMessage = miroResponse;
-        detectedIntent = 'food';
-      }
+      final replyMessage = await _handleMiroAi(userMessage);
+      const detectedIntent = 'food';
 
       final assistantMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
         ChatMessagesCompanion.insert(
@@ -294,15 +255,14 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   /// Handle Miro AI (new flow with Gemini Backend)
   /// Returns reply message string
   ///
-  /// Energy pricing: flat 1⚡ per chat request
+  /// Chat is free with daily limit (10/day)
   /// Food entries are saved as unanalyzed (check DB first, 0 kcal if not found)
   Future<String> _handleMiroAi(String text) async {
-    final energyService = ref.read(energyServiceProvider);
-    final balance = await energyService.getBalance();
-
-    if (balance < 1) {
+    final canChat = await UsageLimiter.canUseFreeChat();
+    if (!canChat) {
+      final limit = UsageLimiter.freeChatPerDay;
       throw Exception(
-          'Not enough Energy (minimum 1⚡ required). Please purchase more from the store.');
+          'ถึงลิมิตแชทวันนี้แล้ว ($limit ครั้ง/วัน) กลับมาคุยกันใหม่พรุ่งนี้นะครับ 🙏');
     }
 
     final profileAsync = ref.read(profileNotifierProvider);
@@ -315,12 +275,17 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     // Gather food context from local database
     final foodContext = await _gatherFoodContext();
 
+    final energyService = ref.read(energyServiceProvider);
     final response = await GeminiChatService.analyzeChatMessage(
       message: text,
       energyService: energyService,
       userProfile: profile,
       foodContext: foodContext,
     );
+
+    // Record daily chat usage after successful response
+    await UsageLimiter.recordFreeChatUsage();
+    final remaining = await UsageLimiter.remainingFreeChatToday();
 
     // Parse response: check DB first, save as unanalyzed if not found
     final saveResult = await _parseMiroAiResponse(response);
@@ -334,10 +299,6 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     ref.invalidate(todayMacrosProvider);
     ref.invalidate(healthTimelineProvider(today));
 
-    final energyCost = response['energyCost'] as int? ?? 1;
-
-    // Build reply ourselves (don't use AI reply — it contains AI-calculated kcal
-    // that we no longer use since entries are saved as unanalyzed)
     final buffer = StringBuffer();
     if (saveResult != null && saveResult.totalCount > 0) {
       buffer.write(
@@ -352,7 +313,6 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             '\n⏳ ${saveResult.unanalyzedCount} รายการรอ Analyze (กด Analyze All ที่ Timeline)');
       }
 
-      // Show item names with source icons
       buffer.write('\n\n');
       for (final name in saveResult.itemNames) {
         buffer.write('$name\n');
@@ -361,7 +321,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       final reply = response['reply'] as String? ?? 'Message received';
       buffer.write(reply);
     }
-    buffer.write('\n⚡ -$energyCost Energy');
+    buffer.write('\n💬 เหลือ $remaining ครั้งวันนี้');
 
     return buffer.toString();
   }
@@ -666,11 +626,4 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 final chatNotifierProvider =
     StateNotifierProvider<ChatNotifier, List<ChatMessage>>((ref) {
   return ChatNotifier(ref);
-});
-
-/// Provider สำหรับเก็บ AI Mode ที่ user เลือก
-/// Default: ChatAiMode.miroAi (แม่นยำสูง, หลายภาษา)
-/// เปลี่ยนได้ใน Settings
-final chatAiModeProvider = StateProvider<ChatAiMode>((ref) {
-  return ChatAiMode.miroAi;
 });

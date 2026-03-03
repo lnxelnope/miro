@@ -327,20 +327,16 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             final name = nameController.text.trim();
             if (name.isEmpty) return;
 
-            // Free lookup first, then energy
-            final hasFree = await UsageLimiter.canUseFreeEditLookup();
-            if (!hasFree) {
-              final hasEnergy = await GeminiService.hasEnergy();
-              if (!hasEnergy) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(L10n.of(context)!.notEnoughEnergy),
-                    duration: const Duration(seconds: 3),
-                  ),
-                );
-                return;
-              }
+            final hasEnergy = await GeminiService.hasEnergy();
+            if (!hasEnergy) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(L10n.of(context)!.notEnoughEnergy),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              return;
             }
 
             final amount = double.tryParse(amountController.text) ?? 100;
@@ -354,11 +350,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
               );
 
               if (result != null) {
-                if (hasFree) {
-                  await UsageLimiter.recordFreeEditLookup();
-                } else {
-                  await UsageLimiter.recordAiUsage();
-                }
+                await UsageLimiter.recordAiUsage();
 
                 final newIng = <String, dynamic>{
                   'name': result.foodName,
@@ -427,7 +419,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                           : IconButton(
                               icon: const Icon(Icons.search_rounded,
                                   size: 20, color: AppColors.premium),
-                              tooltip: 'AI Lookup (Free)',
+                              tooltip: 'AI Lookup (1⚡)',
                               onPressed: searchAi,
                             ),
                     ),
@@ -509,18 +501,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                     ),
                   ],
 
-                  // Free lookup hint
                   const SizedBox(height: AppSpacing.sm),
-                  Row(
-                    children: [
-                      const Icon(Icons.bolt_rounded, size: 14, color: AppColors.success),
-                      const SizedBox(width: 4),
-                      Text(
-                        L10n.of(context)!.freeIngredientSearch,
-                        style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -750,18 +731,15 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     
     try {
       // Check free edit lookup first (free for user corrections)
-      final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
-      if (!hasFreeEditLookup) {
-        final hasEnergy = await GeminiService.hasEnergy();
-        if (!hasEnergy) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.notEnoughEnergy)),
-            );
-          }
-          setState(() => _isReanalyzing = false);
-          return;
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.notEnoughEnergy)),
+          );
         }
+        setState(() => _isReanalyzing = false);
+        return;
       }
       
       // Prepare user ingredients for kept items
@@ -798,12 +776,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         return;
       }
       
-      // Record usage
-      if (hasFreeEditLookup) {
-        await UsageLimiter.recordFreeEditLookup();
-      } else {
-        await UsageLimiter.recordAiUsage();
-      }
+      await UsageLimiter.recordAiUsage();
       
       // Apply result
       BatchAnalysisHelper.applyResultToEntry(entry, result);
@@ -1352,9 +1325,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: AppRadius.sm,
                                   ),
-                                  child: Text(
-                                    l10n.reanalyzeFree,
-                                    style: const TextStyle(
+                                  child: const Text(
+                                    '1⚡',
+                                    style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),

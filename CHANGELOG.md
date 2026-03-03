@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.6+60] - 2026-03-03
+
+### 🔒 Energy & Chat
+- **Energy Fix** - ปิดช่องโหว่: ลบ free edit lookup, ทุกครั้งที่เรียก AI วิเคราะห์อาหารต้องหัก energy
+- **Chat ฟรี** - AI Chat ฟรีวันละ 10 ครั้ง (รวม menu suggestion)
+- **ลบ Local AI** - ลบระบบ Local AI Chat ทั้งหมด ใช้ Miro AI เสมอ
+- **UI Fix** - แก้ label "ฟรี" ที่ไม่เป็นจริงแล้ว (AI Lookup, Re-analyze)
+
+---
+
 ## [1.2.3+53] - 2026-03-01
 
 ### 📦 Build

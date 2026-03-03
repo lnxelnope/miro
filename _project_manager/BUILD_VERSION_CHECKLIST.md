@@ -2,25 +2,35 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-03 (Build 59)
+**อัปเดตล่าสุด:** 2026-03-03 (Build 60)
 
 ---
 
-## ✅ Build 59 (v1.2.5) - Status: READY FOR RELEASE
+## ✅ Build 60 (v1.2.6) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.5+59`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 59`, `versionName = "1.2.5"`)
-- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.5'`)
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+60`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 60`, `versionName = "1.2.6"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.6'`)
 - [x] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [x] **Target SDK** - 35 (Android 15)
 - [x] **Compile SDK** - 36 (Android 16)
-- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.5`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.5+59)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.6`)
+- [x] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+60)
 - [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
+- **Energy Fix** - ปิดช่องโหว่: ลบ free edit lookup, ทุกครั้งที่เรียก AI วิเคราะห์อาหารต้องหัก energy
+- **Chat ฟรี** - AI Chat ฟรีวันละ 10 ครั้ง (รวม menu suggestion)
+- **ลบ Local AI** - ลบระบบ Local AI Chat ทั้งหมด ใช้ Miro AI เสมอ
+- **UI Fix** - แก้ label "ฟรี" ที่ไม่เป็นจริงแล้ว (AI Lookup, Re-analyze)
+
+---
+
+## ✅ Build 59 (v1.2.5) - Status: RELEASED
+
+### ✨ Changes in that version:
 - **Unified Privacy Consent Bottom Sheet** - รวมสิทธิ์ privacy ทั้งหมด (Notifications, Analytics, Food Research, Ads) ใน bottom sheet เดียว
 - **Scroll-to-bottom requirement** - บังคับให้ผู้ใช้เลื่อนลงจนสุดก่อนกดยอมรับ (มืออาชีพตาม store policy)
 - แทนที่ AnalyticsConsentDialog ด้วย PrivacyConsentSheet บน first launch
@@ -465,17 +475,17 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.5+59
+version: 1.2.6+60
 ```
 **Format:** `versionName+versionCode`
-- `1.2.5` = Version name (แสดงให้ user เห็น)
-- `59` = Build number / Version code (internal)
+- `1.2.6` = Version name (แสดงให้ user เห็น)
+- `60` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 59
-    versionName = "1.2.5"
+    versionCode = 60
+    versionName = "1.2.6"
 }
 ```
 **Format:**
@@ -487,7 +497,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.5',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.6',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -554,7 +564,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 59 | 1.2.5 | 2026-03-03 | ✅ Current |
+| 60 | 1.2.6 | 2026-03-03 | ✅ Current |
+| 59 | 1.2.5 | 2026-03-03 | ✅ Released |
 | 58 | 1.2.4 | 2026-03-02 | ✅ Released |
 | 57 | 1.2.4 | 2026-03-02 | ✅ Released |
 | 54 | 1.2.4 | 2026-03-01 | ✅ Released |
@@ -612,11 +623,11 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 59):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.5+59`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (58 → 59)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.5'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.5+59)
+### Pre-flight Checklist (Build 60):
+- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+60`)
+- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (59 → 60)
+- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.6'`)
+- [x] CHANGELOG.md อัปเดตแล้ว (v1.2.6+60)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
