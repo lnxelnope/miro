@@ -3683,6 +3683,9 @@ class L10nVi extends L10n {
   String get freepassDaysTitle => 'Số ngày Freepass';
 
   @override
+  String get freepassDaysUnit => 'ngày';
+
+  @override
   String freepassDaysSaved(int days) {
     return 'Bạn đã lưu $days ngày';
   }
@@ -3748,6 +3751,10 @@ class L10nVi extends L10n {
 
   @override
   String get freepassConvertError => 'Đã xảy ra lỗi trong quá trình chuyển đổi';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      'Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.';
 
   @override
   String get subscriptionChangePlan => 'Đổi gói';

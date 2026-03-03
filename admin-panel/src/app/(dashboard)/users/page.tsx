@@ -39,6 +39,7 @@ export default function UsersPage() {
               <p><strong>Balance:</strong> ⚡ {selectedUser.balance}</p>
               <p><strong>Tier:</strong> {selectedUser.tier}</p>
               <p><strong>Streak:</strong> {selectedUser.currentStreak} days</p>
+              <p><strong>🎫 Freepass:</strong> {selectedUser.freepass?.totalDays ?? 0} days {selectedUser.freepass?.isActive ? '(Active)' : ''}</p>
             </div>
             <Button onClick={() => setShowModal(true)} className="mt-4">
               View Details →

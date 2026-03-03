@@ -3591,6 +3591,9 @@ class L10nKo extends L10n {
   String get freepassDaysTitle => 'Freepass 일수';
 
   @override
+  String get freepassDaysUnit => '일';
+
+  @override
   String freepassDaysSaved(int days) {
     return '$days일이 저장되어 있습니다';
   }
@@ -3656,6 +3659,10 @@ class L10nKo extends L10n {
 
   @override
   String get freepassConvertError => '변환 중 오류가 발생했습니다';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      '서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도해 주세요.';
 
   @override
   String get subscriptionChangePlan => '플랜 변경';

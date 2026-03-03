@@ -19,6 +19,7 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
+import '../../energy/providers/gamification_provider.dart';
 import '../../scanner/widgets/retro_scan_dialog.dart';
 import '../widgets/feature_tour.dart';
 import '../../../core/providers/app_mode_provider.dart';
@@ -272,6 +273,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     }
 
+    final gamification = ref.watch(gamificationProvider);
+    final isFreepassActive = gamification.freepass.isActive;
+    final hasFreepassDays = gamification.freepass.totalDays > 0;
+
+    double badgeWidth = 100;
+    if (isFreepassActive) {
+      badgeWidth = 150;
+    } else if (hasFreepassDays) {
+      badgeWidth = 120;
+    }
+
     return AppBar(
       title: Text(title),
       leading: Padding(
@@ -281,7 +293,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: EnergyBadgeRiverpod(),
         ),
       ),
-      leadingWidth: 100,
+      leadingWidth: badgeWidth,
       actions: [
         const ModeToggle(),
         const SizedBox(width: 4),

@@ -3667,6 +3667,9 @@ class L10nHi extends L10n {
   String get freepassDaysTitle => 'Freepass दिन';
 
   @override
+  String get freepassDaysUnit => 'दिन';
+
+  @override
   String freepassDaysSaved(int days) {
     return 'आपके पास $days दिन सहेजे हुए हैं';
   }
@@ -3732,6 +3735,10 @@ class L10nHi extends L10n {
 
   @override
   String get freepassConvertError => 'बदलने के दौरान त्रुटि हुई';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      'सेवा अस्थायी रूप से अनुपलब्ध है। कृपया बाद में पुनः प्रयास करें।';
 
   @override
   String get subscriptionChangePlan => 'प्लान बदलें';

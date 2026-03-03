@@ -3566,6 +3566,9 @@ class L10nZh extends L10n {
   String get freepassDaysTitle => 'Freepass天数';
 
   @override
+  String get freepassDaysUnit => '天';
+
+  @override
   String freepassDaysSaved(int days) {
     return '您已保存$days天';
   }
@@ -3631,6 +3634,9 @@ class L10nZh extends L10n {
 
   @override
   String get freepassConvertError => '转换过程中出错';
+
+  @override
+  String get freepassConvertServiceUnavailable => '服务暂时不可用，请稍后再试。';
 
   @override
   String get subscriptionChangePlan => '更换套餐';

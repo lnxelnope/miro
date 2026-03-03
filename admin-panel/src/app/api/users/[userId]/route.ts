@@ -98,6 +98,7 @@ export async function GET(
         challenges: userData.challenges || null,
         milestones: userData.milestones || {},
         promotions: userData.promotions || {},
+        freepass: userData.freepass || null,
         createdAt: userData.createdAt?.toDate?.()?.toISOString() || null,
         lastUpdated: userData.lastUpdated?.toDate?.()?.toISOString() || null,
       },

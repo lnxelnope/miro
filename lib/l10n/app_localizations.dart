@@ -6458,6 +6458,12 @@ abstract class L10n {
   /// **'Freepass Days'**
   String get freepassDaysTitle;
 
+  /// No description provided for @freepassDaysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get freepassDaysUnit;
+
   /// No description provided for @freepassDaysSaved.
   ///
   /// In en, this message translates to:
@@ -6565,6 +6571,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Error occurred during conversion'**
   String get freepassConvertError;
+
+  /// No description provided for @freepassConvertServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Service temporarily unavailable. Please try again later.'**
+  String get freepassConvertServiceUnavailable;
 
   /// No description provided for @subscriptionChangePlan.
   ///

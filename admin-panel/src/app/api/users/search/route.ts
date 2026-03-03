@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
         isSubscriber: userData.subscription?.status === 'active' || userData.isSubscriber || false,
         subscriptionStatus: userData.subscription?.status || userData.subscriptionStatus,
         isBanned: userData.isBanned || false,
+        freepass: userData.freepass || null,
         createdAt: userData.createdAt?.toDate?.()?.toISOString() || null,
         lastUpdated: userData.lastUpdated?.toDate?.()?.toISOString() || null,
       },

@@ -2319,6 +2319,7 @@
     }
   },
   "freepassDaysTitle": "Freepass Days",
+  "freepassDaysUnit": "days",
   "freepassDaysSaved": "You have {days} days saved",
   "@freepassDaysSaved": {
     "placeholders": {
@@ -2368,6 +2369,7 @@
   },
   "freepassConvertFailed": "Conversion failed",
   "freepassConvertError": "Error occurred during conversion",
+  "freepassConvertServiceUnavailable": "Service temporarily unavailable. Please try again later.",
 
   "subscriptionChangePlan": "Change Plan",
   "subscriptionChangePlanDescAndroid": "You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.",

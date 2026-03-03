@@ -2140,6 +2140,7 @@
   "freepassUnlimitedAI": "ใช้ AI ได้ไม่จำกัด",
   "freepassDaysRemaining": "เหลืออีก {days} วัน",
   "freepassDaysTitle": "วัน Freepass",
+  "freepassDaysUnit": "วัน",
   "freepassDaysSaved": "คุณมี {days} วันสะสม",
   "freepassDaysBadge": "{days}ว",
   "freepassConvertTitle": "แลก Energy เป็น Freepass",
@@ -2158,6 +2159,7 @@
   "freepassConvertSuccess": "แลก {energy} Energy → {days} วัน Freepass สำเร็จ!",
   "freepassConvertFailed": "แลกไม่สำเร็จ",
   "freepassConvertError": "เกิดข้อผิดพลาดในการแลก",
+  "freepassConvertServiceUnavailable": "บริการไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง",
 
   "subscriptionChangePlan": "เปลี่ยนแพ็กเกจ",
   "subscriptionChangePlanDescAndroid": "คุณสามารถเปลี่ยนแพ็กเกจผ่านการจัดการ subscription ของ Google Play แพ็กเกจใหม่จะเริ่มในรอบบิลถัดไป",

@@ -3694,6 +3694,9 @@ class L10nPt extends L10n {
   String get freepassDaysTitle => 'Dias de Freepass';
 
   @override
+  String get freepassDaysUnit => 'dias';
+
+  @override
   String freepassDaysSaved(int days) {
     return 'Você tem $days dias salvos';
   }
@@ -3759,6 +3762,10 @@ class L10nPt extends L10n {
 
   @override
   String get freepassConvertError => 'Erro durante a conversão';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      'Serviço temporariamente indisponível. Tente novamente mais tarde.';
 
   @override
   String get subscriptionChangePlan => 'Alterar plano';

@@ -208,6 +208,7 @@ class EnergyService {
           'subscription': data['subscription'] ?? {},
           'tierCelebration': data['tierCelebration'] ?? {},
           'seasonalQuests': data['seasonalQuests'] ?? [],
+          'freepass': data['freepass'] ?? {},
         };
       } else {
         throw Exception('Server returned ${response.statusCode}');
@@ -271,6 +272,7 @@ class EnergyService {
           'subscription': data['subscription'] ?? {},
           'tierCelebration': data['tierCelebration'] ?? {},
           'seasonalQuests': data['seasonalQuests'] ?? [],
+          'freepass': data['freepass'] ?? {},
         };
       }
 

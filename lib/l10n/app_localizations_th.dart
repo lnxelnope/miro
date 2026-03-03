@@ -3597,6 +3597,9 @@ class L10nTh extends L10n {
   String get freepassDaysTitle => 'วัน Freepass';
 
   @override
+  String get freepassDaysUnit => 'วัน';
+
+  @override
   String freepassDaysSaved(int days) {
     return 'คุณมี $days วันสะสม';
   }
@@ -3662,6 +3665,10 @@ class L10nTh extends L10n {
 
   @override
   String get freepassConvertError => 'เกิดข้อผิดพลาดในการแลก';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      'บริการไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง';
 
   @override
   String get subscriptionChangePlan => 'เปลี่ยนแพ็กเกจ';

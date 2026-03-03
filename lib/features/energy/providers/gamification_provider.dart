@@ -267,6 +267,16 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
     await _loadState();
   }
 
+  /// Update freepass data directly (after convert)
+  void updateFreepass(FreepassData freepass) {
+    state = state.copyWith(freepass: freepass);
+  }
+
+  /// Update balance directly
+  void updateBalance(int balance) {
+    state = state.copyWith(balance: balance);
+  }
+
   /// Parse tier celebration data from API response
   Map<String, TierCelebrationData> _parseTierCelebrations(dynamic data) {
     if (data == null || data is! Map) return {};

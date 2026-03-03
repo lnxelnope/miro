@@ -229,11 +229,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               const SizedBox(height: 20),
             ],
 
-            // ────── Freepass Days Bank (show if has days, even inactive) ──────
-            if (gamification.freepass.totalDays > 0 && !gamification.freepass.isActive) ...[
-              _buildFreepassDaysCard(gamification.freepass),
-              const SizedBox(height: 20),
-            ],
+            // ────── Freepass Section (always visible, even for subscribers) ──────
+            _buildFreepassSection(gamification.freepass, balance),
+            const SizedBox(height: 20),
 
             // ────── Energy Pass Subscription CTA (only for non-subscribers) ──────
             if (!isSubscriber) ...[
@@ -309,11 +307,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               isBest: true,
               gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
             ),
-
-            const SizedBox(height: 24),
-
-            // ────── Convert Energy to Freepass ──────
-            _buildConvertToFreepassCard(balance),
 
             const SizedBox(height: 24),
 
@@ -1533,132 +1526,103 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     );
   }
 
-  Widget _buildFreepassDaysCard(FreepassData freepass) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2196F3).withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: AppRadius.lg,
-        border: Border.all(
-          color: const Color(0xFF2196F3).withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withValues(alpha: 0.15),
-              borderRadius: AppRadius.md,
-            ),
-            child: const Icon(
-              Icons.card_membership_rounded,
-              size: 24,
-              color: Color(0xFF2196F3),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                    Text(
-                      L10n.of(context)!.freepassDaysTitle,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      L10n.of(context)!.freepassDaysSaved(freepass.totalDays),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF2196F3),
-              borderRadius: AppRadius.md,
-            ),
-            child: Text(
-              '${freepass.totalDays}d',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildConvertToFreepassCard(int balance) {
+  /// Combined Freepass section: shows banked days + convert button
+  /// Always visible for non-subscribers
+  Widget _buildFreepassSection(FreepassData freepass, int balance) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final maxDays = (balance / FreepassData.energyPerDay).floor();
     final canConvert = maxDays >= FreepassData.minDays;
+    const freepassBlue = Color(0xFF2196F3);
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF2196F3).withValues(alpha: isDark ? 0.2 : 0.1),
+            freepassBlue.withValues(alpha: isDark ? 0.2 : 0.1),
             const Color(0xFF1565C0).withValues(alpha: isDark ? 0.15 : 0.05),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        borderRadius: AppRadius.lg,
+        borderRadius: AppRadius.xl,
         border: Border.all(
-          color: const Color(0xFF2196F3).withValues(alpha: 0.3),
+          color: freepassBlue.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3).withValues(alpha: 0.15),
+                  color: freepassBlue.withValues(alpha: 0.15),
                   borderRadius: AppRadius.md,
                 ),
                 child: const Icon(
-                  Icons.swap_horiz_rounded,
-                  size: 24,
-                  color: Color(0xFF2196F3),
+                  Icons.card_membership_rounded,
+                  size: 28,
+                  color: freepassBlue,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      L10n.of(context)!.freepassConvertTitle,
+                      L10n.of(context)!.freepassTitle,
                       style: TextStyle(
-                        fontSize: 17,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      L10n.of(context)!.freepassConvertRate(FreepassData.energyPerDay),
+                      L10n.of(context)!.freepassConvertDescription,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
                         color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Days count badge (always visible)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: freepass.totalDays > 0
+                      ? freepassBlue
+                      : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.15)),
+                  borderRadius: AppRadius.md,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '${freepass.totalDays}',
+                      style: TextStyle(
+                        color: freepass.totalDays > 0
+                            ? Colors.white
+                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.1,
+                      ),
+                    ),
+                    Text(
+                      L10n.of(context)!.freepassDaysUnit,
+                      style: TextStyle(
+                        color: freepass.totalDays > 0
+                            ? Colors.white.withValues(alpha: 0.85)
+                            : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -1666,15 +1630,40 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            L10n.of(context)!.freepassConvertDescription,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+
+          const SizedBox(height: 16),
+
+          // Rate info
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : freepassBlue.withValues(alpha: 0.06),
+              borderRadius: AppRadius.md,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.swap_horiz_rounded, size: 16,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Text(
+                  L10n.of(context)!.freepassConvertRate(FreepassData.energyPerDay),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 14),
+
+          // Convert button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -1683,12 +1672,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   : null,
               icon: _isConvertingToFreepass
                   ? const SizedBox(
-                      width: 18,
-                      height: 18,
+                      width: 18, height: 18,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.card_membership_rounded, size: 18),
               label: Text(
@@ -1697,18 +1683,15 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     : canConvert
                         ? L10n.of(context)!.freepassConvertButton(maxDays)
                         : L10n.of(context)!.freepassConvertMinimum(FreepassData.energyPerDay),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2196F3),
+                backgroundColor: freepassBlue,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: freepassBlue.withValues(alpha: 0.3),
+                disabledForegroundColor: Colors.white.withValues(alpha: 0.5),
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: AppRadius.md,
-                ),
+                shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
               ),
             ),
           ),
@@ -1716,6 +1699,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       ),
     );
   }
+
 
   Future<void> _showConvertDialog(int balance) async {
     final maxDays = (balance / FreepassData.energyPerDay).floor()
@@ -1887,11 +1871,34 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         body: jsonEncode({'deviceId': deviceId, 'days': days}),
       );
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      Map<String, dynamic> data;
+      try {
+        if (response.body.trim().startsWith('<')) {
+          throw FormatException('Server returned HTML instead of JSON (function may not be deployed)');
+        }
+        data = jsonDecode(response.body) as Map<String, dynamic>;
+      } catch (e) {
+        if (response.statusCode != 200) {
+          throw Exception('Server error ${response.statusCode}');
+        }
+        rethrow;
+      }
 
       if (data['success'] == true) {
         final daysConverted = data['daysConverted'] as int? ?? days;
         final energySpent = data['energySpent'] as int? ?? 0;
+
+        // Update state immediately from convert response
+        final newBalance = (data['newBalance'] as num?)?.toInt();
+        final responseFreepass = data['freepass'] as Map<String, dynamic>?;
+        final notifier = ref.read(gamificationProvider.notifier);
+
+        if (responseFreepass != null) {
+          notifier.updateFreepass(FreepassData.fromFirestore(responseFreepass));
+        }
+        if (newBalance != null) {
+          notifier.updateBalance(newBalance);
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1904,7 +1911,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
         ref.invalidate(currentEnergyProvider);
         ref.invalidate(energyBalanceProvider);
-        await ref.read(gamificationProvider.notifier).refresh();
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1918,9 +1924,12 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     } catch (e) {
       debugPrint('[EnergyStore] Error converting to freepass: $e');
       if (mounted) {
+        final msg = e.toString().contains('HTML') || e.toString().contains('404')
+            ? L10n.of(context)!.freepassConvertServiceUnavailable
+            : L10n.of(context)!.freepassConvertError;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(L10n.of(context)!.freepassConvertError),
+            content: Text(msg),
             backgroundColor: AppColors.error,
           ),
         );
