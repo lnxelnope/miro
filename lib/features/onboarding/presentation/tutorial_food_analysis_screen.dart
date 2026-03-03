@@ -7,7 +7,6 @@ import 'package:miro_hybrid/core/services/permission_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/features/onboarding/models/tutorial_step.dart';
 import 'package:miro_hybrid/features/home/presentation/home_screen.dart';
-import 'package:miro_hybrid/features/scanner/widgets/retro_scan_dialog.dart';
 
 class TutorialFoodAnalysisScreen extends StatefulWidget {
   const TutorialFoodAnalysisScreen({super.key});
@@ -132,12 +131,8 @@ class _TutorialFoodAnalysisScreenState extends State<TutorialFoodAnalysisScreen>
       }
 
       await permissionService.markFirstLaunchComplete();
-
-      if (!mounted) return;
-
-      await RetroScanDialog.show(context);
     } catch (e) {
-      AppLogger.warn('RetroScan from tutorial failed: $e');
+      AppLogger.warn('Tutorial finish failed: $e');
     }
 
     if (!mounted) return;

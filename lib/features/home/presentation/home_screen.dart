@@ -19,7 +19,6 @@ import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../../energy/providers/gamification_provider.dart';
-import '../../scanner/widgets/retro_scan_dialog.dart';
 import '../widgets/feature_tour.dart';
 import '../../../core/providers/app_mode_provider.dart';
 import '../../../core/widgets/mode_toggle.dart';
@@ -49,13 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       // 2. Feature tour (only shows if user reset from Settings; onboarding marks it done for new users)
       await _checkAndShowFeatureTour();
 
-      // 3. Retro scan: scan gallery for recent food photos (first time only)
-      if (mounted) {
-        await Future.delayed(const Duration(seconds: 2));
-        await _checkAndStartRetroScan();
-      }
-
-      // 4. Show analytics consent dialog (only if never asked)
+      // 3. Show analytics consent dialog (only if never asked)
       await _checkAndShowConsentDialog();
 
       // 4. Set context for Welcome Offer notifications
@@ -425,37 +418,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           debugPrint('Feature tour skipped');
         },
       );
-    }
-  }
-
-  /// Retro scan: offer to scan gallery photos from last 7 days (first time only)
-  Future<void> _checkAndStartRetroScan() async {
-    try {
-      final alreadyDone = await RetroScanDialog.hasCompletedRetroScan();
-      if (alreadyDone) return;
-
-      final permissionService = PermissionService();
-      final hasGallery = await permissionService.hasGalleryPermission();
-      if (!hasGallery) {
-        AppLogger.info('RetroScan skipped: no gallery permission');
-        await RetroScanDialog.markRetroScanDone();
-        return;
-      }
-
-      if (!mounted) return;
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!mounted) return;
-
-      // Mark done before showing dialog to prevent re-showing
-      // if user kills the app or presses back while dialog is open
-      await RetroScanDialog.markRetroScanDone();
-
-      final result = await RetroScanDialog.show(context);
-      AppLogger.info('RetroScan result: $result food entries found');
-    } catch (e) {
-      AppLogger.warn('RetroScan failed: $e');
     }
   }
 
