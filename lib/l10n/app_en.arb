@@ -2375,5 +2375,29 @@
   "subscriptionChangePlanDescAndroid": "You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.",
   "subscriptionChangePlanDescIos": "You can upgrade or downgrade your plan through App Store subscription management.",
   "subscriptionCurrentPlan": "CURRENT",
-  "subscriptionChangePlanButton": "Change"
+  "subscriptionChangePlanButton": "Change",
+
+  "unifiedPermissionsScrollHint": "Please scroll down to read all permissions, then tap Allow.",
+  "unifiedPermissionsScrollToEnable": "Scroll down to enable",
+  "unifiedPermissionsHealthTitle": "Health App",
+  "unifiedPermissionsHealthDesc": "Enable in Settings to sync calories with Apple Health / Health Connect",
+
+  "privacyConsentTitle": "Your Privacy Matters",
+  "privacyConsentSubtitle": "Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.",
+  "privacyConsentNotifTitle": "Push Notifications",
+  "privacyConsentNotifDesc": "Get helpful reminders and updates about your nutrition tracking.",
+  "privacyConsentNotifBullet1": "Daily meal tracking reminders",
+  "privacyConsentNotifBullet2": "Streak and achievement alerts",
+  "privacyConsentNotifBullet3": "You can turn off anytime in Settings",
+  "privacyConsentResearchDesc": "Help improve food databases and nutritional accuracy for the community.",
+  "privacyConsentResearchBullet1": "Anonymized food photos help train AI models",
+  "privacyConsentResearchBullet2": "No personal data is ever shared",
+  "privacyConsentAdsTitle": "Advertising",
+  "privacyConsentAdsDesc": "Personalized ads help keep MIRO free. You can opt out anytime.",
+  "privacyConsentAdsBullet1": "Ads are never based on your food or health data",
+  "privacyConsentAdsBullet2": "Opt out to see generic, non-personalized ads",
+  "privacyConsentHealthNote": "Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.",
+  "privacyConsentReadPolicy": "Read full Privacy Policy",
+  "privacyConsentAccept": "Continue",
+  "privacyConsentOptional": "Optional"
 }

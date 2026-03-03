@@ -6,10 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
-import '../../../core/services/consent_service.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../profile/providers/locale_provider.dart';
-import '../../../core/widgets/analytics_consent_dialog.dart';
+import '../../../core/widgets/privacy_consent_sheet.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/presentation/health_timeline_tab.dart';
 import '../../health/presentation/health_my_meal_tab.dart';
@@ -460,22 +459,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  /// Check and show analytics consent dialog (only first time)
+  /// Show unified privacy consent sheet (first time only)
   Future<void> _checkAndShowConsentDialog() async {
     try {
-      final needsConsent = await ConsentService.needsConsent();
-      
+      final needsConsent = await PrivacyConsentSheet.needsConsent();
+
       if (needsConsent && mounted) {
-        // Wait a bit after feature tour
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (!mounted) return;
-        
-        await AnalyticsConsentDialog.show(context);
-        AppLogger.info('✅ Analytics consent dialog shown');
+
+        await PrivacyConsentSheet.show(context);
+        AppLogger.info('Privacy consent sheet completed');
       }
     } catch (e) {
-      AppLogger.warn('⚠️ Failed to show consent dialog: $e');
+      AppLogger.warn('Failed to show privacy consent sheet: $e');
     }
   }
 }

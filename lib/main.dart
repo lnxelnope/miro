@@ -123,13 +123,9 @@ void _initServicesInBackground() async {
       AppLogger.warn('⚠️ PurchaseService.initialize: $e');
     }
 
-    try {
-      await NotificationService.initialize()
-          .timeout(const Duration(seconds: 10), onTimeout: () {});
-    } catch (e) {
-      AppLogger.warn('⚠️ NotificationService: $e');
-    }
-
+    // Notification, Analytics, and AdMob consent are now handled
+    // by the unified PrivacyConsentSheet on first launch.
+    // On subsequent launches, initialize with saved preferences.
     try {
       final hasConsent = await ConsentService.hasConsent();
       await AnalyticsService.initialize(
@@ -141,8 +137,22 @@ void _initServicesInBackground() async {
     }
 
     try {
-      await AdmobConsentService.initializeWithConsent()
-          .timeout(const Duration(seconds: 15), onTimeout: () {});
+      final consentAsked = !(await ConsentService.needsConsent());
+      if (consentAsked) {
+        await NotificationService.initialize()
+            .timeout(const Duration(seconds: 10), onTimeout: () {});
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ NotificationService: $e');
+    }
+
+    try {
+      if (AdmobConsentService.isInitialized) {
+        // Already initialized by PrivacyConsentSheet
+      } else {
+        await AdmobConsentService.initializeWithConsent()
+            .timeout(const Duration(seconds: 15), onTimeout: () {});
+      }
     } catch (e) {
       AppLogger.warn('⚠️ AdmobConsentService: $e');
     }

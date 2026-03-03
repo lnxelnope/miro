@@ -3686,4 +3686,78 @@ class L10nTh extends L10n {
 
   @override
   String get subscriptionChangePlanButton => 'เปลี่ยน';
+
+  @override
+  String get unifiedPermissionsScrollHint =>
+      'กรุณาเลื่อนลงเพื่ออ่านสิทธิ์ทั้งหมด แล้วกดอนุญาต';
+
+  @override
+  String get unifiedPermissionsScrollToEnable => 'เลื่อนลงเพื่อเปิดใช้งาน';
+
+  @override
+  String get unifiedPermissionsHealthTitle => 'Health App';
+
+  @override
+  String get unifiedPermissionsHealthDesc =>
+      'เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect';
+
+  @override
+  String get privacyConsentTitle => 'ความเป็นส่วนตัวของคุณสำคัญ';
+
+  @override
+  String get privacyConsentSubtitle =>
+      'กรุณาตรวจสอบวิธีที่ MIRO ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ';
+
+  @override
+  String get privacyConsentNotifTitle => 'การแจ้งเตือน';
+
+  @override
+  String get privacyConsentNotifDesc =>
+      'รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ';
+
+  @override
+  String get privacyConsentNotifBullet1 => 'แจ้งเตือนบันทึกมื้ออาหารรายวัน';
+
+  @override
+  String get privacyConsentNotifBullet2 => 'แจ้งเตือน streak และความสำเร็จ';
+
+  @override
+  String get privacyConsentNotifBullet3 => 'ปิดได้ทุกเมื่อใน Settings';
+
+  @override
+  String get privacyConsentResearchDesc =>
+      'ช่วยปรับปรุงฐานข้อมูลอาหารและความแม่นยำทางโภชนาการสำหรับชุมชน';
+
+  @override
+  String get privacyConsentResearchBullet1 =>
+      'รูปอาหารแบบไม่ระบุตัวตนช่วยฝึก AI';
+
+  @override
+  String get privacyConsentResearchBullet2 => 'ไม่มีการแชร์ข้อมูลส่วนบุคคล';
+
+  @override
+  String get privacyConsentAdsTitle => 'โฆษณา';
+
+  @override
+  String get privacyConsentAdsDesc =>
+      'โฆษณาที่ปรับแต่งช่วยให้ MIRO ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ';
+
+  @override
+  String get privacyConsentAdsBullet1 => 'โฆษณาไม่อิงจากข้อมูลอาหารหรือสุขภาพ';
+
+  @override
+  String get privacyConsentAdsBullet2 => 'ยกเลิกเพื่อดูโฆษณาทั่วไปแทน';
+
+  @override
+  String get privacyConsentHealthNote =>
+      'การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings';
+
+  @override
+  String get privacyConsentReadPolicy => 'อ่านนโยบายความเป็นส่วนตัว';
+
+  @override
+  String get privacyConsentAccept => 'ดำเนินการต่อ';
+
+  @override
+  String get privacyConsentOptional => 'ไม่บังคับ';
 }

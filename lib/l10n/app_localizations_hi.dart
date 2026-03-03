@@ -3756,4 +3756,81 @@ class L10nHi extends L10n {
 
   @override
   String get subscriptionChangePlanButton => 'बदलें';
+
+  @override
+  String get unifiedPermissionsScrollHint =>
+      'Please scroll down to read all permissions, then tap Allow.';
+
+  @override
+  String get unifiedPermissionsScrollToEnable => 'Scroll down to enable';
+
+  @override
+  String get unifiedPermissionsHealthTitle => 'Health App';
+
+  @override
+  String get unifiedPermissionsHealthDesc =>
+      'Enable in Settings to sync calories with Apple Health / Health Connect';
+
+  @override
+  String get privacyConsentTitle => 'Your Privacy Matters';
+
+  @override
+  String get privacyConsentSubtitle =>
+      'Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.';
+
+  @override
+  String get privacyConsentNotifTitle => 'Push Notifications';
+
+  @override
+  String get privacyConsentNotifDesc =>
+      'Get helpful reminders and updates about your nutrition tracking.';
+
+  @override
+  String get privacyConsentNotifBullet1 => 'Daily meal tracking reminders';
+
+  @override
+  String get privacyConsentNotifBullet2 => 'Streak and achievement alerts';
+
+  @override
+  String get privacyConsentNotifBullet3 =>
+      'You can turn off anytime in Settings';
+
+  @override
+  String get privacyConsentResearchDesc =>
+      'Help improve food databases and nutritional accuracy for the community.';
+
+  @override
+  String get privacyConsentResearchBullet1 =>
+      'Anonymized food photos help train AI models';
+
+  @override
+  String get privacyConsentResearchBullet2 => 'No personal data is ever shared';
+
+  @override
+  String get privacyConsentAdsTitle => 'Advertising';
+
+  @override
+  String get privacyConsentAdsDesc =>
+      'Personalized ads help keep MIRO free. You can opt out anytime.';
+
+  @override
+  String get privacyConsentAdsBullet1 =>
+      'Ads are never based on your food or health data';
+
+  @override
+  String get privacyConsentAdsBullet2 =>
+      'Opt out to see generic, non-personalized ads';
+
+  @override
+  String get privacyConsentHealthNote =>
+      'Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.';
+
+  @override
+  String get privacyConsentReadPolicy => 'Read full Privacy Policy';
+
+  @override
+  String get privacyConsentAccept => 'Continue';
+
+  @override
+  String get privacyConsentOptional => 'Optional';
 }

@@ -6607,6 +6607,138 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Change'**
   String get subscriptionChangePlanButton;
+
+  /// No description provided for @unifiedPermissionsScrollHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please scroll down to read all permissions, then tap Allow.'**
+  String get unifiedPermissionsScrollHint;
+
+  /// No description provided for @unifiedPermissionsScrollToEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll down to enable'**
+  String get unifiedPermissionsScrollToEnable;
+
+  /// No description provided for @unifiedPermissionsHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health App'**
+  String get unifiedPermissionsHealthTitle;
+
+  /// No description provided for @unifiedPermissionsHealthDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable in Settings to sync calories with Apple Health / Health Connect'**
+  String get unifiedPermissionsHealthDesc;
+
+  /// No description provided for @privacyConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Privacy Matters'**
+  String get privacyConsentTitle;
+
+  /// No description provided for @privacyConsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.'**
+  String get privacyConsentSubtitle;
+
+  /// No description provided for @privacyConsentNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get privacyConsentNotifTitle;
+
+  /// No description provided for @privacyConsentNotifDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get helpful reminders and updates about your nutrition tracking.'**
+  String get privacyConsentNotifDesc;
+
+  /// No description provided for @privacyConsentNotifBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily meal tracking reminders'**
+  String get privacyConsentNotifBullet1;
+
+  /// No description provided for @privacyConsentNotifBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak and achievement alerts'**
+  String get privacyConsentNotifBullet2;
+
+  /// No description provided for @privacyConsentNotifBullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'You can turn off anytime in Settings'**
+  String get privacyConsentNotifBullet3;
+
+  /// No description provided for @privacyConsentResearchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve food databases and nutritional accuracy for the community.'**
+  String get privacyConsentResearchDesc;
+
+  /// No description provided for @privacyConsentResearchBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymized food photos help train AI models'**
+  String get privacyConsentResearchBullet1;
+
+  /// No description provided for @privacyConsentResearchBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal data is ever shared'**
+  String get privacyConsentResearchBullet2;
+
+  /// No description provided for @privacyConsentAdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertising'**
+  String get privacyConsentAdsTitle;
+
+  /// No description provided for @privacyConsentAdsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalized ads help keep MIRO free. You can opt out anytime.'**
+  String get privacyConsentAdsDesc;
+
+  /// No description provided for @privacyConsentAdsBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are never based on your food or health data'**
+  String get privacyConsentAdsBullet1;
+
+  /// No description provided for @privacyConsentAdsBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Opt out to see generic, non-personalized ads'**
+  String get privacyConsentAdsBullet2;
+
+  /// No description provided for @privacyConsentHealthNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.'**
+  String get privacyConsentHealthNote;
+
+  /// No description provided for @privacyConsentReadPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Read full Privacy Policy'**
+  String get privacyConsentReadPolicy;
+
+  /// No description provided for @privacyConsentAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get privacyConsentAccept;
+
+  /// No description provided for @privacyConsentOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get privacyConsentOptional;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

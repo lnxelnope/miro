@@ -2165,5 +2165,29 @@
   "subscriptionChangePlanDescAndroid": "คุณสามารถเปลี่ยนแพ็กเกจผ่านการจัดการ subscription ของ Google Play แพ็กเกจใหม่จะเริ่มในรอบบิลถัดไป",
   "subscriptionChangePlanDescIos": "คุณสามารถอัปเกรดหรือดาวน์เกรดแพ็กเกจผ่านการจัดการ subscription ของ App Store",
   "subscriptionCurrentPlan": "ปัจจุบัน",
-  "subscriptionChangePlanButton": "เปลี่ยน"
+  "subscriptionChangePlanButton": "เปลี่ยน",
+
+  "unifiedPermissionsScrollHint": "กรุณาเลื่อนลงเพื่ออ่านสิทธิ์ทั้งหมด แล้วกดอนุญาต",
+  "unifiedPermissionsScrollToEnable": "เลื่อนลงเพื่อเปิดใช้งาน",
+  "unifiedPermissionsHealthTitle": "Health App",
+  "unifiedPermissionsHealthDesc": "เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect",
+
+  "privacyConsentTitle": "ความเป็นส่วนตัวของคุณสำคัญ",
+  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ MIRO ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ",
+  "privacyConsentNotifTitle": "การแจ้งเตือน",
+  "privacyConsentNotifDesc": "รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ",
+  "privacyConsentNotifBullet1": "แจ้งเตือนบันทึกมื้ออาหารรายวัน",
+  "privacyConsentNotifBullet2": "แจ้งเตือน streak และความสำเร็จ",
+  "privacyConsentNotifBullet3": "ปิดได้ทุกเมื่อใน Settings",
+  "privacyConsentResearchDesc": "ช่วยปรับปรุงฐานข้อมูลอาหารและความแม่นยำทางโภชนาการสำหรับชุมชน",
+  "privacyConsentResearchBullet1": "รูปอาหารแบบไม่ระบุตัวตนช่วยฝึก AI",
+  "privacyConsentResearchBullet2": "ไม่มีการแชร์ข้อมูลส่วนบุคคล",
+  "privacyConsentAdsTitle": "โฆษณา",
+  "privacyConsentAdsDesc": "โฆษณาที่ปรับแต่งช่วยให้ MIRO ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ",
+  "privacyConsentAdsBullet1": "โฆษณาไม่อิงจากข้อมูลอาหารหรือสุขภาพ",
+  "privacyConsentAdsBullet2": "ยกเลิกเพื่อดูโฆษณาทั่วไปแทน",
+  "privacyConsentHealthNote": "การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings",
+  "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
+  "privacyConsentAccept": "ดำเนินการต่อ",
+  "privacyConsentOptional": "ไม่บังคับ"
 }
