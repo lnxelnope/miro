@@ -4,6 +4,7 @@ import '../../../core/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
@@ -19,6 +20,7 @@ import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/image_picker_service.dart';
+import '../../../core/utils/logger.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../widgets/food_sandbox.dart';
 import '../widgets/basic_meal_suggestion.dart';
@@ -409,18 +411,87 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   }
 
   Future<void> _pickFromGallery() async {
-    final File? image = await ImagePickerService.pickFromGallery();
-    if (image != null && mounted) {
+    final images = await ImagePickerService.pickMultipleFromGallery();
+    if (images.isEmpty || !mounted) return;
+
+    if (images.length == 1) {
       await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ImageAnalysisPreviewScreen(
-            imageFile: image,
+            imageFile: images.first,
             selectedDate: _selectedDate,
           ),
         ),
       );
+      return;
     }
+
+    // Multiple images: create entries + enqueue for analysis
+    final now = DateTime.now();
+    final date = _selectedDate;
+    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+    final mealType = _guessMealTypeFromHour(now.hour);
+    final appDir = await getApplicationDocumentsDirectory();
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    final savedEntries = <FoodEntry>[];
+
+    for (final image in images) {
+      try {
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final destPath = '${appDir.path}/$fileName';
+        await image.copy(destPath);
+
+        final entry = FoodEntry(
+          id: 0,
+          foodName: 'food',
+          mealType: mealType,
+          timestamp: entryTimestamp,
+          imagePath: destPath,
+          servingSize: 1.0,
+          servingUnit: 'serving',
+          calories: 0, protein: 0, carbs: 0, fat: 0,
+          baseCalories: 0, baseProtein: 0, baseCarbs: 0, baseFat: 0,
+          source: DataSource.galleryScanned,
+          isVerified: false,
+          searchMode: FoodSearchMode.normal,
+          isDeleted: false,
+          isGroupOriginal: false,
+          editCount: 0,
+          isUserCorrected: false,
+          isCalibrated: false,
+          isSynced: false,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await notifier.addFoodEntry(entry);
+        savedEntries.add(entry);
+      } catch (e) {
+        AppLogger.warn('Failed to save image: $e');
+      }
+    }
+
+    if (savedEntries.isEmpty || !mounted) return;
+
+    final selectedDate = dateOnly(date);
+    refreshFoodProviders(ref, selectedDate);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(L10n.of(context)!.scanFoundNewImages(
+            savedEntries.length, DateFormat('d MMM yyyy').format(date))),
+        backgroundColor: AppColors.success,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  MealType _guessMealTypeFromHour(int hour) {
+    if (hour >= 5 && hour < 11) return MealType.breakfast;
+    if (hour >= 11 && hour < 15) return MealType.lunch;
+    if (hour >= 15 && hour < 21) return MealType.dinner;
+    return MealType.snack;
   }
 
   Future<void> _quickAdd() async {
