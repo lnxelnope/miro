@@ -15,6 +15,8 @@ import 'package:miro_hybrid/core/services/analytics_service.dart';
 import 'package:miro_hybrid/features/subscription/models/freepass_data.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../profile/presentation/terms_screen.dart';
+import '../../profile/presentation/privacy_policy_screen.dart';
 
 
 /// Energy Store - Modern Design with gradient cards
@@ -312,6 +314,58 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
             // ────── Info Card ──────
             _buildModernInfoCard(),
+
+            const SizedBox(height: 16),
+
+            // ────── Legal Links ──────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TermsScreen()),
+                  ),
+                  child: Text(
+                    L10n.of(context)!.termsOfService,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '·',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                  ),
+                  child: Text(
+                    L10n.of(context)!.privacyPolicy,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
             const SizedBox(height: 20),
           ],

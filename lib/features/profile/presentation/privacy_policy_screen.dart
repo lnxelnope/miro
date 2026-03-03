@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -32,7 +33,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Created meal recipes (My Meals)',
                 '• Saved ingredients (Ingredients)',
                 '• Energy balance (for AI features)',
-                '• Energy purchase history (via Google Play)',
+                '• Energy purchase history (via ${Platform.isIOS ? "App Store" : "Google Play"})',
               ],
               isDark,
             ),
@@ -89,8 +90,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               [
                 'In-App Purchase',
                 '',
-                '• Purchase data → Processed via Google Play Billing',
-                '• Payment information is handled by Google, not by us',
+                '• Purchase data → Processed via ${Platform.isIOS ? "App Store" : "Google Play Billing"}',
+                '• Payment information is handled by ${Platform.isIOS ? "Apple" : "Google"}, not by us',
                 '• We only store Product ID and Purchase Token to verify purchases',
                 '',
                 'Firebase Services',
@@ -160,7 +161,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Local data stored in encrypted Local Database (Isar)',
                 '• Firebase Analytics used for app improvement (requires user consent)',
                 '• No advertising or third-party tracking SDKs',
-                '• Payment processing handled securely by Google Play Billing',
+                '• Payment processing handled securely by ${Platform.isIOS ? "App Store" : "Google Play Billing"}',
                 '• All data transmission encrypted via HTTPS',
               ],
               isDark,
@@ -183,7 +184,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• Cloud-synced food history: Retained for up to 90 days for restoration; deleted upon request',
                 '• Thumbnail images: Retained until you request deletion',
                 '• Energy balance: Retained indefinitely (linked to your device)',
-                '• Purchase records: Retained as required by Google Play and tax regulations',
+                '• Purchase records: Retained as required by ${Platform.isIOS ? "App Store" : "Google Play"} and tax regulations',
               ],
               isDark,
             ),
@@ -251,7 +252,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '',
                 '• Delete local data: Profile → Clear Data',
                 '• Revoke analytics consent: Profile → Settings → Analytics Data Collection (toggle off)',
-                '• Request data deletion: Contact us through Google Play Store',
+                '• Request data deletion: Contact us at support@tnbgrp.com',
                 '',
                 'Data Retention',
                 '',
@@ -265,7 +266,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.privacyPolicySectionContactUs,
               [
-                'If you have questions about this Privacy Policy, please contact us through Google Play Store.',
+                'If you have questions about this Privacy Policy, please contact us at support@tnbgrp.com.',
               ],
               isDark,
             ),

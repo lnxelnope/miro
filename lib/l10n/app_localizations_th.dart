@@ -288,6 +288,23 @@ class L10nTh extends L10n {
   String get restorePurchase => 'กู้คืนการซื้อ';
 
   @override
+  String get restorePurchaseSubtitle => 'กู้คืน Energy Pass ที่เคยซื้อไว้';
+
+  @override
+  String get restorePurchaseRestoring => 'กำลังกู้คืนการซื้อ…';
+
+  @override
+  String get restorePurchaseSuccess => 'กู้คืนการซื้อสำเร็จ!';
+
+  @override
+  String get restorePurchaseNotFound =>
+      'ไม่พบรายการซื้อก่อนหน้าสำหรับ Apple ID นี้';
+
+  @override
+  String get restorePurchaseFailed =>
+      'กู้คืนการซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+
+  @override
   String get myMeals => 'อาหารของฉัน:';
 
   @override
@@ -1796,6 +1813,10 @@ class L10nTh extends L10n {
       'การสมัครสมาชิกของคุณจะต่ออายุอัตโนมัติ คุณสามารถยกเลิกได้ทุกเมื่อจาก Google Play';
 
   @override
+  String get subscriptionAutoRenewTermsIos =>
+      'ค่าสมัครจะถูกเรียกเก็บจากบัญชี Apple ID ของคุณเมื่อยืนยันการซื้อ การสมัครจะต่ออายุอัตโนมัติ เว้นแต่จะยกเลิกก่อนสิ้นสุดรอบปัจจุบันอย่างน้อย 24 ชั่วโมง คุณสามารถจัดการและยกเลิกการสมัครได้ในการตั้งค่าบัญชี App Store';
+
+  @override
   String subscriptionRenewsDate(String date) {
     return 'ต่ออายุ: $date';
   }
@@ -2201,6 +2222,31 @@ class L10nTh extends L10n {
 
   @override
   String get allDataClearedSuccess => 'ล้างข้อมูลทั้งหมดเรียบร้อย';
+
+  @override
+  String get deleteAccount => 'ลบบัญชี';
+
+  @override
+  String get deleteAccountSubtitle => 'ลบข้อมูลทั้งหมดจากอุปกรณ์และคลาวด์';
+
+  @override
+  String get deleteAccountTitle => 'ลบบัญชี?';
+
+  @override
+  String get deleteAccountContent =>
+      'การดำเนินการนี้จะลบอย่างถาวร:\n• ข้อมูลในเครื่องทั้งหมด (รายการอาหาร, เมนู, เป้าหมาย)\n• ข้อมูลบนคลาวด์ (พลังงาน, ข้อมูลสำรอง)\n• ข้อมูลการสมัครสมาชิก\n\nไม่สามารถกู้คืนได้';
+
+  @override
+  String get deleteAccountConfirm => 'ลบบัญชี';
+
+  @override
+  String get deleteAccountSuccess => 'ลบบัญชีเรียบร้อย';
+
+  @override
+  String get deleteAccountFailed => 'ลบบัญชีไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+
+  @override
+  String get deleteAccountDeleting => 'กำลังลบบัญชี…';
 
   @override
   String get aboutSection => 'เกี่ยวกับ';

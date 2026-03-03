@@ -652,6 +652,36 @@ abstract class L10n {
   /// **'Restore purchase'**
   String get restorePurchase;
 
+  /// No description provided for @restorePurchaseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your Energy Pass subscription'**
+  String get restorePurchaseSubtitle;
+
+  /// No description provided for @restorePurchaseRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring purchases…'**
+  String get restorePurchaseRestoring;
+
+  /// No description provided for @restorePurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase restored successfully!'**
+  String get restorePurchaseSuccess;
+
+  /// No description provided for @restorePurchaseNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous purchases found for this Apple ID'**
+  String get restorePurchaseNotFound;
+
+  /// No description provided for @restorePurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore purchase. Please try again.'**
+  String get restorePurchaseFailed;
+
   /// No description provided for @myMeals.
   ///
   /// In en, this message translates to:
@@ -3240,6 +3270,12 @@ abstract class L10n {
   /// **'Your subscription will renew automatically. You can cancel anytime from Google Play.'**
   String get subscriptionAutoRenewTerms;
 
+  /// No description provided for @subscriptionAutoRenewTermsIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.'**
+  String get subscriptionAutoRenewTermsIos;
+
   /// No description provided for @subscriptionRenewsDate.
   ///
   /// In en, this message translates to:
@@ -4013,6 +4049,54 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'All data cleared successfully'**
   String get allDataClearedSuccess;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all data from device and cloud'**
+  String get deleteAccountSubtitle;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete:\n• All local data (food entries, meals, goals)\n• Cloud-synced data (energy balance, backups)\n• Subscription data\n\nThis action cannot be undone.'**
+  String get deleteAccountContent;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get deleteAccountSuccess;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account. Please try again.'**
+  String get deleteAccountFailed;
+
+  /// No description provided for @deleteAccountDeleting.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting account…'**
+  String get deleteAccountDeleting;
 
   /// No description provided for @aboutSection.
   ///

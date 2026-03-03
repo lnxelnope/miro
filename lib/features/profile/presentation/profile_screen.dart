@@ -39,6 +39,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/health_sync_service.dart';
 import '../../../core/services/recovery_key_service.dart';
+import '../../../core/services/device_id_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'restore_account_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -332,6 +334,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           ),
                         ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.restorePurchase,
+                          subtitle: L10n.of(context)!.restorePurchaseSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.shopping_bag_outlined,
+                                color: AppColors.primary, size: 20),
+                          ),
+                          onTap: () => _handleRestorePurchase(context),
+                        ),
                         const _AnalyticsConsentToggle(),
                         const _FoodResearchConsentToggle(),
                         _buildModernSettingCard(
@@ -348,6 +365,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 color: AppColors.error, size: 20),
                           ),
                           onTap: () => _confirmClearAllData(context),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.deleteAccount,
+                          subtitle: L10n.of(context)!.deleteAccountSubtitle,
+                          textColor: AppColors.error,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.person_off_rounded,
+                                color: AppColors.error, size: 20),
+                          ),
+                          onTap: () => _confirmDeleteAccount(context),
                         ),
                       ],
                     ),
@@ -2025,6 +2058,160 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  /// Handle Delete Account (local + cloud)
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning, color: AppColors.error),
+            const SizedBox(width: 8),
+            Text(L10n.of(context)!.deleteAccountTitle),
+          ],
+        ),
+        content: Text(L10n.of(context)!.deleteAccountContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: Text(L10n.of(context)!.deleteAccountConfirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(L10n.of(context)!.deleteAccountDeleting)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+
+      // 1. Delete cloud data
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(deviceId);
+      final energyDoc = FirebaseFirestore.instance.collection('energy').doc(deviceId);
+
+      await Future.wait([
+        userDoc.delete(),
+        energyDoc.delete(),
+      ]);
+
+      // 2. Clear local data (same as clearAllData)
+      await DatabaseService.db.transaction(() async {
+        await DatabaseService.db.delete(DatabaseService.db.foodEntries).go();
+        await DatabaseService.db.delete(DatabaseService.db.myMeals).go();
+        await DatabaseService.db.delete(DatabaseService.db.ingredients).go();
+        await DatabaseService.db.delete(DatabaseService.db.userProfiles).go();
+        await DatabaseService.db.delete(DatabaseService.db.chatMessages).go();
+        await DatabaseService.db.delete(DatabaseService.db.chatSessions).go();
+      });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.deleteAll();
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.deleteAccountSuccess),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.deleteAccountFailed),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle Restore Purchase (IAP)
+  Future<void> _handleRestorePurchase(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(L10n.of(context)!.restorePurchaseRestoring)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final service = ref.read(subscriptionServiceProvider);
+      await service.restorePurchases();
+
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!context.mounted) return;
+      Navigator.pop(context);
+
+      final subState = ref.read(subscriptionProvider);
+      if (subState.subscription.isActive) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseSuccess),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseNotFound),
+            backgroundColor: AppColors.warning,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseFailed),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   /// Handle Restore Flow

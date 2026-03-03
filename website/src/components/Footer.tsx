@@ -82,6 +82,14 @@ export function Footer() {
                   Terms of Service
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/eula/"
+                  className="text-gray-400 transition-colors hover:text-white"
+                >
+                  EULA
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
