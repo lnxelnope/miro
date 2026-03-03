@@ -399,7 +399,10 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ImageAnalysisPreviewScreen(imageFile: capturedImage),
+          builder: (_) => ImageAnalysisPreviewScreen(
+            imageFile: capturedImage,
+            selectedDate: _selectedDate,
+          ),
         ),
       );
     }
@@ -411,7 +414,10 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ImageAnalysisPreviewScreen(imageFile: image),
+          builder: (_) => ImageAnalysisPreviewScreen(
+            imageFile: image,
+            selectedDate: _selectedDate,
+          ),
         ),
       );
     }

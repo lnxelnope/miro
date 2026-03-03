@@ -355,11 +355,8 @@ class _ImageAnalysisPreviewScreenState
 
     if (!mounted) return;
 
-    final today = dateOnly(DateTime.now());
-    ref.invalidate(healthTimelineProvider(today));
-    ref.invalidate(foodEntriesByDateProvider(today));
-    ref.invalidate(todayCaloriesProvider);
-    ref.invalidate(todayMacrosProvider);
+    final selectedDate = dateOnly(date);
+    refreshFoodProviders(ref, selectedDate);
 
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(

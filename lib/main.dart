@@ -157,14 +157,6 @@ void _initServicesInBackground() async {
       AppLogger.warn('⚠️ AdmobConsentService: $e');
     }
 
-    // Auto-restore from cloud if local DB is empty (reinstall / new device)
-    try {
-      await DataSyncService.autoRestoreIfNeeded()
-          .timeout(const Duration(seconds: 20), onTimeout: () => 0);
-    } catch (e) {
-      AppLogger.warn('⚠️ AutoRestore: $e');
-    }
-
     // Auto cloud sync — once per day on first app open
     try {
       await DataSyncService.autoSyncIfNeeded()
