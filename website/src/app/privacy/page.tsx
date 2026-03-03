@@ -88,10 +88,10 @@ export default function PrivacyPage() {
             <p>
               You may opt out of AI training data usage by contacting{' '}
               <a
-                href="mailto:support@tnbgrp.com"
+                href="mailto:lnxelnope@gmail.com"
                 className="text-brand-400 underline"
               >
-                support@tnbgrp.com
+                lnxelnope@gmail.com
               </a>.
             </p>
           </section>
@@ -243,10 +243,10 @@ export default function PrivacyPage() {
                 To delete server-side data (Energy balance, purchase records,
                 cloud-synced food history, and thumbnail images), contact us at{' '}
                 <a
-                  href="mailto:support@tnbgrp.com"
+                  href="mailto:lnxelnope@gmail.com"
                   className="text-brand-400 underline"
                 >
-                  support@tnbgrp.com
+                  lnxelnope@gmail.com
                 </a>
               </li>
             </ul>
@@ -277,10 +277,10 @@ export default function PrivacyPage() {
               <li>
                 Email:{' '}
                 <a
-                  href="mailto:support@tnbgrp.com"
+                  href="mailto:lnxelnope@gmail.com"
                   className="text-brand-400 underline"
                 >
-                  support@tnbgrp.com
+                  lnxelnope@gmail.com
                 </a>
               </li>
               <li>Website: www.tnbgrp.com</li>

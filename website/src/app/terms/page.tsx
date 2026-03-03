@@ -282,10 +282,10 @@ export default function TermsPage() {
               <li>
                 Email:{' '}
                 <a
-                  href="mailto:support@tnbgrp.com"
+                  href="mailto:lnxelnope@gmail.com"
                   className="text-brand-400 underline"
                 >
-                  support@tnbgrp.com
+                  lnxelnope@gmail.com
                 </a>
               </li>
               <li>Website: www.tnbgrp.com</li>

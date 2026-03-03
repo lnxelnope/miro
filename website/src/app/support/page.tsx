@@ -114,7 +114,7 @@ export default function SupportPage() {
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-6 sm:grid-cols-2">
             <a
-              href="mailto:support@tnbgrp.com"
+              href="mailto:lnxelnope@gmail.com"
               className="glass-card flex items-center gap-4 p-6 transition-colors hover:border-brand-500/30"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-500/10 text-brand-400">
@@ -122,7 +122,7 @@ export default function SupportPage() {
               </div>
               <div>
                 <h3 className="font-semibold">Email Support</h3>
-                <p className="text-sm text-gray-400">support@tnbgrp.com</p>
+                <p className="text-sm text-gray-400">lnxelnope@gmail.com</p>
                 <p className="text-xs text-gray-500">
                   We typically respond within 24 hours
                 </p>
@@ -130,7 +130,7 @@ export default function SupportPage() {
             </a>
 
             <a
-              href="mailto:feedback@tnbgrp.com"
+              href="mailto:lnxelnope@gmail.com"
               className="glass-card flex items-center gap-4 p-6 transition-colors hover:border-purple-500/30"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-400">
@@ -138,7 +138,7 @@ export default function SupportPage() {
               </div>
               <div>
                 <h3 className="font-semibold">Feedback & Suggestions</h3>
-                <p className="text-sm text-gray-400">feedback@tnbgrp.com</p>
+                <p className="text-sm text-gray-400">lnxelnope@gmail.com</p>
                 <p className="text-xs text-gray-500">
                   We love hearing from our users
                 </p>
@@ -250,7 +250,7 @@ export default function SupportPage() {
               </a>
             </p>
             <p className="mt-4 text-xs text-gray-500">
-              Published by TNB Group &middot; support@tnbgrp.com
+              Published by TNB Group &middot; lnxelnope@gmail.com
             </p>
           </div>
         </div>
