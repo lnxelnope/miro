@@ -2937,6 +2937,16 @@ class L10nDe extends L10n {
       'Checked items will be kept, unchecked will be re-analyzed';
 
   @override
+  String dailyCapReached(int count, int max) {
+    return 'Daily analysis limit reached ($count/$max). Try again tomorrow!';
+  }
+
+  @override
+  String dailyCapPartial(int done) {
+    return 'Daily limit reached after analyzing $done items. Remaining items will be available tomorrow.';
+  }
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override

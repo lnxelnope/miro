@@ -5070,6 +5070,18 @@ abstract class L10n {
   /// **'Checked items will be kept, unchecked will be re-analyzed'**
   String get keepOrReanalyzeDesc;
 
+  /// No description provided for @dailyCapReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily analysis limit reached ({count}/{max}). Try again tomorrow!'**
+  String dailyCapReached(int count, int max);
+
+  /// No description provided for @dailyCapPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit reached after analyzing {done} items. Remaining items will be available tomorrow.'**
+  String dailyCapPartial(int done);
+
   /// No description provided for @amountAutoAdjust.
   ///
   /// In en, this message translates to:

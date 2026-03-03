@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/usage_limiter.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/providers/health_provider.dart';
@@ -673,8 +674,25 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     _startBatchAnalysis(entries);
   }
 
-  void _startBatchAnalysis(List<FoodEntry> entries) {
+  Future<void> _startBatchAnalysis(List<FoodEntry> entries) async {
     if (entries.isEmpty) return;
+
+    if (await UsageLimiter.hasReachedDailyCap()) {
+      if (!mounted) return;
+      final l10n = L10n.of(context)!;
+      final remaining = await UsageLimiter.remainingAnalysesToday();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.dailyCapReached(
+            UsageLimiter.maxAnalysesPerDay - remaining,
+            UsageLimiter.maxAnalysesPerDay,
+          )),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     ref.read(analysisProvider.notifier).enqueue(
           entries: entries,
           selectedDate: _selectedDate,

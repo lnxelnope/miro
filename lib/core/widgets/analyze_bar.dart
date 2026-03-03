@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_tokens.dart';
+import '../services/usage_limiter.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/analysis_provider.dart';
 import '../../l10n/app_localizations.dart';
@@ -12,7 +13,7 @@ import '../../l10n/app_localizations.dart';
 /// Shared "Analyze All" bar — shows progress or an analyze button.
 /// Completely self-contained: watches providers internally.
 /// Returns [SizedBox.shrink] when there is nothing to show.
-class AnalyzeBar extends ConsumerWidget {
+class AnalyzeBar extends ConsumerStatefulWidget {
   final DateTime selectedDate;
   final void Function(List<FoodEntry> unanalyzed) onAnalyze;
 
@@ -23,9 +24,27 @@ class AnalyzeBar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AnalyzeBar> createState() => _AnalyzeBarState();
+}
+
+class _AnalyzeBarState extends ConsumerState<AnalyzeBar> {
+  int? _remainingCap;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCap();
+  }
+
+  Future<void> _loadCap() async {
+    final remaining = await UsageLimiter.remainingAnalysesToday();
+    if (mounted) setState(() => _remainingCap = remaining);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final analysisState = ref.watch(analysisProvider);
-    final timelineAsync = ref.watch(healthTimelineProvider(selectedDate));
+    final timelineAsync = ref.watch(healthTimelineProvider(widget.selectedDate));
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -117,15 +136,61 @@ class AnalyzeBar extends ConsumerWidget {
       );
     }
 
+    // Reload cap when analysis finishes
+    if (!analysisState.isAnalyzing) {
+      _loadCap();
+    }
+
     // Nothing to analyze → hide
     if (energyCost <= 0) return const SizedBox.shrink();
+
+    final capReached = _remainingCap != null && _remainingCap! <= 0;
+
+    // Cap reached → show disabled bar with message
+    if (capReached) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceVariant,
+            borderRadius: AppRadius.md,
+            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.block_rounded, size: 18, color: AppColors.error),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  l10n.dailyCapReached(
+                    UsageLimiter.maxAnalysesPerDay,
+                    UsageLimiter.maxAnalysesPerDay,
+                  ),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     // Has unanalyzed items → Analyze All button
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
       child: GestureDetector(
-        onTap: () => onAnalyze(unanalyzed),
+        onTap: () => widget.onAnalyze(unanalyzed),
         child: Container(
           padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg, vertical: AppSpacing.md),

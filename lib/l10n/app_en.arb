@@ -1941,6 +1941,19 @@
   "reanalyzeSuccess": "Analysis updated!",
   "keepOrReanalyzeTitle": "Which ingredients to keep?",
   "keepOrReanalyzeDesc": "Checked items will be kept, unchecked will be re-analyzed",
+  "dailyCapReached": "Daily analysis limit reached ({count}/{max}). Try again tomorrow!",
+  "@dailyCapReached": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "dailyCapPartial": "Daily limit reached after analyzing {done} items. Remaining items will be available tomorrow.",
+  "@dailyCapPartial": {
+    "placeholders": {
+      "done": {"type": "int"}
+    }
+  },
   "amountAutoAdjust": "Change → calories adjust automatically",
   "processingImageData": "PROCESSING IMAGE DATA...",
   "unableToAnalyzeTitle": "Unable to analyze",

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/utils/batch_analysis_helper.dart';
+import '../../../core/services/usage_limiter.dart';
 class _AnalysisJob {
   final List<FoodEntry> entries;
   final DateTime selectedDate;
@@ -114,6 +115,12 @@ class AnalysisNotifier extends StateNotifier<AnalysisState> {
 
     while (_queue.isNotEmpty && !state.cancelRequested && mounted) {
       final job = _queue.removeAt(0);
+
+      if (await UsageLimiter.hasReachedDailyCap()) {
+        _completedItems += job.entries.length;
+        _emitProgress(0, 0, '', null);
+        continue;
+      }
 
       final hasEnergy =
           await BatchAnalysisHelper.checkEnergy(ref, 1);

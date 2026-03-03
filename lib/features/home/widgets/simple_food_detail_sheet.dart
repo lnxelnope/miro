@@ -910,9 +910,12 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     return jsonEncode(history);
   }
 
+  bool get _isNameChanged =>
+      _nameController.text.trim() != widget.entry.foodName;
+
   bool get _isDirty {
     if (_hasChanges) return true;
-    if (_nameController.text.trim() != widget.entry.foodName) return true;
+    if (_isNameChanged) return true;
     final qty =
         double.tryParse(_quantityController.text) ?? widget.entry.servingSize;
     if (qty != widget.entry.servingSize) return true;
@@ -1290,14 +1293,22 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                     width: double.infinity,
                     height: AppSizes.buttonMedium,
                     child: ElevatedButton(
-                      onPressed: _isReanalyzing ? null : (_isDirty ? _reanalyze : () => Navigator.pop(context)),
+                      onPressed: _isReanalyzing
+                          ? null
+                          : _isNameChanged
+                              ? _reanalyze
+                              : _isDirty
+                                  ? _save
+                                  : () => Navigator.pop(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isDirty
+                        backgroundColor: _isNameChanged
                             ? AppColors.premium
-                            : isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.surfaceVariant,
-                        foregroundColor: _isDirty
+                            : _isDirty
+                                ? AppColors.primary
+                                : isDark
+                                    ? AppColors.surfaceVariantDark
+                                    : AppColors.surfaceVariant,
+                        foregroundColor: (_isNameChanged || _isDirty)
                             ? Colors.white
                             : isDark
                                 ? Colors.white70
@@ -1318,18 +1329,22 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (_isDirty) ...[
+                              if (_isNameChanged) ...[
                                 const Icon(Icons.auto_awesome, size: 18),
                                 const SizedBox(width: AppSpacing.xs),
                               ],
                               Text(
-                                _isDirty ? l10n.reanalyze : l10n.ok,
+                                _isNameChanged
+                                    ? l10n.reanalyze
+                                    : _isDirty
+                                        ? l10n.saveChanges
+                                        : l10n.ok,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                 ),
                               ),
-                              if (_isDirty) ...[
+                              if (_isNameChanged) ...[
                                 const SizedBox(width: AppSpacing.xs),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

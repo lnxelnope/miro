@@ -16,11 +16,13 @@ class BatchAnalysisResult {
   final int successCount;
   final int failedCount;
   final bool wasCancelled;
+  final bool capReached;
 
   BatchAnalysisResult({
     required this.successCount,
     required this.failedCount,
     required this.wasCancelled,
+    this.capReached = false,
   });
 }
 
@@ -253,6 +255,10 @@ class BatchAnalysisHelper {
           chunkStart < textEntries.length;
           chunkStart += _batchSize) {
         if (shouldCancel()) break;
+        if (await UsageLimiter.hasReachedDailyCap()) {
+          AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (text)');
+          break;
+        }
 
         final chunkEnd =
             (chunkStart + _batchSize).clamp(0, textEntries.length);
@@ -318,6 +324,10 @@ class BatchAnalysisHelper {
           AppLogger.error('[BatchAnalyze] Batch failed, falling back', e);
           for (final entry in chunk) {
             if (shouldCancel()) break;
+            if (await UsageLimiter.hasReachedDailyCap()) {
+              AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (fallback)');
+              break;
+            }
             try {
               onProgress(
                 totalSuccessCount + batchSuccessCount + failedIds.length + 1,
@@ -370,6 +380,10 @@ class BatchAnalysisHelper {
       // Process image entries one-by-one
       for (int i = 0; i < imageEntries.length; i++) {
         if (shouldCancel()) break;
+        if (await UsageLimiter.hasReachedDailyCap()) {
+          AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (image)');
+          break;
+        }
 
         final entry = imageEntries[i];
         onProgress(
@@ -440,6 +454,8 @@ class BatchAnalysisHelper {
       }
     }
 
+    final capHit = await UsageLimiter.hasReachedDailyCap();
+
     // Final refresh so UI shows results immediately when analyze completes
     ref.invalidate(foodEntriesByDateProvider(d));
     ref.invalidate(healthTimelineProvider(d));
@@ -450,6 +466,7 @@ class BatchAnalysisHelper {
       successCount: totalSuccessCount,
       failedCount: failedIds.length,
       wasCancelled: shouldCancel(),
+      capReached: capHit,
     );
   }
 

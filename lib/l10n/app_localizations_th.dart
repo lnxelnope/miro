@@ -2828,6 +2828,16 @@ class L10nTh extends L10n {
       'รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่';
 
   @override
+  String dailyCapReached(int count, int max) {
+    return 'ถึงขีดจำกัดการวิเคราะห์วันนี้แล้ว ($count/$max) ลองใหม่พรุ่งนี้!';
+  }
+
+  @override
+  String dailyCapPartial(int done) {
+    return 'ถึงขีดจำกัดวันนี้แล้ว หลังวิเคราะห์ไป $done รายการ รายการที่เหลือจะวิเคราะห์ได้พรุ่งนี้';
+  }
+
+  @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
 
   @override
