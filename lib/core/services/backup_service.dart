@@ -197,6 +197,7 @@ class BackupService {
           'isVerified': entry.isVerified,
           'notes': entry.notes,
           'photoFileName': entry.imagePath?.split('/').last,
+          if (entry.thumbnailUrl != null) 'thumbnailUrl': entry.thumbnailUrl,
           'ingredientsJson': entry.ingredientsJson,
           'createdAt': entry.createdAt.toUtc().toIso8601String(),
           // Scene context
@@ -682,6 +683,7 @@ class BackupService {
           isSynced: false,
           isCalibrated: false,
           imagePath: null,
+          thumbnailUrl: entryJson['thumbnailUrl'] as String?,
           createdAt: entryJson['createdAt'] != null
               ? DateTime.parse(entryJson['createdAt'])
               : now,

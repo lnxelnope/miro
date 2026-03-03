@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' hide JsonKey, Column;
+import 'package:drift/drift.dart' hide JsonKey, Column, Query;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,6 +82,90 @@ class DataSyncService {
           '${meals.length} meals to Firestore');
     } catch (e) {
       AppLogger.warn('Auto-sync failed (non-fatal): $e');
+    }
+  }
+
+  // ─── Auto Restore (when local DB is empty, e.g. reinstall) ──
+
+  static const String _keyAutoRestoreDone = 'auto_restore_done';
+
+  /// Auto-restore from Firestore if local DB is empty (reinstall / new device).
+  /// Pulls the most recent daily_sync documents and restores entries + meals + profile.
+  /// Only runs once per install — skips if already restored or DB has data.
+  static Future<int> autoRestoreIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_keyAutoRestoreDone) ?? false) return 0;
+
+      final localEntries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+        ..where((tbl) => tbl.isDeleted.equals(false))
+        ..limit(1))
+          .get();
+
+      if (localEntries.isNotEmpty) {
+        await prefs.setBool(_keyAutoRestoreDone, true);
+        return 0;
+      }
+
+      final deviceId = await DeviceIdService.getDeviceId();
+      final db = FirebaseFirestore.instance;
+
+      final syncCollection = db
+          .collection('users')
+          .doc(deviceId)
+          .collection('daily_sync');
+
+      int totalEntries = 0;
+      int totalMeals = 0;
+      bool profileRestored = false;
+
+      // Paginate through ALL documents (Firestore returns max 10MB per query)
+      DocumentSnapshot? lastDoc;
+      bool hasMore = true;
+
+      while (hasMore) {
+        Query query = syncCollection.orderBy('syncTimestamp', descending: true);
+        if (lastDoc != null) {
+          query = query.startAfterDocument(lastDoc);
+        }
+        final batch = await query.limit(100).get();
+
+        if (batch.docs.isEmpty) break;
+
+        for (final doc in batch.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+
+          final entries = data['entries'] as List<dynamic>? ?? [];
+          if (entries.isNotEmpty) {
+            totalEntries += await restoreEntries(entries);
+          }
+
+          final meals = data['meals'] as List<dynamic>? ?? [];
+          if (meals.isNotEmpty) {
+            totalMeals += await restoreMeals(meals);
+          }
+
+          if (!profileRestored && data['profile'] != null) {
+            await restoreProfile(data['profile'] as Map<String, dynamic>);
+            profileRestored = true;
+          }
+        }
+
+        lastDoc = batch.docs.last;
+        hasMore = batch.docs.length == 100;
+      }
+
+      if (totalEntries == 0 && totalMeals == 0 && !profileRestored) {
+        AppLogger.info('[AutoRestore] No cloud data found for this device');
+      }
+
+      await prefs.setBool(_keyAutoRestoreDone, true);
+      AppLogger.info('[AutoRestore] Restored $totalEntries entries, '
+          '$totalMeals meals, profile=$profileRestored');
+      return totalEntries;
+    } catch (e) {
+      AppLogger.warn('[AutoRestore] Failed (non-fatal): $e');
+      return 0;
     }
   }
 

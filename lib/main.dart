@@ -129,7 +129,7 @@ void _initServicesInBackground() async {
     try {
       final hasConsent = await ConsentService.hasConsent();
       await AnalyticsService.initialize(
-        appVersion: '1.1.5',
+        appVersion: '1.2.5',
         enabled: hasConsent,
       );
     } catch (e) {
@@ -155,6 +155,14 @@ void _initServicesInBackground() async {
       }
     } catch (e) {
       AppLogger.warn('⚠️ AdmobConsentService: $e');
+    }
+
+    // Auto-restore from cloud if local DB is empty (reinstall / new device)
+    try {
+      await DataSyncService.autoRestoreIfNeeded()
+          .timeout(const Duration(seconds: 20), onTimeout: () => 0);
+    } catch (e) {
+      AppLogger.warn('⚠️ AutoRestore: $e');
     }
 
     // Auto cloud sync — once per day on first app open
