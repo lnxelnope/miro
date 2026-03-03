@@ -18,8 +18,6 @@ import '../providers/locale_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../onboarding/presentation/tutorial_food_analysis_screen.dart';
 import '../../legal/presentation/disclaimer_screen.dart';
-import '../../chat/models/chat_ai_mode.dart';
-import '../../chat/providers/chat_provider.dart';
 import 'health_goals_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
@@ -54,7 +52,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Collapsible sections state (default all collapsed except healthGoals)
   bool _healthGoalsExpanded = true;
   bool _languageExpanded = false;
-  bool _aiChatExpanded = false;
   bool _cuisineExpanded = false;
   bool _photoScanExpanded = false;
   bool _accountExpanded = false;
@@ -120,19 +117,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onToggle: () =>
                         setState(() => _languageExpanded = !_languageExpanded),
                     child: _buildLanguageCard(context),
-                  ),
-
-                  // ──────────────────────────────────────────────
-                  // AI Chat Mode (collapsed by default)
-                  // ──────────────────────────────────────────────
-                  _buildCollapsibleSection(
-                    title: L10n.of(context)!.chatAiModeSection,
-                    icon: Icons.auto_awesome_rounded,
-                    iconColor: AppColors.ai,
-                    isExpanded: _aiChatExpanded,
-                    onToggle: () =>
-                        setState(() => _aiChatExpanded = !_aiChatExpanded),
-                    child: _buildAiModeSettingCard(context),
                   ),
 
                   // ──────────────────────────────────────────────
@@ -403,7 +387,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.2.5',
+                          subtitle: '1.2.6',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -1141,71 +1125,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildAiModeSettingCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentMode = ref.watch(chatAiModeProvider);
-    final isMiroAi = currentMode == ChatAiMode.miroAi;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      color: isDark ? AppColors.surfaceDark : null,
-      child: Padding(
-        padding: AppSpacing.paddingLg,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              L10n.of(context)!.selectAiPowersChat,
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            // Miro AI option
-            _buildAiModeOption(
-              context: context,
-              icon: Icons.auto_awesome,
-              color: AppColors.ai,
-              title: L10n.of(context)!.miroAi,
-              subtitle: L10n.of(context)!.miroAiSubtitle,
-              cost: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('2 + ', style: TextStyle(fontSize: 12)),
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('/item', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-              isSelected: isMiroAi,
-              onTap: () {
-                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.miroAi;
-              },
-            ),
-            const SizedBox(height: 8),
-            // Local AI option
-            _buildAiModeOption(
-              context: context,
-              icon: Icons.psychology,
-              color: AppColors.success,
-              title: L10n.of(context)!.localAi,
-              subtitle: L10n.of(context)!.localAiSubtitle,
-              cost: Text(L10n.of(context)!.free,
-                  style: const TextStyle(fontSize: 12)),
-              isSelected: !isMiroAi,
-              onTap: () {
-                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCuisinePreferenceCard(BuildContext context, profile) {
     return _buildSettingCard(
       context: context,
@@ -1550,121 +1469,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         content: Text(L10n.of(context)!.languageChangedTo(language)),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  Widget _buildAiModeOption({
-    required BuildContext context,
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required Widget cost,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.md,
-      child: Container(
-        padding: AppSpacing.paddingMd,
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: AppRadius.md,
-          border: Border.all(
-            color: isSelected
-                ? color.withValues(alpha: 0.4)
-                : isDark
-                    ? AppColors.dividerDark.withValues(alpha: 0.4)
-                    : AppColors.divider.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Radio indicator
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? color
-                      : (isDark ? Colors.white38 : AppColors.textTertiary),
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: color,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            // Icon
-            Icon(icon, color: color, size: 24),
-            const SizedBox(width: 12),
-            // Text
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? color : null,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm - 2,
-                            vertical: AppSpacing.xxs),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.1),
-                          borderRadius: AppRadius.md,
-                        ),
-                        child: DefaultTextStyle(
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.warning,
-                          ),
-                          child: cost,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -132,6 +132,7 @@ class GeminiChatService {
         'text': message,
         'deviceId': deviceId,
         'timezoneOffset': timezoneOffset,
+        'freeChat': true,
       };
 
       // Add profile context if available
@@ -209,7 +210,8 @@ class GeminiChatService {
         'type': 'menu_suggestion',
         'text': recentFoodContext,
         'deviceId': deviceId,
-        'timezoneOffset': timezoneOffset, // ← ใหม่!
+        'timezoneOffset': timezoneOffset,
+        'freeChat': true,
       };
 
       // Add profile context if available

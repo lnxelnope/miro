@@ -701,27 +701,17 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       }
     }
 
-    // 3. Gemini lookup — free for ingredient edits (limited 10/day)
-    // User corrections are high-value data, so editing should be free.
-    final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
-    final bool useFreeEdit;
-
-    if (hasFreeEditLookup) {
-      useFreeEdit = true;
-    } else {
-      // Exhausted free edits → fall back to energy check
-      useFreeEdit = false;
-      final hasEnergy = await GeminiService.hasEnergy();
-      if (!hasEnergy) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.notEnoughEnergy),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
+    // 3. Gemini lookup — always requires energy
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(L10n.of(context)!.notEnoughEnergy),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
     setState(() => row.isLoading = true);
@@ -734,12 +724,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       );
 
       if (result != null && mounted) {
-        // === Record usage: free edit lookup or energy ===
-        if (useFreeEdit) {
-          await UsageLimiter.recordFreeEditLookup();
-        } else {
-          await UsageLimiter.recordAiUsage();
-        }
+        await UsageLimiter.recordAiUsage();
 
         // === อัพเดท Energy Badge ===
         if (!mounted) return;
@@ -2407,19 +2392,15 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     );
 
     try {
-      // Free for user corrections (same as ingredient lookup)
-      final hasFreeEditLookup = await UsageLimiter.canUseFreeEditLookup();
-      if (!hasFreeEditLookup) {
-        final hasEnergy = await GeminiService.hasEnergy();
-        if (!hasEnergy) {
-          if (mounted) Navigator.pop(context); // dismiss loading
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.notEnoughEnergy)),
-            );
-          }
-          return;
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy) {
+        if (mounted) Navigator.pop(context);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.notEnoughEnergy)),
+          );
         }
+        return;
       }
 
       final result = await GeminiService.analyzeFoodByName(
@@ -2430,7 +2411,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         userIngredients: userIngredients,
       );
 
-      if (mounted) Navigator.pop(context); // dismiss loading
+      if (mounted) Navigator.pop(context);
 
       if (result == null || !mounted) {
         if (mounted) {
@@ -2441,12 +2422,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
         return;
       }
 
-      // Record usage
-      if (hasFreeEditLookup) {
-        await UsageLimiter.recordFreeEditLookup();
-      } else {
-        await UsageLimiter.recordAiUsage();
-      }
+      await UsageLimiter.recordAiUsage();
       if (mounted) {
         ref.invalidate(energyBalanceProvider);
         ref.invalidate(currentEnergyProvider);

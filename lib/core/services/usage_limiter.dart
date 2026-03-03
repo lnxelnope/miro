@@ -179,6 +179,51 @@ class UsageLimiter {
     return (freeEditLookupsPerDay - count).clamp(0, freeEditLookupsPerDay);
   }
 
+  // ============ Daily Free Chat Limit ============
+  // Chat and menu suggestion are free but limited per day
+  static const int freeChatPerDay = 10;
+  static const String _keyChatDate = 'chat_limit_date';
+  static const String _keyChatCount = 'chat_limit_count';
+
+  /// Check if user has free chat remaining today
+  static Future<bool> canUseFreeChat() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) return true;
+
+    final count = prefs.getInt(_keyChatCount) ?? 0;
+    return count < freeChatPerDay;
+  }
+
+  /// Record a free chat usage
+  static Future<void> recordFreeChatUsage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyChatDate, today);
+      await prefs.setInt(_keyChatCount, 1);
+    } else {
+      final count = prefs.getInt(_keyChatCount) ?? 0;
+      await prefs.setInt(_keyChatCount, count + 1);
+    }
+  }
+
+  /// Remaining free chats today
+  static Future<int> remainingFreeChatToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) return freeChatPerDay;
+
+    final count = prefs.getInt(_keyChatCount) ?? 0;
+    return (freeChatPerDay - count).clamp(0, freeChatPerDay);
+  }
+
   // ============ Helper ============
 
   /// วันที่ปัจจุบัน format "2026-02-11"

@@ -146,6 +146,13 @@ function getTodayString(_timezoneOffset?: number): string {
   return localTime.toISOString().split("T")[0];
 }
 
+function getLocalDateString(timezoneOffset?: number): string {
+  const now = new Date();
+  const offsetMinutes = timezoneOffset ?? 420;
+  const localTime = new Date(now.getTime() + offsetMinutes * 60 * 1000);
+  return localTime.toISOString().split("T")[0];
+}
+
 function getWeekStartDate(dateStr: string): string {
   const date = new Date(dateStr);
   const day = date.getDay();
@@ -1022,7 +1029,7 @@ export const analyzeFood = onRequest(
       console.log(`✅ Token valid. User: ${deviceId}, Server Balance: ${serverBalance}`);
 
       // ────── 4.2. Parse Request ──────
-      const {type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext, foodContext, timezoneOffset} = req.body;
+      const {type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext, foodContext, timezoneOffset, freeChat} = req.body;
 
       // ────── 4.2.0. เช็ค Subscription (Phase 5) ──────
       const userDoc = await db.collection("users").doc(deviceId).get();
@@ -1271,15 +1278,6 @@ export const analyzeFood = onRequest(
 
       // ────── 4.2.1. เช็ค balance + หัก energy ──────
 
-      // Determine BASE energy cost:
-      // - chat = 1 (flat rate, food entries saved as unanalyzed on client)
-      // - menu_suggestion = 1
-      // - batch_text = itemCount (client sends exact count)
-      // - others = 1
-      const itemCount = req.body.itemCount;
-      const baseCost = (type === "batch_text" && itemCount > 0) ? itemCount
-        : 1;
-
       // Validate required fields (before deducting)
       if (!type || !requestDeviceId) {
         res.status(400).json({error: "Missing required fields: type and deviceId"});
@@ -1301,25 +1299,61 @@ export const analyzeFood = onRequest(
         return;
       }
 
+      const itemCount = req.body.itemCount;
+
       if (type === "batch_text" && (!itemCount || itemCount < 1)) {
         res.status(400).json({error: "Missing or invalid itemCount for batch_text type"});
         return;
       }
 
-      // ────── 4.3. SECURITY: Deduct balance BEFORE calling Gemini API ──────
-      // ป้องกัน race condition: หักก่อน → เรียก API → refund ถ้า API fail
-      let newBalance: number;
-      try {
-        newBalance = await deductServerBalance(deviceId, baseCost, timezoneOffset);
-        console.log(`✅ [analyzeFood] Pre-deducted ${baseCost}E → balance: ${newBalance}`);
-      } catch (error: any) {
-        console.log(`❌ [analyzeFood] Insufficient balance: ${error.message}`);
-        res.status(402).json({
-          error: "Insufficient energy",
-          balance: serverBalance,
-          required: baseCost,
+      // ────── 4.2.2. Free Chat: chat/menu_suggestion are free with daily limit ──────
+      const isFreeChatRequest = freeChat === true && (type === "chat" || type === "menu_suggestion");
+      const FREE_CHAT_DAILY_LIMIT = 10;
+
+      let newBalance: number = serverBalance;
+      let baseCost: number;
+
+      if (isFreeChatRequest) {
+        baseCost = 0;
+        // Server-side daily chat limit check
+        const today = getLocalDateString(timezoneOffset);
+        const chatLimitKey = `chatLimit_${today}`;
+        const dailyChatCount = userData[chatLimitKey] || 0;
+
+        if (dailyChatCount >= FREE_CHAT_DAILY_LIMIT) {
+          res.status(429).json({
+            error: `Daily chat limit reached (${FREE_CHAT_DAILY_LIMIT}/day)`,
+            dailyChatLimit: FREE_CHAT_DAILY_LIMIT,
+            dailyChatUsed: dailyChatCount,
+          });
+          return;
+        }
+
+        // Increment daily chat count
+        await db.collection("users").doc(deviceId).update({
+          [chatLimitKey]: admin.firestore.FieldValue.increment(1),
         });
-        return;
+
+        console.log(`💬 [analyzeFood] Free chat ${dailyChatCount + 1}/${FREE_CHAT_DAILY_LIMIT} for ${deviceId}`);
+      } else {
+        // Determine BASE energy cost:
+        // - batch_text = itemCount (client sends exact count)
+        // - others = 1
+        baseCost = (type === "batch_text" && itemCount > 0) ? itemCount : 1;
+
+        // ────── 4.3. SECURITY: Deduct balance BEFORE calling Gemini API ──────
+        try {
+          newBalance = await deductServerBalance(deviceId, baseCost, timezoneOffset);
+          console.log(`✅ [analyzeFood] Pre-deducted ${baseCost}E → balance: ${newBalance}`);
+        } catch (error: any) {
+          console.log(`❌ [analyzeFood] Insufficient balance: ${error.message}`);
+          res.status(402).json({
+            error: "Insufficient energy",
+            balance: serverBalance,
+            required: baseCost,
+          });
+          return;
+        }
       }
 
       // ────── 4.3.1. Auto check-in: first energy use of the day = streak ──────
@@ -1349,15 +1383,16 @@ export const analyzeFood = onRequest(
         geminiResponse = await callGeminiAPI(geminiRequest, apiKey, userContext, foodContext);
         console.log("✅ Gemini API success");
       } catch (geminiError: any) {
-        // Gemini API failed → refund energy
-        console.error("❌ [analyzeFood] Gemini API failed, refunding energy:", geminiError.message);
-        try {
-          await addServerBalance(deviceId, baseCost, "refund_gemini_fail");
-          console.log(`💰 [analyzeFood] Refunded ${baseCost}E to ${deviceId}`);
-        } catch (refundError) {
-          console.error("❌ [analyzeFood] CRITICAL: Refund failed!", refundError);
+        console.error("❌ [analyzeFood] Gemini API failed:", geminiError.message);
+        if (!isFreeChatRequest && baseCost > 0) {
+          try {
+            await addServerBalance(deviceId, baseCost, "refund_gemini_fail");
+            console.log(`💰 [analyzeFood] Refunded ${baseCost}E to ${deviceId}`);
+          } catch (refundError) {
+            console.error("❌ [analyzeFood] CRITICAL: Refund failed!", refundError);
+          }
         }
-        res.status(500).json({error: "AI analysis failed. Energy has been refunded.", noCharge: true});
+        res.status(500).json({error: isFreeChatRequest ? "AI analysis failed. Please try again." : "AI analysis failed. Energy has been refunded.", noCharge: true});
         return;
       }
 
@@ -1373,9 +1408,10 @@ export const analyzeFood = onRequest(
       if (type === "chat" || type === "menu_suggestion") {
         const jsonText = extractJsonFromText(rawText);
         if (!jsonText) {
-          // Refund if AI returned non-JSON
-          try { await addServerBalance(deviceId, baseCost, "refund_invalid_response"); } catch (_e) { /* logged */ }
-          res.status(422).json({error: "AI returned invalid response. Energy refunded.", noCharge: true});
+          if (!isFreeChatRequest && baseCost > 0) {
+            try { await addServerBalance(deviceId, baseCost, "refund_invalid_response"); } catch (_e) { /* logged */ }
+          }
+          res.status(422).json({error: isFreeChatRequest ? "AI returned invalid response." : "AI returned invalid response. Energy refunded.", noCharge: true});
           return;
         }
 
@@ -1383,8 +1419,10 @@ export const analyzeFood = onRequest(
         try {
           parsedResult = JSON.parse(jsonText);
         } catch (_e) {
-          try { await addServerBalance(deviceId, baseCost, "refund_parse_error"); } catch (_e2) { /* logged */ }
-          res.status(422).json({error: "AI returned invalid data. Energy refunded.", noCharge: true});
+          if (!isFreeChatRequest && baseCost > 0) {
+            try { await addServerBalance(deviceId, baseCost, "refund_parse_error"); } catch (_e2) { /* logged */ }
+          }
+          res.status(422).json({error: isFreeChatRequest ? "AI returned invalid data." : "AI returned invalid data. Energy refunded.", noCharge: true});
           return;
         }
 
@@ -1394,9 +1432,12 @@ export const analyzeFood = onRequest(
         // Log transaction
         const miroId = userData.miroId || "unknown";
         await db.collection("transactions").add({
-          deviceId, miroId, type: "usage", amount: -baseCost, balanceAfter: newBalance,
-          description: `AI chat: ${type} (${chatItemCount} items parsed)`,
-          metadata: {requestType: type, itemCount: chatItemCount, baseCost, totalCost: baseCost},
+          deviceId, miroId,
+          type: isFreeChatRequest ? "free_chat_usage" : "usage",
+          amount: isFreeChatRequest ? 0 : -baseCost,
+          balanceAfter: newBalance,
+          description: `AI chat: ${type} (${chatItemCount} items parsed)${isFreeChatRequest ? " [FREE]" : ""}`,
+          metadata: {requestType: type, itemCount: chatItemCount, baseCost, totalCost: baseCost, isFreeChat: isFreeChatRequest},
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
@@ -1446,7 +1487,8 @@ export const analyzeFood = onRequest(
           success: true, ...parsedResult, balance: newBalance,
           energyUsed: baseCost, energyCost: baseCost,
           energyBreakdown: {baseCost, itemCount: chatItemCount, perItemCost: 0, totalCost: baseCost},
-          wasFreeAi: false,
+          wasFreeAi: isFreeChatRequest,
+          isFreeChat: isFreeChatRequest,
           ...(milestoneResult?.milestoneReached ? {milestone: {label: milestoneResult.milestoneLabel, reward: milestoneResult.reward, nextMilestone: milestoneResult.nextMilestone}} : {}),
           ...(offerResult ? {newOffer: {type: offerResult.type}} : {}),
           streak: {
