@@ -2255,6 +2255,9 @@ class L10nTh extends L10n {
   String get version => 'เวอร์ชัน';
 
   @override
+  String get eula => 'ข้อตกลงสิทธิ์การใช้งาน';
+
+  @override
   String get healthDisclaimer => 'ข้อจำกัดความรับผิดด้านสุขภาพ';
 
   @override

@@ -2348,6 +2348,9 @@ class L10nDe extends L10n {
   String get version => 'Version';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'Haftungsausschluss für die Gesundheit';
 
   @override

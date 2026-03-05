@@ -114,7 +114,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
           sessionId: sessionId,
           role: MessageRole.assistant,
           content: replyMessage,
-          detectedIntent: Value(detectedIntent),
+          detectedIntent: const Value(detectedIntent),
         ),
       );
 
@@ -260,7 +260,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<String> _handleMiroAi(String text) async {
     final canChat = await UsageLimiter.canUseFreeChat();
     if (!canChat) {
-      final limit = UsageLimiter.freeChatPerDay;
+      const limit = UsageLimiter.freeChatPerDay;
       throw Exception(
           'ถึงลิมิตแชทวันนี้แล้ว ($limit ครั้ง/วัน) กลับมาคุยกันใหม่พรุ่งนี้นะครับ 🙏');
     }

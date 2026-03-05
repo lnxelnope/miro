@@ -2296,6 +2296,9 @@ class L10nEn extends L10n {
   String get version => 'Version';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'Health Disclaimer';
 
   @override

@@ -1504,6 +1504,7 @@
   "version": "Version",
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
+  "eula": "EULA",
   "healthDisclaimer": "Health Disclaimer",
   "importantLegalInformation": "Important legal information",
   "showTutorialAgain": "Show Tutorial Again",

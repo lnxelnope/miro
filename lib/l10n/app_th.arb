@@ -1484,6 +1484,7 @@
   "version": "เวอร์ชัน",
   "privacyPolicy": "นโยบายความเป็นส่วนตัว",
   "termsOfService": "เงื่อนไขการใช้งาน",
+  "eula": "ข้อตกลงสิทธิ์การใช้งาน",
   "healthDisclaimer": "ข้อจำกัดความรับผิดด้านสุขภาพ",
   "importantLegalInformation": "ข้อมูลกฎหมายสำคัญ",
   "showTutorialAgain": "แสดงทัวร์อีกครั้ง",

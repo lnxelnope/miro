@@ -2256,6 +2256,9 @@ class L10nKo extends L10n {
   String get version => '버전';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => '건강 면책 조항';
 
   @override

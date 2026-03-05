@@ -2240,6 +2240,9 @@ class L10nZh extends L10n {
   String get version => '版本';
 
   @override
+  String get eula => '最终用户许可协议';
+
+  @override
   String get healthDisclaimer => '健康免责声明';
 
   @override

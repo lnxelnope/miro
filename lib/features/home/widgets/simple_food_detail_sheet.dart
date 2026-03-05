@@ -449,7 +449,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 2,
                         child: DropdownButtonFormField<String>(
-                          value: unit,
+                          initialValue: unit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: L10n.of(context)!.servingUnit,
@@ -1047,7 +1047,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedUnit,
+                          initialValue: _selectedUnit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: _ingredients.isNotEmpty

@@ -2254,6 +2254,9 @@ class L10nJa extends L10n {
   String get version => 'バージョン';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => '健康に関する免責事項';
 
   @override

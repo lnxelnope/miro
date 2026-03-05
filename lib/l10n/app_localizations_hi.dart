@@ -2309,6 +2309,9 @@ class L10nHi extends L10n {
   String get version => 'संस्करण';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'स्वास्थ्य अस्वीकरण';
 
   @override

@@ -1194,7 +1194,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> _requestMenuSuggestion() async {
     final canChat = await UsageLimiter.canUseFreeChat();
     if (!canChat) {
-      final limit = UsageLimiter.freeChatPerDay;
+      const limit = UsageLimiter.freeChatPerDay;
       final errorMsg = ChatMessageData(
         id: 0,
         sessionId: ref.read(currentSessionIdProvider),

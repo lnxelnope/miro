@@ -2321,6 +2321,9 @@ class L10nVi extends L10n {
   String get version => 'Phiên bản';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'Tuyên bố miễn trừ trách nhiệm về sức khỏe';
 
   @override

@@ -2332,6 +2332,9 @@ class L10nPt extends L10n {
   String get version => 'Versão';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'Isenção de responsabilidade de saúde';
 
   @override

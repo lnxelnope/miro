@@ -167,13 +167,8 @@ export const registerUser = onRequest(
       const miroId = await generateUniqueMiroId();
       const now = admin.firestore.FieldValue.serverTimestamp();
 
-      // เช็คว่ามีใน energy_balances เก่าหรือไม่ (migration support)
-      const oldDoc = await db.collection("energy_balances").doc(deviceId).get();
-      const existingBalance = oldDoc.exists ? (oldDoc.data()?.balance ?? 0) : 0;
-      const hasOldData = oldDoc.exists && existingBalance > 0;
-
-      // ถ้ามี balance เดิม → ใช้ balance เดิม, ถ้าไม่ → ให้ Welcome Gift
-      const balance = hasOldData ? existingBalance : WELCOME_GIFT;
+      // ✅ ให้ Welcome Gift ตามปกติ (ลบ energy_balances migration แล้ว — เคย migrate ซ้ำทำให้ได้ 1000E+)
+      const balance = WELCOME_GIFT;
 
       // สร้าง user document
       await db.collection("users").doc(deviceId).set({
@@ -211,12 +206,10 @@ export const registerUser = onRequest(
       await db.collection("transactions").add({
         deviceId,
         miroId,
-        type: hasOldData ? "transfer_in" : "welcome_gift",
+        type: "welcome_gift",
         amount: balance,
         balanceAfter: balance,
-        description: hasOldData ?
-          `Migrated from energy_balances: ${existingBalance} Energy` :
-          `Welcome to MIRO! ${WELCOME_GIFT} Energy gift`,
+        description: `Welcome to MIRO! ${WELCOME_GIFT} Energy gift`,
         metadata: {},
         createdAt: now,
       });

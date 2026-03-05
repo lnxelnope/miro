@@ -4110,6 +4110,12 @@ abstract class L10n {
   /// **'Version'**
   String get version;
 
+  /// No description provided for @eula.
+  ///
+  /// In en, this message translates to:
+  /// **'EULA'**
+  String get eula;
+
   /// No description provided for @healthDisclaimer.
   ///
   /// In en, this message translates to:

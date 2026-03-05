@@ -2316,6 +2316,9 @@ class L10nId extends L10n {
   String get version => 'Versi';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer => 'Penafian Kesehatan';
 
   @override

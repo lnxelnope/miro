@@ -2346,6 +2346,9 @@ class L10nFr extends L10n {
   String get version => 'Version';
 
   @override
+  String get eula => 'EULA';
+
+  @override
   String get healthDisclaimer =>
       'Avis de non-responsabilité concernant la santé';
 

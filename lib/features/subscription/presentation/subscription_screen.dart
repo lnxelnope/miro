@@ -961,7 +961,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             mode: LaunchMode.externalApplication,
           ),
           child: Text(
-            'EULA',
+            L10n.of(context)!.eula,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: linkColor,
                   decoration: TextDecoration.underline,

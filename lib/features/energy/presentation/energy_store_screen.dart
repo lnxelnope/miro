@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/app_localizations.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:miro_hybrid/core/services/purchase_service.dart';
 import 'package:miro_hybrid/core/services/device_id_service.dart';
 import 'package:miro_hybrid/core/theme/app_icons.dart';
@@ -355,6 +356,33 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   ),
                   child: Text(
                     L10n.of(context)!.privacyPolicy,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    '·',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => launchUrl(
+                    Uri.parse('https://miro-d6856.web.app/miro/eula/'),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: Text(
+                    L10n.of(context)!.eula,
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).brightness == Brightness.dark
@@ -1928,7 +1956,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
       Map<String, dynamic> data;
       try {
         if (response.body.trim().startsWith('<')) {
-          throw FormatException('Server returned HTML instead of JSON (function may not be deployed)');
+          throw const FormatException('Server returned HTML instead of JSON (function may not be deployed)');
         }
         data = jsonDecode(response.body) as Map<String, dynamic>;
       } catch (e) {

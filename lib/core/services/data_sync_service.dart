@@ -205,7 +205,7 @@ class DataSyncService {
 
     debugPrint('[DataSync] Payload: ${entries.length} entries, '
         '${meals.length} meals since ${lastSync.toIso8601String()}'
-        '${summaryData != null ? ", netEnergy=${summaryData!['ne']}" : ""}');
+        '${summaryData != null ? ", netEnergy=${summaryData['ne']}" : ""}');
 
     return {
       'lastSyncTimestamp': lastSyncMs,
