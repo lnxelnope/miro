@@ -830,6 +830,7 @@
     }
   },
   "intakeGoalLabel": "การกิน",
+  "activeBurnLabel": "เผาผลาญ",
   "netEnergyLabel": "พลังงานสุทธิ",
   "underEatingWarning": "กินน้อยเกินไป",
   "surplusWarning": "เกินเป้าหมาย",
@@ -2210,6 +2211,12 @@
   "reanalyzeFree": "ฟรี",
   "reanalyzing": "กำลังวิเคราะห์...",
   "reanalyzeSuccess": "อัพเดทผลวิเคราะห์แล้ว!",
+  "savedAsNewMeal": "บันทึกเป็นเมนูใหม่: {name}",
+  "@savedAsNewMeal": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "keepOrReanalyzeTitle": "เก็บวัตถุดิบไหนไว้?",
   "keepOrReanalyzeDesc": "รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่",
   "dailyCapReached": "ถึงขีดจำกัดการวิเคราะห์วันนี้แล้ว ({count}/{max}) ลองใหม่พรุ่งนี้!",

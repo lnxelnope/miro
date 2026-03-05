@@ -7,7 +7,7 @@ import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 
-ื/// Energy Badge — Clean minimal pill design with tier, subscriber & freepass indicator
+/// Energy Badge — Clean minimal pill design with tier, subscriber & freepass indicator
 class EnergyBadgeRiverpod extends ConsumerWidget {
   const EnergyBadgeRiverpod({super.key});
 

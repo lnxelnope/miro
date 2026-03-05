@@ -18,6 +18,7 @@ import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/batch_analysis_helper.dart';
 import '../../health/providers/health_provider.dart';
+import '../../health/providers/my_meal_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -533,11 +534,11 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     } catch (_) {}
   }
 
-  Future<void> _save() async {
+  /// Save entry changes to DB (without popping the sheet)
+  Future<void> _saveEntry() async {
     final entry = widget.entry;
     bool changed = false;
 
-    // Snapshot originals BEFORE any modifications (same object reference!)
     final snapName = entry.foodName;
     final snapNameEn = entry.foodNameEn;
     final snapCalories = entry.calories;
@@ -581,7 +582,6 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       changed = true;
     }
 
-    // Correction tracking — applies to ALL edits (qty, name, unit, ingredients)
     if (changed) {
       if (entry.originalFoodName == null &&
           entry.source == DataSource.aiAnalyzed) {
@@ -601,8 +601,75 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
           .updateFoodEntry(entry);
       refreshFoodProviders(ref, entry.timestamp);
     }
+  }
+
+  Future<void> _save() async {
+    await _saveEntry();
+    if (mounted) Navigator.pop(context);
+  }
+
+  /// Save entry + create a new MyMeal (because ingredients changed)
+  Future<void> _saveAndCreateMeal() async {
+    final originalName = widget.entry.foodName;
+    await _saveEntry();
+
+    if (_ingredients.isNotEmpty) {
+      try {
+        final currentName = _nameController.text.trim();
+
+        final mealName = (currentName == originalName)
+            ? await _getNextMealName(currentName)
+            : currentName;
+
+        final inputs = _ingredients.map((ing) => MealIngredientInput(
+              name: (ing['name'] as String?) ?? '',
+              amount: (ing['amount'] as num?)?.toDouble() ?? 0,
+              unit: (ing['unit'] as String?) ?? 'g',
+              calories: (ing['calories'] as num?)?.toDouble() ?? 0,
+              protein: (ing['protein'] as num?)?.toDouble() ?? 0,
+              carbs: (ing['carbs'] as num?)?.toDouble() ?? 0,
+              fat: (ing['fat'] as num?)?.toDouble() ?? 0,
+            )).toList();
+
+        final serving = '${_quantityController.text.trim()} $_selectedUnit';
+
+        await ref.read(myMealNotifierProvider.notifier).createMeal(
+              name: mealName,
+              baseServingDescription: serving,
+              ingredients: inputs,
+              source: 'manual',
+            );
+        ref.invalidate(allMyMealsProvider);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(L10n.of(context)!.savedAsNewMeal(mealName)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } catch (e) {
+        AppLogger.error('Failed to create new meal from detail sheet', e);
+      }
+    }
 
     if (mounted) Navigator.pop(context);
+  }
+
+  /// Find next available name (e.g. "ข้าวผัด 2", "ข้าวผัด 3")
+  Future<String> _getNextMealName(String baseName) async {
+    final allMeals =
+        await DatabaseService.db.select(DatabaseService.db.myMeals).get();
+    final existingNames =
+        allMeals.map((m) => m.name.toLowerCase()).toSet();
+    int suffix = 2;
+    String candidate = '$baseName $suffix';
+    while (existingNames.contains(candidate.toLowerCase())) {
+      suffix++;
+      candidate = '$baseName $suffix';
+    }
+    return candidate;
   }
 
   Future<void> _reanalyze() async {
@@ -1262,82 +1329,127 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   const SizedBox(height: AppSpacing.xl),
 
                   // 6. Re-analyze / Save / OK button
-                  SizedBox(
-                    width: double.infinity,
-                    height: AppSizes.buttonMedium,
-                    child: ElevatedButton(
-                      onPressed: _isReanalyzing
-                          ? null
-                          : _isNameChanged
-                              ? _reanalyze
-                              : _isDirty
-                                  ? _save
-                                  : () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isNameChanged
-                            ? AppColors.premium
-                            : _isDirty
-                                ? AppColors.primary
-                                : isDark
-                                    ? AppColors.surfaceVariantDark
-                                    : AppColors.surfaceVariant,
-                        foregroundColor: (_isNameChanged || _isDirty)
-                            ? Colors.white
-                            : isDark
-                                ? Colors.white70
-                                : AppColors.textPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.md,
-                        ),
-                      ),
-                      child: _isReanalyzing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_isNameChanged) ...[
-                                const Icon(Icons.auto_awesome, size: 18),
-                                const SizedBox(width: AppSpacing.xs),
-                              ],
-                              Text(
-                                _isNameChanged
-                                    ? l10n.reanalyze
-                                    : _isDirty
-                                        ? l10n.saveChanges
-                                        : l10n.ok,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
+                  if (_isNameChanged) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: AppSizes.buttonMedium,
+                            child: ElevatedButton(
+                              onPressed: _isReanalyzing ? null : _saveAndCreateMeal,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
                                 ),
                               ),
-                              if (_isNameChanged) ...[
-                                const SizedBox(width: AppSpacing.xs),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: AppRadius.sm,
-                                  ),
-                                  child: const Text(
-                                    '1⚡',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                              child: Text(
+                                l10n.saveChanges,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
                                 ),
-                              ],
-                            ],
+                              ),
+                            ),
                           ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: SizedBox(
+                            height: AppSizes.buttonMedium,
+                            child: ElevatedButton(
+                              onPressed: _isReanalyzing ? null : _reanalyze,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.premium,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
+                                ),
+                              ),
+                              child: _isReanalyzing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.auto_awesome, size: 16),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            l10n.reanalyze,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.2),
+                                            borderRadius: AppRadius.sm,
+                                          ),
+                                          child: const Text(
+                                            '1⚡',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ] else ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: AppSizes.buttonMedium,
+                      child: ElevatedButton(
+                        onPressed: _isReanalyzing
+                            ? null
+                            : _isDirty
+                                ? (_hasChanges ? _saveAndCreateMeal : _save)
+                                : () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isDirty
+                              ? AppColors.primary
+                              : isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.surfaceVariant,
+                          foregroundColor: _isDirty
+                              ? Colors.white
+                              : isDark
+                                  ? Colors.white70
+                                  : AppColors.textPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.md,
+                          ),
+                        ),
+                        child: Text(
+                          _isDirty ? l10n.saveChanges : l10n.ok,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: AppSpacing.sm),
                 ],

@@ -231,6 +231,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(L10n.of(context)!.allSelectedAlreadyAnalyzed),
+          backgroundColor: AppColors.info,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -262,6 +263,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(L10n.of(context)!.entryDeletedSuccess),
+        backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
         duration: const Duration(seconds: 3),

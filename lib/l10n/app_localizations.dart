@@ -2195,6 +2195,12 @@ abstract class L10n {
   /// **'Intake Goal'**
   String get intakeGoalLabel;
 
+  /// No description provided for @activeBurnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Burn'**
+  String get activeBurnLabel;
+
   /// No description provided for @netEnergyLabel.
   ///
   /// In en, this message translates to:
@@ -5147,6 +5153,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Analysis updated!'**
   String get reanalyzeSuccess;
+
+  /// No description provided for @savedAsNewMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as new meal: {name}'**
+  String savedAsNewMeal(String name);
 
   /// No description provided for @keepOrReanalyzeTitle.
   ///

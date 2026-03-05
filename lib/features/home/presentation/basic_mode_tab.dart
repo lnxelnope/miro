@@ -581,6 +581,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
                   count, DateFormat('d MMM yyyy').format(_selectedDate))
               : L10n.of(context)!.scanNoNewImages(
                   DateFormat('d MMM yyyy').format(_selectedDate))),
+          backgroundColor: count > 0 ? AppColors.success : AppColors.info,
         ),
       );
     } finally {

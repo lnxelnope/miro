@@ -830,6 +830,7 @@
     }
   },
   "intakeGoalLabel": "Intake Goal",
+  "activeBurnLabel": "Active Burn",
   "netEnergyLabel": "Net Energy Balance",
   "underEatingWarning": "Under-eating",
   "surplusWarning": "Surplus",
@@ -1954,6 +1955,12 @@
   "reanalyzeFree": "Free",
   "reanalyzing": "Analyzing...",
   "reanalyzeSuccess": "Analysis updated!",
+  "savedAsNewMeal": "Saved as new meal: {name}",
+  "@savedAsNewMeal": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
   "keepOrReanalyzeTitle": "Which ingredients to keep?",
   "keepOrReanalyzeDesc": "Checked items will be kept, unchecked will be re-analyzed",
   "dailyCapReached": "Daily analysis limit reached ({count}/{max}). Try again tomorrow!",

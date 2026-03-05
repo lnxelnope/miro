@@ -1200,6 +1200,9 @@ class L10nEn extends L10n {
   String get intakeGoalLabel => 'Intake Goal';
 
   @override
+  String get activeBurnLabel => 'Active Burn';
+
+  @override
   String get netEnergyLabel => 'Net Energy Balance';
 
   @override
@@ -2920,6 +2923,11 @@ class L10nEn extends L10n {
 
   @override
   String get reanalyzeSuccess => 'Analysis updated!';
+
+  @override
+  String savedAsNewMeal(String name) {
+    return 'Saved as new meal: $name';
+  }
 
   @override
   String get keepOrReanalyzeTitle => 'Which ingredients to keep?';

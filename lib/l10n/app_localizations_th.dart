@@ -1177,6 +1177,9 @@ class L10nTh extends L10n {
   String get intakeGoalLabel => 'การกิน';
 
   @override
+  String get activeBurnLabel => 'เผาผลาญ';
+
+  @override
   String get netEnergyLabel => 'พลังงานสุทธิ';
 
   @override
@@ -2868,6 +2871,11 @@ class L10nTh extends L10n {
 
   @override
   String get reanalyzeSuccess => 'อัพเดทผลวิเคราะห์แล้ว!';
+
+  @override
+  String savedAsNewMeal(String name) {
+    return 'บันทึกเป็นเมนูใหม่: $name';
+  }
 
   @override
   String get keepOrReanalyzeTitle => 'เก็บวัตถุดิบไหนไว้?';
