@@ -77,8 +77,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 08-01: Detection service (ML Kit + ArScanDetection model + throttle) [wave 1]
-- [ ] 08-02: Bounding box overlay (CustomPainter + coordinate mapping) [wave 2]
+- [x] 08-01: Detection service (ML Kit + ArScanDetection model + throttle) [wave 1]
+- [x] 08-02: Bounding box overlay (CustomPainter + coordinate mapping) [wave 2]
 
 ### Phase 9: Multi-Angle Capture
 **Goal**: App guides user through 3-angle capture flow with auto-capture, device sensor angle detection, progress tracking, and manual fallback
