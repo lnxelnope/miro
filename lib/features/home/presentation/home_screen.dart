@@ -14,6 +14,7 @@ import '../../health/presentation/health_timeline_tab.dart';
 import '../../health/presentation/health_my_meal_tab.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../camera/presentation/camera_screen.dart';
+import '../../arscan/presentation/arscan_screen.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
@@ -289,6 +290,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       actions: [
         const ModeToggle(),
         const SizedBox(width: 4),
+        IconButton(
+          icon: const Icon(Icons.center_focus_strong_rounded),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ARscanScreen()),
+            );
+          },
+          tooltip: L10n.of(context)!.navCamera,
+        ),
         // Profile icon button (top-right)
         IconButton(
           icon: const Icon(Icons.person_outline),
