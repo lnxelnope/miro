@@ -29,7 +29,7 @@ Phases 1-5 were completed pre-GSD. See MILESTONES.md for details.
 - [ ] **Phase 8: Food Detection** — ML Kit object detection with bounding box overlay
 - [x] **Phase 9: Multi-Angle Capture** — Guided 3-angle auto-capture with sensor integration
 - [ ] **Phase 10: Review & Pipeline** — Bottom sheet review, Gemini analysis, and navigation
-- [ ] **Phase 11: App Rebrand** — Rename app to ArCal across all platforms
+- [x] **Phase 11: App Rebrand** — Rename app to ArCal across all platforms (completed 2026-03-16)
 
 ## Phase Details
 
@@ -138,4 +138,4 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10 → 11
 | 8. Food Detection | 1/2 | In Progress|  | - |
 | 9. Multi-Angle Capture | v2.0 | 2/2 | Complete | 2026-03-16 |
 | 10. Review & Pipeline | v2.0 | 0/3 | Not started | - |
-| 11. App Rebrand | 1/2 | In Progress|  | - |
+| 11. App Rebrand | 2/2 | Complete   | 2026-03-16 | - |
