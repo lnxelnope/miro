@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'app_database.dart';
 
 /// Extension methods to provide Isar-like API for Drift queries
 /// Makes migration easier by keeping similar syntax
@@ -58,3 +59,14 @@ extension DriftFilterExtensions<T extends Table, D> on SimpleSelectStatement<T, 
     return this;
   }
 }
+
+/// Convenience filters for common FoodEntries queries
+extension FoodEntriesQueryExtensions
+    on SimpleSelectStatement<$FoodEntriesTable, FoodEntryData> {
+  /// Filter to only FoodEntries created from ARscan data source
+  SimpleSelectStatement<$FoodEntriesTable, FoodEntryData> whereArScan() {
+    where((tbl) => tbl.source.equalsValue(DataSource.arScan));
+    return this;
+  }
+}
+

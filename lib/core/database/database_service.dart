@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart' show Value;
+
 import 'app_database.dart';
 
 class DatabaseService {
@@ -28,6 +30,29 @@ class DatabaseService {
     return await _db.transaction(() async {
       return await callback();
     });
+  }
+
+  /// Convenience helper for inserting a generic FoodEntry.
+  static Future<FoodEntryData> insertFoodEntry(
+    FoodEntriesCompanion entry,
+  ) {
+    return _db.into(_db.foodEntries).insertReturning(entry);
+  }
+
+  /// Insert a FoodEntry that originates from ARscan.
+  ///
+  /// - Ensures `source` is set to `DataSource.arScan` by default.
+  /// - Leaves `imagePath` and any supplementary image paths to the caller.
+  static Future<FoodEntryData> insertArScanEntry(
+    FoodEntriesCompanion entry,
+  ) {
+    final effective = entry.copyWith(
+      source: entry.source.present
+          ? entry.source
+          : const Value(DataSource.arScan),
+    );
+
+    return _db.into(_db.foodEntries).insertReturning(effective);
   }
 }
 
