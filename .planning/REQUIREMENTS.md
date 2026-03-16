@@ -9,8 +9,8 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 
 ### ARScan Detection
 
-- [ ] **ARSCAN-01**: User sees real-time bounding box overlay on camera preview that highlights detected food items
-- [ ] **ARSCAN-02**: App uses on-device ML (ML Kit Object Detection) to detect food in camera stream without cloud API
+- [x] **ARSCAN-01**: User sees real-time bounding box overlay on camera preview that highlights detected food items
+- [x] **ARSCAN-02**: App uses on-device ML (ML Kit Object Detection) to detect food in camera stream without cloud API
 - [x] **ARSCAN-03**: Detection runs at stable frame rate (iOS 15fps, Android 8-10fps) without visible lag or frame drops
 - [ ] **ARSCAN-04**: App resets capture progress when camera moves away from the current food target ("moved away" detection)
 
@@ -68,8 +68,8 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARSCAN-01 | Phase 8 | Pending |
-| ARSCAN-02 | Phase 8 | Pending |
+| ARSCAN-01 | Phase 8 | Complete |
+| ARSCAN-02 | Phase 8 | Complete |
 | ARSCAN-03 | Phase 7 | Complete |
 | ARSCAN-04 | Phase 9 | Pending |
 | ARSCAN-05 | Phase 9 | Pending |

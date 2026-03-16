@@ -135,7 +135,7 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10 → 11
 |-------|-----------|----------------|--------|-----------|
 | 6. Foundation | v2.0 | 0/3 | Not started | - |
 | 7. Camera Stream | v2.0 | 0/3 | Not started | - |
-| 8. Food Detection | v2.0 | 0/2 | Not started | - |
+| 8. Food Detection | 1/2 | In Progress|  | - |
 | 9. Multi-Angle Capture | v2.0 | 0/2 | Not started | - |
 | 10. Review & Pipeline | v2.0 | 0/3 | Not started | - |
 | 11. App Rebrand | v2.0 | 0/2 | Not started | - |
