@@ -28,6 +28,7 @@ dependencies:
   google_mlkit_image_labeling: any
   google_mlkit_barcode_scanning: any
   google_mlkit_object_detection: any
+  sensors_plus: any
   mobile_scanner: ^7.0.0
   photo_manager: ^3.6.0
   
