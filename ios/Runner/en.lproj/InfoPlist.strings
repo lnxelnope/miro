@@ -1,0 +1,6 @@
+NSCameraUsageDescription = "ArCal needs camera access to scan barcodes and analyze food.";
+NSHealthShareUsageDescription = "ArCal needs to read your active energy data to add it to your daily calorie goal.";
+NSHealthUpdateUsageDescription = "ArCal needs to save nutrition data from your logged meals to Apple Health.";
+NSPhotoLibraryAddUsageDescription = "ArCal needs to save analyzed food photos.";
+NSPhotoLibraryUsageDescription = "ArCal needs photo library access to analyze nutrition from food photos.";
+NSUserTrackingUsageDescription = "ArCal uses this information to show you more relevant ads.";

@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "appName": "MiRO",
+  "appName": "ArCal",
   
   "save": "Save",
   "cancel": "Cancel",
@@ -249,7 +249,7 @@
   "appBarMyMeals": "My Meals",
   "appBarCamera": "Camera",
   "appBarAiChat": "AI Chat",
-  "appBarMiro": "MIRO",
+  "appBarMiro": "ArCal",
   
   "permissionRequired": "Permission Required",
   "permissionRequiredDesc": "MIRO needs access to the following:",
@@ -1372,7 +1372,7 @@
   "disclaimerIUnderstand": "I Understand",
 
   "privacyPolicyTitle": "Privacy Policy",
-  "privacyPolicySubtitle": "MiRO — My Intake Record Oracle",
+  "privacyPolicySubtitle": "ArCal — AI Calorie Counter",
   "privacyPolicyHeaderNote": "Your food data stays on your device. Energy balance synced securely via Firebase.",
   "privacyPolicySectionInformationWeCollect": "Information We Collect",
   "privacyPolicySectionDataStorage": "Data Storage",
@@ -1389,7 +1389,7 @@
   "privacyPolicyEffectiveDate": "Effective Date: February 18, 2026\nLast Updated: February 26, 2026",
 
   "termsOfServiceTitle": "Terms of Service",
-  "termsSubtitle": "MiRO — My Intake Record Oracle",
+  "termsSubtitle": "ArCal — AI Calorie Counter",
   "termsSectionAcceptanceOfTerms": "Acceptance of Terms",
   "termsSectionServiceDescription": "Service Description",
   "termsSectionDisclaimerOfWarranties": "Disclaimer of Warranties",
@@ -2425,7 +2425,7 @@
   "unifiedPermissionsHealthDesc": "Enable in Settings to sync calories with Apple Health / Health Connect",
 
   "privacyConsentTitle": "Your Privacy Matters",
-  "privacyConsentSubtitle": "Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.",
+  "privacyConsentSubtitle": "Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.",
   "privacyConsentNotifTitle": "Push Notifications",
   "privacyConsentNotifDesc": "Get helpful reminders and updates about your nutrition tracking.",
   "privacyConsentNotifBullet1": "Daily meal tracking reminders",
@@ -2435,7 +2435,7 @@
   "privacyConsentResearchBullet1": "Anonymized food photos help train AI models",
   "privacyConsentResearchBullet2": "No personal data is ever shared",
   "privacyConsentAdsTitle": "Advertising",
-  "privacyConsentAdsDesc": "Personalized ads help keep MIRO free. You can opt out anytime.",
+  "privacyConsentAdsDesc": "Personalized ads help keep ArCal free. You can opt out anytime.",
   "privacyConsentAdsBullet1": "Ads are never based on your food or health data",
   "privacyConsentAdsBullet2": "Opt out to see generic, non-personalized ads",
   "privacyConsentHealthNote": "Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.",
@@ -2443,5 +2443,24 @@
   "privacyConsentAccept": "Continue",
   "privacyConsentOptional": "Optional",
 
-  "arScanFoodNotDetected": "Food not detect"
+  "arScanFoodNotDetected": "Food not detect",
+
+  "arScanAngleTop": "Top",
+  "arScanAngleDiagonal": "Diagonal",
+  "arScanAngleSide": "Side",
+  "arScanAngleProgress": "{current}/{total}",
+  "@arScanAngleProgress": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "arScanAngleCaptured": "{zone} angle captured ({current}/{total})",
+  "@arScanAngleCaptured": {
+    "placeholders": {
+      "zone": {"type": "String"},
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  }
 }

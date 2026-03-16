@@ -1,0 +1,6 @@
+NSCameraUsageDescription = "ArCal cần quyền truy cập máy ảnh để quét mã vạch và phân tích thực phẩm.";
+NSHealthShareUsageDescription = "ArCal cần đọc dữ liệu năng lượng tiêu thụ để cộng vào mục tiêu calo hàng ngày của bạn.";
+NSHealthUpdateUsageDescription = "ArCal cần lưu dữ liệu dinh dưỡng từ các bữa ăn bạn ghi lại vào Apple Health.";
+NSPhotoLibraryAddUsageDescription = "ArCal cần lưu ảnh thực phẩm đã phân tích.";
+NSPhotoLibraryUsageDescription = "ArCal cần quyền truy cập thư viện ảnh để phân tích dinh dưỡng từ ảnh thực phẩm.";
+NSUserTrackingUsageDescription = "ArCal sử dụng thông tin này để hiển thị quảng cáo phù hợp hơn với bạn.";

@@ -1,7 +1,7 @@
 {
   "@@locale": "th",
 
-  "appName": "MiRO",
+  "appName": "ArCal",
   
   "save": "บันทึก",
   "cancel": "ยกเลิก",
@@ -249,7 +249,7 @@
   "appBarMyMeals": "เมนูของฉัน",
   "appBarCamera": "กล้อง",
   "appBarAiChat": "แชท AI",
-  "appBarMiro": "MIRO",
+  "appBarMiro": "ArCal",
   
   "permissionRequired": "ต้องการสิทธิ์",
   "permissionRequiredDesc": "MIRO ต้องการเข้าถึง:",
@@ -1372,7 +1372,7 @@
   "disclaimerIUnderstand": "ฉันเข้าใจแล้ว",
 
   "privacyPolicyTitle": "นโยบายความเป็นส่วนตัว",
-  "privacyPolicySubtitle": "MiRO — My Intake Record Oracle",
+  "privacyPolicySubtitle": "ArCal — AI Calorie Counter",
   "privacyPolicyHeaderNote": "ข้อมูลอาหารของคุณเก็บไว้บนอุปกรณ์ของคุณ พลังงานซิงค์อย่างปลอดภัยผ่าน Firebase",
   "privacyPolicySectionInformationWeCollect": "ข้อมูลที่เรารวบรวม",
   "privacyPolicySectionDataStorage": "การเก็บข้อมูล",
@@ -1389,7 +1389,7 @@
   "privacyPolicyEffectiveDate": "วันที่มีผลบังคับใช้: 18 กุมภาพันธ์ 2026\nอัพเดทล่าสุด: 18 กุมภาพันธ์ 2026",
 
   "termsOfServiceTitle": "เงื่อนไขการใช้งาน",
-  "termsSubtitle": "MiRO — My Intake Record Oracle",
+  "termsSubtitle": "ArCal — AI Calorie Counter",
   "termsSectionAcceptanceOfTerms": "การยอมรับเงื่อนไข",
   "termsSectionServiceDescription": "คำอธิบายบริการ",
   "termsSectionDisclaimerOfWarranties": "ข้อจำกัดความรับผิด",
@@ -2189,7 +2189,7 @@
   "unifiedPermissionsHealthDesc": "เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect",
 
   "privacyConsentTitle": "ความเป็นส่วนตัวของคุณสำคัญ",
-  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ MIRO ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ",
+  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ",
   "privacyConsentNotifTitle": "การแจ้งเตือน",
   "privacyConsentNotifDesc": "รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ",
   "privacyConsentNotifBullet1": "แจ้งเตือนบันทึกมื้ออาหารรายวัน",
@@ -2199,7 +2199,7 @@
   "privacyConsentResearchBullet1": "รูปอาหารแบบไม่ระบุตัวตนช่วยฝึก AI",
   "privacyConsentResearchBullet2": "ไม่มีการแชร์ข้อมูลส่วนบุคคล",
   "privacyConsentAdsTitle": "โฆษณา",
-  "privacyConsentAdsDesc": "โฆษณาที่ปรับแต่งช่วยให้ MIRO ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ",
+  "privacyConsentAdsDesc": "โฆษณาที่ปรับแต่งช่วยให้ ArCal ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ",
   "privacyConsentAdsBullet1": "โฆษณาไม่อิงจากข้อมูลอาหารหรือสุขภาพ",
   "privacyConsentAdsBullet2": "ยกเลิกเพื่อดูโฆษณาทั่วไปแทน",
   "privacyConsentHealthNote": "การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings",
@@ -2221,5 +2221,11 @@
   "keepOrReanalyzeTitle": "เก็บวัตถุดิบไหนไว้?",
   "keepOrReanalyzeDesc": "รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่",
   "dailyCapReached": "ถึงขีดจำกัดการวิเคราะห์วันนี้แล้ว ({count}/{max}) ลองใหม่พรุ่งนี้!",
-  "dailyCapPartial": "ถึงขีดจำกัดวันนี้แล้ว หลังวิเคราะห์ไป {done} รายการ รายการที่เหลือจะวิเคราะห์ได้พรุ่งนี้"
+  "dailyCapPartial": "ถึงขีดจำกัดวันนี้แล้ว หลังวิเคราะห์ไป {done} รายการ รายการที่เหลือจะวิเคราะห์ได้พรุ่งนี้",
+
+  "arScanAngleTop": "บน",
+  "arScanAngleDiagonal": "เฉียง",
+  "arScanAngleSide": "ด้านข้าง",
+  "arScanAngleProgress": "{current}/{total}",
+  "arScanAngleCaptured": "ถ่ายมุม{zone}แล้ว ({current}/{total})"
 }
