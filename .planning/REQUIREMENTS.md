@@ -31,9 +31,9 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 
 ### ARScan Data & Display
 
-- [ ] **ARSCAN-14**: FoodEntry model stores supplementary image paths (up to 3 images per entry)
+- [x] **ARSCAN-14**: FoodEntry model stores supplementary image paths (up to 3 images per entry)
 - [ ] **ARSCAN-15**: User can view all captured images (3 angles) in food entry detail view
-- [ ] **ARSCAN-16**: Food entries created via ARscan are distinguished from regular camera entries (DataSource indicator)
+- [x] **ARSCAN-16**: Food entries created via ARscan are distinguished from regular camera entries (DataSource indicator)
 
 ### ARScan Navigation
 
@@ -81,9 +81,9 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 | ARSCAN-11 | Phase 10 | Pending |
 | ARSCAN-12 | Phase 10 | Pending |
 | ARSCAN-13 | Phase 10 | Pending |
-| ARSCAN-14 | Phase 6 | Pending |
+| ARSCAN-14 | Phase 6 | Complete |
 | ARSCAN-15 | Phase 10 | Pending |
-| ARSCAN-16 | Phase 6 | Pending |
+| ARSCAN-16 | Phase 6 | Complete |
 | ARSCAN-17 | Phase 10 | Pending |
 | ARSCAN-18 | Phase 10 | Pending |
 | BRAND-01 | Phase 11 | Pending |
