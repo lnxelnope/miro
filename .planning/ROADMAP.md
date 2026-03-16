@@ -27,7 +27,7 @@ Phases 1-5 were completed pre-GSD. See MILESTONES.md for details.
 - [ ] **Phase 6: Foundation** — Dependencies, data model, and build verification
 - [ ] **Phase 7: Camera Stream** — Real-time video processing infrastructure
 - [ ] **Phase 8: Food Detection** — ML Kit object detection with bounding box overlay
-- [ ] **Phase 9: Multi-Angle Capture** — Guided 3-angle auto-capture with sensor integration
+- [x] **Phase 9: Multi-Angle Capture** — Guided 3-angle auto-capture with sensor integration
 - [ ] **Phase 10: Review & Pipeline** — Bottom sheet review, Gemini analysis, and navigation
 - [ ] **Phase 11: App Rebrand** — Rename app to ArCal across all platforms
 
@@ -93,8 +93,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 09-01: Sensor + capture logic (state machine, auto/manual, reset) [wave 1]
-- [ ] 09-02: Overlay + feedback (angle gauge, progress, haptic/sound) [wave 2]
+- [x] 09-01: Sensor + capture logic (state machine, auto/manual, reset) [wave 1]
+- [x] 09-02: Overlay + feedback (angle gauge, progress, haptic/sound) [wave 2]
 
 ### Phase 10: Review & Pipeline
 **Goal**: Complete end-to-end flow from ARscan capture through review bottom sheet to Gemini multi-image analysis, with prominent navigation placement
@@ -136,6 +136,6 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10 → 11
 | 6. Foundation | v2.0 | 0/3 | Not started | - |
 | 7. Camera Stream | v2.0 | 0/3 | Not started | - |
 | 8. Food Detection | 1/2 | In Progress|  | - |
-| 9. Multi-Angle Capture | v2.0 | 0/2 | Not started | - |
+| 9. Multi-Angle Capture | v2.0 | 2/2 | Complete | 2026-03-16 |
 | 10. Review & Pipeline | v2.0 | 0/3 | Not started | - |
-| 11. App Rebrand | v2.0 | 0/2 | Not started | - |
+| 11. App Rebrand | 1/2 | In Progress|  | - |

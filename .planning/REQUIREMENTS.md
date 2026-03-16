@@ -42,7 +42,7 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 
 ### App Rebrand
 
-- [ ] **BRAND-01**: App display name changed from "Miro" / "MIRO" to "ArCal - AI Calorie Counter" on both Android and iOS
+- [x] **BRAND-01**: App display name changed from "Miro" / "MIRO" to "ArCal - AI Calorie Counter" on both Android and iOS
 - [ ] **BRAND-02**: All privacy/permission strings updated from "Miro" references to "ArCal" (Info.plist, localized strings)
 
 ## v3.0+ Requirements (Deferred)
@@ -86,7 +86,7 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 | ARSCAN-16 | Phase 6 | Complete |
 | ARSCAN-17 | Phase 10 | Pending |
 | ARSCAN-18 | Phase 10 | Pending |
-| BRAND-01 | Phase 11 | Pending |
+| BRAND-01 | Phase 11 | Complete |
 | BRAND-02 | Phase 11 | Pending |
 
 **Coverage:**
