@@ -2206,6 +2206,7 @@
   "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
   "privacyConsentAccept": "ดำเนินการต่อ",
   "privacyConsentOptional": "ไม่บังคับ",
+  "arScanFoodNotDetected": "ไม่พบอาหาร",
   "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่",
   "reanalyze": "วิเคราะห์ใหม่",
   "reanalyzeFree": "ฟรี",

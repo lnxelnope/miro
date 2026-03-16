@@ -2441,5 +2441,7 @@
   "privacyConsentHealthNote": "Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.",
   "privacyConsentReadPolicy": "Read full Privacy Policy",
   "privacyConsentAccept": "Continue",
-  "privacyConsentOptional": "Optional"
+  "privacyConsentOptional": "Optional",
+
+  "arScanFoodNotDetected": "Food not detect"
 }
