@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:miro_hybrid/l10n/app_localizations.dart';
@@ -8,10 +10,12 @@ class ArScanBoundingBoxOverlay extends StatelessWidget {
     super.key,
     required this.primaryDetection,
     required this.state,
+    this.previewSize,
   });
 
   final ArScanDetection? primaryDetection;
   final ArScanState state;
+  final Size? previewSize;
 
   bool get _shouldShowBox {
     final detection = primaryDetection;
@@ -30,6 +34,7 @@ class ArScanBoundingBoxOverlay extends StatelessWidget {
               CustomPaint(
                 painter: _ArScanBoundingBoxPainter(
                   detection: _shouldShowBox ? primaryDetection : null,
+                  previewSize: previewSize,
                 ),
               ),
               if (state == ArScanState.searching) _buildNotDetectBanner(context),
@@ -74,20 +79,46 @@ class ArScanBoundingBoxOverlay extends StatelessWidget {
 class _ArScanBoundingBoxPainter extends CustomPainter {
   _ArScanBoundingBoxPainter({
     required this.detection,
+    required this.previewSize,
   });
 
   final ArScanDetection? detection;
+  final Size? previewSize;
 
   @override
   void paint(Canvas canvas, Size size) {
     final d = detection;
     if (d == null) return;
 
+    // คำนวณ mapping ระหว่าง normalized rect (0-1) กับหน้าจอเมื่อใช้ BoxFit.cover
+    final imageSize = previewSize;
+    late final double imageWidth;
+    late final double imageHeight;
+
+    if (imageSize != null) {
+      // preview ใช้ width = previewSize.height, height = previewSize.width
+      imageWidth = imageSize.height;
+      imageHeight = imageSize.width;
+    } else {
+      imageWidth = size.width;
+      imageHeight = size.height;
+    }
+
+    final scale = math.max(
+      size.width / imageWidth,
+      size.height / imageHeight,
+    );
+    final scaledWidth = imageWidth * scale;
+    final scaledHeight = imageHeight * scale;
+
+    final dx = (size.width - scaledWidth) / 2;
+    final dy = (size.height - scaledHeight) / 2;
+
     final rect = Rect.fromLTWH(
-      d.normalizedRect.left * size.width,
-      d.normalizedRect.top * size.height,
-      d.normalizedRect.width * size.width,
-      d.normalizedRect.height * size.height,
+      dx + d.normalizedRect.left * imageWidth * scale,
+      dy + d.normalizedRect.top * imageHeight * scale,
+      d.normalizedRect.width * imageWidth * scale,
+      d.normalizedRect.height * imageHeight * scale,
     );
 
     final paint = Paint()
@@ -123,10 +154,11 @@ class _ArScanBoundingBoxPainter extends CustomPainter {
     final bgWidth = textPainter.width + padding.horizontal;
     final bgHeight = textPainter.height + padding.vertical;
 
+    final top = rect.top - bgHeight - 4;
     final bgRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(
         rect.left,
-        rect.top - bgHeight - 4,
+        top < 0 ? 0 : top,
         bgWidth,
         bgHeight,
       ),
@@ -155,6 +187,7 @@ class _ArScanBoundingBoxPainter extends CustomPainter {
     if (a == null || b == null) return true;
     if (a.normalizedRect != b.normalizedRect) return true;
     if (a.isFood != b.isFood) return true;
+    if (previewSize != oldDelegate.previewSize) return true;
     return false;
   }
 }

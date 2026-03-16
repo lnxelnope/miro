@@ -118,6 +118,8 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
                   builder: (_, detection, __) => ArScanBoundingBoxOverlay(
                     primaryDetection: detection,
                     state: state,
+                    previewSize:
+                        _streamController.cameraController?.value.previewSize,
                   ),
                 );
               },
