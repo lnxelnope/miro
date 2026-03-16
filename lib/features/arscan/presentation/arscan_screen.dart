@@ -1,4 +1,3 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +6,7 @@ import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
 
+import '../application/camera_stream_controller.dart';
 import 'widgets/camera_preview_view.dart';
 
 /// ARscan screen สำหรับแสดง live camera preview (เต็มหน้าจอ)
@@ -20,8 +20,8 @@ class ARscanScreen extends ConsumerStatefulWidget {
 
 class _ARscanScreenState extends ConsumerState<ARscanScreen>
     with WidgetsBindingObserver {
-  CameraController? _cameraController;
-  List<CameraDescription>? _cameras;
+  final ArScanCameraStreamController _streamController =
+      ArScanCameraStreamController();
   bool _isInitialized = false;
   bool _isOpeningSettings = false;
 
@@ -42,8 +42,7 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
           _isInitialized = false;
         });
       }
-      _cameraController?.dispose();
-      _cameraController = null;
+      _streamController.stopStream();
     } else if (state == AppLifecycleState.resumed) {
       _initializeCamera();
     }
@@ -51,9 +50,11 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
   Future<void> _initializeCamera() async {
     try {
-      _cameras = await availableCameras();
-      if (_cameras == null || _cameras!.isEmpty) {
-        if (!mounted) return;
+      await _streamController.initialize();
+
+      if (!mounted) return;
+
+      if (!_streamController.isInitialized) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(L10n.of(context)!.cameraFailedToInitialize),
@@ -64,42 +65,11 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
         return;
       }
 
-      final backCamera = _cameras!.firstWhere(
-        (c) => c.lensDirection == CameraLensDirection.back,
-        orElse: () => _cameras!.first,
-      );
-
-      final controller = CameraController(
-        backCamera,
-        ResolutionPreset.high,
-        enableAudio: false,
-      );
-
-      await controller.initialize();
-
-      if (!mounted) {
-        controller.dispose();
-        return;
-      }
-
       setState(() {
-        _cameraController = controller;
         _isInitialized = true;
       });
-    } on CameraException catch (e) {
-      if (!mounted) return;
-      final l10n = L10n.of(context)!;
-      String message = l10n.cameraFailedToInitialize;
-      if (e.code == 'CameraAccessDenied' || e.code == 'cameraAccessDenied') {
-        message = l10n.permissionCamera;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      Navigator.of(context).maybePop();
+
+      await _streamController.startStream();
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -115,10 +85,8 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    final controller = _cameraController;
-    _cameraController = null;
     _isInitialized = false;
-    controller?.dispose();
+    _streamController.dispose();
     super.dispose();
   }
 
@@ -136,7 +104,7 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
           children: [
             CameraPreviewView(
               isInitialized: _isInitialized,
-              controller: _cameraController,
+              controller: _streamController.cameraController,
             ),
             _buildTopBar(),
             _buildBottomBar(),
