@@ -29,6 +29,7 @@ enum DataSource {
   googleCalendar, // 5
   barcode, // 6
   galleryScanned, // 7
+  arScan, // 8
 }
 
 enum FoodSearchMode {
@@ -58,6 +59,8 @@ class FoodEntries extends Table {
   TextColumn get foodNameEn => text().nullable()();
   DateTimeColumn get timestamp => dateTime()();
   TextColumn get imagePath => text().nullable()();
+  TextColumn get supplementaryImagePath2 => text().nullable()();
+  TextColumn get supplementaryImagePath3 => text().nullable()();
 
   // Meal type
   IntColumn get mealType => intEnum<MealType>()();
@@ -435,7 +438,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -445,6 +448,12 @@ class AppDatabase extends _$AppDatabase {
         onUpgrade: (Migrator m, int from, int to) async {
           if (from < 2) {
             await m.addColumn(foodEntries, foodEntries.correctionHistoryJson);
+          }
+          if (from < 3) {
+            await m.addColumn(
+                foodEntries, foodEntries.supplementaryImagePath2);
+            await m.addColumn(
+                foodEntries, foodEntries.supplementaryImagePath3);
           }
         },
         beforeOpen: (details) async {

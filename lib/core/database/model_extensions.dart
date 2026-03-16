@@ -30,6 +30,26 @@ extension FoodEntryExtensions on FoodEntryData {
       (imagePath != null && imagePath!.isNotEmpty) ||
       (thumbnailUrl != null && thumbnailUrl!.isNotEmpty);
 
+  List<String> get allImagePaths {
+    final paths = <String>[];
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      paths.add(imagePath!);
+    }
+    if (supplementaryImagePath2 != null &&
+        supplementaryImagePath2!.isNotEmpty) {
+      paths.add(supplementaryImagePath2!);
+    }
+    if (supplementaryImagePath3 != null &&
+        supplementaryImagePath3!.isNotEmpty) {
+      paths.add(supplementaryImagePath3!);
+    }
+    return paths;
+  }
+
+  bool get isArScan => source == DataSource.arScan.index;
+
+  bool get hasMultipleImages => allImagePaths.length > 1;
+
   bool get hasThumbnailUrl =>
       thumbnailUrl != null && thumbnailUrl!.isNotEmpty;
 
