@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+
+import 'arscan_detection_service.dart';
+import '../domain/models/ar_scan_detection.dart';
+
 /// Controller สำหรับจัดการ camera stream ของ ARscan
 ///
 /// จุดประสงค์หลัก:
@@ -15,6 +20,16 @@ class ArScanCameraStreamController {
   CameraController? _cameraController;
   bool _isStreaming = false;
   bool _isDisposed = false;
+
+  final ArScanDetectionService _detectionService = ArScanDetectionService();
+
+  final ValueNotifier<ArScanState> detectionState =
+      ValueNotifier<ArScanState>(ArScanState.searching);
+
+  final ValueNotifier<ArScanDetection?> primaryDetection =
+      ValueNotifier<ArScanDetection?>(null);
+
+  ArScanDetection? _lastPrimaryDetection;
 
   /// Stream ของ camera frame สำหรับผู้บริโภคภายนอก (เช่น detection phase)
   final StreamController<CameraImage> _frameStreamController =
@@ -37,6 +52,20 @@ class ArScanCameraStreamController {
 
   /// stream ของ frame ที่พร้อมให้ consumer ใน phase ถัดไป subscribe
   Stream<CameraImage> get frameStream => _frameStreamController.stream;
+
+  InputImageRotation _mapDeviceOrientationToInputRotation(int sensorOrientation) {
+    switch (sensorOrientation) {
+      case 90:
+        return InputImageRotation.rotation90deg;
+      case 180:
+        return InputImageRotation.rotation180deg;
+      case 270:
+        return InputImageRotation.rotation270deg;
+      case 0:
+      default:
+        return InputImageRotation.rotation0deg;
+    }
+  }
 
   /// เตรียมกล้องสำหรับใช้งาน
   Future<void> initialize() async {
@@ -83,9 +112,49 @@ class ArScanCameraStreamController {
     if (_isStreaming) return;
 
     try {
-      await controller.startImageStream((image) {
+      await controller.startImageStream((image) async {
         if (_frameStreamController.isClosed) return;
         _frameStreamController.add(image);
+
+        // Detection pipeline
+        final rotation = _mapDeviceOrientationToInputRotation(
+          controller.description.sensorOrientation,
+        );
+
+        final detections =
+            await _detectionService.detectFrame(image, rotation);
+
+        if (detections.isEmpty) {
+          detectionState.value = ArScanState.searching;
+          primaryDetection.value = null;
+          _lastPrimaryDetection = null;
+          return;
+        }
+
+        final primary = detections.firstWhere(
+          (d) => d.isPrimary,
+          orElse: () => detections.first,
+        );
+
+        var stableCount = 1;
+        if (_lastPrimaryDetection != null &&
+            _lastPrimaryDetection!.trackingId != null &&
+            primary.trackingId != null &&
+            _lastPrimaryDetection!.trackingId == primary.trackingId) {
+          stableCount = _lastPrimaryDetection!.stableFrameCount + 1;
+        }
+
+        final updatedPrimary =
+            primary.copyWith(stableFrameCount: stableCount);
+
+        _lastPrimaryDetection = updatedPrimary;
+        primaryDetection.value = updatedPrimary;
+
+        if (stableCount >= 5) {
+          detectionState.value = ArScanState.readyForCapture;
+        } else {
+          detectionState.value = ArScanState.foodFound;
+        }
       });
       _isStreaming = true;
     } catch (e) {
@@ -114,6 +183,10 @@ class ArScanCameraStreamController {
     _isDisposed = true;
 
     await stopStream();
+
+    detectionState.dispose();
+    primaryDetection.dispose();
+    await _detectionService.dispose();
 
     final controller = _cameraController;
     _cameraController = null;
