@@ -7,6 +7,8 @@ import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
 
 import '../application/camera_stream_controller.dart';
+import '../domain/models/ar_scan_detection.dart';
+import 'widgets/arscan_bounding_box_overlay.dart';
 import 'widgets/camera_preview_view.dart';
 
 /// ARscan screen สำหรับแสดง live camera preview (เต็มหน้าจอ)
@@ -108,6 +110,18 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
             ),
             _buildTopBar(),
             _buildBottomBar(),
+            ValueListenableBuilder<ArScanState>(
+              valueListenable: _streamController.detectionState,
+              builder: (_, state, __) {
+                return ValueListenableBuilder<ArScanDetection?>(
+                  valueListenable: _streamController.primaryDetection,
+                  builder: (_, detection, __) => ArScanBoundingBoxOverlay(
+                    primaryDetection: detection,
+                    state: state,
+                  ),
+                );
+              },
+            ),
             if (_isOpeningSettings)
               Positioned.fill(
                 child: Container(
