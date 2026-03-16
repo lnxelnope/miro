@@ -68,32 +68,32 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARSCAN-01 | — | Pending |
-| ARSCAN-02 | — | Pending |
-| ARSCAN-03 | — | Pending |
-| ARSCAN-04 | — | Pending |
-| ARSCAN-05 | — | Pending |
-| ARSCAN-06 | — | Pending |
-| ARSCAN-07 | — | Pending |
-| ARSCAN-08 | — | Pending |
-| ARSCAN-09 | — | Pending |
-| ARSCAN-10 | — | Pending |
-| ARSCAN-11 | — | Pending |
-| ARSCAN-12 | — | Pending |
-| ARSCAN-13 | — | Pending |
-| ARSCAN-14 | — | Pending |
-| ARSCAN-15 | — | Pending |
-| ARSCAN-16 | — | Pending |
-| ARSCAN-17 | — | Pending |
-| ARSCAN-18 | — | Pending |
-| BRAND-01 | — | Pending |
-| BRAND-02 | — | Pending |
+| ARSCAN-01 | Phase 8 | Pending |
+| ARSCAN-02 | Phase 8 | Pending |
+| ARSCAN-03 | Phase 7 | Pending |
+| ARSCAN-04 | Phase 9 | Pending |
+| ARSCAN-05 | Phase 9 | Pending |
+| ARSCAN-06 | Phase 9 | Pending |
+| ARSCAN-07 | Phase 9 | Pending |
+| ARSCAN-08 | Phase 9 | Pending |
+| ARSCAN-09 | Phase 9 | Pending |
+| ARSCAN-10 | Phase 9 | Pending |
+| ARSCAN-11 | Phase 10 | Pending |
+| ARSCAN-12 | Phase 10 | Pending |
+| ARSCAN-13 | Phase 10 | Pending |
+| ARSCAN-14 | Phase 6 | Pending |
+| ARSCAN-15 | Phase 10 | Pending |
+| ARSCAN-16 | Phase 6 | Pending |
+| ARSCAN-17 | Phase 10 | Pending |
+| ARSCAN-18 | Phase 10 | Pending |
+| BRAND-01 | Phase 11 | Pending |
+| BRAND-02 | Phase 11 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20 ⚠️
+- Mapped to phases: 20
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 — traceability updated with phase mappings*
