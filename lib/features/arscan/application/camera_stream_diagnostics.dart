@@ -107,3 +107,40 @@ class CameraStreamDiagnostics {
   }
 }
 
+/// แนวทางทดสอบ long-run stability ของ camera stream
+///
+/// use-case หลัก:
+/// - ตรวจสอบว่า stream รันต่อเนื่องอย่างน้อย 5 นาทีโดยไม่ crash
+/// - ดูแนวโน้ม fps ว่าคงที่หรือเริ่ม drop ลงเมื่อเวลาผ่านไป
+/// - ใช้คู่กับ Flutter DevTools เพื่อดู memory/exception เพิ่มเติม
+class CameraStreamLongRunTestGuide {
+  /// ระยะเวลาทดสอบแนะนำขั้นต่ำ
+  static const Duration recommendedDuration = Duration(minutes: 5);
+
+  /// Checklist แบบสั้น ๆ สำหรับ dev เวลาเตรียมทดสอบ
+  static const List<String> checklist = [
+    // 1) เตรียม build
+    '1) เปิด dev build ในโหมด debug (เชื่อมต่อ DevTools ได้)',
+    '2) เปิดหน้าจอ ARscan/camera stream ที่ใช้ CameraStreamDiagnostics',
+    '3) สร้าง instance ของ CameraStreamDiagnostics และเรียก startPeriodicLogging()',
+
+    // 2) ระหว่างทดสอบ
+    '4) ปล่อยให้ camera stream ทำงานต่อเนื่องอย่างน้อย 5 นาที '
+        '(ไม่สลับแอป / ไม่ปิดหน้าจอ ถ้าไม่ใช่ส่วนหนึ่งของ test case)',
+    '5) ดู log prefix [CameraDiagnostics] ว่า fps ยังอยู่ในช่วงที่รับได้ '
+        '(เช่น > 20 fps สำหรับ real-time AR)',
+    '6) ดู log ว่าไม่มี error/exception ที่เกี่ยวกับ camera, memory, หรือ stream ถูกปิดเอง',
+
+    // 3) การเก็บผล
+    '7) หลังจบทดสอบ สรุปค่าเฉลี่ย fps คร่าว ๆ และ note device + OS version',
+    '8) ใช้ Flutter DevTools (ถ้ามี) เพื่อดู memory graph ระหว่างช่วงทดสอบ '
+        'เช็คว่าไม่มี memory leak ชัดเจน',
+  ];
+
+  /// คืนค่า checklist ในรูปแบบข้อความเดียว (ใช้แนบใน report หรือ UI dev tools)
+  static String checklistAsMultilineText() {
+    return checklist.join('\n');
+  }
+}
+
+
