@@ -51,7 +51,7 @@
     </queries>
     
     <application
-        android:label="MIRO"
+        android:label="ArCal - AI Calorie Counter"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:extractNativeLibs="false"
