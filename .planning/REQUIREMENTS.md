@@ -12,15 +12,15 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 - [x] **ARSCAN-01**: User sees real-time bounding box overlay on camera preview that highlights detected food items
 - [x] **ARSCAN-02**: App uses on-device ML (ML Kit Object Detection) to detect food in camera stream without cloud API
 - [x] **ARSCAN-03**: Detection runs at stable frame rate (iOS 15fps, Android 8-10fps) without visible lag or frame drops
-- [ ] **ARSCAN-04**: App resets capture progress when camera moves away from the current food target ("moved away" detection)
+- [x] **ARSCAN-04**: App resets capture progress when camera moves away from the current food target ("moved away" detection)
 
 ### ARScan Multi-Angle Capture
 
-- [ ] **ARSCAN-05**: App auto-captures 3 angles (top-down ~0°, diagonal ~45°, side ~70°) when food is detected with sufficient confidence
-- [ ] **ARSCAN-06**: App uses device sensors (accelerometer/gyroscope) to detect current camera angle
+- [x] **ARSCAN-05**: App auto-captures 3 angles (top-down ~0°, diagonal ~45°, side ~70°) when food is detected with sufficient confidence
+- [x] **ARSCAN-06**: App uses device sensors (accelerometer/gyroscope) to detect current camera angle
 - [ ] **ARSCAN-07**: App shows on-screen guidance text telling user which angle to capture next (e.g. "Hold steady", "Tilt to 45°", "Move to side view")
 - [ ] **ARSCAN-08**: App displays capture progress indicator showing how many angles captured (1/3, 2/3, 3/3)
-- [ ] **ARSCAN-09**: User can manually tap shutter button to capture if auto-capture doesn't trigger
+- [x] **ARSCAN-09**: User can manually tap shutter button to capture if auto-capture doesn't trigger
 - [ ] **ARSCAN-10**: App provides haptic feedback and/or audio cue when each angle is successfully captured
 
 ### ARScan Review & Analysis
@@ -71,12 +71,12 @@ Requirements for milestone v2.0: ARscan + App Rebrand.
 | ARSCAN-01 | Phase 8 | Complete |
 | ARSCAN-02 | Phase 8 | Complete |
 | ARSCAN-03 | Phase 7 | Complete |
-| ARSCAN-04 | Phase 9 | Pending |
-| ARSCAN-05 | Phase 9 | Pending |
-| ARSCAN-06 | Phase 9 | Pending |
+| ARSCAN-04 | Phase 9 | Complete |
+| ARSCAN-05 | Phase 9 | Complete |
+| ARSCAN-06 | Phase 9 | Complete |
 | ARSCAN-07 | Phase 9 | Pending |
 | ARSCAN-08 | Phase 9 | Pending |
-| ARSCAN-09 | Phase 9 | Pending |
+| ARSCAN-09 | Phase 9 | Complete |
 | ARSCAN-10 | Phase 9 | Pending |
 | ARSCAN-11 | Phase 10 | Pending |
 | ARSCAN-12 | Phase 10 | Pending |
