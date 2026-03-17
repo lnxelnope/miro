@@ -11,11 +11,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:miro_hybrid/main.dart';
 
 void main() {
-  testWidgets('Miro app smoke test', (WidgetTester tester) async {
+  testWidgets('ArCal app smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ProviderScope(child: MiroApp()));
+    await tester.pumpWidget(const ProviderScope(child: ArCalApp()));
 
     // Verify that the app shows the setup complete message.
-    expect(find.text('Miro App\nSetup Complete! ✅'), findsOneWidget);
+    expect(find.text('ArCal App\nSetup Complete! ✅'), findsOneWidget);
   });
 }

@@ -957,7 +957,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
         ),
         GestureDetector(
           onTap: () => launchUrl(
-            Uri.parse('https://miro-d6856.web.app/miro/eula/'),
+            Uri.parse('https://miro-d6856.web.app/arcal/eula/'),
             mode: LaunchMode.externalApplication,
           ),
           child: Text(

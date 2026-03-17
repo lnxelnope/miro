@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
@@ -49,6 +48,7 @@ class ArScanDetectionService {
   final double _foodConfidenceThreshold;
 
   ObjectDetector? _objectDetector;
+  ObjectDetector? _singleDetector;
   DateTime? _lastDetectionTime;
   List<ArScanDetection> _lastDetections = const [];
 
@@ -115,6 +115,24 @@ class ArScanDetectionService {
       final imageWidth = image.width.toDouble();
       final imageHeight = image.height.toDouble();
 
+      // Android ML Kit with rotation 90°/270° returns bbox in the ROTATED
+      // (portrait) space, so normalize with swapped dimensions.
+      // iOS ML Kit returns bbox in the raw image space — no swap needed.
+      final bool androidRotated = Platform.isAndroid &&
+          (rotation == InputImageRotation.rotation90deg ||
+              rotation == InputImageRotation.rotation270deg);
+      final double normW = androidRotated ? imageHeight : imageWidth;
+      final double normH = androidRotated ? imageWidth : imageHeight;
+
+      if (_lastDetections.isEmpty) {
+        debugPrint(
+          '[ArScanDetection] image=${imageWidth.toInt()}x${imageHeight.toInt()}, '
+          'norm=${normW.toInt()}x${normH.toInt()}, '
+          'rotation=$rotation, platform=${Platform.operatingSystem}, '
+          'objects=${rawObjects.length}',
+        );
+      }
+
       final detections = <ArScanDetection>[];
       for (final obj in rawObjects) {
         final rect = obj.boundingBox;
@@ -124,10 +142,10 @@ class ArScanDetectionService {
             obj.labels.isNotEmpty ? obj.labels.first.confidence : 0.0;
 
         final normalizedRect = Rect.fromLTWH(
-          (rect.left / imageWidth).clamp(0.0, 1.0),
-          (rect.top / imageHeight).clamp(0.0, 1.0),
-          (rect.width / imageWidth).clamp(0.0, 1.0),
-          (rect.height / imageHeight).clamp(0.0, 1.0),
+          (rect.left / normW).clamp(0.0, 1.0),
+          (rect.top / normH).clamp(0.0, 1.0),
+          (rect.width / normW).clamp(0.0, 1.0),
+          (rect.height / normH).clamp(0.0, 1.0),
         );
 
         final isFood = _isFood(labelText);
@@ -150,14 +168,6 @@ class ArScanDetectionService {
 
       _lastDetectionTime = now;
       _lastDetections = withPrimary;
-
-      // ถ้าไม่มี food ที่ผ่าน threshold ให้คืน list ว่าง
-      final hasFoodAboveThreshold = withPrimary.any(
-        (d) => d.isFood && d.confidence >= _foodConfidenceThreshold,
-      );
-      if (!hasFoodAboveThreshold) {
-        return const [];
-      }
 
       return withPrimary;
     } catch (e, stack) {
@@ -182,13 +192,24 @@ class ArScanDetectionService {
       }
     }
 
-    if (bestFood == null) {
-      return detections;
+    ArScanDetection? best = bestFood;
+    if (best == null) {
+      double maxArea = 0;
+      for (final d in detections) {
+        final area = d.normalizedRect.width * d.normalizedRect.height;
+        if (area > maxArea) {
+          maxArea = area;
+          best = d;
+        }
+      }
     }
 
+    if (best == null) return detections;
+
+    final target = best;
     return detections
         .map(
-          (d) => d.copyWith(isPrimary: identical(d, bestFood)),
+          (d) => d.copyWith(isPrimary: identical(d, target)),
         )
         .toList(growable: false);
   }
@@ -226,9 +247,90 @@ class ArScanDetectionService {
     );
   }
 
+  /// ตรวจจับวัตถุจากไฟล์ภาพนิ่ง (JPEG) — ให้ bounding box ที่นิ่งกว่า streaming
+  Future<({Rect? rect, String? label})> detectFromFile(
+    String imagePath,
+  ) async {
+    if (Platform.isWindows) return (rect: null, label: null);
+
+    try {
+      if (_singleDetector == null) {
+        final options = ObjectDetectorOptions(
+          mode: DetectionMode.single,
+          classifyObjects: true,
+          multipleObjects: true,
+        );
+        _singleDetector = ObjectDetector(options: options);
+      }
+
+      final inputImage = InputImage.fromFilePath(imagePath);
+      final rawObjects = await _singleDetector!.processImage(inputImage);
+
+      if (rawObjects.isEmpty) return (rect: null, label: null);
+
+      // prefer food, fallback to largest
+      DetectedObject? best;
+      DetectedObject? bestFood;
+      double maxArea = 0;
+
+      for (final obj in rawObjects) {
+        final labelText =
+            obj.labels.isNotEmpty ? obj.labels.first.text : 'Object';
+        if (_isFood(labelText)) {
+          final conf =
+              obj.labels.isNotEmpty ? obj.labels.first.confidence : 0.0;
+          if (bestFood == null ||
+              conf >
+                  (bestFood.labels.isNotEmpty
+                      ? bestFood.labels.first.confidence
+                      : 0.0)) {
+            bestFood = obj;
+          }
+        }
+        final area = obj.boundingBox.width * obj.boundingBox.height;
+        if (area > maxArea) {
+          maxArea = area;
+          best = obj;
+        }
+      }
+
+      final chosen = bestFood ?? best;
+      if (chosen == null) return (rect: null, label: null);
+
+      // need image dimensions for normalization
+      final imageBytes = await File(imagePath).readAsBytes();
+      final codec = await instantiateImageCodec(imageBytes);
+      final frame = await codec.getNextFrame();
+      final imgW = frame.image.width.toDouble();
+      final imgH = frame.image.height.toDouble();
+      frame.image.dispose();
+
+      final r = chosen.boundingBox;
+      final normalized = Rect.fromLTWH(
+        (r.left / imgW).clamp(0.0, 1.0),
+        (r.top / imgH).clamp(0.0, 1.0),
+        (r.width / imgW).clamp(0.0, 1.0),
+        (r.height / imgH).clamp(0.0, 1.0),
+      );
+
+      final label =
+          chosen.labels.isNotEmpty ? chosen.labels.first.text : 'Object';
+
+      return (rect: normalized, label: label);
+    } catch (e) {
+      AppLogger.error(
+        '[ArScanDetectionService] detectFromFile error',
+        e,
+      );
+      return (rect: null, label: null);
+    }
+  }
+
   Future<void> dispose() async {
     await _objectDetector?.close();
     _objectDetector = null;
+    await _singleDetector?.close();
+    _singleDetector = null;
   }
 }
 

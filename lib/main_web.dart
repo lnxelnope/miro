@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MiroApp()));
+  runApp(const ProviderScope(child: ArCalApp()));
 }
 
-class MiroApp extends StatelessWidget {
-  const MiroApp({super.key});
+class ArCalApp extends StatelessWidget {
+  const ArCalApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Miro Hybrid',
+      title: 'ArCal',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -24,7 +24,7 @@ class MiroApp extends StatelessWidget {
               Icon(Icons.info, size: 64, color: Colors.blue),
               SizedBox(height: 16),
               Text(
-                'Miro Hybrid - Web Preview',
+                'ArCal - Web Preview',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),

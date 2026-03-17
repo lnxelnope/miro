@@ -9,7 +9,7 @@ class L10nEn extends L10n {
   L10nEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'MiRO';
+  String get appName => 'ArCal';
 
   @override
   String get save => 'Save';
@@ -210,7 +210,7 @@ class L10nEn extends L10n {
   String get openAiStudio => 'Open Google AI Studio';
 
   @override
-  String get chatHint => 'Tell Miro e.g. \"Log fried rice\"...';
+  String get chatHint => 'Tell ArCal e.g. \"Log fried rice\"...';
 
   @override
   String get chatFoodSaved => 'Food logged!';
@@ -271,7 +271,7 @@ class L10nEn extends L10n {
   String get upgradePro => 'Upgrade to Pro';
 
   @override
-  String get proUnlocked => 'MiRO Pro';
+  String get proUnlocked => 'ArCal Pro';
 
   @override
   String get proDescription => 'Unlimited AI food analysis';
@@ -335,7 +335,7 @@ class L10nEn extends L10n {
   String get quickAdd => 'Quick Add';
 
   @override
-  String get welcomeTitle => 'MiRO';
+  String get welcomeTitle => 'ArCal';
 
   @override
   String get welcomeSubtitle => 'Easy food logging with AI';
@@ -562,13 +562,13 @@ class L10nEn extends L10n {
   String get appBarAiChat => 'AI Chat';
 
   @override
-  String get appBarMiro => 'MIRO';
+  String get appBarMiro => 'ArCal';
 
   @override
   String get permissionRequired => 'Permission Required';
 
   @override
-  String get permissionRequiredDesc => 'MIRO needs access to the following:';
+  String get permissionRequiredDesc => 'ArCal needs access to the following:';
 
   @override
   String get permissionPhotos => 'Photos — to scan food';
@@ -1332,7 +1332,7 @@ class L10nEn extends L10n {
   String get clear => 'Clear';
 
   @override
-  String get helloImMiro => 'Hello! I\'m Miro';
+  String get helloImMiro => 'Hello! I\'m ArCal';
 
   @override
   String get tellMeWhatYouAteToday => 'Tell me what you ate today!';
@@ -1467,7 +1467,7 @@ class L10nEn extends L10n {
 
   @override
   String get localAiHelpNote =>
-      'Note: English only, basic parsing\nSwitch to Miro AI for better results!';
+      'Note: English only, basic parsing\nSwitch to ArCal AI for better results!';
 
   @override
   String hiNoFoodLogged(String target) {
@@ -1669,7 +1669,7 @@ class L10nEn extends L10n {
   String get referralEnterReferralCode => 'Enter Referral Code';
 
   @override
-  String get referralCodeHint => 'MIRO-XXXX-XXXX-XXXX';
+  String get referralCodeHint => 'ARCAL-XXXX-XXXX-XXXX';
 
   @override
   String get referralSubmitCode => 'Submit Code';
@@ -1696,7 +1696,7 @@ class L10nEn extends L10n {
 
   @override
   String get referralStep1Description =>
-      'Copy and share your MiRO ID with friends';
+      'Copy and share your ArCal ID with friends';
 
   @override
   String get referralStep2Title => 'Friend enters your code';
@@ -1938,7 +1938,7 @@ class L10nEn extends L10n {
   String get privacyPolicyTitle => 'Privacy Policy';
 
   @override
-  String get privacyPolicySubtitle => 'MiRO — My Intake Record Oracle';
+  String get privacyPolicySubtitle => 'ArCal — AI Calorie Counter';
 
   @override
   String get privacyPolicyHeaderNote =>
@@ -1992,7 +1992,7 @@ class L10nEn extends L10n {
   String get termsOfServiceTitle => 'Terms of Service';
 
   @override
-  String get termsSubtitle => 'MiRO — My Intake Record Oracle';
+  String get termsSubtitle => 'ArCal — AI Calorie Counter';
 
   @override
   String get termsSectionAcceptanceOfTerms => 'Acceptance of Terms';
@@ -2039,7 +2039,7 @@ class L10nEn extends L10n {
 
   @override
   String get termsAcknowledgment =>
-      'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.';
+      'By using ArCal, you acknowledge that you have read, understood, and agree to these Terms of Service.';
 
   @override
   String get termsLastUpdated => 'Last updated: February 26, 2026';
@@ -2065,7 +2065,7 @@ class L10nEn extends L10n {
   String get selectAiPowersChat => 'Select which AI powers your chat';
 
   @override
-  String get miroAi => 'Miro AI';
+  String get miroAi => 'ArCal AI';
 
   @override
   String get miroAiSubtitle =>
@@ -2191,10 +2191,10 @@ class L10nEn extends L10n {
   String get accountSection => 'Account';
 
   @override
-  String get miroId => 'MiRO ID';
+  String get miroId => 'ArCal ID';
 
   @override
-  String get miroIdCopied => 'MiRO ID copied!';
+  String get miroIdCopied => 'ArCal ID copied!';
 
   @override
   String get inviteFriends => 'Invite Friends';
@@ -2318,7 +2318,7 @@ class L10nEn extends L10n {
 
   @override
   String get showTutorialDialogContent =>
-      'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with Miro AI\n\nYou will return to the Home screen.';
+      'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with ArCal AI\n\nYou will return to the Home screen.';
 
   @override
   String get showTutorialButton => 'Show Tutorial';
@@ -2427,11 +2427,11 @@ class L10nEn extends L10n {
 
   @override
   String get restoreSelectDataFile =>
-      'This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.';
+      'This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.';
 
   @override
   String get restoreZeroEntriesHint =>
-      'No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.';
+      'No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.';
 
   @override
   String get restoreFailed => 'Restore Failed';
@@ -2601,11 +2601,11 @@ class L10nEn extends L10n {
 
   @override
   String questBarShareText(String link) {
-    return 'Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n$link';
+    return 'Try ArCal! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n$link';
   }
 
   @override
-  String get questBarShareSubject => 'Try MiRO';
+  String get questBarShareSubject => 'Try ArCal';
 
   @override
   String get claimButtonTitle => 'Claim Daily Energy';
@@ -2809,7 +2809,7 @@ class L10nEn extends L10n {
 
   @override
   String get retroScanTagline =>
-      'MiRO is transforming your\nfood photos into health data.';
+      'ArCal is transforming your\nfood photos into health data.';
 
   @override
   String get retroScanFetchingPhotos => 'Fetching recent photos...';
@@ -2845,10 +2845,10 @@ class L10nEn extends L10n {
   String get retroScanDone => 'Got it!';
 
   @override
-  String get welcomeEndTitle => 'Welcome to MiRO!';
+  String get welcomeEndTitle => 'Welcome to ArCal!';
 
   @override
-  String get welcomeEndMessage => 'MiRO is at your service.';
+  String get welcomeEndMessage => 'ArCal is at your service.';
 
   @override
   String get welcomeEndJourney => 'Have a nice journey together!!';
@@ -2874,11 +2874,11 @@ class L10nEn extends L10n {
 
   @override
   String get greetingRenamePhotoTip =>
-      'Tip: You can rename food photos to help MiRO analyze more accurately!';
+      'Tip: You can rename food photos to help ArCal analyze more accurately!';
 
   @override
   String get greetingAddIngredientsTip =>
-      'Tip: You can add ingredients you\'re sure about before sending to MiRO for analysis. I\'ll figure out all the boring little details for you!';
+      'Tip: You can add ingredients you\'re sure about before sending to ArCal for analysis. I\'ll figure out all the boring little details for you!';
 
   @override
   String greetingBackupReminder(int days) {
@@ -3331,7 +3331,7 @@ class L10nEn extends L10n {
 
   @override
   String get bmrDialogDescription =>
-      'MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.';
+      'ArCal uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.';
 
   @override
   String get healthSyncEnabledBmrHint =>
@@ -3854,7 +3854,7 @@ class L10nEn extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.';
+      'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.';
 
   @override
   String get privacyConsentNotifTitle => 'Push Notifications';
@@ -3889,7 +3889,7 @@ class L10nEn extends L10n {
 
   @override
   String get privacyConsentAdsDesc =>
-      'Personalized ads help keep MIRO free. You can opt out anytime.';
+      'Personalized ads help keep ArCal free. You can opt out anytime.';
 
   @override
   String get privacyConsentAdsBullet1 =>
@@ -3911,4 +3911,44 @@ class L10nEn extends L10n {
 
   @override
   String get privacyConsentOptional => 'Optional';
+
+  @override
+  String get arScan => 'AR Scan';
+
+  @override
+  String get arScanPositionFood => 'Position food in the frame';
+
+  @override
+  String get arScanStartCapture => 'Start Scanning';
+
+  @override
+  String get arScanContinueAnalysis => 'Continue to Analysis';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get pickFromGallery => 'Pick from Gallery';
+
+  @override
+  String get arScanFoodNotDetected => 'Food not detect';
+
+  @override
+  String get arScanAngleTop => 'Top';
+
+  @override
+  String get arScanAngleDiagonal => 'Diagonal';
+
+  @override
+  String get arScanAngleSide => 'Side';
+
+  @override
+  String arScanAngleProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String arScanAngleCaptured(String zone, int current, int total) {
+    return '$zone angle captured ($current/$total)';
+  }
 }

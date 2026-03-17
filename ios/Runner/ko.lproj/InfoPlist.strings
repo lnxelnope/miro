@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "ArCal은 바코드 스캔 및 음식 분석을 위해 카메라 접근이 필요합니다.";
+NSHealthShareUsageDescription = "ArCal은 일일 칼로리 목표에 추가하기 위해 활동 에너지 데이터를 읽어야 합니다.";
+NSHealthUpdateUsageDescription = "ArCal은 기록한 식사의 영양 데이터를 Apple Health에 저장합니다.";
+NSPhotoLibraryAddUsageDescription = "ArCal은 분석된 음식 사진을 저장합니다.";
+NSPhotoLibraryUsageDescription = "ArCal은 음식 사진에서 영양을 분석하기 위해 사진 라이브러리 접근이 필요합니다.";

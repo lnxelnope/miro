@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
@@ -23,11 +24,16 @@ class ArScanCameraStreamController {
 
   final ArScanDetectionService _detectionService = ArScanDetectionService();
 
+  ArScanDetectionService get detectionService => _detectionService;
+
   final ValueNotifier<ArScanState> detectionState =
       ValueNotifier<ArScanState>(ArScanState.searching);
 
   final ValueNotifier<ArScanDetection?> primaryDetection =
       ValueNotifier<ArScanDetection?>(null);
+
+  final ValueNotifier<FlashMode> flashMode =
+      ValueNotifier<FlashMode>(FlashMode.off);
 
   ArScanDetection? _lastPrimaryDetection;
 
@@ -52,6 +58,20 @@ class ArScanCameraStreamController {
 
   /// stream ของ frame ที่พร้อมให้ consumer ใน phase ถัดไป subscribe
   Stream<CameraImage> get frameStream => _frameStreamController.stream;
+
+  Future<void> toggleFlash() async {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    final newMode =
+        flashMode.value == FlashMode.off ? FlashMode.torch : FlashMode.off;
+    try {
+      await controller.setFlashMode(newMode);
+      flashMode.value = newMode;
+    } catch (e) {
+      debugPrint('[ArScanCameraStreamController] toggleFlash error: $e');
+    }
+  }
 
   InputImageRotation _mapDeviceOrientationToInputRotation(int sensorOrientation) {
     switch (sensorOrientation) {
@@ -82,10 +102,15 @@ class ArScanCameraStreamController {
       }
 
       // ใช้กล้องตัวแรก (โดยทั่วไปคือกล้องหลัง)
+      // Android ต้องใช้ nv21 เพื่อให้ ML Kit detect ได้
+      // iOS ใช้ bgra8888 (default)
       final controller = CameraController(
         cameras.first,
         resolutionPreset,
         enableAudio: enableAudio,
+        imageFormatGroup: Platform.isAndroid
+            ? ImageFormatGroup.nv21
+            : ImageFormatGroup.bgra8888,
       );
 
       await controller.initialize();
@@ -113,10 +138,11 @@ class ArScanCameraStreamController {
 
     try {
       await controller.startImageStream((image) async {
+        if (_isDisposed) return;
         if (_frameStreamController.isClosed) return;
+        if (!_isStreaming && _cameraController != null) return;
         _frameStreamController.add(image);
 
-        // Detection pipeline
         final rotation = _mapDeviceOrientationToInputRotation(
           controller.description.sensorOrientation,
         );
@@ -150,7 +176,8 @@ class ArScanCameraStreamController {
         _lastPrimaryDetection = updatedPrimary;
         primaryDetection.value = updatedPrimary;
 
-        if (stableCount >= 5) {
+        final hasFoodPrimary = updatedPrimary.isFood;
+        if (hasFoodPrimary && stableCount >= 5) {
           detectionState.value = ArScanState.readyForCapture;
         } else {
           detectionState.value = ArScanState.foodFound;
@@ -182,16 +209,28 @@ class ArScanCameraStreamController {
     if (_isDisposed) return;
     _isDisposed = true;
 
-    await stopStream();
+    try {
+      await stopStream();
+    } catch (e) {
+      debugPrint('[ArScanCameraStreamController] stopStream in dispose error: $e');
+    }
 
     detectionState.dispose();
     primaryDetection.dispose();
+    flashMode.dispose();
     await _detectionService.dispose();
 
     final controller = _cameraController;
     _cameraController = null;
     if (controller != null) {
-      await controller.dispose();
+      // รอให้ native Camera2 callbacks (เช่น unlockAutoFocus) ทำงานเสร็จ
+      // ก่อน dispose camera controller เพื่อป้องกัน NPE crash
+      await Future.delayed(const Duration(milliseconds: 300));
+      try {
+        await controller.dispose();
+      } catch (e) {
+        debugPrint('[ArScanCameraStreamController] controller.dispose error: $e');
+      }
     }
 
     await _frameStreamController.close();

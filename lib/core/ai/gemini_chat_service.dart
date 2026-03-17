@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
 import '../services/device_id_service.dart';
 import '../services/energy_service.dart';
-/// Service for Chat with Miro AI (Gemini Backend)
+/// Service for Chat with ArCal AI (Gemini Backend)
 class GeminiChatService {
   static const String _functionUrl = FirebaseConfig.analyzeFoodUrl;
 
@@ -190,7 +190,7 @@ class GeminiChatService {
     }
   }
 
-  /// Get menu suggestions from Miro AI (costs 1 Energy)
+  /// Get menu suggestions from ArCal AI (costs 1 Energy)
   /// Accepts UserProfile for personalized menu recommendations
   static Future<Map<String, dynamic>> getMenuSuggestions({
     required String recentFoodContext,

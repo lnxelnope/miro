@@ -1,0 +1,4 @@
+# For iap_localization_api.py (App Store Connect API)
+pyjwt[crypto]>=2.8
+cryptography>=41.0
+requests>=2.31

@@ -2,11 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/permission_service.dart';
+import '../../../core/services/image_picker_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
+import '../../health/providers/health_provider.dart';
 import '../../profile/providers/locale_provider.dart';
 import '../../../core/widgets/privacy_consent_sheet.dart';
 import '../../../l10n/app_localizations.dart';
@@ -196,8 +201,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Map display index: Camera (2) is fullscreen, so IndexedStack skips it
-    final stackIndex = _currentIndex > 2 ? _currentIndex - 1 : _currentIndex;
+    // AR Scan (2) and Gallery (3) are fullscreen, IndexedStack skips them
+    final stackIndex = _currentIndex <= 1 ? _currentIndex : _currentIndex - 2;
 
     return PopScope(
       canPop: false,
@@ -255,10 +260,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         case 1:
           title = L10n.of(context)!.appBarMyMeals;
           break;
-        case 2:
-          title = L10n.of(context)!.appBarCamera;
-          break;
-        case 3:
+        case 4:
           title = L10n.of(context)!.appBarAiChat;
           break;
         default:
@@ -290,17 +292,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       actions: [
         const ModeToggle(),
         const SizedBox(width: 4),
-        IconButton(
-          icon: const Icon(Icons.center_focus_strong_rounded),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ARscanScreen()),
-            );
-          },
-          tooltip: L10n.of(context)!.navCamera,
-        ),
-        // Profile icon button (top-right)
         IconButton(
           icon: const Icon(Icons.person_outline),
           onPressed: () {
@@ -341,8 +332,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       currentIndex: _currentIndex,
       onTap: (index) {
         if (index == 2) {
-          // Camera → open fullscreen route (don't embed in IndexedStack)
-          _openFullScreenCamera();
+          _openARScan();
+          return;
+        }
+        if (index == 3) {
+          _openGalleryOrCamera();
           return;
         }
         setState(() => _currentIndex = index);
@@ -364,9 +358,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           label: L10n.of(context)!.navMyMeals,
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.camera_alt_outlined),
-          activeIcon: const Icon(Icons.camera_alt),
-          label: L10n.of(context)!.navCamera,
+          icon: const Icon(Icons.center_focus_strong_rounded),
+          activeIcon: const Icon(Icons.center_focus_strong),
+          label: L10n.of(context)!.arScan,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.photo_library_outlined),
+          activeIcon: const Icon(Icons.photo_library),
+          label: L10n.of(context)!.gallery,
         ),
         BottomNavigationBarItem(
           icon: const Icon(Icons.auto_awesome_outlined),
@@ -377,29 +376,159 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Open Camera as fullscreen route, then navigate to analysis if photo taken
-  Future<void> _openFullScreenCamera() async {
+  Future<void> _openARScan() async {
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(builder: (_) => const ARscanScreen()),
+    );
+
+    if (result == null || result.isEmpty || !mounted) return;
+
+    final imageFiles = result
+        .map((p) => File(p))
+        .where((f) => f.existsSync())
+        .toList();
+    if (imageFiles.isEmpty) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageAnalysisPreviewScreen(
+          imageFile: imageFiles.first,
+          arScanImages: imageFiles.length > 1 ? imageFiles : null,
+        ),
+      ),
+    );
+  }
+
+  void _openGalleryOrCamera() {
+    final l10n = L10n.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: Text(l10n.pickFromGallery),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await _pickFromGalleryFlow();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: Text(l10n.takePhoto),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await _takePhotoFlow();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickFromGalleryFlow() async {
+    final images = await ImagePickerService.pickMultipleFromGallery();
+    if (images.isEmpty || !mounted) return;
+
+    if (images.length == 1) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ImageAnalysisPreviewScreen(
+            imageFile: images.first,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Multiple images → create entries + enqueue for analysis
+    final now = DateTime.now();
+    final appDir = await getApplicationDocumentsDirectory();
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    int savedCount = 0;
+
+    for (final image in images) {
+      try {
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final destPath = '${appDir.path}/$fileName';
+        await image.copy(destPath);
+
+        final entry = FoodEntry(
+          id: 0,
+          foodName: '--',
+          mealType: _guessMealType(),
+          timestamp: now,
+          imagePath: destPath,
+          servingSize: 1.0,
+          servingUnit: 'serving',
+          calories: 0, protein: 0, carbs: 0, fat: 0,
+          baseCalories: 0, baseProtein: 0, baseCarbs: 0, baseFat: 0,
+          source: DataSource.galleryScanned,
+          isVerified: false,
+          searchMode: FoodSearchMode.normal,
+          isDeleted: false,
+          isGroupOriginal: false,
+          editCount: 0,
+          isUserCorrected: false,
+          isCalibrated: false,
+          isSynced: false,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await notifier.addFoodEntry(entry);
+        savedCount++;
+      } catch (_) {}
+    }
+
+    if (savedCount > 0 && mounted) {
+      refreshFoodProviders(ref, dateOnly(now));
+    }
+  }
+
+  Future<void> _takePhotoFlow() async {
     final File? capturedImage = await Navigator.push<File>(
       context,
-      MaterialPageRoute(builder: (context) => const CameraScreen()),
+      MaterialPageRoute(builder: (_) => const CameraScreen()),
     );
 
     if (capturedImage != null && mounted) {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ImageAnalysisPreviewScreen(
+          builder: (_) => ImageAnalysisPreviewScreen(
             imageFile: capturedImage,
           ),
         ),
       );
-      
-      // After returning from preview screen, switch to timeline tab
-      // User can manually analyze when ready via "Analyze All"
-      if (_currentIndex != 0) {
-        setState(() => _currentIndex = 0);
-      }
     }
+  }
+
+  MealType _guessMealType() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) return MealType.breakfast;
+    if (hour >= 11 && hour < 15) return MealType.lunch;
+    if (hour >= 15 && hour < 21) return MealType.dinner;
+    return MealType.snack;
   }
 
   /// Check and show feature tour (first time only)

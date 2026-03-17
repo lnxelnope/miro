@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:miro_hybrid/l10n/app_localizations.dart';
@@ -19,9 +20,7 @@ class ArScanBoundingBoxOverlay extends StatelessWidget {
 
   bool get _shouldShowBox {
     final detection = primaryDetection;
-    if (detection == null) return false;
-    if (!detection.isFood) return false;
-    return true;
+    return detection != null;
   }
 
   @override
@@ -31,10 +30,12 @@ class ArScanBoundingBoxOverlay extends StatelessWidget {
         child: SizedBox.expand(
           child: Stack(
             children: [
-              CustomPaint(
-                painter: _ArScanBoundingBoxPainter(
-                  detection: _shouldShowBox ? primaryDetection : null,
-                  previewSize: previewSize,
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _ArScanBoundingBoxPainter(
+                    detection: _shouldShowBox ? primaryDetection : null,
+                    previewSize: previewSize,
+                  ),
                 ),
               ),
               if (state == ArScanState.searching) _buildNotDetectBanner(context),
@@ -85,6 +86,8 @@ class _ArScanBoundingBoxPainter extends CustomPainter {
   final ArScanDetection? detection;
   final Size? previewSize;
 
+  static bool _debugLogged = false;
+
   @override
   void paint(Canvas canvas, Size size) {
     final d = detection;
@@ -114,6 +117,17 @@ class _ArScanBoundingBoxPainter extends CustomPainter {
     final dx = (size.width - scaledWidth) / 2;
     final dy = (size.height - scaledHeight) / 2;
 
+    if (!_debugLogged) {
+      _debugLogged = true;
+      debugPrint(
+        '[BBOverlay] canvas=${size.width.toInt()}x${size.height.toInt()}, '
+        'previewSize=$previewSize, '
+        'display=${imageWidth.toInt()}x${imageHeight.toInt()}, '
+        'scale=${scale.toStringAsFixed(3)}, dx=${dx.toInt()}, dy=${dy.toInt()}, '
+        'normRect=${d.normalizedRect}',
+      );
+    }
+
     final rect = Rect.fromLTWH(
       dx + d.normalizedRect.left * imageWidth * scale,
       dy + d.normalizedRect.top * imageHeight * scale,
@@ -121,8 +135,9 @@ class _ArScanBoundingBoxPainter extends CustomPainter {
       d.normalizedRect.height * imageHeight * scale,
     );
 
+    final isFood = detection?.isFood ?? false;
     final paint = Paint()
-      ..color = Colors.green
+      ..color = isFood ? Colors.green : const Color(0xFFFBBF24)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
 

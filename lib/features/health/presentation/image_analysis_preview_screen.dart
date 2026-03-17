@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,6 +21,7 @@ import 'package:miro_hybrid/l10n/app_localizations.dart';
 
 class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   final File? imageFile;
+  final List<File>? arScanImages;
   final String? initialFoodName;
   final double? initialQuantity;
   final String? initialUnit;
@@ -28,6 +31,7 @@ class ImageAnalysisPreviewScreen extends ConsumerStatefulWidget {
   const ImageAnalysisPreviewScreen({
     super.key,
     this.imageFile,
+    this.arScanImages,
     this.initialFoodName,
     this.initialQuantity,
     this.initialUnit,
@@ -58,12 +62,27 @@ class _ImageAnalysisPreviewScreenState
   bool _isDetecting = false;
   Size _imageSize = Size.zero;
 
+  // Multi-image (AR scan) state
+  List<File> _arScanImages = [];
+  int _arScanPage = 0;
+  final PageController _arScanPageController = PageController();
+  final Map<int, List<DetectedObjectLabel>> _arScanLabelsCache = {};
+  final Map<int, Size> _arScanSizeCache = {};
+  final Map<int, CalibrationResult?> _arScanCalibCache = {};
+  final Map<int, bool> _arScanDetecting = {};
+
+  bool get _hasMultiImages => _arScanImages.length > 1;
   bool get _hasImage => _currentImageFile != null;
 
   @override
   void initState() {
     super.initState();
-    _currentImageFile = widget.imageFile;
+    _arScanImages = widget.arScanImages ?? [];
+    if (_arScanImages.isNotEmpty) {
+      _currentImageFile = _arScanImages.first;
+    } else {
+      _currentImageFile = widget.imageFile;
+    }
     _foodNameController = TextEditingController(
       text: widget.initialFoodName ?? '',
     );
@@ -72,7 +91,12 @@ class _ImageAnalysisPreviewScreenState
     );
     _selectedUnit = widget.initialUnit ?? 'serving';
     _selectedMealType = widget.initialMealType ?? _guessMealType();
-    if (_hasImage) {
+    if (_hasMultiImages) {
+      _copyImageToPermanentPath();
+      for (int i = 0; i < _arScanImages.length; i++) {
+        _runARDetectionForIndex(i);
+      }
+    } else if (_hasImage) {
       _copyImageToPermanentPath();
       _runARDetection(_currentImageFile!);
     }
@@ -96,6 +120,30 @@ class _ImageAnalysisPreviewScreenState
     }
   }
 
+  Future<List<String>> _copyAllArImagesToPermanentPaths() async {
+    if (_arScanImages.isEmpty) return [];
+    final appDir = await getApplicationDocumentsDirectory();
+    final paths = <String>[];
+    for (int i = 0; i < _arScanImages.length; i++) {
+      try {
+        final file = _arScanImages[i];
+        if (file.path.startsWith(appDir.path)) {
+          paths.add(file.path);
+        } else {
+          final ts = DateTime.now().millisecondsSinceEpoch + i;
+          final destPath = '${appDir.path}/arscan_$ts.jpg';
+          await file.copy(destPath);
+          paths.add(destPath);
+        }
+      } catch (e) {
+        AppLogger.error('Failed to copy AR image $i', e);
+        paths.add(_arScanImages[i].path);
+      }
+    }
+    if (paths.isNotEmpty) _permanentImagePath = paths.first;
+    return paths;
+  }
+
   /// เรียก ML Kit detect + calibrate หลังจากได้รูปแล้ว
   Future<void> _runARDetection(File imageFile) async {
     if (!mounted) return;
@@ -103,11 +151,9 @@ class _ImageAnalysisPreviewScreenState
 
     try {
       final imageBytes = await imageFile.readAsBytes();
-      final codec = await ui.instantiateImageCodec(imageBytes);
-      final frame = await codec.getNextFrame();
-      final imgWidth = frame.image.width.toDouble();
-      final imgHeight = frame.image.height.toDouble();
-      frame.image.dispose();
+      final correctedSize = await getExifCorrectedImageSize(imageBytes);
+      final imgWidth = correctedSize.width;
+      final imgHeight = correctedSize.height;
 
       if (mounted) {
         setState(() => _imageSize = Size(imgWidth, imgHeight));
@@ -116,7 +162,8 @@ class _ImageAnalysisPreviewScreenState
       final detector = ReferenceDetectorService.instance;
 
       // 1. detect ทุก object สำหรับ label overlay (ไม่ filter)
-      final allLabels = await detector.detectAllObjectLabels(imageFile);
+      final rawLabels = await detector.detectAllObjectLabels(imageFile);
+      final allLabels = _transformLabelsForExif(rawLabels, imageBytes);
 
       // 2. detect reference objects สำหรับ calibration (ส่ง Gemini)
       final detected = await detector.detectFromImage(imageFile);
@@ -169,11 +216,235 @@ class _ImageAnalysisPreviewScreenState
     }
   }
 
+  Future<void> _runARDetectionForIndex(int index) async {
+    if (!mounted || index >= _arScanImages.length) return;
+    setState(() => _arScanDetecting[index] = true);
+
+    try {
+      final file = _arScanImages[index];
+      final imageBytes = await file.readAsBytes();
+      final correctedSize = await getExifCorrectedImageSize(imageBytes);
+      final imgW = correctedSize.width;
+      final imgH = correctedSize.height;
+
+      final detector = ReferenceDetectorService.instance;
+      final rawLabels = await detector.detectAllObjectLabels(file);
+      final allLabels = _transformLabelsForExif(rawLabels, imageBytes);
+      final detected = await detector.detectFromImage(file);
+      CalibrationResult? calibration;
+      if (detected.isNotEmpty) {
+        final plate = await detector.detectPlate(file);
+        calibration = ScaleCalibrationService.calibrate(
+          referenceObject: detected.first,
+          plateBoundingBox: plate?.boundingBox,
+          imageWidth: imgW,
+          imageHeight: imgH,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _arScanLabelsCache[index] = allLabels;
+        _arScanSizeCache[index] = Size(imgW, imgH);
+        _arScanCalibCache[index] = calibration;
+        _arScanDetecting[index] = false;
+      });
+
+      if (index == 0) {
+        setState(() {
+          _objectLabels = allLabels;
+          _imageSize = Size(imgW, imgH);
+          _calibrationResult = calibration;
+        });
+      }
+    } catch (e) {
+      AppLogger.error('[AR] Multi-image detection error idx=$index', e);
+      if (mounted) setState(() => _arScanDetecting[index] = false);
+    }
+  }
+
+  CalibrationResult? _bestCalibrationAcrossImages() {
+    CalibrationResult? best;
+    for (final entry in _arScanCalibCache.entries) {
+      final c = entry.value;
+      if (c == null) continue;
+      if (best == null ||
+          c.referenceObject.confidence > best.referenceObject.confidence) {
+        best = c;
+      }
+    }
+    return best;
+  }
+
+  void _onArScanPageChanged(int index) {
+    setState(() {
+      _arScanPage = index;
+      _currentImageFile = _arScanImages[index];
+      _objectLabels = _arScanLabelsCache[index] ?? [];
+      _imageSize = _arScanSizeCache[index] ?? Size.zero;
+      _calibrationResult = _arScanCalibCache[index];
+      _isDetecting = _arScanDetecting[index] ?? false;
+    });
+    _copyImageToPermanentPath();
+  }
+
   @override
   void dispose() {
     _foodNameController.dispose();
     _quantityController.dispose();
+    _arScanPageController.dispose();
     super.dispose();
+  }
+
+  Widget _buildSingleImagePreview() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ArLabelOverlay(
+          labels: _objectLabels,
+          imageSize: _imageSize,
+          pixelPerCm: _calibrationResult?.pixelPerCm,
+          child: Image.file(
+            _currentImageFile!,
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+        ),
+        if (_isDetecting) _buildDetectingIndicator(),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: GestureDetector(
+            onTap: () => setState(() {
+              _currentImageFile = null;
+              _permanentImagePath = null;
+              _calibrationResult = null;
+              _objectLabels = [];
+            }),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, color: Colors.white, size: 18),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiImagePreview() {
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _arScanPageController,
+          itemCount: _arScanImages.length,
+          onPageChanged: _onArScanPageChanged,
+          itemBuilder: (_, index) {
+            final file = _arScanImages[index];
+            final labels = _arScanLabelsCache[index] ?? [];
+            final imgSize = _arScanSizeCache[index] ?? Size.zero;
+            final calib = _arScanCalibCache[index];
+            final detecting = _arScanDetecting[index] ?? false;
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ArLabelOverlay(
+                  labels: labels,
+                  imageSize: imgSize,
+                  pixelPerCm: calib?.pixelPerCm,
+                  child: Image.file(
+                    file,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                ),
+                if (detecting) _buildDetectingIndicator(),
+              ],
+            );
+          },
+        ),
+        // Page dots indicator
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 8,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(_arScanImages.length, (i) {
+              final isActive = i == _arScanPage;
+              return Container(
+                width: isActive ? 24 : 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: isActive
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.4),
+                ),
+              );
+            }),
+          ),
+        ),
+        // Page counter
+        Positioned(
+          top: 8,
+          left: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '${_arScanPage + 1}/${_arScanImages.length}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetectingIndicator() {
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black26,
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Detecting objects...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _saveAndAnalyze() async {
@@ -205,15 +476,66 @@ class _ImageAnalysisPreviewScreenState
     }
 
     final effectiveName = foodName.isEmpty ? '--' : foodName;
-    final imagePath = _hasImage
-        ? (_permanentImagePath ?? _currentImageFile!.path)
-        : null;
+
+    // Copy all AR images to permanent storage
+    String? imagePath;
+    String? supPath2;
+    String? supPath3;
+    if (_hasMultiImages) {
+      final paths = await _copyAllArImagesToPermanentPaths();
+      imagePath = paths.isNotEmpty ? paths[0] : null;
+      supPath2 = paths.length > 1 ? paths[1] : null;
+      supPath3 = paths.length > 2 ? paths[2] : null;
+    } else {
+      imagePath = _hasImage
+          ? (_permanentImagePath ?? _currentImageFile!.path)
+          : null;
+    }
 
     final date = widget.selectedDate ?? DateTime.now();
     final now = DateTime.now();
     final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
-    final calibration = _calibrationResult;
+    final calibration = _hasMultiImages
+        ? _bestCalibrationAcrossImages()
+        : _calibrationResult;
+
+    final isAr = _hasMultiImages;
+    final source = !_hasImage
+        ? DataSource.manual
+        : (isAr ? DataSource.arScan : DataSource.galleryScanned);
+
+    // Build per-image AR detection data
+    String? arLabelsJson;
+    double? arImgW;
+    double? arImgH;
+    if (isAr) {
+      final imageDetections = <ArImageDetectionData>[];
+      for (int i = 0; i < _arScanImages.length; i++) {
+        final labels = _arScanLabelsCache[i] ?? [];
+        final size = _arScanSizeCache[i];
+        final calib = _arScanCalibCache[i];
+        imageDetections.add(ArImageDetectionData(
+          imageIndex: i,
+          imageWidth: size?.width ?? 0,
+          imageHeight: size?.height ?? 0,
+          pixelPerCm: calib?.pixelPerCm,
+          labels: labels,
+        ));
+      }
+      if (imageDetections.any((d) => d.labels.isNotEmpty)) {
+        arLabelsJson = ArImageDetectionData.encodeMultiImage(imageDetections);
+      }
+      final firstSize = _arScanSizeCache[0];
+      arImgW = firstSize?.width;
+      arImgH = firstSize?.height;
+    } else {
+      arLabelsJson = _objectLabels.isNotEmpty
+          ? DetectedObjectLabel.encode(_objectLabels)
+          : null;
+      arImgW = _imageSize.width > 0 ? _imageSize.width : null;
+      arImgH = _imageSize.height > 0 ? _imageSize.height : null;
+    }
 
     final entry = FoodEntry(
       id: 0,
@@ -221,6 +543,8 @@ class _ImageAnalysisPreviewScreenState
       mealType: _selectedMealType,
       timestamp: entryTimestamp,
       imagePath: imagePath,
+      supplementaryImagePath2: supPath2,
+      supplementaryImagePath3: supPath3,
       servingSize: quantity,
       servingUnit: _selectedUnit,
       calories: 0,
@@ -231,7 +555,7 @@ class _ImageAnalysisPreviewScreenState
       baseProtein: 0,
       baseCarbs: 0,
       baseFat: 0,
-      source: _hasImage ? DataSource.galleryScanned : DataSource.manual,
+      source: source,
       isVerified: false,
       searchMode: _searchMode,
       referenceObjectUsed: calibration?.referenceObject.type.name,
@@ -239,10 +563,9 @@ class _ImageAnalysisPreviewScreenState
       plateDiameterCm: calibration?.plateDiameterCm,
       estimatedVolumeMl: calibration?.estimatedVolumeMl,
       isCalibrated: calibration?.shouldUseCalibration ?? false,
-      arLabelsJson: _objectLabels.isNotEmpty
-          ? DetectedObjectLabel.encode(_objectLabels) : null,
-      arImageWidth: _imageSize.width > 0 ? _imageSize.width : null,
-      arImageHeight: _imageSize.height > 0 ? _imageSize.height : null,
+      arLabelsJson: arLabelsJson,
+      arImageWidth: arImgW,
+      arImageHeight: arImgH,
       arPixelPerCm: calibration?.pixelPerCm,
       isDeleted: false,
       isGroupOriginal: false,
@@ -254,9 +577,9 @@ class _ImageAnalysisPreviewScreenState
     );
 
     debugPrint(
-      '>>> [AR Save analyze] labels=${_objectLabels.length}, '
-      'imgSize=${_imageSize.width.toInt()}x${_imageSize.height.toInt()}, '
-      'jsonLen=${entry.arLabelsJson?.length ?? 0}',
+      '>>> [AR Save analyze] multiImage=$isAr, '
+      'perImageLabels=${isAr ? _arScanLabelsCache.entries.map((e) => '${e.key}:${e.value.length}').join(',') : _objectLabels.length}, '
+      'paths=[${imagePath != null ? 1 : 0},${supPath2 != null ? 1 : 0},${supPath3 != null ? 1 : 0}]',
     );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
@@ -300,11 +623,25 @@ class _ImageAnalysisPreviewScreenState
     final now = DateTime.now();
     final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
-    final imagePath = _hasImage
-        ? (_permanentImagePath ?? _currentImageFile!.path)
-        : null;
+    String? imagePath;
+    String? supPath2;
+    String? supPath3;
+    if (_hasMultiImages) {
+      final paths = await _copyAllArImagesToPermanentPaths();
+      imagePath = paths.isNotEmpty ? paths[0] : null;
+      supPath2 = paths.length > 1 ? paths[1] : null;
+      supPath3 = paths.length > 2 ? paths[2] : null;
+    } else {
+      imagePath = _hasImage
+          ? (_permanentImagePath ?? _currentImageFile!.path)
+          : null;
+    }
 
     final effectiveName = foodName.isEmpty ? '--' : foodName;
+    final isAr = _hasMultiImages;
+    final source = !_hasImage
+        ? DataSource.manual
+        : (isAr ? DataSource.arScan : DataSource.galleryScanned);
 
     final entry = FoodEntry(
       id: 0,
@@ -312,6 +649,8 @@ class _ImageAnalysisPreviewScreenState
       mealType: _selectedMealType,
       timestamp: entryTimestamp,
       imagePath: imagePath,
+      supplementaryImagePath2: supPath2,
+      supplementaryImagePath3: supPath3,
       servingSize: quantity,
       servingUnit: _selectedUnit,
       calories: 0,
@@ -322,7 +661,7 @@ class _ImageAnalysisPreviewScreenState
       baseProtein: 0,
       baseCarbs: 0,
       baseFat: 0,
-      source: _hasImage ? DataSource.galleryScanned : DataSource.manual,
+      source: source,
       isVerified: false,
       searchMode: _searchMode,
       arLabelsJson: _objectLabels.isNotEmpty
@@ -341,9 +680,8 @@ class _ImageAnalysisPreviewScreenState
     );
 
     debugPrint(
-      '>>> [AR Save diary] labels=${_objectLabels.length}, '
-      'imgSize=${_imageSize.width.toInt()}x${_imageSize.height.toInt()}, '
-      'jsonLen=${entry.arLabelsJson?.length ?? 0}',
+      '>>> [AR Save diary] multiImage=$isAr, labels=${_objectLabels.length}, '
+      'paths=[${imagePath != null ? 1 : 0},${supPath2 != null ? 1 : 0},${supPath3 != null ? 1 : 0}]',
     );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
@@ -382,77 +720,14 @@ class _ImageAnalysisPreviewScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Image Preview (only if has image)
+            // Image Preview
             if (_hasImage)
               Container(
                 height: 300,
                 color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ArLabelOverlay(
-                      labels: _objectLabels,
-                      imageSize: _imageSize,
-                      pixelPerCm: _calibrationResult?.pixelPerCm,
-                      child: Image.file(
-                        _currentImageFile!,
-                        fit: BoxFit.contain,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
-                    ),
-                    // Loading indicator ระหว่าง detect
-                    if (_isDetecting)
-                      Positioned.fill(
-                        child: Container(
-                          color: Colors.black26,
-                          child: const Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Detecting objects...',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _currentImageFile = null;
-                          _permanentImagePath = null;
-                          _calibrationResult = null;
-                          _objectLabels = [];
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close, color: Colors.white, size: 18),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _hasMultiImages
+                    ? _buildMultiImagePreview()
+                    : _buildSingleImagePreview(),
               ),
             // แสดง detection status หรือ tip
             if (_currentImageFile != null) ...[
@@ -913,4 +1188,173 @@ class _ImageAnalysisPreviewScreenState
     ),
     );
   }
+}
+
+/// EXIF-aware image size for bounding box coordinate mapping.
+///
+/// Uses JPEG SOF marker (raw pixel dimensions) + EXIF orientation to determine
+/// the final display/ML Kit coordinate dimensions. This avoids double-correction
+/// that occurs when instantiateImageCodec already applies EXIF rotation (Android).
+Future<Size> getExifCorrectedImageSize(Uint8List bytes) async {
+  final sofSize = _readJpegSofDimensions(bytes);
+
+  if (sofSize != null) {
+    final orientation = _readJpegExifOrientation(bytes);
+    debugPrint(
+      '[EXIF] SOF: ${sofSize.width.toInt()}x${sofSize.height.toInt()}, '
+      'orientation: $orientation',
+    );
+    if (orientation >= 5 && orientation <= 8) {
+      return Size(sofSize.height, sofSize.width);
+    }
+    return sofSize;
+  }
+
+  final codec = await ui.instantiateImageCodec(bytes);
+  final frame = await codec.getNextFrame();
+  final w = frame.image.width.toDouble();
+  final h = frame.image.height.toDouble();
+  frame.image.dispose();
+  return Size(w, h);
+}
+
+/// Read raw pixel dimensions from JPEG SOF (Start Of Frame) marker.
+/// These are the actual pixel dimensions stored in the file, unaffected by
+/// EXIF orientation or codec behavior.
+Size? _readJpegSofDimensions(Uint8List bytes) {
+  if (bytes.length < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8) return null;
+
+  int offset = 2;
+  while (offset < bytes.length - 2) {
+    if (bytes[offset] != 0xFF) return null;
+    final marker = bytes[offset + 1];
+
+    // SOF0-SOF15 (0xC0-0xCF) except DHT (0xC4) and JPG (0xC8)
+    if (marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8) {
+      if (offset + 8 >= bytes.length) return null;
+      final height = (bytes[offset + 5] << 8) | bytes[offset + 6];
+      final width = (bytes[offset + 7] << 8) | bytes[offset + 8];
+      return Size(width.toDouble(), height.toDouble());
+    }
+
+    if (marker == 0xDA) return null; // SOS — image data starts
+    if (offset + 3 >= bytes.length) return null;
+    final segmentLength = (bytes[offset + 2] << 8) | bytes[offset + 3];
+    offset += 2 + segmentLength;
+  }
+
+  return null;
+}
+
+/// On iOS, ML Kit `InputImage.fromFilePath` returns bounding boxes in the raw
+/// (pre-EXIF rotation) pixel space. Transform them to EXIF-corrected display
+/// space so BoundingBoxPainter maps correctly.
+/// On Android, ML Kit already returns in display space — no transform needed.
+List<DetectedObjectLabel> _transformLabelsForExif(
+  List<DetectedObjectLabel> labels,
+  Uint8List imageBytes,
+) {
+  if (!Platform.isIOS || labels.isEmpty) return labels;
+
+  final rawSize = _readJpegSofDimensions(imageBytes);
+  if (rawSize == null) return labels;
+
+  final orientation = _readJpegExifOrientation(imageBytes);
+  if (orientation < 5 || orientation > 8) return labels;
+
+  final rawW = rawSize.width;
+  final rawH = rawSize.height;
+
+  debugPrint(
+    '[EXIF Transform] orientation=$orientation, raw=${rawW.toInt()}x${rawH.toInt()}, '
+    'labels=${labels.length}',
+  );
+
+  return labels.map((label) {
+    double cx, cy, bw, bh;
+    switch (orientation) {
+      case 6: // 90° CW (most common iOS portrait)
+        cx = label.centerY;
+        cy = rawW - label.centerX;
+        bw = label.bboxHeight;
+        bh = label.bboxWidth;
+      case 8: // 270° CW (90° CCW)
+        cx = rawH - label.centerY;
+        cy = label.centerX;
+        bw = label.bboxHeight;
+        bh = label.bboxWidth;
+      case 5: // transposed
+        cx = label.centerY;
+        cy = label.centerX;
+        bw = label.bboxHeight;
+        bh = label.bboxWidth;
+      case 7: // transverse
+        cx = rawH - label.centerY;
+        cy = rawW - label.centerX;
+        bw = label.bboxHeight;
+        bh = label.bboxWidth;
+      default:
+        return label;
+    }
+    return DetectedObjectLabel(
+      label: label.label,
+      confidence: label.confidence,
+      centerX: cx,
+      centerY: cy,
+      bboxWidth: bw,
+      bboxHeight: bh,
+    );
+  }).toList();
+}
+
+int _readJpegExifOrientation(Uint8List bytes) {
+  if (bytes.length < 12 || bytes[0] != 0xFF || bytes[1] != 0xD8) return 1;
+
+  int offset = 2;
+  while (offset < bytes.length - 4) {
+    if (bytes[offset] != 0xFF) return 1;
+    final marker = bytes[offset + 1];
+
+    if (marker == 0xE1) {
+      final exifStart = offset + 4;
+      if (exifStart + 6 > bytes.length) return 1;
+      if (bytes[exifStart] != 0x45 || bytes[exifStart + 1] != 0x78 ||
+          bytes[exifStart + 2] != 0x69 || bytes[exifStart + 3] != 0x66) {
+        return 1;
+      }
+
+      final tiffStart = exifStart + 6;
+      if (tiffStart + 8 > bytes.length) return 1;
+
+      final le = bytes[tiffStart] == 0x49;
+
+      int read16(int o) => le
+          ? (bytes[o] | (bytes[o + 1] << 8))
+          : ((bytes[o] << 8) | bytes[o + 1]);
+      int read32(int o) => le
+          ? (bytes[o] |
+              (bytes[o + 1] << 8) |
+              (bytes[o + 2] << 16) |
+              (bytes[o + 3] << 24))
+          : ((bytes[o] << 24) |
+              (bytes[o + 1] << 16) |
+              (bytes[o + 2] << 8) |
+              bytes[o + 3]);
+
+      final ifd0Offset = tiffStart + read32(tiffStart + 4);
+      if (ifd0Offset + 2 > bytes.length) return 1;
+
+      final entries = read16(ifd0Offset);
+      for (int i = 0; i < entries; i++) {
+        final entry = ifd0Offset + 2 + i * 12;
+        if (entry + 12 > bytes.length) return 1;
+        if (read16(entry) == 0x0112) return read16(entry + 8);
+      }
+      return 1;
+    }
+
+    if (marker == 0xDA) return 1;
+    offset += 2 + ((bytes[offset + 2] << 8) | bytes[offset + 3]);
+  }
+  return 1;
 }

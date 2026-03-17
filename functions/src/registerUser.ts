@@ -2,7 +2,7 @@
  * registerUser Cloud Function
  *
  * เรียกตอน: App เปิดครั้งแรก (ยังไม่มี user document)
- * สิ่งที่ทำ: สร้าง user document + MiRO ID + Welcome Gift
+ * สิ่งที่ทำ: สร้าง user document + ArCal ID + Welcome Gift
  *
  * Input:  { deviceId: string }
  * Output: { success, miroId, balance, isNew }
@@ -24,7 +24,7 @@ const CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const WELCOME_GIFT = 10;
 
 /**
- * สร้าง MiRO ID: MIRO-XXXX-XXXX-XXXX
+ * สร้าง ArCal ID: ARCAL-XXXX-XXXX-XXXX
  */
 function generateMiroId(): string {
   const segments: string[] = [];
@@ -38,11 +38,11 @@ function generateMiroId(): string {
     segments.push(segment);
   }
 
-  return `MIRO-${segments.join("-")}`;
+  return `ARCAL-${segments.join("-")}`;
 }
 
 /**
- * สร้าง MiRO ID ที่ unique
+ * สร้าง ArCal ID ที่ unique
  */
 async function generateUniqueMiroId(): Promise<string> {
   let miroId = generateMiroId();
@@ -61,7 +61,7 @@ async function generateUniqueMiroId(): Promise<string> {
     attempts++;
   }
 
-  throw new Error("Failed to generate unique MiRO ID");
+  throw new Error("Failed to generate unique ArCal ID");
 }
 
 /**
@@ -209,7 +209,7 @@ export const registerUser = onRequest(
         type: "welcome_gift",
         amount: balance,
         balanceAfter: balance,
-        description: `Welcome to MIRO! ${WELCOME_GIFT} Energy gift`,
+        description: `Welcome to ArCal! ${WELCOME_GIFT} Energy gift`,
         metadata: {},
         createdAt: now,
       });

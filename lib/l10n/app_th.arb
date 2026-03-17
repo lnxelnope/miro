@@ -94,7 +94,7 @@
   "deleteKey": "ลบ API Key",
   "openAiStudio": "เปิด Google AI Studio",
 
-  "chatHint": "สั่ง Miro เช่น \"บันทึกข้าวผัด\"...",
+  "chatHint": "สั่ง ArCal เช่น \"บันทึกข้าวผัด\"...",
   "chatFoodSaved": "บันทึกอาหารแล้ว!",
   "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
   "@chatFoodSavedDetail": {
@@ -132,7 +132,7 @@
   "language": "ภาษา",
 
   "upgradePro": "อัปเกรด Pro",
-  "proUnlocked": "MiRO Pro",
+  "proUnlocked": "ArCal Pro",
   "proDescription": "ใช้ AI วิเคราะห์อาหารไม่จำกัด",
   "aiRemaining": "AI วิเคราะห์: เหลือ {remaining}/{total} ครั้งวันนี้",
   "@aiRemaining": {
@@ -166,7 +166,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "MiRO",
+  "welcomeTitle": "ArCal",
   "welcomeSubtitle": "บันทึกอาหารง่ายๆ ด้วย AI",
   "onboardingFeature1": "ถ่ายรูปอาหาร",
   "onboardingFeature1Desc": "AI วิเคราะห์ kcal อัตโนมัติ",
@@ -252,7 +252,7 @@
   "appBarMiro": "ArCal",
   
   "permissionRequired": "ต้องการสิทธิ์",
-  "permissionRequiredDesc": "MIRO ต้องการเข้าถึง:",
+  "permissionRequiredDesc": "ArCal ต้องการเข้าถึง:",
   "permissionPhotos": "รูปภาพ — เพื่อสแกนอาหาร",
   "permissionCamera": "กล้อง — เพื่อถ่ายรูปอาหาร",
   "permissionSkip": "ข้าม",
@@ -952,7 +952,7 @@
   "newChat": "แชทใหม่",
   "quickActions": "การกระทำด่วน",
   "clear": "ล้าง",
-  "helloImMiro": "สวัสดี! ผมคือ Miro",
+  "helloImMiro": "สวัสดี! ผมคือ ArCal",
   "tellMeWhatYouAteToday": "บอกผมว่าคุณกินอะไรวันนี้!",
   "tellMeWhatYouAte": "บอกผมว่าคุณกินอะไร...",
   "clearHistoryTitle": "ล้างประวัติ?",
@@ -1125,7 +1125,7 @@
   "localAiHelpTitle": "🤖 คำแนะนำ Local AI",
   "localAiHelpFormat": "รูปแบบ: [อาหาร] [ปริมาณ] [หน่วย]",
   "localAiHelpExamples": "ตัวอย่าง:\n• chicken 100g and rice 200g\n• pizza 2 slices\n• apple 1 piece, banana 1 piece",
-  "localAiHelpNote": "หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ Miro AI เพื่อผลลัพธ์ที่ดีกว่า!",
+  "localAiHelpNote": "หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ ArCal AI เพื่อผลลัพธ์ที่ดีกว่า!",
   "hiNoFoodLogged": "🤖 สวัสดี! ยังไม่มีอาหารบันทึกวันนี้\n   เป้าหมาย: {target} kcal — พร้อมเริ่มบันทึกแล้วหรือยัง? 🍽️",
   "@hiNoFoodLogged": {
     "placeholders": {
@@ -1261,7 +1261,7 @@
   "referralCopy": "คัดลอก",
   "referralShareCodeDescription": "แชร์รหัสนี้กับเพื่อน! เมื่อเพื่อนใช้ AI 3 ครั้ง คุณทั้งคู่จะได้รับรางวัล!",
   "referralEnterReferralCode": "ใส่รหัสแนะนำ",
-  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralCodeHint": "ARCAL-XXXX-XXXX-XXXX",
   "referralSubmitCode": "ส่งรหัส",
   "referralPleaseEnterCode": "กรุณาใส่รหัสแนะนำ",
   "referralCodeAccepted": "ยอมรับรหัสแนะนำแล้ว!",
@@ -1276,7 +1276,7 @@
   },
   "referralHowItWorks": "วิธีใช้งาน",
   "referralStep1Title": "แชร์รหัสแนะนำของคุณ",
-  "referralStep1Description": "คัดลอกและแชร์ MiRO ID ของคุณกับเพื่อน",
+  "referralStep1Description": "คัดลอกและแชร์ ArCal ID ของคุณกับเพื่อน",
   "referralStep2Title": "เพื่อนใส่รหัสของคุณ",
   "referralStep2Description": "เพื่อนจะได้รับ +20 พลังงานทันที",
   "referralStep3Title": "เพื่อนใช้ AI 3 ครั้ง",
@@ -1404,7 +1404,7 @@
   "termsSectionChangesToTerms": "การเปลี่ยนแปลงเงื่อนไข",
   "termsSectionGoverningLaw": "กฎหมายที่ใช้บังคับ",
   "termsSectionContactUs": "ติดต่อเรา",
-  "termsAcknowledgment": "โดยการใช้ MiRO คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว",
+  "termsAcknowledgment": "โดยการใช้ ArCal คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว",
   "termsLastUpdated": "อัพเดทล่าสุด: 15 กุมภาพันธ์ 2026",
 
   "profileAndSettings": "โปรไฟล์และการตั้งค่า",
@@ -1420,7 +1420,7 @@
   "dailyGoals": "เป้าหมายรายวัน",
   "chatAiModeSection": "โหมด Chat AI",
   "selectAiPowersChat": "เลือก AI ที่จะใช้ในแชท",
-  "miroAi": "Miro AI",
+  "miroAi": "ArCal AI",
   "miroAiSubtitle": "ใช้ Gemini • รองรับหลายภาษา • ความแม่นยำสูง",
   "localAi": "Local AI",
   "localAiSubtitle": "ทำงานบนอุปกรณ์ • ภาษาอังกฤษเท่านั้น • ความแม่นยำพื้นฐาน",
@@ -1448,8 +1448,8 @@
     }
   },
   "accountSection": "บัญชี",
-  "miroId": "MiRO ID",
-  "miroIdCopied": "คัดลอก MiRO ID แล้ว!",
+  "miroId": "ArCal ID",
+  "miroIdCopied": "คัดลอก ArCal ID แล้ว!",
   "inviteFriends": "เชิญเพื่อน",
   "inviteFriendsSubtitle": "แชร์รหัสแนะนำของคุณและรับรางวัล!",
   "unlimitedAiDoubleRewards": "AI ไม่จำกัด + รางวัลสองเท่า",
@@ -1491,7 +1491,7 @@
   "showTutorialAgain": "แสดงทัวร์อีกครั้ง",
   "viewFeatureTour": "ดูทัวร์ฟีเจอร์",
   "showTutorialDialogTitle": "แสดงทัวร์",
-  "showTutorialDialogContent": "จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ Miro AI\n\nคุณจะกลับไปที่หน้าหลัก",
+  "showTutorialDialogContent": "จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ ArCal AI\n\nคุณจะกลับไปที่หน้าหลัก",
   "showTutorialButton": "แสดงทัวร์",
   "tutorialResetMessage": "รีเซ็ตทัวร์แล้ว! ไปที่หน้าหลักเพื่อดู",
   "foodAnalysisTutorial": "ทัวร์การวิเคราะห์อาหาร",
@@ -1531,8 +1531,8 @@
   "appWillRefresh": "แอปจะรีเฟรชเพื่อแสดงข้อมูลที่กู้คืน",
   "backupFailed": "สร้างสำรองข้อมูลล้มเหลว",
   "invalidBackupFile": "ไฟล์สำรองข้อมูลไม่ถูกต้อง",
-  "restoreSelectDataFile": "ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (miro_data_*.json) แทน",
-  "restoreZeroEntriesHint": "ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (miro_data_*.json) ไม่ใช่ไฟล์ energy",
+  "restoreSelectDataFile": "ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (arcal_data_*.json) แทน",
+  "restoreZeroEntriesHint": "ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (arcal_data_*.json) ไม่ใช่ไฟล์ energy",
   "restoreFailed": "กู้คืนล้มเหลว",
   "analyticsDataCollection": "การเก็บข้อมูลการวิเคราะห์",
   "analyticsEnabled": "เปิดการวิเคราะห์แล้ว - ขอบคุณที่ช่วยปรับปรุงแอป",
@@ -1678,7 +1678,7 @@
   "questBarClaimed": "เคลมแล้ว!",
   "questBarHideOffer": "ซ่อน",
   "questBarViewDetails": "ดูเลย",
-  "questBarShareText": "มาลองแอป MiRO กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n{link}",
+  "questBarShareText": "มาลองแอป ArCal กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n{link}",
   "@questBarShareText": {
     "placeholders": {
       "link": {
@@ -1686,7 +1686,7 @@
       }
     }
   },
-  "questBarShareSubject": "ชวนใช้ MiRO",
+  "questBarShareSubject": "ชวนใช้ ArCal",
 
   "claimButtonTitle": "กดเพื่อรับ Daily Energy",
   "claimButtonReceived": "ได้รับ +{energy}E แล้ว!",
@@ -1864,7 +1864,7 @@
   "retroScanStart": "สแกนรูปของฉัน",
   "retroScanSkip": "ข้ามไปก่อน",
   "retroScanInProgress": "กำลังสแกน...",
-  "retroScanTagline": "MiRO กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ",
+  "retroScanTagline": "ArCal กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ",
   "retroScanFetchingPhotos": "กำลังดึงรูปภาพล่าสุด...",
   "retroScanAnalyzing": "กำลังตรวจจับรูปอาหาร...",
   "retroScanPhotosFound": "พบ {count} รูปใน 1 วันที่ผ่านมา",
@@ -1888,8 +1888,8 @@
   "retroScanNoResultsDesc": "ไม่พบรูปอาหารใน 1 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!",
   "retroScanAnalyzeHint": "กด \"วิเคราะห์ทั้งหมด\" บน timeline เพื่อให้ AI วิเคราะห์โภชนาการ",
   "retroScanDone": "เข้าใจแล้ว!",
-  "welcomeEndTitle": "ยินดีต้อนรับสู่ MiRO!",
-  "welcomeEndMessage": "MiRO ยินดีรับใช้",
+  "welcomeEndTitle": "ยินดีต้อนรับสู่ ArCal!",
+  "welcomeEndMessage": "ArCal ยินดีรับใช้",
   "welcomeEndJourney": "Have a nice journey together!!",
   "welcomeEndStart": "เริ่มใช้งานเลย!",
   "greetingCalorieSummary": "สวัสดีค่ะ วันนี้ช่วยอะไรได้บ้าง? ตอนนี้คุณเหลือแคลอรี่ให้ทานอีก {remaining} kcal ทานโปรตีน {protein}g คาร์บ {carbs}g ไขมัน {fat}g ทานอะไรเล่าให้ฉันฟัง แยกเป็นมื้อๆ มาทีเดียวได้เลยค่ะ ดิฉันจะแยกเป็นรายการๆ และบันทึกให้เองค่ะ ยิ่งบอกละเอียด ยิ่งแม่นยำคะ",
@@ -1913,8 +1913,8 @@
       "balance": { "type": "int" }
     }
   },
-  "greetingRenamePhotoTip": "คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ MiRO วิเคราะห์ได้แม่นยำขึ้นนะคะ",
-  "greetingAddIngredientsTip": "คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ MiRO วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง",
+  "greetingRenamePhotoTip": "คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ ArCal วิเคราะห์ได้แม่นยำขึ้นนะคะ",
+  "greetingAddIngredientsTip": "คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ ArCal วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง",
   "greetingBackupReminder": "เจ้านายตอนนี้คุณไม่ได้ backup ข้อมูลมาแล้ว {days} วันนะคะ ดิฉันแนะนำให้ backup ใน Setting เพราะข้อมูลของเจ้านายอยู่ในเครื่อง ไม่ได้อยู่ใน internet และฉันไม่สามารถกู้คืนข้อมูลให้ได้นะคะ",
   "@greetingBackupReminder": {
     "placeholders": {
@@ -1989,7 +1989,7 @@
   "bmrSettingTitle": "BMR (อัตราการเผาผลาญขั้นพื้นฐาน)",
   "bmrSettingSubtitle": "ใช้คำนวณพลังงานจากการเคลื่อนไหว",
   "bmrDialogTitle": "ตั้งค่า BMR ของคุณ",
-  "bmrDialogDescription": "MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
+  "bmrDialogDescription": "ArCal ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
   "healthSyncEnabledBmrHint": "เปิด Health Sync แล้ว BMR เริ่มต้น: 1500 kcal/วัน — ปรับได้ใน Settings",
   "privacyPolicySectionHealthData": "การเชื่อมต่อข้อมูลสุขภาพ",
   "termsSectionHealthDataSync": "การซิงค์ข้อมูลสุขภาพ",
@@ -2206,6 +2206,12 @@
   "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
   "privacyConsentAccept": "ดำเนินการต่อ",
   "privacyConsentOptional": "ไม่บังคับ",
+  "arScan": "สแกน AR",
+  "arScanPositionFood": "วางอาหารในกรอบ",
+  "arScanStartCapture": "เริ่มสแกน",
+  "arScanContinueAnalysis": "ดำเนินการวิเคราะห์",
+  "takePhoto": "ถ่ายรูป",
+  "pickFromGallery": "เลือกจากแกลเลอรี",
   "arScanFoodNotDetected": "ไม่พบอาหาร",
   "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่",
   "reanalyze": "วิเคราะห์ใหม่",

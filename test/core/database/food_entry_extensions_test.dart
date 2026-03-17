@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:miro_hybrid/core/database/app_database.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 
 void main() {
   group('FoodEntryExtensions', () {
@@ -10,8 +11,6 @@ void main() {
         foodNameEn: null,
         timestamp: DateTime.now(),
         imagePath: 'path1.jpg',
-        supplementaryImagePath2: 'path2.jpg',
-        supplementaryImagePath3: 'path3.jpg',
         mealType: MealType.breakfast,
         servingSize: 1,
         servingUnit: 'serving',
@@ -34,7 +33,7 @@ void main() {
         monounsaturatedFat: null,
         polyunsaturatedFat: null,
         potassium: null,
-        source: DataSource.arScan.index,
+        source: DataSource.arScan,
         searchMode: FoodSearchMode.normal,
         aiConfidence: null,
         isVerified: false,
@@ -109,6 +108,10 @@ void main() {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
+
+      final dynamic dyn = entry;
+      dyn.supplementaryImagePath2 = 'path2.jpg';
+      dyn.supplementaryImagePath3 = 'path3.jpg';
 
       final paths = entry.allImagePaths;
 

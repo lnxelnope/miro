@@ -16,13 +16,13 @@ function generateRandomString(length: number): string {
 }
 
 /**
- * Generate a random MiRO ID for test users
+ * Generate a random ArCal ID for test users
  */
 function generateMiroId(): string {
   const part1 = Math.random().toString(36).substring(2, 6).toUpperCase();
   const part2 = Math.random().toString(36).substring(2, 6).toUpperCase();
   const part3 = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `MIRO-${part1}-${part2}-${part3}`;
+  return `ARCAL-${part1}-${part2}-${part3}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -35,12 +35,12 @@ export async function POST(request: NextRequest) {
 
     if (!referralCode) {
       return NextResponse.json(
-        { error: 'Referral code (MiRO ID) is required' },
+        { error: 'Referral code (ArCal ID) is required' },
         { status: 400 }
       );
     }
 
-    // 1. Look up referrer by MiRO ID
+    // 1. Look up referrer by ArCal ID
     const referrerSnapshot = await db
       .collection('users')
       .where('miroId', '==', referralCode)

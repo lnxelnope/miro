@@ -23,14 +23,14 @@ class TermsScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.termsSectionAcceptanceOfTerms,
               [
-                'By downloading, installing, or using MiRO, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
+                'By downloading, installing, or using ArCal, you agree to be bound by these Terms of Service. If you do not agree, do not use the app.',
               ],
               isDark,
             ),
             _buildSection(
               L10n.of(context)!.termsSectionServiceDescription,
               [
-                'MiRO is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
+                'ArCal is a nutrition tracking application that uses AI-powered analysis to help estimate nutritional content of food from photos and text descriptions.',
               ],
               isDark,
             ),
@@ -56,7 +56,7 @@ class TermsScreen extends StatelessWidget {
                 '• Energy balance is linked to your device and persists across app reinstalls',
                 '',
                 'Energy Disputes:',
-                '• All decisions made by the MiRO system regarding Energy balance are final',
+                '• All decisions made by the ArCal system regarding Energy balance are final',
                 '• In case of technical errors affecting Energy balance, contact support with transaction details',
                 '• We reserve the right to investigate and adjust Energy balances in cases of verified system errors',
                 '• Fraudulent attempts to manipulate Energy balance may result in account suspension',
@@ -97,7 +97,7 @@ class TermsScreen extends StatelessWidget {
                 '',
                 'Recovery Key:',
                 '',
-                '• A Recovery Key (MIRO-XXXX-XXXX) is generated for your account',
+                '• A Recovery Key (ARCAL-XXXX-XXXX) is generated for your account',
                 '• View your Recovery Key in Profile → Account',
                 '• Use the Recovery Key to restore your account on a new device',
                 '• Redeeming a Recovery Key transfers Energy, food history, and generates a new key for the new device',
@@ -140,7 +140,7 @@ class TermsScreen extends StatelessWidget {
               L10n.of(context)!.termsSectionIntellectualProperty,
               [
                 '• All app code, UI design, and content are proprietary and protected by copyright',
-                '• The MiRO name and logo are trademarks',
+                '• The ArCal name and logo are trademarks',
                 '• You may not copy, modify, or distribute app content without permission',
               ],
               isDark,
@@ -159,15 +159,15 @@ class TermsScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.termsSectionHealthDataSync,
               [
-                'MiRO offers optional integration with Apple Health (iOS) and Google Health Connect (Android).',
+                'ArCal offers optional integration with Apple Health (iOS) and Google Health Connect (Android).',
                 '',
                 '• Health Sync is entirely optional and must be enabled by you',
-                '• When enabled, MiRO reads your active energy burned and writes dietary nutrition data to your Health App',
+                '• When enabled, ArCal reads your active energy burned and writes dietary nutrition data to your Health App',
                 '• Nutritional data written to Health App is based on your manual entries and AI estimates — accuracy is not guaranteed',
-                '• Deleting a food entry in MiRO will also remove it from your Health App',
+                '• Deleting a food entry in ArCal will also remove it from your Health App',
                 '• Disabling Health Sync will stop future syncing but will NOT delete previously synced records',
                 '• We are NOT responsible for how third-party apps (Apple Health, Google Health Connect, fitness trackers) interpret or display the data',
-                '• Health data never leaves your device — it is synced locally between MiRO and your Health App only',
+                '• Health data never leaves your device — it is synced locally between ArCal and your Health App only',
               ],
               isDark,
             ),

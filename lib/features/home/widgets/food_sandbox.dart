@@ -15,6 +15,8 @@ class FoodSandbox extends ConsumerStatefulWidget {
   final void Function(List<FoodEntry> selected) onDeleteSelected;
   final void Function(List<FoodEntry> selected) onAnalyzeSelected;
   final void Function(List<FoodEntry> selected, DateTime newDate)? onMoveToDate;
+  /// เมื่อโหมดเลือกเปิด/ปิด — ใช้ซ่อน AnalyzeBar ด้านล่างเพื่อไม่ให้กด "Analyze All" โดยไม่ตั้งใจ
+  final void Function(bool isSelectionMode)? onSelectionModeChanged;
 
   const FoodSandbox({
     super.key,
@@ -23,6 +25,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
     required this.onDeleteSelected,
     required this.onAnalyzeSelected,
     this.onMoveToDate,
+    this.onSelectionModeChanged,
   });
 
   @override
@@ -40,6 +43,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
       _selectionMode = true;
       _selectedIds.add(entryId);
     });
+    widget.onSelectionModeChanged?.call(true);
   }
 
   Future<void> _moveSelectedToDate() async {
@@ -65,13 +69,17 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
       _selectionMode = false;
       _selectedIds.clear();
     });
+    widget.onSelectionModeChanged?.call(false);
   }
 
   void _toggleSelection(int entryId) {
     setState(() {
       if (_selectedIds.contains(entryId)) {
         _selectedIds.remove(entryId);
-        if (_selectedIds.isEmpty) _selectionMode = false;
+        if (_selectedIds.isEmpty) {
+          _selectionMode = false;
+          widget.onSelectionModeChanged?.call(false);
+        }
       } else {
         _selectedIds.add(entryId);
       }

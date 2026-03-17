@@ -1,5 +1,5 @@
 /**
- * Firebase Cloud Functions for MIRO Energy System
+ * Firebase Cloud Functions for ArCal Energy System
  *
  * Export all functions here
  */

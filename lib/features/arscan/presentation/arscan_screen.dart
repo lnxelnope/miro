@@ -1,18 +1,19 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:miro_hybrid/core/theme/app_colors.dart';
 import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
 
 import '../application/camera_stream_controller.dart';
+import '../application/device_angle_sensor.dart';
+import '../application/multi_angle_capture_controller.dart';
 import '../domain/models/ar_scan_detection.dart';
 import 'widgets/arscan_bounding_box_overlay.dart';
 import 'widgets/camera_preview_view.dart';
+import 'widgets/multi_angle_capture_overlay.dart';
 
-/// ARscan screen สำหรับแสดง live camera preview (เต็มหน้าจอ)
-/// โฟกัสที่โครงสร้างและ lifecycle ของกล้อง
 class ARscanScreen extends ConsumerStatefulWidget {
   const ARscanScreen({super.key});
 
@@ -24,19 +25,42 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
     with WidgetsBindingObserver {
   final ArScanCameraStreamController _streamController =
       ArScanCameraStreamController();
+  late final DeviceAngleSensor _angleSensor;
+  late final MultiAngleCaptureController _captureController;
   bool _isInitialized = false;
-  bool _isOpeningSettings = false;
+  bool _isPopping = false;
+  VoidCallback? _completeListener;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _angleSensor = DeviceAngleSensor();
+    _captureController = MultiAngleCaptureController(
+      cameraStreamController: _streamController,
+      deviceAngleSensor: _angleSensor,
+    );
+    _completeListener = _onCaptureComplete;
+    _captureController.isComplete.addListener(_completeListener!);
     _initializeCamera();
+  }
+
+  void _onCaptureComplete() {
+    if (!_captureController.isComplete.value) return;
+    if (_isPopping) return;
+    _isPopping = true;
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+      final imagePaths = _captureController.capturedImages
+          .map((r) => r.imagePath)
+          .toList();
+      Navigator.of(context).pop(imagePaths);
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // ให้ behavior สอดคล้องกับ CameraScreen เดิม
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       if (mounted) {
@@ -44,7 +68,7 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
           _isInitialized = false;
         });
       }
-      _streamController.stopStream();
+      _streamController.stopStream().catchError((_) {});
     } else if (state == AppLifecycleState.resumed) {
       _initializeCamera();
     }
@@ -86,10 +110,27 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
   @override
   void dispose() {
+    if (_completeListener != null) {
+      _captureController.isComplete.removeListener(_completeListener!);
+    }
     WidgetsBinding.instance.removeObserver(this);
     _isInitialized = false;
-    _streamController.dispose();
+
+    // ต้อง dispose captureController ก่อน (รอ pending capture เสร็จ)
+    // แล้วค่อย dispose streamController (dispose camera)
+    // ป้องกัน Camera2 unlockAutoFocus NPE crash
+    _disposeAsync();
     super.dispose();
+  }
+
+  Future<void> _disposeAsync() async {
+    try {
+      await _captureController.dispose();
+    } catch (_) {}
+    _angleSensor.dispose();
+    try {
+      await _streamController.dispose();
+    } catch (_) {}
   }
 
   @override
@@ -109,7 +150,6 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
               controller: _streamController.cameraController,
             ),
             _buildTopBar(),
-            _buildBottomBar(),
             ValueListenableBuilder<ArScanState>(
               valueListenable: _streamController.detectionState,
               builder: (_, state, __) {
@@ -124,15 +164,10 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
                 );
               },
             ),
-            if (_isOpeningSettings)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black54,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-                ),
-              ),
+            MultiAngleCaptureOverlay(
+              controller: _captureController,
+              streamController: _streamController,
+            ),
           ],
         ),
       ),
@@ -151,124 +186,51 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close, color: Colors.white, size: 26),
               onPressed: () => Navigator.of(context).maybePop(),
               tooltip: l10n.cancel,
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.xs + 2,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
-                borderRadius: AppRadius.xl,
-              ),
-              child: Text(
-                l10n.cameraTakePhotoOfFood,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+            Expanded(
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.xs + 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    borderRadius: AppRadius.xl,
+                  ),
+                  child: Text(
+                    l10n.cameraTakePhotoOfFood,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 40),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    final l10n = L10n.of(context)!;
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            left: AppSpacing.lg,
-            right: AppSpacing.lg,
-            bottom: AppSpacing.lg,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildRoundedButton(
-                icon: Icons.help_outline,
-                label: l10n.gallery,
-                onTap: () {},
-              ),
-              _buildRoundedButton(
-                icon: Icons.settings_input_antenna_rounded,
-                label: l10n.navCamera,
-                onTap: _openSystemSettings,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoundedButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.4),
-          borderRadius: AppRadius.xl,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+            ValueListenableBuilder<FlashMode>(
+              valueListenable: _streamController.flashMode,
+              builder: (_, mode, __) {
+                final isOn = mode == FlashMode.torch;
+                return IconButton(
+                  icon: Icon(
+                    isOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
+                    color: isOn ? const Color(0xFFFBBF24) : Colors.white,
+                    size: 26,
+                  ),
+                  onPressed: () => _streamController.toggleFlash(),
+                  tooltip: 'Flash',
+                );
+              },
             ),
           ],
         ),
       ),
     );
   }
-
-  Future<void> _openSystemSettings() async {
-    setState(() => _isOpeningSettings = true);
-    try {
-      const platform = MethodChannel('miro_hybrid/settings');
-      await platform.invokeMethod<void>('openAppSettings');
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Failed to open settings'),
-        backgroundColor: AppColors.error,
-        duration: Duration(seconds: 2),
-      ));
-    } finally {
-      if (mounted) {
-        setState(() => _isOpeningSettings = false);
-      }
-    }
-  }
 }
-

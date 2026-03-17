@@ -120,7 +120,7 @@ abstract class L10n {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'MiRO'**
+  /// **'ArCal'**
   String get appName;
 
   /// No description provided for @save.
@@ -510,7 +510,7 @@ abstract class L10n {
   /// No description provided for @chatHint.
   ///
   /// In en, this message translates to:
-  /// **'Tell Miro e.g. \"Log fried rice\"...'**
+  /// **'Tell ArCal e.g. \"Log fried rice\"...'**
   String get chatHint;
 
   /// No description provided for @chatFoodSaved.
@@ -625,7 +625,7 @@ abstract class L10n {
   /// No description provided for @proUnlocked.
   ///
   /// In en, this message translates to:
-  /// **'MiRO Pro'**
+  /// **'ArCal Pro'**
   String get proUnlocked;
 
   /// No description provided for @proDescription.
@@ -745,7 +745,7 @@ abstract class L10n {
   /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO'**
+  /// **'ArCal'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.
@@ -1171,7 +1171,7 @@ abstract class L10n {
   /// No description provided for @appBarMiro.
   ///
   /// In en, this message translates to:
-  /// **'MIRO'**
+  /// **'ArCal'**
   String get appBarMiro;
 
   /// No description provided for @permissionRequired.
@@ -1183,7 +1183,7 @@ abstract class L10n {
   /// No description provided for @permissionRequiredDesc.
   ///
   /// In en, this message translates to:
-  /// **'MIRO needs access to the following:'**
+  /// **'ArCal needs access to the following:'**
   String get permissionRequiredDesc;
 
   /// No description provided for @permissionPhotos.
@@ -2396,7 +2396,7 @@ abstract class L10n {
   /// No description provided for @helloImMiro.
   ///
   /// In en, this message translates to:
-  /// **'Hello! I\'m Miro'**
+  /// **'Hello! I\'m ArCal'**
   String get helloImMiro;
 
   /// No description provided for @tellMeWhatYouAteToday.
@@ -2588,7 +2588,7 @@ abstract class L10n {
   /// No description provided for @localAiHelpNote.
   ///
   /// In en, this message translates to:
-  /// **'Note: English only, basic parsing\nSwitch to Miro AI for better results!'**
+  /// **'Note: English only, basic parsing\nSwitch to ArCal AI for better results!'**
   String get localAiHelpNote;
 
   /// No description provided for @hiNoFoodLogged.
@@ -2943,7 +2943,7 @@ abstract class L10n {
   /// No description provided for @referralCodeHint.
   ///
   /// In en, this message translates to:
-  /// **'MIRO-XXXX-XXXX-XXXX'**
+  /// **'ARCAL-XXXX-XXXX-XXXX'**
   String get referralCodeHint;
 
   /// No description provided for @referralSubmitCode.
@@ -2991,7 +2991,7 @@ abstract class L10n {
   /// No description provided for @referralStep1Description.
   ///
   /// In en, this message translates to:
-  /// **'Copy and share your MiRO ID with friends'**
+  /// **'Copy and share your ArCal ID with friends'**
   String get referralStep1Description;
 
   /// No description provided for @referralStep2Title.
@@ -3435,7 +3435,7 @@ abstract class L10n {
   /// No description provided for @privacyPolicySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO — My Intake Record Oracle'**
+  /// **'ArCal — AI Calorie Counter'**
   String get privacyPolicySubtitle;
 
   /// No description provided for @privacyPolicyHeaderNote.
@@ -3531,7 +3531,7 @@ abstract class L10n {
   /// No description provided for @termsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO — My Intake Record Oracle'**
+  /// **'ArCal — AI Calorie Counter'**
   String get termsSubtitle;
 
   /// No description provided for @termsSectionAcceptanceOfTerms.
@@ -3621,7 +3621,7 @@ abstract class L10n {
   /// No description provided for @termsAcknowledgment.
   ///
   /// In en, this message translates to:
-  /// **'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.'**
+  /// **'By using ArCal, you acknowledge that you have read, understood, and agree to these Terms of Service.'**
   String get termsAcknowledgment;
 
   /// No description provided for @termsLastUpdated.
@@ -3669,7 +3669,7 @@ abstract class L10n {
   /// No description provided for @miroAi.
   ///
   /// In en, this message translates to:
-  /// **'Miro AI'**
+  /// **'ArCal AI'**
   String get miroAi;
 
   /// No description provided for @miroAiSubtitle.
@@ -3915,13 +3915,13 @@ abstract class L10n {
   /// No description provided for @miroId.
   ///
   /// In en, this message translates to:
-  /// **'MiRO ID'**
+  /// **'ArCal ID'**
   String get miroId;
 
   /// No description provided for @miroIdCopied.
   ///
   /// In en, this message translates to:
-  /// **'MiRO ID copied!'**
+  /// **'ArCal ID copied!'**
   String get miroIdCopied;
 
   /// No description provided for @inviteFriends.
@@ -4155,7 +4155,7 @@ abstract class L10n {
   /// No description provided for @showTutorialDialogContent.
   ///
   /// In en, this message translates to:
-  /// **'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with Miro AI\n\nYou will return to the Home screen.'**
+  /// **'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with ArCal AI\n\nYou will return to the Home screen.'**
   String get showTutorialDialogContent;
 
   /// No description provided for @showTutorialButton.
@@ -4347,13 +4347,13 @@ abstract class L10n {
   /// No description provided for @restoreSelectDataFile.
   ///
   /// In en, this message translates to:
-  /// **'This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.'**
+  /// **'This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.'**
   String get restoreSelectDataFile;
 
   /// No description provided for @restoreZeroEntriesHint.
   ///
   /// In en, this message translates to:
-  /// **'No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.'**
+  /// **'No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.'**
   String get restoreZeroEntriesHint;
 
   /// No description provided for @restoreFailed.
@@ -4629,13 +4629,13 @@ abstract class L10n {
   /// No description provided for @questBarShareText.
   ///
   /// In en, this message translates to:
-  /// **'Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}'**
+  /// **'Try ArCal! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}'**
   String questBarShareText(String link);
 
   /// No description provided for @questBarShareSubject.
   ///
   /// In en, this message translates to:
-  /// **'Try MiRO'**
+  /// **'Try ArCal'**
   String get questBarShareSubject;
 
   /// No description provided for @claimButtonTitle.
@@ -4965,7 +4965,7 @@ abstract class L10n {
   /// No description provided for @retroScanTagline.
   ///
   /// In en, this message translates to:
-  /// **'MiRO is transforming your\nfood photos into health data.'**
+  /// **'ArCal is transforming your\nfood photos into health data.'**
   String get retroScanTagline;
 
   /// No description provided for @retroScanFetchingPhotos.
@@ -5025,13 +5025,13 @@ abstract class L10n {
   /// No description provided for @welcomeEndTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to MiRO!'**
+  /// **'Welcome to ArCal!'**
   String get welcomeEndTitle;
 
   /// No description provided for @welcomeEndMessage.
   ///
   /// In en, this message translates to:
-  /// **'MiRO is at your service.'**
+  /// **'ArCal is at your service.'**
   String get welcomeEndMessage;
 
   /// No description provided for @welcomeEndJourney.
@@ -5067,13 +5067,13 @@ abstract class L10n {
   /// No description provided for @greetingRenamePhotoTip.
   ///
   /// In en, this message translates to:
-  /// **'Tip: You can rename food photos to help MiRO analyze more accurately!'**
+  /// **'Tip: You can rename food photos to help ArCal analyze more accurately!'**
   String get greetingRenamePhotoTip;
 
   /// No description provided for @greetingAddIngredientsTip.
   ///
   /// In en, this message translates to:
-  /// **'Tip: You can add ingredients you\'re sure about before sending to MiRO for analysis. I\'ll figure out all the boring little details for you!'**
+  /// **'Tip: You can add ingredients you\'re sure about before sending to ArCal for analysis. I\'ll figure out all the boring little details for you!'**
   String get greetingAddIngredientsTip;
 
   /// No description provided for @greetingBackupReminder.
@@ -5873,7 +5873,7 @@ abstract class L10n {
   /// No description provided for @bmrDialogDescription.
   ///
   /// In en, this message translates to:
-  /// **'MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.'**
+  /// **'ArCal uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.'**
   String get bmrDialogDescription;
 
   /// No description provided for @healthSyncEnabledBmrHint.
@@ -6797,7 +6797,7 @@ abstract class L10n {
   /// No description provided for @privacyConsentSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.'**
+  /// **'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.'**
   String get privacyConsentSubtitle;
 
   /// No description provided for @privacyConsentNotifTitle.
@@ -6857,7 +6857,7 @@ abstract class L10n {
   /// No description provided for @privacyConsentAdsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Personalized ads help keep MIRO free. You can opt out anytime.'**
+  /// **'Personalized ads help keep ArCal free. You can opt out anytime.'**
   String get privacyConsentAdsDesc;
 
   /// No description provided for @privacyConsentAdsBullet1.
@@ -6895,6 +6895,78 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Optional'**
   String get privacyConsentOptional;
+
+  /// No description provided for @arScan.
+  ///
+  /// In en, this message translates to:
+  /// **'AR Scan'**
+  String get arScan;
+
+  /// No description provided for @arScanPositionFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Position food in the frame'**
+  String get arScanPositionFood;
+
+  /// No description provided for @arScanStartCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Scanning'**
+  String get arScanStartCapture;
+
+  /// No description provided for @arScanContinueAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Analysis'**
+  String get arScanContinueAnalysis;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @pickFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from Gallery'**
+  String get pickFromGallery;
+
+  /// No description provided for @arScanFoodNotDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Food not detect'**
+  String get arScanFoodNotDetected;
+
+  /// No description provided for @arScanAngleTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get arScanAngleTop;
+
+  /// No description provided for @arScanAngleDiagonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagonal'**
+  String get arScanAngleDiagonal;
+
+  /// No description provided for @arScanAngleSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get arScanAngleSide;
+
+  /// No description provided for @arScanAngleProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String arScanAngleProgress(int current, int total);
+
+  /// No description provided for @arScanAngleCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'{zone} angle captured ({current}/{total})'**
+  String arScanAngleCaptured(String zone, int current, int total);
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

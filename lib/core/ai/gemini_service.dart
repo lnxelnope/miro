@@ -605,6 +605,7 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
     required String type,
     required String prompt,
     String? imageBase64,
+    List<String>? additionalImagesBase64,
     required String description,
     EnergyService? energyService,
     int? itemCount,
@@ -642,6 +643,8 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
           'deviceId': deviceId,
           'timezoneOffset': timezoneOffset,
           if (imageBase64 != null) 'imageBase64': imageBase64,
+          if (additionalImagesBase64 != null && additionalImagesBase64.isNotEmpty)
+            'additionalImagesBase64': additionalImagesBase64,
           if (itemCount != null) 'itemCount': itemCount,
         }),
       );
@@ -823,24 +826,25 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
   // Analyze food image (ใช้ Backend เท่านั้น)
   static Future<FoodAnalysisResult?> analyzeFoodImage(
     File imageFile, {
+    List<File>? supplementaryImages,
     EnergyService? energyService,
     String? foodName,
     double? quantity,
     String? unit,
     FoodSearchMode searchMode = FoodSearchMode.normal,
     List<Map<String, dynamic>>? userIngredients,
-    String? calibrationHint, // จาก CalibrationResult.toPromptHint()
+    String? calibrationHint,
   }) async {
+    final totalImages = 1 + (supplementaryImages?.length ?? 0);
     AppLogger.info(
-        'Starting image analysis: ${imageFile.path} (mode: ${searchMode.name})');
+        'Starting image analysis: ${imageFile.path} '
+        '(mode: ${searchMode.name}, images: $totalImages)');
 
-    // Check if file exists
     if (!await imageFile.exists()) {
       AppLogger.error('File not found: ${imageFile.path}');
       throw Exception('Image file not found');
     }
 
-    // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
@@ -849,12 +853,27 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
     try {
       AppLogger.info('Using Backend (Energy System)');
       final isProductMode = searchMode == FoodSearchMode.product;
+      final maxW = isProductMode ? 1600 : 800;
       final base64Image = await _compressImageToBase64(
         imageFile,
-        maxWidth: isProductMode ? 1600 : 800,
+        maxWidth: maxW,
       );
 
-      // Choose prompt based on search mode
+      // Compress supplementary images (AR multi-angle)
+      List<String>? additionalBase64;
+      if (supplementaryImages != null && supplementaryImages.isNotEmpty) {
+        additionalBase64 = [];
+        for (final sup in supplementaryImages) {
+          if (await sup.exists()) {
+            additionalBase64.add(
+              await _compressImageToBase64(sup, maxWidth: maxW),
+            );
+          }
+        }
+        if (additionalBase64.isEmpty) additionalBase64 = null;
+      }
+
+      final hasMultiImages = additionalBase64 != null && additionalBase64.isNotEmpty;
       final hasCalibration = calibrationHint != null && calibrationHint.isNotEmpty;
       String prompt = isProductMode
           ? _getProductImageAnalysisPrompt()
@@ -863,7 +882,33 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
               hasCalibration: hasCalibration,
             );
 
-      // Add optional user-provided information to prompt
+      if (hasMultiImages) {
+        final totalImgs = 1 + additionalBase64.length;
+        prompt += '''
+
+═══════════════════════════════════════════════════════════════════
+MULTI-ANGLE CAPTURE ($totalImgs images of the SAME food):
+═══════════════════════════════════════════════════════════════════
+You are receiving $totalImgs photos of the EXACT SAME plate/dish taken from different angles:
+  - Image 1: Top-down view (overhead, ~0-30° from above)
+  - Image 2: Diagonal view (~30-60°, chest-level angle)
+  - Image 3: Side view (~60-90°, eye-level angle)
+
+CRITICAL INSTRUCTIONS for multi-angle analysis:
+1. PORTION SIZE IS THE #1 PRIORITY — use ALL angles to estimate volume and depth accurately.
+   The side/diagonal views reveal HEIGHT and DEPTH that a top-down photo alone cannot show.
+2. Cross-reference what you see across all images — the food is IDENTICAL in each photo,
+   only the viewing angle changes. Use this to confirm your identification.
+3. Estimate VOLUME by combining:
+   - Width × Length from the top-down view
+   - Height × Depth from the side/diagonal views
+   - Container/plate size from calibration data (if provided below)
+4. If objects look different sizes across angles, trust the angle that gives the clearest view
+   of that particular dimension (top for area, side for height).
+5. Return a SINGLE combined analysis result — do NOT analyze each image separately.
+═══════════════════════════════════════════════════════════════════''';
+      }
+
       if (foodName != null && foodName.isNotEmpty) {
         prompt += searchMode == FoodSearchMode.product
             ? '\n\nThe user has indicated this product is: "$foodName".'
@@ -876,7 +921,6 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
         prompt += '\n\nThe user has specified the quantity as: $quantity.';
       }
 
-      // ถ้ามี local calibration data จาก ML Kit → เพิ่ม hint ให้ Gemini
       if (calibrationHint != null && calibrationHint.isNotEmpty) {
         prompt += '\n\n$calibrationHint';
       }
@@ -884,12 +928,14 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
       AppLogger.info(
           '[analyzeFoodImage] mode=${searchMode.name}, '
           'foodName=$foodName, quantity=$quantity, unit=$unit, '
-          'hasCalibration=${calibrationHint != null}');
+          'hasCalibration=${calibrationHint != null}, '
+          'supplementaryImages=${additionalBase64?.length ?? 0}');
 
       final result = await _callBackend(
         type: 'image',
         prompt: prompt,
         imageBase64: base64Image,
+        additionalImagesBase64: additionalBase64,
         description: 'Food image analysis',
         energyService: service,
       );
@@ -901,7 +947,6 @@ REGIONAL SEASONING FOCUS for Indian cuisine:
         throw Exception('No result from AI analysis');
       }
 
-      // Post-process: enforce user-specified amounts (ถ้ามี)
       if (userIngredients != null && userIngredients.isNotEmpty) {
         finalResult = enforceUserIngredientAmounts(finalResult, userIngredients);
       }

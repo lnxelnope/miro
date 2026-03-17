@@ -246,7 +246,7 @@ class EnergyService {
         final miroId = data['miroId']?.toString() ?? '';
         final balance = (data['balance'] as num?)?.toInt() ?? 0;
 
-        // Cache MiRO ID
+        // Cache ArCal ID
         if (miroId.isNotEmpty) {
           await _storage.write(key: 'miro_id', value: miroId);
         }
@@ -295,7 +295,7 @@ class EnergyService {
     }
   }
 
-  /// ดึง MiRO ID ที่ cached ไว้
+  /// ดึง ArCal ID ที่ cached ไว้
   Future<String?> getMiroId() async {
     return await _storage.read(key: 'miro_id');
   }
@@ -330,7 +330,7 @@ class EnergyService {
     await addEnergy(
       welcomeGift,
       type: 'welcome_gift',
-      description: 'Welcome to MIRO! 🎉',
+      description: 'Welcome to ArCal! 🎉',
     );
 
     // Save flag in both places

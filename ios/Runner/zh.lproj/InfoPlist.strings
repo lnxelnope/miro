@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "ArCal 需要相机权限以扫描条形码和分析食物。";
+NSHealthShareUsageDescription = "ArCal 需要读取您的活动能量数据以加入每日卡路里目标。";
+NSHealthUpdateUsageDescription = "ArCal 将您记录餐食的营养数据保存到 Apple 健康。";
+NSPhotoLibraryAddUsageDescription = "ArCal 保存已分析的食物照片。";
+NSPhotoLibraryUsageDescription = "ArCal 需要访问照片库以从食物照片分析营养信息。";

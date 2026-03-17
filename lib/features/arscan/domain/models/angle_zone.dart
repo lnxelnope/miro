@@ -1,17 +1,20 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 
 /// Zone ของมุมกล้องสำหรับ multi-angle capture
+/// ไม่มีช่องว่างระหว่างโซน — ทุกมุมอยู่ในโซนใดโซนหนึ่งเสมอ
 enum AngleZone {
-  /// 0° ±15° (มองลงตรง ๆ)
+  /// 0°–30° (มองลงจากด้านบน)
   top,
 
-  /// 45° ±20°
+  /// 30°–60° (มุมเฉียง ระดับอก)
   diagonal,
 
-  /// 70° ±20°
+  /// 60°–90° (ด้านข้าง ระดับตา)
   side,
 
-  /// มุมไม่ตรงกับ zone ใด
+  /// fallback สำหรับ edge cases เท่านั้น
   outOfRange,
 }
 
@@ -19,19 +22,9 @@ extension AngleZoneHelper on AngleZone {
   static AngleZone fromDegrees(double degrees) {
     final normalized = degrees.clamp(0, 90).toDouble();
 
-    if (normalized >= 0 && normalized <= 15) {
-      return AngleZone.top;
-    }
-
-    if (normalized >= 25 && normalized <= 65) {
-      return AngleZone.diagonal;
-    }
-
-    if (normalized >= 50 && normalized <= 90) {
-      return AngleZone.side;
-    }
-
-    return AngleZone.outOfRange;
+    if (normalized <= 30) return AngleZone.top;
+    if (normalized <= 60) return AngleZone.diagonal;
+    return AngleZone.side;
   }
 }
 
@@ -39,15 +32,36 @@ extension AngleZoneHelper on AngleZone {
 @immutable
 class AngleCaptureResult {
   final AngleZone zone;
-  final String imagePath; // path ที่เก็บรูปบนดิสก์
+  final String imagePath;
   final DateTime capturedAt;
-  final double actualAngle; // มุมจริงที่วัดได้ตอน capture
+  final double actualAngle;
+
+  /// Bounding box จาก still-image detection (normalized 0-1)
+  final Rect? foodBoundingBox;
+
+  /// Label จาก still-image detection
+  final String? foodLabel;
 
   const AngleCaptureResult({
     required this.zone,
     required this.imagePath,
     required this.capturedAt,
     required this.actualAngle,
+    this.foodBoundingBox,
+    this.foodLabel,
   });
-}
 
+  AngleCaptureResult copyWithDetection({
+    Rect? foodBoundingBox,
+    String? foodLabel,
+  }) {
+    return AngleCaptureResult(
+      zone: zone,
+      imagePath: imagePath,
+      capturedAt: capturedAt,
+      actualAngle: actualAngle,
+      foodBoundingBox: foodBoundingBox ?? this.foodBoundingBox,
+      foodLabel: foodLabel ?? this.foodLabel,
+    );
+  }
+}

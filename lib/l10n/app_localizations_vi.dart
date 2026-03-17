@@ -9,7 +9,7 @@ class L10nVi extends L10n {
   L10nVi([String locale = 'vi']) : super(locale);
 
   @override
-  String get appName => 'MiRO';
+  String get appName => 'ArCal';
 
   @override
   String get save => 'Cứu';
@@ -210,7 +210,7 @@ class L10nVi extends L10n {
   String get openAiStudio => 'Mở Google AI Studio';
 
   @override
-  String get chatHint => 'Nói với Miro ví dụ: \"Cơm chiên khúc gỗ\"...';
+  String get chatHint => 'Nói với ArCal ví dụ: \"Cơm chiên khúc gỗ\"...';
 
   @override
   String get chatFoodSaved => 'Thực phẩm được ghi lại!';
@@ -271,7 +271,7 @@ class L10nVi extends L10n {
   String get upgradePro => 'Nâng cấp lên Pro';
 
   @override
-  String get proUnlocked => 'MiRO Pro';
+  String get proUnlocked => 'ArCal Pro';
 
   @override
   String get proDescription => 'Phân tích thực phẩm AI không giới hạn';
@@ -335,7 +335,7 @@ class L10nVi extends L10n {
   String get quickAdd => 'Thêm nhanh';
 
   @override
-  String get welcomeTitle => 'MiRO';
+  String get welcomeTitle => 'ArCal';
 
   @override
   String get welcomeSubtitle => 'Ghi nhật ký thực phẩm dễ dàng với AI';
@@ -566,14 +566,14 @@ class L10nVi extends L10n {
   String get appBarAiChat => 'Trò chuyện AI';
 
   @override
-  String get appBarMiro => 'MIRO';
+  String get appBarMiro => 'ArCal';
 
   @override
   String get permissionRequired => 'Cần có sự cho phép';
 
   @override
   String get permissionRequiredDesc =>
-      'MIRO cần quyền truy cập vào các thông tin sau:';
+      'ArCal cần quyền truy cập vào các thông tin sau:';
 
   @override
   String get permissionPhotos => 'Hình ảnh - để quét thực phẩm';
@@ -1339,7 +1339,7 @@ class L10nVi extends L10n {
   String get clear => 'Thông thoáng';
 
   @override
-  String get helloImMiro => 'Xin chào! Tôi là Miro';
+  String get helloImMiro => 'Xin chào! Tôi là ArCal';
 
   @override
   String get tellMeWhatYouAteToday => 'Hãy cho tôi biết hôm nay bạn đã ăn gì!';
@@ -1475,7 +1475,7 @@ class L10nVi extends L10n {
 
   @override
   String get localAiHelpNote =>
-      'Lưu ý: chỉ có tiếng Anh, phân tích cú pháp cơ bản\nChuyển sang Miro AI để có kết quả tốt hơn!';
+      'Lưu ý: chỉ có tiếng Anh, phân tích cú pháp cơ bản\nChuyển sang ArCal AI để có kết quả tốt hơn!';
 
   @override
   String hiNoFoodLogged(String target) {
@@ -1683,7 +1683,7 @@ class L10nVi extends L10n {
   String get referralEnterReferralCode => 'Nhập mã giới thiệu';
 
   @override
-  String get referralCodeHint => 'MIRO-XXXX-XXXX-XXXX';
+  String get referralCodeHint => 'ARCAL-XXXX-XXXX-XXXX';
 
   @override
   String get referralSubmitCode => 'Gửi mã';
@@ -1710,7 +1710,7 @@ class L10nVi extends L10n {
 
   @override
   String get referralStep1Description =>
-      'Sao chép và chia sẻ ID MiRO của bạn với bạn bè';
+      'Sao chép và chia sẻ ID ArCal của bạn với bạn bè';
 
   @override
   String get referralStep2Title => 'Bạn bè nhập mã của bạn';
@@ -1957,7 +1957,7 @@ class L10nVi extends L10n {
   String get privacyPolicyTitle => 'Chính sách bảo mật';
 
   @override
-  String get privacyPolicySubtitle => 'MiRO — Bản ghi thu nhập của tôi Oracle';
+  String get privacyPolicySubtitle => 'ArCal — Bản ghi thu nhập của tôi Oracle';
 
   @override
   String get privacyPolicyHeaderNote =>
@@ -2012,7 +2012,7 @@ class L10nVi extends L10n {
   String get termsOfServiceTitle => 'Điều khoản dịch vụ';
 
   @override
-  String get termsSubtitle => 'MiRO — Bản ghi thu nhập của tôi Oracle';
+  String get termsSubtitle => 'ArCal — Bản ghi thu nhập của tôi Oracle';
 
   @override
   String get termsSectionAcceptanceOfTerms => 'Chấp nhận các điều khoản';
@@ -2061,7 +2061,7 @@ class L10nVi extends L10n {
 
   @override
   String get termsAcknowledgment =>
-      'Bằng cách sử dụng MiRO, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý với các Điều khoản dịch vụ này.';
+      'Bằng cách sử dụng ArCal, bạn xác nhận rằng bạn đã đọc, hiểu và đồng ý với các Điều khoản dịch vụ này.';
 
   @override
   String get termsLastUpdated => 'Cập nhật lần cuối: ngày 15 tháng 2 năm 2026';
@@ -2087,7 +2087,7 @@ class L10nVi extends L10n {
   String get selectAiPowersChat => 'Chọn AI hỗ trợ cuộc trò chuyện của bạn';
 
   @override
-  String get miroAi => 'Miro AI';
+  String get miroAi => 'ArCal AI';
 
   @override
   String get miroAiSubtitle =>
@@ -2214,10 +2214,10 @@ class L10nVi extends L10n {
   String get accountSection => 'Tài khoản';
 
   @override
-  String get miroId => 'MiRO ID';
+  String get miroId => 'ArCal ID';
 
   @override
-  String get miroIdCopied => 'MiRO ID đã được sao chép!';
+  String get miroIdCopied => 'ArCal ID đã được sao chép!';
 
   @override
   String get inviteFriends => 'Mời bạn bè';
@@ -2343,7 +2343,7 @@ class L10nVi extends L10n {
 
   @override
   String get showTutorialDialogContent =>
-      'Điều này sẽ hiển thị chuyến tham quan tính năng nổi bật:\n\n• Hệ thống năng lượng\n• Quét ảnh kéo để làm mới\n• Trò chuyện với Miro AI\n\nBạn sẽ quay lại Màn hình chính.';
+      'Điều này sẽ hiển thị chuyến tham quan tính năng nổi bật:\n\n• Hệ thống năng lượng\n• Quét ảnh kéo để làm mới\n• Trò chuyện với ArCal AI\n\nBạn sẽ quay lại Màn hình chính.';
 
   @override
   String get showTutorialButton => 'Hiển thị hướng dẫn';
@@ -2452,11 +2452,11 @@ class L10nVi extends L10n {
 
   @override
   String get restoreSelectDataFile =>
-      'This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.';
+      'This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.';
 
   @override
   String get restoreZeroEntriesHint =>
-      'No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.';
+      'No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.';
 
   @override
   String get restoreFailed => 'Khôi phục không thành công';
@@ -2627,11 +2627,11 @@ class L10nVi extends L10n {
 
   @override
   String questBarShareText(String link) {
-    return 'Hãy thử MiRO! Phân tích thực phẩm được hỗ trợ bởi AI 🍔\nSử dụng liên kết này và cả hai chúng ta đều nhận được +20 Năng lượng miễn phí!\n\n$link';
+    return 'Hãy thử ArCal! Phân tích thực phẩm được hỗ trợ bởi AI 🍔\nSử dụng liên kết này và cả hai chúng ta đều nhận được +20 Năng lượng miễn phí!\n\n$link';
   }
 
   @override
-  String get questBarShareSubject => 'Hãy thử MiRO';
+  String get questBarShareSubject => 'Hãy thử ArCal';
 
   @override
   String get claimButtonTitle => 'Yêu cầu năng lượng hàng ngày';
@@ -2836,7 +2836,7 @@ class L10nVi extends L10n {
 
   @override
   String get retroScanTagline =>
-      'MiRO đang biến đổi bạn\nảnh thực phẩm vào dữ liệu sức khỏe.';
+      'ArCal đang biến đổi bạn\nảnh thực phẩm vào dữ liệu sức khỏe.';
 
   @override
   String get retroScanFetchingPhotos => 'Đang tìm nạp các ảnh gần đây...';
@@ -2872,10 +2872,10 @@ class L10nVi extends L10n {
   String get retroScanDone => 'Hiểu rồi!';
 
   @override
-  String get welcomeEndTitle => 'Chào mừng đến với MiRO!';
+  String get welcomeEndTitle => 'Chào mừng đến với ArCal!';
 
   @override
-  String get welcomeEndMessage => 'MiRO sẵn sàng phục vụ bạn.';
+  String get welcomeEndMessage => 'ArCal sẵn sàng phục vụ bạn.';
 
   @override
   String get welcomeEndJourney =>
@@ -2902,11 +2902,11 @@ class L10nVi extends L10n {
 
   @override
   String get greetingRenamePhotoTip =>
-      'Mẹo: Bạn có thể đổi tên ảnh đồ ăn để giúp MiRO phân tích chính xác hơn!';
+      'Mẹo: Bạn có thể đổi tên ảnh đồ ăn để giúp ArCal phân tích chính xác hơn!';
 
   @override
   String get greetingAddIngredientsTip =>
-      'Mẹo: Bạn có thể thêm các thành phần mà bạn chắc chắn trước khi gửi tới MiRO để phân tích. Tôi sẽ tìm ra tất cả những chi tiết nhỏ nhàm chán cho bạn!';
+      'Mẹo: Bạn có thể thêm các thành phần mà bạn chắc chắn trước khi gửi tới ArCal để phân tích. Tôi sẽ tìm ra tất cả những chi tiết nhỏ nhàm chán cho bạn!';
 
   @override
   String greetingBackupReminder(int days) {
@@ -3360,7 +3360,7 @@ class L10nVi extends L10n {
 
   @override
   String get bmrDialogDescription =>
-      'MiRO sử dụng BMR để trừ năng lượng nghỉ ngơi từ tổng calo đốt cháy, chỉ hiển thị năng lượng hoạt động. Mặc định là 1500 kcal/ngày. Bạn có thể tìm BMR từ ứng dụng sức khỏe hoặc máy tính trực tuyến.';
+      'ArCal sử dụng BMR để trừ năng lượng nghỉ ngơi từ tổng calo đốt cháy, chỉ hiển thị năng lượng hoạt động. Mặc định là 1500 kcal/ngày. Bạn có thể tìm BMR từ ứng dụng sức khỏe hoặc máy tính trực tuyến.';
 
   @override
   String get healthSyncEnabledBmrHint =>
@@ -3883,7 +3883,7 @@ class L10nVi extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'Please review how MIRO uses your data. Toggle each option and scroll to the bottom to continue.';
+      'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.';
 
   @override
   String get privacyConsentNotifTitle => 'Push Notifications';
@@ -3918,7 +3918,7 @@ class L10nVi extends L10n {
 
   @override
   String get privacyConsentAdsDesc =>
-      'Personalized ads help keep MIRO free. You can opt out anytime.';
+      'Personalized ads help keep ArCal free. You can opt out anytime.';
 
   @override
   String get privacyConsentAdsBullet1 =>
@@ -3940,4 +3940,44 @@ class L10nVi extends L10n {
 
   @override
   String get privacyConsentOptional => 'Optional';
+
+  @override
+  String get arScan => 'AR Scan';
+
+  @override
+  String get arScanPositionFood => 'Position food in the frame';
+
+  @override
+  String get arScanStartCapture => 'Start Scanning';
+
+  @override
+  String get arScanContinueAnalysis => 'Continue to Analysis';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get pickFromGallery => 'Pick from Gallery';
+
+  @override
+  String get arScanFoodNotDetected => 'Food not detect';
+
+  @override
+  String get arScanAngleTop => 'Top';
+
+  @override
+  String get arScanAngleDiagonal => 'Diagonal';
+
+  @override
+  String get arScanAngleSide => 'Side';
+
+  @override
+  String arScanAngleProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String arScanAngleCaptured(String zone, int current, int total) {
+    return '$zone angle captured ($current/$total)';
+  }
 }

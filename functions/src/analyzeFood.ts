@@ -1,7 +1,7 @@
 /**
  * analyzeFood - Firebase Cloud Function
  *
- * Backend API สำหรับ MIRO Energy System
+ * Backend API สำหรับ ArCal Energy System
  * รับคำขอจากแอป → ตรวจสอบ Energy Token → เรียก Gemini API → ส่งผลลัพธ์กลับ
  */
 
@@ -339,9 +339,10 @@ export async function addServerBalance(
 
 interface GeminiRequest {
   type: "image" | "text" | "barcode" | "chat" | "menu_suggestion" | "batch_text";
-  prompt?: string; // Optional: สำหรับ type=image/text/barcode/batch_text
-  text?: string; // Optional: สำหรับ type=chat/menu_suggestion
-  imageBase64?: string; // Optional: สำหรับ type=image
+  prompt?: string;
+  text?: string;
+  imageBase64?: string;
+  additionalImagesBase64?: string[];
 }
 
 /**
@@ -392,7 +393,7 @@ function buildMenuSuggestionPrompt(text: string, userContext?: any): string {
 
   const cuisinePref = userContext?.cuisinePreference || "international";
 
-  return `You are Miro, a friendly nutrition assistant for users worldwide.
+  return `You are ArCal, a friendly nutrition assistant for users worldwide.
 
 The user wants meal suggestions.
 
@@ -496,7 +497,7 @@ function buildChatPrompt(text: string, userContext?: any, foodContext?: any): st
 
   const cuisinePref = userContext?.cuisinePreference || "international";
 
-  return `You are Miro, a friendly nutrition assistant AND food scientist for users worldwide.${contextInfo}${foodContextInfo}
+  return `You are ArCal, a friendly nutrition assistant AND food scientist for users worldwide.${contextInfo}${foodContextInfo}
 
 Parse the user's message and extract ALL food items mentioned.
 The user may type in ANY language — detect the language automatically.
@@ -881,10 +882,22 @@ async function callGeminiAPI(request: GeminiRequest, apiKey: string, userContext
   if (request.imageBase64 && request.type === "image") {
     parts.push({
       inline_data: {
-        mime_type: "image/jpeg",
+        mime_type: "image/png",
         data: request.imageBase64,
       },
     });
+
+    if (request.additionalImagesBase64 && request.additionalImagesBase64.length > 0) {
+      for (const additionalImage of request.additionalImagesBase64) {
+        parts.push({
+          inline_data: {
+            mime_type: "image/png",
+            data: additionalImage,
+          },
+        });
+      }
+      console.log(`📸 Multi-angle: sending ${1 + request.additionalImagesBase64.length} images to Gemini`);
+    }
   }
 
   // batch_text needs higher output tokens for multiple items with ingredients_detail
@@ -1029,7 +1042,7 @@ export const analyzeFood = onRequest(
       console.log(`✅ Token valid. User: ${deviceId}, Server Balance: ${serverBalance}`);
 
       // ────── 4.2. Parse Request ──────
-      const {type, text, prompt, imageBase64, deviceId: requestDeviceId, userContext, foodContext, timezoneOffset, freeChat} = req.body;
+      const {type, text, prompt, imageBase64, additionalImagesBase64, deviceId: requestDeviceId, userContext, foodContext, timezoneOffset, freeChat} = req.body;
 
       // ────── 4.2.0. เช็ค Subscription (Phase 5) ──────
       const userDoc = await db.collection("users").doc(deviceId).get();
@@ -1114,6 +1127,7 @@ export const analyzeFood = onRequest(
             text: text,
             prompt: prompt,
             imageBase64: imageBase64,
+            additionalImagesBase64: additionalImagesBase64,
           };
 
           const apiKey = GEMINI_API_KEY.value();
@@ -1374,6 +1388,7 @@ export const analyzeFood = onRequest(
         text: text,
         prompt: prompt,
         imageBase64: imageBase64,
+        additionalImagesBase64: additionalImagesBase64,
       };
 
       const apiKey = GEMINI_API_KEY.value();

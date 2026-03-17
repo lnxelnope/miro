@@ -1,6 +1,6 @@
 class AppConstants {
   // App Info
-  static const String appName = 'Miro';
+  static const String appName = 'ArCal - AI Calorie Counter';
   static const String appVersion = '1.0.0';
 
   // Default Goals

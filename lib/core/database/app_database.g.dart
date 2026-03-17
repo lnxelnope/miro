@@ -42,6 +42,18 @@ class $FoodEntriesTable extends FoodEntries
   late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
       'image_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _supplementaryImagePath2Meta =
+      const VerificationMeta('supplementaryImagePath2');
+  @override
+  late final GeneratedColumn<String> supplementaryImagePath2 =
+      GeneratedColumn<String>('supplementary_image_path2', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _supplementaryImagePath3Meta =
+      const VerificationMeta('supplementaryImagePath3');
+  @override
+  late final GeneratedColumn<String> supplementaryImagePath3 =
+      GeneratedColumn<String>('supplementary_image_path3', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   late final GeneratedColumnWithTypeConverter<MealType, int> mealType =
       GeneratedColumn<int>('meal_type', aliasedName, false,
@@ -653,6 +665,8 @@ class $FoodEntriesTable extends FoodEntries
         foodNameEn,
         timestamp,
         imagePath,
+        supplementaryImagePath2,
+        supplementaryImagePath3,
         mealType,
         servingSize,
         servingUnit,
@@ -784,6 +798,20 @@ class $FoodEntriesTable extends FoodEntries
     if (data.containsKey('image_path')) {
       context.handle(_imagePathMeta,
           imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta));
+    }
+    if (data.containsKey('supplementary_image_path2')) {
+      context.handle(
+          _supplementaryImagePath2Meta,
+          supplementaryImagePath2.isAcceptableOrUnknown(
+              data['supplementary_image_path2']!,
+              _supplementaryImagePath2Meta));
+    }
+    if (data.containsKey('supplementary_image_path3')) {
+      context.handle(
+          _supplementaryImagePath3Meta,
+          supplementaryImagePath3.isAcceptableOrUnknown(
+              data['supplementary_image_path3']!,
+              _supplementaryImagePath3Meta));
     }
     if (data.containsKey('serving_size')) {
       context.handle(
@@ -1303,6 +1331,12 @@ class $FoodEntriesTable extends FoodEntries
           .read(DriftSqlType.dateTime, data['${effectivePrefix}timestamp'])!,
       imagePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}image_path']),
+      supplementaryImagePath2: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}supplementary_image_path2']),
+      supplementaryImagePath3: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}supplementary_image_path3']),
       mealType: $FoodEntriesTable.$convertermealType.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}meal_type'])!),
@@ -1523,6 +1557,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
   String? foodNameEn;
   DateTime timestamp;
   String? imagePath;
+  String? supplementaryImagePath2;
+  String? supplementaryImagePath3;
   MealType mealType;
   double servingSize;
   String servingUnit;
@@ -1625,6 +1661,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       this.foodNameEn,
       required this.timestamp,
       this.imagePath,
+      this.supplementaryImagePath2,
+      this.supplementaryImagePath3,
       required this.mealType,
       required this.servingSize,
       required this.servingUnit,
@@ -1732,6 +1770,14 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
     map['timestamp'] = Variable<DateTime>(timestamp);
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
+    }
+    if (!nullToAbsent || supplementaryImagePath2 != null) {
+      map['supplementary_image_path2'] =
+          Variable<String>(supplementaryImagePath2);
+    }
+    if (!nullToAbsent || supplementaryImagePath3 != null) {
+      map['supplementary_image_path3'] =
+          Variable<String>(supplementaryImagePath3);
     }
     {
       map['meal_type'] =
@@ -2001,6 +2047,12 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
+      supplementaryImagePath2: supplementaryImagePath2 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplementaryImagePath2),
+      supplementaryImagePath3: supplementaryImagePath3 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(supplementaryImagePath3),
       mealType: Value(mealType),
       servingSize: Value(servingSize),
       servingUnit: Value(servingUnit),
@@ -2247,6 +2299,10 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       foodNameEn: serializer.fromJson<String?>(json['foodNameEn']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
+      supplementaryImagePath2:
+          serializer.fromJson<String?>(json['supplementaryImagePath2']),
+      supplementaryImagePath3:
+          serializer.fromJson<String?>(json['supplementaryImagePath3']),
       mealType: $FoodEntriesTable.$convertermealType
           .fromJson(serializer.fromJson<int>(json['mealType'])),
       servingSize: serializer.fromJson<double>(json['servingSize']),
@@ -2368,6 +2424,10 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       'foodNameEn': serializer.toJson<String?>(foodNameEn),
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'imagePath': serializer.toJson<String?>(imagePath),
+      'supplementaryImagePath2':
+          serializer.toJson<String?>(supplementaryImagePath2),
+      'supplementaryImagePath3':
+          serializer.toJson<String?>(supplementaryImagePath3),
       'mealType': serializer
           .toJson<int>($FoodEntriesTable.$convertermealType.toJson(mealType)),
       'servingSize': serializer.toJson<double>(servingSize),
@@ -2479,6 +2539,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           Value<String?> foodNameEn = const Value.absent(),
           DateTime? timestamp,
           Value<String?> imagePath = const Value.absent(),
+          Value<String?> supplementaryImagePath2 = const Value.absent(),
+          Value<String?> supplementaryImagePath3 = const Value.absent(),
           MealType? mealType,
           double? servingSize,
           String? servingUnit,
@@ -2581,6 +2643,12 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
         foodNameEn: foodNameEn.present ? foodNameEn.value : this.foodNameEn,
         timestamp: timestamp ?? this.timestamp,
         imagePath: imagePath.present ? imagePath.value : this.imagePath,
+        supplementaryImagePath2: supplementaryImagePath2.present
+            ? supplementaryImagePath2.value
+            : this.supplementaryImagePath2,
+        supplementaryImagePath3: supplementaryImagePath3.present
+            ? supplementaryImagePath3.value
+            : this.supplementaryImagePath3,
         mealType: mealType ?? this.mealType,
         servingSize: servingSize ?? this.servingSize,
         servingUnit: servingUnit ?? this.servingUnit,
@@ -2745,6 +2813,12 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           data.foodNameEn.present ? data.foodNameEn.value : this.foodNameEn,
       timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      supplementaryImagePath2: data.supplementaryImagePath2.present
+          ? data.supplementaryImagePath2.value
+          : this.supplementaryImagePath2,
+      supplementaryImagePath3: data.supplementaryImagePath3.present
+          ? data.supplementaryImagePath3.value
+          : this.supplementaryImagePath3,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
       servingSize:
           data.servingSize.present ? data.servingSize.value : this.servingSize,
@@ -2952,6 +3026,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           ..write('foodNameEn: $foodNameEn, ')
           ..write('timestamp: $timestamp, ')
           ..write('imagePath: $imagePath, ')
+          ..write('supplementaryImagePath2: $supplementaryImagePath2, ')
+          ..write('supplementaryImagePath3: $supplementaryImagePath3, ')
           ..write('mealType: $mealType, ')
           ..write('servingSize: $servingSize, ')
           ..write('servingUnit: $servingUnit, ')
@@ -3059,6 +3135,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
         foodNameEn,
         timestamp,
         imagePath,
+        supplementaryImagePath2,
+        supplementaryImagePath3,
         mealType,
         servingSize,
         servingUnit,
@@ -3165,6 +3243,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           other.foodNameEn == this.foodNameEn &&
           other.timestamp == this.timestamp &&
           other.imagePath == this.imagePath &&
+          other.supplementaryImagePath2 == this.supplementaryImagePath2 &&
+          other.supplementaryImagePath3 == this.supplementaryImagePath3 &&
           other.mealType == this.mealType &&
           other.servingSize == this.servingSize &&
           other.servingUnit == this.servingUnit &&
@@ -3269,6 +3349,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
   Value<String?> foodNameEn;
   Value<DateTime> timestamp;
   Value<String?> imagePath;
+  Value<String?> supplementaryImagePath2;
+  Value<String?> supplementaryImagePath3;
   Value<MealType> mealType;
   Value<double> servingSize;
   Value<String> servingUnit;
@@ -3371,6 +3453,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.foodNameEn = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.imagePath = const Value.absent(),
+    this.supplementaryImagePath2 = const Value.absent(),
+    this.supplementaryImagePath3 = const Value.absent(),
     this.mealType = const Value.absent(),
     this.servingSize = const Value.absent(),
     this.servingUnit = const Value.absent(),
@@ -3474,6 +3558,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.foodNameEn = const Value.absent(),
     required DateTime timestamp,
     this.imagePath = const Value.absent(),
+    this.supplementaryImagePath2 = const Value.absent(),
+    this.supplementaryImagePath3 = const Value.absent(),
     required MealType mealType,
     required double servingSize,
     required String servingUnit,
@@ -3586,6 +3672,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     Expression<String>? foodNameEn,
     Expression<DateTime>? timestamp,
     Expression<String>? imagePath,
+    Expression<String>? supplementaryImagePath2,
+    Expression<String>? supplementaryImagePath3,
     Expression<int>? mealType,
     Expression<double>? servingSize,
     Expression<String>? servingUnit,
@@ -3689,6 +3777,10 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
       if (foodNameEn != null) 'food_name_en': foodNameEn,
       if (timestamp != null) 'timestamp': timestamp,
       if (imagePath != null) 'image_path': imagePath,
+      if (supplementaryImagePath2 != null)
+        'supplementary_image_path2': supplementaryImagePath2,
+      if (supplementaryImagePath3 != null)
+        'supplementary_image_path3': supplementaryImagePath3,
       if (mealType != null) 'meal_type': mealType,
       if (servingSize != null) 'serving_size': servingSize,
       if (servingUnit != null) 'serving_unit': servingUnit,
@@ -3801,6 +3893,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
       Value<String?>? foodNameEn,
       Value<DateTime>? timestamp,
       Value<String?>? imagePath,
+      Value<String?>? supplementaryImagePath2,
+      Value<String?>? supplementaryImagePath3,
       Value<MealType>? mealType,
       Value<double>? servingSize,
       Value<String>? servingUnit,
@@ -3903,6 +3997,10 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
       foodNameEn: foodNameEn ?? this.foodNameEn,
       timestamp: timestamp ?? this.timestamp,
       imagePath: imagePath ?? this.imagePath,
+      supplementaryImagePath2:
+          supplementaryImagePath2 ?? this.supplementaryImagePath2,
+      supplementaryImagePath3:
+          supplementaryImagePath3 ?? this.supplementaryImagePath3,
       mealType: mealType ?? this.mealType,
       servingSize: servingSize ?? this.servingSize,
       servingUnit: servingUnit ?? this.servingUnit,
@@ -4022,6 +4120,14 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     }
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
+    }
+    if (supplementaryImagePath2.present) {
+      map['supplementary_image_path2'] =
+          Variable<String>(supplementaryImagePath2.value);
+    }
+    if (supplementaryImagePath3.present) {
+      map['supplementary_image_path3'] =
+          Variable<String>(supplementaryImagePath3.value);
     }
     if (mealType.present) {
       map['meal_type'] = Variable<int>(
@@ -4330,6 +4436,8 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
           ..write('foodNameEn: $foodNameEn, ')
           ..write('timestamp: $timestamp, ')
           ..write('imagePath: $imagePath, ')
+          ..write('supplementaryImagePath2: $supplementaryImagePath2, ')
+          ..write('supplementaryImagePath3: $supplementaryImagePath3, ')
           ..write('mealType: $mealType, ')
           ..write('servingSize: $servingSize, ')
           ..write('servingUnit: $servingUnit, ')
@@ -10116,6 +10224,8 @@ typedef $$FoodEntriesTableCreateCompanionBuilder = FoodEntriesCompanion
   Value<String?> foodNameEn,
   required DateTime timestamp,
   Value<String?> imagePath,
+  Value<String?> supplementaryImagePath2,
+  Value<String?> supplementaryImagePath3,
   required MealType mealType,
   required double servingSize,
   required String servingUnit,
@@ -10220,6 +10330,8 @@ typedef $$FoodEntriesTableUpdateCompanionBuilder = FoodEntriesCompanion
   Value<String?> foodNameEn,
   Value<DateTime> timestamp,
   Value<String?> imagePath,
+  Value<String?> supplementaryImagePath2,
+  Value<String?> supplementaryImagePath3,
   Value<MealType> mealType,
   Value<double> servingSize,
   Value<String> servingUnit,
@@ -10341,6 +10453,14 @@ class $$FoodEntriesTableFilterComposer
 
   ColumnFilters<String> get imagePath => $composableBuilder(
       column: $table.imagePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get supplementaryImagePath2 => $composableBuilder(
+      column: $table.supplementaryImagePath2,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get supplementaryImagePath3 => $composableBuilder(
+      column: $table.supplementaryImagePath3,
+      builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<MealType, MealType, int> get mealType =>
       $composableBuilder(
@@ -10685,6 +10805,14 @@ class $$FoodEntriesTableOrderingComposer
 
   ColumnOrderings<String> get imagePath => $composableBuilder(
       column: $table.imagePath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get supplementaryImagePath2 => $composableBuilder(
+      column: $table.supplementaryImagePath2,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get supplementaryImagePath3 => $composableBuilder(
+      column: $table.supplementaryImagePath3,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get mealType => $composableBuilder(
       column: $table.mealType, builder: (column) => ColumnOrderings(column));
@@ -11041,6 +11169,12 @@ class $$FoodEntriesTableAnnotationComposer
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
 
+  GeneratedColumn<String> get supplementaryImagePath2 => $composableBuilder(
+      column: $table.supplementaryImagePath2, builder: (column) => column);
+
+  GeneratedColumn<String> get supplementaryImagePath3 => $composableBuilder(
+      column: $table.supplementaryImagePath3, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<MealType, int> get mealType =>
       $composableBuilder(column: $table.mealType, builder: (column) => column);
 
@@ -11362,6 +11496,8 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> foodNameEn = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<String?> imagePath = const Value.absent(),
+            Value<String?> supplementaryImagePath2 = const Value.absent(),
+            Value<String?> supplementaryImagePath3 = const Value.absent(),
             Value<MealType> mealType = const Value.absent(),
             Value<double> servingSize = const Value.absent(),
             Value<String> servingUnit = const Value.absent(),
@@ -11465,6 +11601,8 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             foodNameEn: foodNameEn,
             timestamp: timestamp,
             imagePath: imagePath,
+            supplementaryImagePath2: supplementaryImagePath2,
+            supplementaryImagePath3: supplementaryImagePath3,
             mealType: mealType,
             servingSize: servingSize,
             servingUnit: servingUnit,
@@ -11568,6 +11706,8 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> foodNameEn = const Value.absent(),
             required DateTime timestamp,
             Value<String?> imagePath = const Value.absent(),
+            Value<String?> supplementaryImagePath2 = const Value.absent(),
+            Value<String?> supplementaryImagePath3 = const Value.absent(),
             required MealType mealType,
             required double servingSize,
             required String servingUnit,
@@ -11671,6 +11811,8 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             foodNameEn: foodNameEn,
             timestamp: timestamp,
             imagePath: imagePath,
+            supplementaryImagePath2: supplementaryImagePath2,
+            supplementaryImagePath3: supplementaryImagePath3,
             mealType: mealType,
             servingSize: servingSize,
             servingUnit: servingUnit,

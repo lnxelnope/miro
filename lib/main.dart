@@ -62,7 +62,7 @@ void main() async {
   // === แสดง UI ทันที ===
   runApp(
     const ProviderScope(
-      child: MiroApp(),
+      child: ArCalApp(),
     ),
   );
 
@@ -171,14 +171,14 @@ void _initServicesInBackground() async {
   }
 }
 
-class MiroApp extends ConsumerStatefulWidget {
-  const MiroApp({super.key});
+class ArCalApp extends ConsumerStatefulWidget {
+  const ArCalApp({super.key});
 
   @override
-  ConsumerState<MiroApp> createState() => _MiroAppState();
+  ConsumerState<ArCalApp> createState() => _ArCalAppState();
 }
 
-class _MiroAppState extends ConsumerState<MiroApp> {
+class _ArCalAppState extends ConsumerState<ArCalApp> {
   bool _isLoading = true;
   bool _languageSelected = false;
   bool _onboardingComplete = false;
@@ -228,7 +228,7 @@ class _MiroAppState extends ConsumerState<MiroApp> {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'MIRO - My Intake Record Oracle',
+      title: 'ArCal',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -254,7 +254,12 @@ class _MiroAppState extends ConsumerState<MiroApp> {
 
   Widget _buildHome() {
     if (_isLoading) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final bgColor = isDark ? const Color(0xFF152a15) : const Color(0xFFebffe9);
+      final titleColor = isDark ? Colors.white : AppColors.primary;
+      final subtitleColor = isDark ? Colors.white70 : Colors.grey.shade500;
       return Scaffold(
+        backgroundColor: bgColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -269,32 +274,32 @@ class _MiroAppState extends ConsumerState<MiroApp> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'M I R O',
+              Text(
+                'ArCal',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: titleColor,
                   letterSpacing: 4,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'My Intake Record Oracle',
+                'AI Calorie Counter',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade500,
+                  color: subtitleColor,
                   letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: 40),
-              const SizedBox(
+              SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: AppColors.primary,
+                  color: titleColor,
                 ),
               ),
             ],

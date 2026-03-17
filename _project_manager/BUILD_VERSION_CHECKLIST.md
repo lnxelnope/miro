@@ -2,25 +2,46 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-03 (Build 62)
+**อัปเดตล่าสุด:** 2026-03-17 (Build 65)
 
 ---
 
-## ✅ Build 62 (v1.2.6) - Status: READY FOR RELEASE
+## ✅ Build 65 (v1.2.6) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+62`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 62`, `versionName = "1.2.6"`)
-- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.6'`)
-- [x] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
-- [x] **Target SDK** - 35 (Android 15)
-- [x] **Compile SDK** - 36 (Android 16)
-- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.6`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+62)
-- [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+65`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 65`, `versionName = "1.2.6"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.6'`)
+- [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
+- [ ] **Target SDK** - 35 (Android 15)
+- [ ] **Compile SDK** - 36 (Android 16)
+- [ ] **Version Naming** - ตาม Semantic Versioning (`1.2.6`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+65)
+- [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
+- iOS: Info.plist base values เป็นภาษาอังกฤษ, register InfoPlist.strings + PrivacyInfo.xcprivacy, bump build สำหรับ resubmit
+
+---
+
+## ✅ Build 64 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 65 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 63 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 64 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 62 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
 - **Energy Fix** - ปิดช่องโหว่: ลบ free edit lookup, ทุกครั้งที่เรียก AI วิเคราะห์อาหารต้องหัก energy
 - **Chat ฟรี** - AI Chat ฟรีวันละ 10 ครั้ง (รวม menu suggestion)
 - **ลบ Local AI** - ลบระบบ Local AI Chat ทั้งหมด ใช้ Miro AI เสมอ
@@ -31,14 +52,14 @@
 ## ✅ Build 61 (v1.2.6) - Status: RELEASED
 
 ### ✨ Changes in that version:
-- Same as Build 62
+- Same as Build 63
 
 ---
 
 ## ✅ Build 60 (v1.2.6) - Status: RELEASED
 
 ### ✨ Changes in that version:
-- Same as Build 62
+- Same as Build 63
 
 ---
 
@@ -489,16 +510,16 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.6+62
+version: 1.2.6+65
 ```
 **Format:** `versionName+versionCode`
 - `1.2.6` = Version name (แสดงให้ user เห็น)
-- `62` = Build number / Version code (internal)
+- `65` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 62
+    versionCode = 65
     versionName = "1.2.6"
 }
 ```
@@ -578,7 +599,10 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 62 | 1.2.6 | 2026-03-03 | ✅ Current |
+| 65 | 1.2.6 | 2026-03-17 | ✅ Current |
+| 64 | 1.2.6 | 2026-03-17 | ✅ Released |
+| 63 | 1.2.6 | 2026-03-17 | ✅ Released |
+| 62 | 1.2.6 | 2026-03-03 | ✅ Released |
 | 61 | 1.2.6 | 2026-03-03 | ✅ Released |
 | 60 | 1.2.6 | 2026-03-03 | ✅ Released |
 | 59 | 1.2.5 | 2026-03-03 | ✅ Released |
@@ -639,11 +663,11 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 62):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+62`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (61 → 62)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.6'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.6+62)
+### Pre-flight Checklist (Build 65):
+- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+65`)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (64 → 65)
+- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.6'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.6+65)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)

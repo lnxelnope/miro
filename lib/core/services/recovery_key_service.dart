@@ -50,7 +50,7 @@ class RecoveryKeyService {
           key: _keyRecoveryGeneratedAt,
           value: DateTime.now().toIso8601String(),
         );
-        debugPrint('[RecoveryKey] Generated and registered: MIRO-****');
+        debugPrint('[RecoveryKey] Generated and registered: ARCAL-****');
         return key;
       } else {
         debugPrint('[RecoveryKey] Server rejected: ${response.statusCode}');
@@ -149,7 +149,7 @@ class RecoveryKeyService {
     return key != null && key.isNotEmpty;
   }
 
-  /// Generate a human-readable key: MIRO-XXXX-XXXX
+  /// Generate a human-readable key: ARCAL-XXXX-XXXX
   static String _generateKey() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final random = Random.secure();
@@ -157,6 +157,6 @@ class RecoveryKeyService {
         .join();
     final part2 = List.generate(4, (_) => chars[random.nextInt(chars.length)])
         .join();
-    return 'MIRO-$part1-$part2';
+    return 'ARCAL-$part1-$part2';
   }
 }

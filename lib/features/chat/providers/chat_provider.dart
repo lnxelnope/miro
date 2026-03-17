@@ -106,7 +106,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final sessionId = ref.read(currentSessionIdProvider);
 
     try {
-      final replyMessage = await _handleMiroAi(userMessage);
+      final replyMessage = await _handleArCalAi(userMessage);
       const detectedIntent = 'food';
 
       final assistantMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
@@ -252,12 +252,12 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     }
   }
 
-  /// Handle Miro AI (new flow with Gemini Backend)
+  /// Handle ArCal AI (new flow with Gemini Backend)
   /// Returns reply message string
   ///
   /// Chat is free with daily limit (10/day)
   /// Food entries are saved as unanalyzed (check DB first, 0 kcal if not found)
-  Future<String> _handleMiroAi(String text) async {
+  Future<String> _handleArCalAi(String text) async {
     final canChat = await UsageLimiter.canUseFreeChat();
     if (!canChat) {
       const limit = UsageLimiter.freeChatPerDay;
@@ -288,11 +288,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final remaining = await UsageLimiter.remainingFreeChatToday();
 
     // Parse response: check DB first, save as unanalyzed if not found
-    final saveResult = await _parseMiroAiResponse(response);
+    final saveResult = await _parseArCalAiResponse(response);
 
     // Refresh providers
     debugPrint(
-        '🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
+        '🔄 [ChatProvider] Refreshing food providers after ArCal AI food entry...');
     final today = dateOnly(DateTime.now());
     ref.invalidate(foodEntriesByDateProvider(today));
     ref.invalidate(todayCaloriesProvider);
@@ -326,13 +326,13 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     return buffer.toString();
   }
 
-  /// Parse Miro AI response and save food entries to timeline
+  /// Parse ArCal AI response and save food entries to timeline
   ///
   /// Flow: AI parses food names → check DB (MyMeal/Ingredient) →
   /// - Found: use DB nutrition, mark as verified
   /// - Not found: save with 0 kcal, mark as unanalyzed (user can Analyze All later)
   /// Does NOT auto-save to MyMeal/Ingredient database
-  Future<_ChatSaveResult?> _parseMiroAiResponse(
+  Future<_ChatSaveResult?> _parseArCalAiResponse(
       Map<String, dynamic> response) async {
     if (response['type'] != 'food_log') return null;
 

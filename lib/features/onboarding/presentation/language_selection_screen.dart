@@ -167,7 +167,7 @@ class _LanguageSelectionScreenState
         ),
         const SizedBox(height: 24),
         Text(
-          'Welcome to MiRO',
+          'Welcome to ArCal',
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w700,

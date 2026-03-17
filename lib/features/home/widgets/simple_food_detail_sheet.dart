@@ -19,6 +19,7 @@ import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/batch_analysis_helper.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/my_meal_provider.dart';
+import '../../health/providers/analysis_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -50,6 +51,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   // Original values for ingredient scaling
   late double _originalServingSize;
   List<Map<String, dynamic>> _baseIngredients = [];
+
+  // Multi-image page tracking
+  int _imagePage = 0;
 
   // Unit options ใช้จาก UnitConverter (single source of truth)
 
@@ -967,6 +971,209 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
   bool get _hasNutrition => _calories > 0 || _protein > 0 || _carbs > 0 || _fat > 0;
 
+  /// เริ่มวิเคราะห์เฉพาะรายการนี้ (ใช้เมื่อรายการยังไม่มี nutrition)
+  Future<void> _startAnalyzeThisEntry() async {
+    final entry = widget.entry;
+    final l10n = L10n.of(context)!;
+    if (await UsageLimiter.hasReachedDailyCap()) {
+      if (!mounted) return;
+      final remaining = await UsageLimiter.remainingAnalysesToday();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.dailyCapReached(
+            UsageLimiter.maxAnalysesPerDay - remaining,
+            UsageLimiter.maxAnalysesPerDay,
+          )),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+    final selectedDate = dateOnly(entry.timestamp);
+    ref.read(analysisProvider.notifier).enqueue(
+          entries: [entry],
+          selectedDate: selectedDate,
+        );
+    if (mounted) Navigator.pop(context);
+  }
+
+  Widget _buildImageSection(FoodEntry entry) {
+    final paths = entry.allImagePaths;
+
+    if (paths.length <= 1) {
+      return GestureDetector(
+        onTap: () => showFoodEntryImage(context, entry),
+        child: FoodEntryImageWithOverlay(
+          entry: entry,
+          width: double.infinity,
+          height: 200,
+          borderRadius: AppRadius.lg,
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 200,
+      child: Stack(
+        children: [
+          PageView.builder(
+            itemCount: paths.length,
+            onPageChanged: (i) => setState(() => _imagePage = i),
+            itemBuilder: (_, i) {
+              final file = File(paths[i]);
+              final labels = ArImageDetectionData.labelsForImage(
+                  entry.arLabelsJson, i);
+              final imgSize = ArImageDetectionData.imageSizeForImage(
+                  entry.arLabelsJson, i);
+              final imgW = imgSize?.width ?? entry.arImageWidth;
+              final imgH = imgSize?.height ?? entry.arImageHeight;
+              final hasOverlay =
+                  labels.isNotEmpty && imgW != null && imgH != null;
+
+              return GestureDetector(
+                onTap: () => _showFullScreenImage(file, imageIndex: i),
+                child: ClipRRect(
+                  borderRadius: AppRadius.lg,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 200,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.file(
+                          file,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppColors.surfaceVariant,
+                            child: const Icon(Icons.broken_image, size: 40),
+                          ),
+                        ),
+                        if (hasOverlay)
+                          CustomPaint(
+                            painter: BoundingBoxPainter(
+                              labels: labels,
+                              imageWidth: imgW,
+                              imageHeight: imgH,
+                              boxFit: BoxFit.cover,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(paths.length, (i) {
+                final active = i == _imagePage;
+                return Container(
+                  width: active ? 20 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: active
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.4),
+                  ),
+                );
+              }),
+            ),
+          ),
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${_imagePage + 1}/${paths.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenImage(File file, {int imageIndex = 0}) {
+    final entry = widget.entry;
+    final labels =
+        ArImageDetectionData.labelsForImage(entry.arLabelsJson, imageIndex);
+    final imgSize =
+        ArImageDetectionData.imageSizeForImage(entry.arLabelsJson, imageIndex);
+    final imgW = imgSize?.width ?? entry.arImageWidth;
+    final imgH = imgSize?.height ?? entry.arImageHeight;
+    final hasOverlay = labels.isNotEmpty && imgW != null && imgH != null;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(16)),
+              child: SizedBox(
+                width: MediaQuery.of(ctx).size.width - 32,
+                height: MediaQuery.of(ctx).size.height * 0.75,
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: hasOverlay
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(file, fit: BoxFit.contain),
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: BoundingBoxPainter(
+                                  labels: labels,
+                                  imageWidth: imgW,
+                                  imageHeight: imgH,
+                                  boxFit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Image.file(file, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
@@ -1008,17 +1215,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Image (tap to view full screen, tap again to close)
+                  // 1. Image(s) — PageView if multi-angle AR, single otherwise
                   if (hasImage) ...[
-                    GestureDetector(
-                      onTap: () => showFoodEntryImage(context, entry),
-                      child: FoodEntryImageWithOverlay(
-                        entry: entry,
-                        width: double.infinity,
-                        height: 200,
-                        borderRadius: AppRadius.lg,
-                      ),
-                    ),
+                    _buildImageSection(entry),
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
@@ -1424,14 +1623,16 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             ? null
                             : _isDirty
                                 ? (_hasChanges ? _saveAndCreateMeal : _save)
-                                : () => Navigator.pop(context),
+                                : !_hasNutrition
+                                    ? _startAnalyzeThisEntry
+                                    : () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _isDirty
+                          backgroundColor: _isDirty || !_hasNutrition
                               ? AppColors.primary
                               : isDark
                                   ? AppColors.surfaceVariantDark
                                   : AppColors.surfaceVariant,
-                          foregroundColor: _isDirty
+                          foregroundColor: _isDirty || !_hasNutrition
                               ? Colors.white
                               : isDark
                                   ? Colors.white70
@@ -1441,7 +1642,11 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                           ),
                         ),
                         child: Text(
-                          _isDirty ? l10n.saveChanges : l10n.ok,
+                          _isDirty
+                              ? l10n.saveChanges
+                              : !_hasNutrition
+                                  ? l10n.analyzeSelected
+                                  : l10n.ok,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,

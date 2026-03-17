@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing query' }, { status: 400 });
     }
 
-    // Try search by MiRO ID first
+    // Try search by ArCal ID first
     let userDoc: any = null;
     const miroIdQuery = await db
       .collection('users')

@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "ArCal a besoin d'accéder à la caméra pour scanner les codes-barres et analyser les aliments.";
+NSHealthShareUsageDescription = "ArCal a besoin de lire vos données d'énergie active pour les ajouter à votre objectif calorique quotidien.";
+NSHealthUpdateUsageDescription = "ArCal enregistre les données nutritionnelles de vos repas dans Apple Health.";
+NSPhotoLibraryAddUsageDescription = "ArCal enregistre les photos d'aliments analysés.";
+NSPhotoLibraryUsageDescription = "ArCal a besoin d'accéder à la photothèque pour analyser la nutrition à partir de photos d'aliments.";

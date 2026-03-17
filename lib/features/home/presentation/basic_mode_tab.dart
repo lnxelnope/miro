@@ -17,7 +17,7 @@ import '../../health/providers/fulfill_calorie_provider.dart';
 import '../../../core/widgets/analyze_bar.dart';
 import '../../health/widgets/daily_summary_card.dart';
 import '../../energy/widgets/quest_bar.dart';
-import '../../camera/presentation/camera_screen.dart';
+import '../../arscan/presentation/arscan_screen.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../../scanner/providers/scanner_provider.dart';
@@ -41,6 +41,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   final _chatController = TextEditingController();
   bool _isComposing = false;
   bool _isScanning = false;
+  bool _selectionModeActive = false;
 
   late DateTime _selectedDate;
 
@@ -113,11 +114,12 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
           ),
         ),
 
-        // 4. Analyze Bar (above action buttons, visible only when needed)
-        AnalyzeBar(
-          selectedDate: _selectedDate,
-          onAnalyze: _startBatchAnalysis,
-        ),
+        // 4. Analyze Bar — ซ่อนเมื่อโหมดเลือกเปิด เพื่อให้กดได้แค่ "Analyze selected"
+        if (!_selectionModeActive)
+          AnalyzeBar(
+            selectedDate: _selectedDate,
+            onAnalyze: _startBatchAnalysis,
+          ),
 
         // 5. Action Buttons (Camera | Gallery | Add)
         _buildActionButtons(l10n),
@@ -197,6 +199,9 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
       onMoveToDate: _moveEntriesToDate,
+      onSelectionModeChanged: (active) {
+        setState(() => _selectionModeActive = active);
+      },
     );
   }
 
@@ -210,18 +215,14 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Camera
-          _actionButton(
-            icon: Icons.camera_alt_rounded,
-            label: l10n.navCamera,
-            onTap: _openCamera,
-          ),
-          // Gallery
+          // Gallery (+Camera)
           _actionButton(
             icon: Icons.photo_library_rounded,
             label: l10n.gallery,
-            onTap: _pickFromGallery,
+            onTap: _openGalleryOrCamera,
           ),
+          // AR Scan (prominent, center)
+          _arScanButton(l10n),
           // Quick Add (+)
           _actionButton(
             icon: Icons.add_rounded,
@@ -229,6 +230,72 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
             onTap: _quickAdd,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _arScanButton(L10n l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: _openARScan,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: AppRadius.xl,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.center_focus_strong_rounded,
+              size: 20,
+              color: isDark ? Colors.black : Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              l10n.arScan,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.black : Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openARScan() async {
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(builder: (_) => const ARscanScreen()),
+    );
+
+    if (result == null || result.isEmpty || !mounted) return;
+
+    final imageFiles = result
+        .map((p) => File(p))
+        .where((f) => f.existsSync())
+        .toList();
+    if (imageFiles.isEmpty) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageAnalysisPreviewScreen(
+          imageFile: imageFiles.first,
+          arScanImages: imageFiles.length > 1 ? imageFiles : null,
+          selectedDate: _selectedDate,
+        ),
       ),
     );
   }
@@ -395,22 +462,59 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     });
   }
 
-  Future<void> _openCamera() async {
-    final File? capturedImage = await Navigator.push<File>(
-      context,
-      MaterialPageRoute(builder: (_) => const CameraScreen()),
-    );
-    if (capturedImage != null && mounted) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ImageAnalysisPreviewScreen(
-            imageFile: capturedImage,
-            selectedDate: _selectedDate,
-          ),
+  void _openGalleryOrCamera() {
+    final l10n = L10n.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: Text(l10n.pickFromGallery),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: Text(l10n.takePhoto),
+              onTap: () async {
+                Navigator.pop(ctx);
+                final file = await ImagePickerService.pickFromCamera();
+                if (file != null && mounted) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ImageAnalysisPreviewScreen(
+                        imageFile: file,
+                        selectedDate: _selectedDate,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _pickFromGallery() async {

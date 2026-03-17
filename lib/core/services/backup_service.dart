@@ -238,7 +238,7 @@ class BackupService {
         }).toList(),
       };
 
-      final dataFile = File('${directory.path}/miro_data_$dateStr.json');
+      final dataFile = File('${directory.path}/arcal_data_$dateStr.json');
       await dataFile.writeAsString(
         const JsonEncoder.withIndent('  ').convert(dataBackup),
       );
@@ -257,7 +257,7 @@ class BackupService {
         'energyBalance': energyBalance,
       };
 
-      final energyFile = File('${directory.path}/miro_energy_$dateStr.json');
+      final energyFile = File('${directory.path}/arcal_energy_$dateStr.json');
       await energyFile.writeAsString(
         const JsonEncoder.withIndent('  ').convert(energyBackup),
       );
@@ -292,7 +292,7 @@ class BackupService {
       final xFile = XFile(file.path);
       await Share.shareXFiles(
         [xFile],
-        subject: 'Miro Backup',
+        subject: 'ArCal Backup',
         text: 'Backup your Energy + Food History. Keep this file safe!',
       );
     } catch (e) {
@@ -305,7 +305,7 @@ class BackupService {
     try {
       await Share.shareXFiles(
         [XFile(dataFile.path), XFile(energyFile.path)],
-        subject: 'Miro Backup',
+        subject: 'ArCal Backup',
         text: 'Data file: restore your food history anytime.\n'
             'Energy file: transfer your energy to another device (one-time use).',
       );
@@ -552,7 +552,7 @@ class BackupService {
     );
   }
 
-  /// Restore MiRO ID จาก backup data (ถ้ามี)
+  /// Restore ArCal ID จาก backup data (ถ้ามี)
   static Future<void> _restoreMiroId(Map<String, dynamic> jsonData) async {
     final miroId = jsonData['miroId'] as String?;
     if (miroId != null && miroId.isNotEmpty) {
@@ -566,7 +566,7 @@ class BackupService {
         ),
       );
       await storage.write(key: 'miro_id', value: miroId);
-      debugPrint('[Restore] MiRO ID restored: $miroId');
+      debugPrint('[Restore] ArCal ID restored: $miroId');
     }
   }
 

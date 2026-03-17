@@ -318,7 +318,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "es": [
@@ -634,7 +646,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "fr": [
@@ -950,7 +974,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "hi": [
@@ -1266,7 +1302,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "id": [
@@ -1582,7 +1630,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "ja": [
@@ -1898,7 +1958,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "ko": [
@@ -2214,7 +2286,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "pt": [
@@ -2530,7 +2614,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "th": [
@@ -2935,7 +3031,19 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ],
 
   "zh": [
@@ -3251,6 +3359,18 @@
     "privacyConsentHealthNote",
     "privacyConsentReadPolicy",
     "privacyConsentAccept",
-    "privacyConsentOptional"
+    "privacyConsentOptional",
+    "arScan",
+    "arScanPositionFood",
+    "arScanStartCapture",
+    "arScanContinueAnalysis",
+    "takePhoto",
+    "pickFromGallery",
+    "arScanFoodNotDetected",
+    "arScanAngleTop",
+    "arScanAngleDiagonal",
+    "arScanAngleSide",
+    "arScanAngleProgress",
+    "arScanAngleCaptured"
   ]
 }

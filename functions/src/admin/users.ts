@@ -2,7 +2,7 @@
  * Admin API: User Management
  *
  * Endpoints สำหรับ Admin Panel:
- * - GET /admin/users?search=... (search by MiRO ID or deviceId)
+ * - GET /admin/users?search=... (search by ArCal ID or deviceId)
  * - GET /admin/users/:deviceId (get user detail)
  * - POST /admin/users/:deviceId/topup (manual top-up)
  * - POST /admin/users/:deviceId/reset-streak (reset streak)
@@ -35,7 +35,7 @@ function verifyAdminAuth(req: any): boolean {
 }
 
 /**
- * Search users by MiRO ID or deviceId
+ * Search users by ArCal ID or deviceId
  */
 export const searchUsers = onRequest(
   {
@@ -58,7 +58,7 @@ export const searchUsers = onRequest(
 
       let userDoc: admin.firestore.DocumentSnapshot | null = null;
 
-      // Try search by MiRO ID
+      // Try search by ArCal ID
       const miroIdQuery = await db
         .collection("users")
         .where("miroId", "==", search)

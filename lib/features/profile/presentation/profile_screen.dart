@@ -3060,7 +3060,7 @@ class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
 
   String get _maskedKey {
     if (_recoveryKey == null) return '●●●●-●●●●-●●●●';
-    return 'MIRO-●●●●-●●●●';
+    return 'ARCAL-●●●●-●●●●';
   }
 
   @override

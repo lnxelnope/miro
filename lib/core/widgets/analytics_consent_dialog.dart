@@ -29,7 +29,7 @@ class _AnalyticsConsentDialogState extends State<AnalyticsConsentDialog> {
   bool _foodResearchEnabled = false;
 
   Future<void> _openPrivacyPolicy() async {
-    const url = 'https://lnxelnope.github.io/miro/privacy-policy.html';
+    const url = 'https://lnxelnope.github.io/arcal/privacy-policy.html';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

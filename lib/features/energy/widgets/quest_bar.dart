@@ -286,7 +286,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       final deviceId = await DeviceIdService.getDeviceId();
       
       // TODO: Replace with actual Firebase Dynamic Link when available
-      final referralLink = 'https://miro.app/ref/$deviceId';
+      final referralLink = 'https://arcal.app/ref/$deviceId';
       
       final l10n = L10n.of(context)!;
       await Share.share(

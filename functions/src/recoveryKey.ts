@@ -27,7 +27,7 @@ function generateRecoveryKeyString(): string {
   const part2 = Array.from({length: 4}, () =>
     CHARSET[Math.floor(Math.random() * CHARSET.length)]
   ).join("");
-  return `MIRO-${part1}-${part2}`;
+  return `ARCAL-${part1}-${part2}`;
 }
 
 // ============================================================
@@ -125,7 +125,7 @@ export const redeemRecoveryKey = onRequest(
       }
 
       // Validate key format
-      const keyPattern = /^MIRO-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+      const keyPattern = /^(MIRO|ARCAL)-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
       if (!keyPattern.test(recoveryKey)) {
         res.status(400).json({error: "Invalid recovery key format"});
         return;

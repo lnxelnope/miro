@@ -11,9 +11,9 @@ const db = admin.firestore();
 const CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
 /**
- * สร้าง MiRO ID format: MIRO-XXXX-XXXX-XXXX
+ * สร้าง ArCal ID format: ARCAL-XXXX-XXXX-XXXX
  *
- * Example: MIRO-A3F9-K7X2-P8M1
+ * Example: ARCAL-A3F9-K7X2-P8M1
  */
 function generateMiroId(): string {
   const segments: string[] = [];
@@ -28,11 +28,11 @@ function generateMiroId(): string {
     segments.push(segment);
   }
 
-  return `MIRO-${segments.join("-")}`;
+  return `ARCAL-${segments.join("-")}`;
 }
 
 /**
- * เช็คว่า MiRO ID ซ้ำกับที่มีอยู่หรือไม่
+ * เช็คว่า ArCal ID ซ้ำกับที่มีอยู่หรือไม่
  */
 async function isUniqueMiroId(miroId: string): Promise<boolean> {
   const snapshot = await db
@@ -45,7 +45,7 @@ async function isUniqueMiroId(miroId: string): Promise<boolean> {
 }
 
 /**
- * สร้าง MiRO ID ที่ unique (ลองสูงสุด 10 ครั้ง)
+ * สร้าง ArCal ID ที่ unique (ลองสูงสุด 10 ครั้ง)
  */
 async function generateUniqueMiroId(): Promise<string> {
   let miroId = generateMiroId();
@@ -58,7 +58,7 @@ async function generateUniqueMiroId(): Promise<string> {
   }
 
   if (attempts >= maxAttempts) {
-    throw new Error("Failed to generate unique MiRO ID after max attempts");
+    throw new Error("Failed to generate unique ArCal ID after max attempts");
   }
 
   return miroId;
@@ -103,7 +103,7 @@ export const migrateToUsersCollection = onRequest(
         }
 
         try {
-          // 3. สร้าง MiRO ID ใหม่
+          // 3. สร้าง ArCal ID ใหม่
           const miroId = await generateUniqueMiroId();
           const now = admin.firestore.FieldValue.serverTimestamp();
 

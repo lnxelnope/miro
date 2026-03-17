@@ -95,7 +95,7 @@ const TEMPLATES = [
     slug: "welcome_gift",
     triggerEvent: "first_app_open",
     triggerCondition: {},
-    title: { en: "🎉 Welcome to MiRO!", th: "🎉 ยินดีต้อนรับสู่ MiRO!" },
+    title: { en: "🎉 Welcome to ArCal!", th: "🎉 ยินดีต้อนรับสู่ ArCal!" },
     description: {
       en: "Start your health journey! Here's 5 free Energy.",
       th: "เริ่มต้นเส้นทางสุขภาพ! รับ 5 Energy ฟรี",

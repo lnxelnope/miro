@@ -94,7 +94,7 @@
   "deleteKey": "Delete API Key",
   "openAiStudio": "Open Google AI Studio",
 
-  "chatHint": "Tell Miro e.g. \"Log fried rice\"...",
+  "chatHint": "Tell ArCal e.g. \"Log fried rice\"...",
   "chatFoodSaved": "Food logged!",
   "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
   "@chatFoodSavedDetail": {
@@ -132,7 +132,7 @@
   "language": "Language",
 
   "upgradePro": "Upgrade to Pro",
-  "proUnlocked": "MiRO Pro",
+  "proUnlocked": "ArCal Pro",
   "proDescription": "Unlimited AI food analysis",
   "aiRemaining": "AI analysis: {remaining}/{total} remaining today",
   "@aiRemaining": {
@@ -166,7 +166,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "MiRO",
+  "welcomeTitle": "ArCal",
   "welcomeSubtitle": "Easy food logging with AI",
   "onboardingFeature1": "Snap a photo",
   "onboardingFeature1Desc": "AI calculates calories automatically",
@@ -252,7 +252,7 @@
   "appBarMiro": "ArCal",
   
   "permissionRequired": "Permission Required",
-  "permissionRequiredDesc": "MIRO needs access to the following:",
+  "permissionRequiredDesc": "ArCal needs access to the following:",
   "permissionPhotos": "Photos — to scan food",
   "permissionCamera": "Camera — to photograph food",
   "permissionSkip": "Skip",
@@ -952,7 +952,7 @@
   "newChat": "New chat",
   "quickActions": "Quick Actions",
   "clear": "Clear",
-  "helloImMiro": "Hello! I'm Miro",
+  "helloImMiro": "Hello! I'm ArCal",
   "tellMeWhatYouAteToday": "Tell me what you ate today!",
   "tellMeWhatYouAte": "Tell me what you ate...",
   "clearHistoryTitle": "Clear history?",
@@ -1125,7 +1125,7 @@
   "localAiHelpTitle": "🤖 Local AI Help",
   "localAiHelpFormat": "Format: [food] [amount] [unit]",
   "localAiHelpExamples": "Examples:\n• chicken 100g and rice 200g\n• pizza 2 slices\n• apple 1 piece, banana 1 piece",
-  "localAiHelpNote": "Note: English only, basic parsing\nSwitch to Miro AI for better results!",
+  "localAiHelpNote": "Note: English only, basic parsing\nSwitch to ArCal AI for better results!",
   "hiNoFoodLogged": "🤖 Hi! No food logged yet today.\n   Target: {target} kcal — Ready to start logging? 🍽️",
   "@hiNoFoodLogged": {
     "placeholders": {
@@ -1261,7 +1261,7 @@
   "referralCopy": "Copy",
   "referralShareCodeDescription": "Share this code with friends! When they use AI 3 times, you both get rewards!",
   "referralEnterReferralCode": "Enter Referral Code",
-  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralCodeHint": "ARCAL-XXXX-XXXX-XXXX",
   "referralSubmitCode": "Submit Code",
   "referralPleaseEnterCode": "Please enter a referral code",
   "referralCodeAccepted": "Referral code accepted!",
@@ -1276,7 +1276,7 @@
   },
   "referralHowItWorks": "How It Works",
   "referralStep1Title": "Share your referral code",
-  "referralStep1Description": "Copy and share your MiRO ID with friends",
+  "referralStep1Description": "Copy and share your ArCal ID with friends",
   "referralStep2Title": "Friend enters your code",
   "referralStep2Description": "They get +20 Energy immediately",
   "referralStep3Title": "Friend uses AI 3 times",
@@ -1404,7 +1404,7 @@
   "termsSectionChangesToTerms": "Changes to Terms",
   "termsSectionGoverningLaw": "Governing Law",
   "termsSectionContactUs": "Contact Us",
-  "termsAcknowledgment": "By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.",
+  "termsAcknowledgment": "By using ArCal, you acknowledge that you have read, understood, and agree to these Terms of Service.",
   "termsLastUpdated": "Last updated: February 26, 2026",
 
   "profileAndSettings": "Profile & Settings",
@@ -1420,7 +1420,7 @@
   "dailyGoals": "Daily Goals",
   "chatAiModeSection": "Chat AI Mode",
   "selectAiPowersChat": "Select which AI powers your chat",
-  "miroAi": "Miro AI",
+  "miroAi": "ArCal AI",
   "miroAiSubtitle": "Powered by Gemini • Multi-language • High accuracy",
   "localAi": "Local AI",
   "localAiSubtitle": "On-device • English only • Basic accuracy",
@@ -1468,8 +1468,8 @@
     }
   },
   "accountSection": "Account",
-  "miroId": "MiRO ID",
-  "miroIdCopied": "MiRO ID copied!",
+  "miroId": "ArCal ID",
+  "miroIdCopied": "ArCal ID copied!",
   "inviteFriends": "Invite Friends",
   "inviteFriendsSubtitle": "Share your referral code and earn rewards!",
   "unlimitedAiDoubleRewards": "Unlimited AI + Double rewards",
@@ -1511,7 +1511,7 @@
   "showTutorialAgain": "Show Tutorial Again",
   "viewFeatureTour": "View feature tour",
   "showTutorialDialogTitle": "Show Tutorial",
-  "showTutorialDialogContent": "This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with Miro AI\n\nYou will return to the Home screen.",
+  "showTutorialDialogContent": "This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with ArCal AI\n\nYou will return to the Home screen.",
   "showTutorialButton": "Show Tutorial",
   "tutorialResetMessage": "Tutorial reset! Go to Home screen to view it.",
   "foodAnalysisTutorial": "Food Analysis Tutorial",
@@ -1551,8 +1551,8 @@
   "appWillRefresh": "Your app will refresh to show the restored data.",
   "backupFailed": "Backup Failed",
   "invalidBackupFile": "Invalid Backup File",
-  "restoreSelectDataFile": "This file only contains Energy. To restore food entries, select the data file (miro_data_*.json) instead.",
-  "restoreZeroEntriesHint": "No food entries were imported. Make sure you selected the data file (miro_data_*.json), not the energy file.",
+  "restoreSelectDataFile": "This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.",
+  "restoreZeroEntriesHint": "No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.",
   "restoreFailed": "Restore Failed",
   "analyticsDataCollection": "Analytics Data Collection",
   "analyticsEnabled": "Analytics enabled - Thanks for helping improve the app",
@@ -1698,7 +1698,7 @@
   "questBarClaimed": "Claimed!",
   "questBarHideOffer": "Hide",
   "questBarViewDetails": "View",
-  "questBarShareText": "Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}",
+  "questBarShareText": "Try ArCal! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}",
   "@questBarShareText": {
     "placeholders": {
       "link": {
@@ -1706,7 +1706,7 @@
       }
     }
   },
-  "questBarShareSubject": "Try MiRO",
+  "questBarShareSubject": "Try ArCal",
 
   "claimButtonTitle": "Claim Daily Energy",
   "claimButtonReceived": "Received +{energy}E!",
@@ -1884,7 +1884,7 @@
   "retroScanStart": "Scan My Photos",
   "retroScanSkip": "Skip for now",
   "retroScanInProgress": "Scanning...",
-  "retroScanTagline": "MiRO is transforming your\nfood photos into health data.",
+  "retroScanTagline": "ArCal is transforming your\nfood photos into health data.",
   "retroScanFetchingPhotos": "Fetching recent photos...",
   "retroScanAnalyzing": "Detecting food photos...",
   "retroScanPhotosFound": "{count} photos found in last 1 day",
@@ -1908,8 +1908,8 @@
   "retroScanNoResultsDesc": "No food photos detected in the last 1 day. Try taking a photo of your next meal!",
   "retroScanAnalyzeHint": "Tap \"Analyze All\" on your timeline to get AI nutrition analysis for these entries.",
   "retroScanDone": "Got it!",
-  "welcomeEndTitle": "Welcome to MiRO!",
-  "welcomeEndMessage": "MiRO is at your service.",
+  "welcomeEndTitle": "Welcome to ArCal!",
+  "welcomeEndMessage": "ArCal is at your service.",
   "welcomeEndJourney": "Have a nice journey together!!",
   "welcomeEndStart": "Let's Start!",
   "greetingCalorieSummary": "Hi! How can I help you today? You still have {remaining} kcal left. So far: Protein {protein}g, Carbs {carbs}g, Fat {fat}g. Tell me what you ate — list everything by meal and I'll log them all for you. More Detail more precise!!",
@@ -1933,8 +1933,8 @@
       "balance": { "type": "int" }
     }
   },
-  "greetingRenamePhotoTip": "Tip: You can rename food photos to help MiRO analyze more accurately!",
-  "greetingAddIngredientsTip": "Tip: You can add ingredients you're sure about before sending to MiRO for analysis. I'll figure out all the boring little details for you!",
+  "greetingRenamePhotoTip": "Tip: You can rename food photos to help ArCal analyze more accurately!",
+  "greetingAddIngredientsTip": "Tip: You can add ingredients you're sure about before sending to ArCal for analysis. I'll figure out all the boring little details for you!",
   "greetingBackupReminder": "Hey boss! You haven't backed up your data for {days} days. I recommend backing up in Settings — your data is stored locally and I can't recover it if something happens!",
   "@greetingBackupReminder": {
     "placeholders": {
@@ -2191,7 +2191,7 @@
   "bmrSettingTitle": "BMR (Basal Metabolic Rate)",
   "bmrSettingSubtitle": "Used to estimate active energy from total burned",
   "bmrDialogTitle": "Set your BMR",
-  "bmrDialogDescription": "MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.",
+  "bmrDialogDescription": "ArCal uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.",
   "healthSyncEnabledBmrHint": "Health sync enabled. BMR default: 1500 kcal/day — adjust in Settings if needed.",
   "privacyPolicySectionHealthData": "Health Data Integration",
   "termsSectionHealthDataSync": "Health Data Synchronization",
@@ -2443,6 +2443,12 @@
   "privacyConsentAccept": "Continue",
   "privacyConsentOptional": "Optional",
 
+  "arScan": "AR Scan",
+  "arScanPositionFood": "Position food in the frame",
+  "arScanStartCapture": "Start Scanning",
+  "arScanContinueAnalysis": "Continue to Analysis",
+  "takePhoto": "Take Photo",
+  "pickFromGallery": "Pick from Gallery",
   "arScanFoodNotDetected": "Food not detect",
 
   "arScanAngleTop": "Top",

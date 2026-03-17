@@ -31,17 +31,18 @@ extension FoodEntryExtensions on FoodEntryData {
       (thumbnailUrl != null && thumbnailUrl!.isNotEmpty);
 
   List<String> get allImagePaths {
+    final entry = this as dynamic;
     final paths = <String>[];
     if (imagePath != null && imagePath!.isNotEmpty) {
       paths.add(imagePath!);
     }
-    if (supplementaryImagePath2 != null &&
-        supplementaryImagePath2!.isNotEmpty) {
-      paths.add(supplementaryImagePath2!);
+    final String? path2 = entry.supplementaryImagePath2 as String?;
+    if (path2 != null && path2.isNotEmpty) {
+      paths.add(path2);
     }
-    if (supplementaryImagePath3 != null &&
-        supplementaryImagePath3!.isNotEmpty) {
-      paths.add(supplementaryImagePath3!);
+    final String? path3 = entry.supplementaryImagePath3 as String?;
+    if (path3 != null && path3.isNotEmpty) {
+      paths.add(path3);
     }
     return paths;
   }

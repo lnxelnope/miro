@@ -24,7 +24,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.privacyPolicySectionInformationWeCollect,
               [
-                'MiRO stores the following data locally on your device (Offline-first):',
+                'ArCal stores the following data locally on your device (Offline-first):',
                 '',
                 '• Food entries (name, calories, nutrients)',
                 '• Food photos (stored locally on your device)',
@@ -52,7 +52,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               'Cloud Backup & Data Sync',
               [
-                'When you claim daily Energy, MiRO syncs a compact backup of your food history:',
+                'When you claim daily Energy, ArCal syncs a compact backup of your food history:',
                 '',
                 'What is synced:',
                 '• Food entry text data (food name, calories, nutrients, meal type, timestamp)',
@@ -122,7 +122,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.privacyPolicySectionRequiredPermissions,
               [
-                'MiRO requests the following permissions:',
+                'ArCal requests the following permissions:',
                 '',
                 '• Camera: Take food photos for AI analysis',
                 '• Photos/Gallery: Select food photos from gallery',
@@ -134,7 +134,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.privacyPolicySectionHealthData,
               [
-                'When you enable Health Sync, MiRO integrates with Apple Health (iOS) or Google Health Connect (Android):',
+                'When you enable Health Sync, ArCal integrates with Apple Health (iOS) or Google Health Connect (Android):',
                 '',
                 'What we READ (with your permission):',
                 '',
@@ -142,7 +142,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '',
                 'What we WRITE (with your permission):',
                 '',
-                '• Dietary Energy (calories, protein, carbs, fat): When you log a meal in MiRO, the nutrition data is sent to your Health App',
+                '• Dietary Energy (calories, protein, carbs, fat): When you log a meal in ArCal, the nutrition data is sent to your Health App',
                 '',
                 'Important:',
                 '',
@@ -191,7 +191,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             _buildSection(
               L10n.of(context)!.privacyPolicySectionChildrenPrivacy,
               [
-                'MiRO is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
+                'ArCal is not intended for children under 13 years of age. We do not knowingly collect personal information from children.',
               ],
               isDark,
             ),

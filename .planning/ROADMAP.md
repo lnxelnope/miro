@@ -139,3 +139,15 @@ Phases execute in numeric order: 6 → 7 → 8 → 9 → 10 → 11
 | 9. Multi-Angle Capture | v2.0 | 2/2 | Complete | 2026-03-16 |
 | 10. Review & Pipeline | v2.0 | 0/3 | Not started | - |
 | 11. App Rebrand | 2/2 | Complete   | 2026-03-16 | - |
+
+### Phase 12: Rename from Miro to ArCal across app, web, admin; research all remaining Miro IDs/usages and plan migration
+
+**Goal:** มี inventory ครบทุกการใช้ \"miro\" ในระบบ และเปลี่ยน user-facing surfaces เป็น ArCal ทั้งหมด พร้อมเอกสารแผน migration สำหรับ internal IDs/slug
+**Requirements**: TBD
+**Depends on:** Phase 11
+**Plans:** 3 plans in 3 waves
+
+Plans:
+- [ ] 12-01: Research & inventory ทุกการใช้ \"miro\" + classify และตัดสินใจเบื้องต้น [wave 1]
+- [ ] 12-02: User-facing rename (mobile/web/system dialogs) + verification commands [wave 2]
+- [ ] 12-03: Internal ID/slug/namespace strategy + migration/verification plan [wave 3]

@@ -1190,7 +1190,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  /// Request menu suggestions from Miro AI (free, daily limit)
+  /// Request menu suggestions from ArCal AI (free, daily limit)
   Future<void> _requestMenuSuggestion() async {
     final canChat = await UsageLimiter.canUseFreeChat();
     if (!canChat) {

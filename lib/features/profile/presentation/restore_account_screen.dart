@@ -167,7 +167,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
           ),
           textAlign: TextAlign.center,
           decoration: InputDecoration(
-            hintText: 'MIRO-XXXX-XXXX',
+            hintText: 'ARCAL-XXXX-XXXX',
             hintStyle: TextStyle(
               color: isDark ? Colors.white24 : Colors.black26,
               fontFamily: 'monospace',
@@ -260,7 +260,7 @@ class _RestoreAccountScreenState extends ConsumerState<RestoreAccountScreen> {
         if ((_result!['miroId'] as String).isNotEmpty) ...[
           const SizedBox(height: 12),
           _buildResultRow(
-              Icons.badge, 'MiRO ID: ${_result!['miroId']}', AppColors.premium),
+              Icons.badge, 'ArCal ID: ${_result!['miroId']}', AppColors.premium),
         ],
         const SizedBox(height: 40),
         SizedBox(

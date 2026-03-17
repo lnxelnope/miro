@@ -76,6 +76,10 @@ None yet.
 - Camera `startImageStream` + `takePicture` cannot run simultaneously — must stop stream before capture
 - iOS vs Android ML performance gap (2-10x) — need platform-specific FPS targets
 
+### Roadmap Evolution
+
+- Phase 12 added: Rename from Miro to ArCal across app, web, admin; research all remaining Miro IDs/usages and plan migration
+
 ## Session Continuity
 
 Last session: 2026-03-16T09:14:45.257Z

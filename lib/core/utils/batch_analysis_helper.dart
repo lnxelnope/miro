@@ -394,11 +394,18 @@ class BatchAnalysisHelper {
         );
 
         try {
-          // สร้าง calibration hint จากข้อมูล AR ที่เก็บไว้ใน entry (ถ้ามี)
           final calibrationHint = _buildCalibrationHint(entry);
+
+          // Collect supplementary images if available
+          final supFiles = <File>[];
+          for (final path in entry.allImagePaths.skip(1)) {
+            final f = File(path);
+            if (f.existsSync()) supFiles.add(f);
+          }
 
           final result = await GeminiService.analyzeFoodImage(
             File(entry.imagePath!),
+            supplementaryImages: supFiles.isNotEmpty ? supFiles : null,
             foodName: entry.foodName,
             quantity: entry.servingSize,
             unit: entry.servingUnit,
@@ -435,23 +442,8 @@ class BatchAnalysisHelper {
       // Final refresh for this round
       _refreshProviders(ref, selectedDate);
 
-      if (shouldCancel()) break;
-
-      // Check for new unanalyzed entries
-      try {
-        final refreshed =
-            await ref.read(foodEntriesByDateProvider(d).future);
-        entriesToProcess = refreshed
-            .where(
-                (f) => !f.hasNutritionData && !failedIds.contains(f.id))
-            .toList();
-
-        if (entriesToProcess.isNotEmpty) {
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-      } catch (e) {
-        break;
-      }
+      // Only process the entries that were explicitly requested — do not auto-pickup
+      break;
     }
 
     final capHit = await UsageLimiter.hasReachedDailyCap();
@@ -526,39 +518,83 @@ class BatchAnalysisHelper {
       }
     }
 
-    // --- Part 2: Object detection metadata (ทุก object ที่ detect ได้) ---
-    final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
-    if (labels.isNotEmpty) {
-      final pxPerCm = entry.arPixelPerCm;
-      final imgW = entry.arImageWidth;
-      final imgH = entry.arImageHeight;
+    // --- Part 2: Object detection metadata ---
+    // Try multi-image format first, fall back to legacy single-image
+    final multiImageData =
+        ArImageDetectionData.decodeMultiImage(entry.arLabelsJson);
 
-      buffer.writeln('DETECTED OBJECTS IN IMAGE (${labels.length}):');
-      if (imgW != null && imgH != null) {
+    if (multiImageData.isNotEmpty) {
+      // Multi-angle: per-image detection data
+      final angleNames = ['top-down', 'diagonal', 'side'];
+      buffer.writeln(
+        'DETECTED OBJECTS PER IMAGE (${multiImageData.length} angles):',
+      );
+      for (final img in multiImageData) {
+        final angleName = img.imageIndex < angleNames.length
+            ? angleNames[img.imageIndex]
+            : 'angle ${img.imageIndex}';
+        if (img.labels.isEmpty) {
+          buffer.writeln('Image ${img.imageIndex + 1} ($angleName): no objects detected.');
+          continue;
+        }
         buffer.writeln(
-          'Image dimensions: ${imgW.toInt()}x${imgH.toInt()} pixels.',
+          'Image ${img.imageIndex + 1} ($angleName) — '
+          '${img.imageWidth.toInt()}x${img.imageHeight.toInt()} px:',
         );
-      }
-
-      for (final obj in labels) {
-        final confPct = (obj.confidence * 100).toStringAsFixed(0);
-        if (pxPerCm != null && pxPerCm > 0) {
-          final wCm = (obj.bboxWidth / pxPerCm).toStringAsFixed(1);
-          final hCm = (obj.bboxHeight / pxPerCm).toStringAsFixed(1);
-          buffer.writeln(
-            '- ${obj.label} ($confPct%): $wCm×$hCm cm '
-            'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
-          );
-        } else {
-          buffer.writeln(
-            '- ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px '
-            'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
-          );
+        for (final obj in img.labels) {
+          final confPct = (obj.confidence * 100).toStringAsFixed(0);
+          final pxCm = img.pixelPerCm;
+          if (pxCm != null && pxCm > 0) {
+            final wCm = (obj.bboxWidth / pxCm).toStringAsFixed(1);
+            final hCm = (obj.bboxHeight / pxCm).toStringAsFixed(1);
+            buffer.writeln(
+              '  - ${obj.label} ($confPct%): $wCm×$hCm cm',
+            );
+          } else {
+            buffer.writeln(
+              '  - ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px',
+            );
+          }
         }
       }
       buffer.writeln(
-        'Use these object sizes and positions to better estimate food portion sizes.',
+        'Use object sizes from ALL angles to estimate portion size and depth accurately.',
       );
+    } else {
+      // Legacy single-image format
+      final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+      if (labels.isNotEmpty) {
+        final pxPerCm = entry.arPixelPerCm;
+        final imgW = entry.arImageWidth;
+        final imgH = entry.arImageHeight;
+
+        buffer.writeln('DETECTED OBJECTS IN IMAGE (${labels.length}):');
+        if (imgW != null && imgH != null) {
+          buffer.writeln(
+            'Image dimensions: ${imgW.toInt()}x${imgH.toInt()} pixels.',
+          );
+        }
+
+        for (final obj in labels) {
+          final confPct = (obj.confidence * 100).toStringAsFixed(0);
+          if (pxPerCm != null && pxPerCm > 0) {
+            final wCm = (obj.bboxWidth / pxPerCm).toStringAsFixed(1);
+            final hCm = (obj.bboxHeight / pxPerCm).toStringAsFixed(1);
+            buffer.writeln(
+              '- ${obj.label} ($confPct%): $wCm×$hCm cm '
+              'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+            );
+          } else {
+            buffer.writeln(
+              '- ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px '
+              'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+            );
+          }
+        }
+        buffer.writeln(
+          'Use these object sizes and positions to better estimate food portion sizes.',
+        );
+      }
     }
 
     final result = buffer.toString().trim();
