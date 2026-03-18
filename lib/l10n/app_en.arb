@@ -2468,5 +2468,7 @@
       "current": {"type": "int"},
       "total": {"type": "int"}
     }
-  }
+  },
+  "arScanTapToCapture": "Tap anywhere to capture",
+  "arScanMoveToAngle": "Tilt to next angle"
 }

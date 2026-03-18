@@ -330,7 +330,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "es": [
@@ -658,7 +660,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "fr": [
@@ -986,7 +990,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "hi": [
@@ -1314,7 +1320,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "id": [
@@ -1642,7 +1650,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "ja": [
@@ -1970,7 +1980,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "ko": [
@@ -2298,7 +2310,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "pt": [
@@ -2626,7 +2640,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "th": [
@@ -3043,7 +3059,9 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ],
 
   "zh": [
@@ -3371,6 +3389,8 @@
     "arScanAngleDiagonal",
     "arScanAngleSide",
     "arScanAngleProgress",
-    "arScanAngleCaptured"
+    "arScanAngleCaptured",
+    "arScanTapToCapture",
+    "arScanMoveToAngle"
   ]
 }

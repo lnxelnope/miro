@@ -3992,4 +3992,10 @@ class L10nEs extends L10n {
   String arScanAngleCaptured(String zone, int current, int total) {
     return '$zone angle captured ($current/$total)';
   }
+
+  @override
+  String get arScanTapToCapture => 'Tap anywhere to capture';
+
+  @override
+  String get arScanMoveToAngle => 'Tilt to next angle';
 }

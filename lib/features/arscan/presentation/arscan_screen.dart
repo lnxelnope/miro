@@ -9,6 +9,7 @@ import 'package:miro_hybrid/l10n/app_localizations.dart';
 import '../application/camera_stream_controller.dart';
 import '../application/device_angle_sensor.dart';
 import '../application/multi_angle_capture_controller.dart';
+import '../domain/models/angle_zone.dart';
 import '../domain/models/ar_scan_detection.dart';
 import 'widgets/arscan_bounding_box_overlay.dart';
 import 'widgets/camera_preview_view.dart';
@@ -52,9 +53,13 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (!mounted) return;
-      final imagePaths = _captureController.capturedImages
-          .map((r) => r.imagePath)
-          .toList();
+      final sorted = List<AngleCaptureResult>.from(
+        _captureController.capturedImages,
+      )..sort((a, b) {
+          const order = [AngleZone.top, AngleZone.diagonal, AngleZone.side];
+          return order.indexOf(a.zone).compareTo(order.indexOf(b.zone));
+        });
+      final imagePaths = sorted.map((r) => r.imagePath).toList();
       Navigator.of(context).pop(imagePaths);
     });
   }
@@ -133,6 +138,15 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
     } catch (_) {}
   }
 
+  void _onScreenTap() {
+    if (!_captureController.isStarted.value) return;
+    if (!_captureController.canCapture.value) return;
+    if (_captureController.isCapturing.value) return;
+    if (_captureController.isComplete.value) return;
+
+    _captureController.captureManual();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -142,33 +156,37 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
       ),
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            CameraPreviewView(
-              isInitialized: _isInitialized,
-              controller: _streamController.cameraController,
-            ),
-            _buildTopBar(),
-            ValueListenableBuilder<ArScanState>(
-              valueListenable: _streamController.detectionState,
-              builder: (_, state, __) {
-                return ValueListenableBuilder<ArScanDetection?>(
-                  valueListenable: _streamController.primaryDetection,
-                  builder: (_, detection, __) => ArScanBoundingBoxOverlay(
-                    primaryDetection: detection,
-                    state: state,
-                    previewSize:
-                        _streamController.cameraController?.value.previewSize,
-                  ),
-                );
-              },
-            ),
-            MultiAngleCaptureOverlay(
-              controller: _captureController,
-              streamController: _streamController,
-            ),
-          ],
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _onScreenTap,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CameraPreviewView(
+                isInitialized: _isInitialized,
+                controller: _streamController.cameraController,
+              ),
+              _buildTopBar(),
+              ValueListenableBuilder<ArScanState>(
+                valueListenable: _streamController.detectionState,
+                builder: (_, state, __) {
+                  return ValueListenableBuilder<ArScanDetection?>(
+                    valueListenable: _streamController.primaryDetection,
+                    builder: (_, detection, __) => ArScanBoundingBoxOverlay(
+                      primaryDetection: detection,
+                      state: state,
+                      previewSize:
+                          _streamController.cameraController?.value.previewSize,
+                    ),
+                  );
+                },
+              ),
+              MultiAngleCaptureOverlay(
+                controller: _captureController,
+                streamController: _streamController,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -1190,66 +1190,46 @@ class _ImageAnalysisPreviewScreenState
   }
 }
 
-/// EXIF-aware image size for bounding box coordinate mapping.
+/// Get the image size as Flutter's Image.file would render it.
 ///
-/// Uses JPEG SOF marker (raw pixel dimensions) + EXIF orientation to determine
-/// the final display/ML Kit coordinate dimensions. This avoids double-correction
-/// that occurs when instantiateImageCodec already applies EXIF rotation (Android).
+/// Uses `instantiateImageCodec` which auto-applies EXIF rotation —
+/// identical to how Flutter's `Image.file` widget decodes the image.
+/// This guarantees `_imageSize` matches the rendered size exactly.
+///
+/// NOTE: Do NOT use manual SOF+EXIF parsing here. It caused recurring
+/// mismatches with Flutter's rendering on iOS, leading to bounding box
+/// offset bugs. The codec approach is the single source of truth.
 Future<Size> getExifCorrectedImageSize(Uint8List bytes) async {
-  final sofSize = _readJpegSofDimensions(bytes);
-
-  if (sofSize != null) {
-    final orientation = _readJpegExifOrientation(bytes);
-    debugPrint(
-      '[EXIF] SOF: ${sofSize.width.toInt()}x${sofSize.height.toInt()}, '
-      'orientation: $orientation',
-    );
-    if (orientation >= 5 && orientation <= 8) {
-      return Size(sofSize.height, sofSize.width);
-    }
-    return sofSize;
-  }
-
   final codec = await ui.instantiateImageCodec(bytes);
   final frame = await codec.getNextFrame();
   final w = frame.image.width.toDouble();
   final h = frame.image.height.toDouble();
   frame.image.dispose();
+  debugPrint('[ImageSize] codec: ${w.toInt()}x${h.toInt()}');
   return Size(w, h);
 }
 
-/// Read raw pixel dimensions from JPEG SOF (Start Of Frame) marker.
-/// These are the actual pixel dimensions stored in the file, unaffected by
-/// EXIF orientation or codec behavior.
-Size? _readJpegSofDimensions(Uint8List bytes) {
-  if (bytes.length < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8) return null;
-
-  int offset = 2;
-  while (offset < bytes.length - 2) {
-    if (bytes[offset] != 0xFF) return null;
-    final marker = bytes[offset + 1];
-
-    // SOF0-SOF15 (0xC0-0xCF) except DHT (0xC4) and JPG (0xC8)
-    if (marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8) {
-      if (offset + 8 >= bytes.length) return null;
-      final height = (bytes[offset + 5] << 8) | bytes[offset + 6];
-      final width = (bytes[offset + 7] << 8) | bytes[offset + 8];
-      return Size(width.toDouble(), height.toDouble());
-    }
-
-    if (marker == 0xDA) return null; // SOS — image data starts
-    if (offset + 3 >= bytes.length) return null;
-    final segmentLength = (bytes[offset + 2] << 8) | bytes[offset + 3];
-    offset += 2 + segmentLength;
-  }
-
-  return null;
-}
-
-/// On iOS, ML Kit `InputImage.fromFilePath` returns bounding boxes in the raw
-/// (pre-EXIF rotation) pixel space. Transform them to EXIF-corrected display
-/// space so BoundingBoxPainter maps correctly.
-/// On Android, ML Kit already returns in display space — no transform needed.
+/// On iOS, ML Kit `InputImage.fromFilePath` returns bounding boxes in the RAW
+/// sensor pixel space (landscape, e.g. 4032×3024), NOT in display space.
+/// This function transforms them to EXIF-corrected display space so
+/// BoundingBoxPainter (which uses codec/display dimensions) maps correctly.
+///
+/// On Android, ML Kit already returns display-space coords — no transform.
+///
+/// ROTATION MATH (verified with pixel grid):
+///
+/// For a raw image W_raw × H_raw, display after rotation is H_raw × W_raw.
+///
+///   Orientation 6 (90° CW — most common iOS portrait):
+///     display_x = H_raw - raw_y
+///     display_y = raw_x
+///
+///   Orientation 8 (90° CCW):
+///     display_x = raw_y
+///     display_y = W_raw - raw_x
+///
+/// IMPORTANT: Previous implementations had case 6 and case 8 SWAPPED,
+/// which caused the bounding box to shift in the wrong direction.
 List<DetectedObjectLabel> _transformLabelsForExif(
   List<DetectedObjectLabel> labels,
   Uint8List imageBytes,
@@ -1257,7 +1237,10 @@ List<DetectedObjectLabel> _transformLabelsForExif(
   if (!Platform.isIOS || labels.isEmpty) return labels;
 
   final rawSize = _readJpegSofDimensions(imageBytes);
-  if (rawSize == null) return labels;
+  if (rawSize == null) {
+    debugPrint('[EXIF Transform] Not JPEG or SOF unreadable — skipping');
+    return labels;
+  }
 
   final orientation = _readJpegExifOrientation(imageBytes);
   if (orientation < 5 || orientation > 8) return labels;
@@ -1266,29 +1249,29 @@ List<DetectedObjectLabel> _transformLabelsForExif(
   final rawH = rawSize.height;
 
   debugPrint(
-    '[EXIF Transform] orientation=$orientation, raw=${rawW.toInt()}x${rawH.toInt()}, '
-    'labels=${labels.length}',
+    '[EXIF Transform] orientation=$orientation, '
+    'raw=${rawW.toInt()}x${rawH.toInt()}, labels=${labels.length}',
   );
 
   return labels.map((label) {
     double cx, cy, bw, bh;
     switch (orientation) {
       case 6: // 90° CW (most common iOS portrait)
-        cx = label.centerY;
-        cy = rawW - label.centerX;
-        bw = label.bboxHeight;
-        bh = label.bboxWidth;
-      case 8: // 270° CW (90° CCW)
         cx = rawH - label.centerY;
         cy = label.centerX;
         bw = label.bboxHeight;
         bh = label.bboxWidth;
-      case 5: // transposed
+      case 8: // 90° CCW (270° CW)
+        cx = label.centerY;
+        cy = rawW - label.centerX;
+        bw = label.bboxHeight;
+        bh = label.bboxWidth;
+      case 5: // transposed (mirror + swap axes)
         cx = label.centerY;
         cy = label.centerX;
         bw = label.bboxHeight;
         bh = label.bboxWidth;
-      case 7: // transverse
+      case 7: // transverse (mirror + 180° + swap)
         cx = rawH - label.centerY;
         cy = rawW - label.centerX;
         bw = label.bboxHeight;
@@ -1296,6 +1279,12 @@ List<DetectedObjectLabel> _transformLabelsForExif(
       default:
         return label;
     }
+
+    debugPrint(
+      '  [EXIF] "${label.label}" raw(${label.centerX.toInt()},${label.centerY.toInt()}) '
+      '→ display(${cx.toInt()},${cy.toInt()})',
+    );
+
     return DetectedObjectLabel(
       label: label.label,
       confidence: label.confidence,
@@ -1307,6 +1296,33 @@ List<DetectedObjectLabel> _transformLabelsForExif(
   }).toList();
 }
 
+/// Read raw pixel dimensions from JPEG SOF (Start Of Frame) marker.
+/// Returns the physical pixel dimensions before any EXIF rotation.
+Size? _readJpegSofDimensions(Uint8List bytes) {
+  if (bytes.length < 4 || bytes[0] != 0xFF || bytes[1] != 0xD8) return null;
+
+  int offset = 2;
+  while (offset < bytes.length - 2) {
+    if (bytes[offset] != 0xFF) return null;
+    final marker = bytes[offset + 1];
+
+    if (marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8) {
+      if (offset + 8 >= bytes.length) return null;
+      final height = (bytes[offset + 5] << 8) | bytes[offset + 6];
+      final width = (bytes[offset + 7] << 8) | bytes[offset + 8];
+      return Size(width.toDouble(), height.toDouble());
+    }
+
+    if (marker == 0xDA) return null;
+    if (offset + 3 >= bytes.length) return null;
+    final segmentLength = (bytes[offset + 2] << 8) | bytes[offset + 3];
+    offset += 2 + segmentLength;
+  }
+
+  return null;
+}
+
+/// Read EXIF orientation tag from JPEG. Returns 1 if unreadable.
 int _readJpegExifOrientation(Uint8List bytes) {
   if (bytes.length < 12 || bytes[0] != 0xFF || bytes[1] != 0xD8) return 1;
 

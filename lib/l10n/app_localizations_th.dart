@@ -3889,4 +3889,10 @@ class L10nTh extends L10n {
   String arScanAngleCaptured(String zone, int current, int total) {
     return 'ถ่ายมุม$zoneแล้ว ($current/$total)';
   }
+
+  @override
+  String get arScanTapToCapture => 'แตะจอเพื่อถ่ายภาพ';
+
+  @override
+  String get arScanMoveToAngle => 'เอียงไปมุมถัดไป';
 }

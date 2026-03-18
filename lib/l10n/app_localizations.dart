@@ -6967,6 +6967,18 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'{zone} angle captured ({current}/{total})'**
   String arScanAngleCaptured(String zone, int current, int total);
+
+  /// No description provided for @arScanTapToCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap anywhere to capture'**
+  String get arScanTapToCapture;
+
+  /// No description provided for @arScanMoveToAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tilt to next angle'**
+  String get arScanMoveToAngle;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

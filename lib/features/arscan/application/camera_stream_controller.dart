@@ -138,69 +138,76 @@ class ArScanCameraStreamController {
 
     try {
       await controller.startImageStream((image) async {
-        if (_isDisposed) return;
+        if (_isDisposed || !_isStreaming) return;
         if (_frameStreamController.isClosed) return;
-        if (!_isStreaming && _cameraController != null) return;
         _frameStreamController.add(image);
 
-        final rotation = _mapDeviceOrientationToInputRotation(
-          controller.description.sensorOrientation,
-        );
+        try {
+          final rotation = _mapDeviceOrientationToInputRotation(
+            controller.description.sensorOrientation,
+          );
 
-        final detections =
-            await _detectionService.detectFrame(image, rotation);
+          final detections =
+              await _detectionService.detectFrame(image, rotation);
 
-        if (detections.isEmpty) {
-          detectionState.value = ArScanState.searching;
-          primaryDetection.value = null;
-          _lastPrimaryDetection = null;
-          return;
-        }
+          if (_isDisposed) return;
 
-        final primary = detections.firstWhere(
-          (d) => d.isPrimary,
-          orElse: () => detections.first,
-        );
+          if (detections.isEmpty) {
+            detectionState.value = ArScanState.searching;
+            primaryDetection.value = null;
+            _lastPrimaryDetection = null;
+            return;
+          }
 
-        var stableCount = 1;
-        if (_lastPrimaryDetection != null &&
-            _lastPrimaryDetection!.trackingId != null &&
-            primary.trackingId != null &&
-            _lastPrimaryDetection!.trackingId == primary.trackingId) {
-          stableCount = _lastPrimaryDetection!.stableFrameCount + 1;
-        }
+          final primary = detections.firstWhere(
+            (d) => d.isPrimary,
+            orElse: () => detections.first,
+          );
 
-        final updatedPrimary =
-            primary.copyWith(stableFrameCount: stableCount);
+          var stableCount = 1;
+          if (_lastPrimaryDetection != null &&
+              _lastPrimaryDetection!.trackingId != null &&
+              primary.trackingId != null &&
+              _lastPrimaryDetection!.trackingId == primary.trackingId) {
+            stableCount = _lastPrimaryDetection!.stableFrameCount + 1;
+          }
 
-        _lastPrimaryDetection = updatedPrimary;
-        primaryDetection.value = updatedPrimary;
+          final updatedPrimary =
+              primary.copyWith(stableFrameCount: stableCount);
 
-        final hasFoodPrimary = updatedPrimary.isFood;
-        if (hasFoodPrimary && stableCount >= 5) {
-          detectionState.value = ArScanState.readyForCapture;
-        } else {
-          detectionState.value = ArScanState.foodFound;
+          _lastPrimaryDetection = updatedPrimary;
+          if (!_isDisposed) {
+            primaryDetection.value = updatedPrimary;
+
+            final hasFoodPrimary = updatedPrimary.isFood;
+            if (hasFoodPrimary && stableCount >= 5) {
+              detectionState.value = ArScanState.readyForCapture;
+            } else {
+              detectionState.value = ArScanState.foodFound;
+            }
+          }
+        } catch (e) {
+          debugPrint('[ArScanCamera] frame processing error: $e');
         }
       });
       _isStreaming = true;
     } catch (e) {
-      debugPrint('[ArScanCameraStreamController] startStream error: $e');
+      debugPrint('[ArScanCamera] startStream error: $e');
     }
   }
 
   /// หยุด stream ของกล้อง (แต่ยังไม่ dispose controller)
   Future<void> stopStream() async {
+    _isStreaming = false;
     final controller = _cameraController;
     if (_isDisposed || controller == null) return;
-    if (!controller.value.isStreamingImages) return;
 
     try {
-      await controller.stopImageStream();
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
     } catch (e) {
-      debugPrint('[ArScanCameraStreamController] stopStream error: $e');
-    } finally {
-      _isStreaming = false;
+      debugPrint('[ArScanCamera] stopStream error: $e');
     }
   }
 

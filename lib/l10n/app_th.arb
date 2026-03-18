@@ -2233,5 +2233,7 @@
   "arScanAngleDiagonal": "เฉียง",
   "arScanAngleSide": "ด้านข้าง",
   "arScanAngleProgress": "{current}/{total}",
-  "arScanAngleCaptured": "ถ่ายมุม{zone}แล้ว ({current}/{total})"
+  "arScanAngleCaptured": "ถ่ายมุม{zone}แล้ว ({current}/{total})",
+  "arScanTapToCapture": "แตะจอเพื่อถ่ายภาพ",
+  "arScanMoveToAngle": "เอียงไปมุมถัดไป"
 }

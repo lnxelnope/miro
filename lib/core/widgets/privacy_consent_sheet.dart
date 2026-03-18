@@ -6,7 +6,6 @@ import 'package:miro_hybrid/core/theme/app_tokens.dart';
 import 'package:miro_hybrid/core/services/consent_service.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
 import 'package:miro_hybrid/core/services/notification_service.dart';
-import 'package:miro_hybrid/core/services/admob_consent_service.dart';
 import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 import 'package:miro_hybrid/l10n/app_localizations.dart';
@@ -17,7 +16,6 @@ import 'package:miro_hybrid/l10n/app_localizations.dart';
 /// - Push Notifications
 /// - Analytics (Firebase)
 /// - Food Research (optional)
-/// - Advertising (AdMob / UMP)
 ///
 /// User must scroll to the bottom before the "Allow All" button is enabled.
 class PrivacyConsentSheet extends StatefulWidget {
@@ -67,7 +65,6 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
   bool _notificationsEnabled = true;
   bool _analyticsEnabled = true;
   bool _foodResearchEnabled = false;
-  bool _adsPersonalized = true;
 
   @override
   void initState() {
@@ -144,16 +141,6 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
       }
     } catch (_) {}
 
-    // 4. Ads
-    if (_adsPersonalized) {
-      try {
-        await AdmobConsentService.initializeWithConsent()
-            .timeout(const Duration(seconds: 10));
-      } catch (e) {
-        AppLogger.warn('AdMob consent: $e');
-      }
-    }
-
     // Mark consent as shown
     await PrivacyConsentSheet._markConsentShown();
     await ConsentService.markConsentAsked();
@@ -161,8 +148,7 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
     AppLogger.info('Privacy consent completed: '
         'notifications=$_notificationsEnabled, '
         'analytics=$_analyticsEnabled, '
-        'foodResearch=$_foodResearchEnabled, '
-        'adsPersonalized=$_adsPersonalized');
+        'foodResearch=$_foodResearchEnabled');
 
     if (mounted) Navigator.of(context).pop(true);
   }
@@ -306,24 +292,6 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
                           setState(() => _foodResearchEnabled = v),
                       isDark: isDark,
                       isOptional: true,
-                    ),
-
-                    _buildDivider(isDark),
-
-                    // --- Advertising ---
-                    _buildSection(
-                      icon: Icons.ads_click_outlined,
-                      iconColor: const Color(0xFF5B86E5),
-                      title: l10n.privacyConsentAdsTitle,
-                      description: l10n.privacyConsentAdsDesc,
-                      bullets: [
-                        l10n.privacyConsentAdsBullet1,
-                        l10n.privacyConsentAdsBullet2,
-                      ],
-                      value: _adsPersonalized,
-                      onChanged: (v) =>
-                          setState(() => _adsPersonalized = v),
-                      isDark: isDark,
                     ),
 
                     const SizedBox(height: AppSpacing.lg),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
@@ -8,27 +9,21 @@ import '../domain/models/angle_zone.dart';
 import 'camera_stream_controller.dart';
 import 'device_angle_sensor.dart';
 
-/// Controller สำหรับจัดการ multi-angle capture flow
+/// Controller สำหรับจัดการ multi-angle capture flow (manual-only)
 ///
-/// 2-phase approach:
-///   Phase 1 — Positioning: user วางอาหารในกรอบแล้วกด "เริ่ม"
-///   Phase 2 — Auto-capture: ใช้ gyro อย่างเดียว (ไม่พึ่ง ML Kit) ถ่ายอัตโนมัติเมื่อนิ่งในโซนใหม่
+/// Phase 1 — Positioning: user วางอาหารในกรอบแล้วกด "เริ่ม" (ถ่ายรูปแรก)
+/// Phase 2 — Manual capture: user เอียงมือถือไปมุมที่แนะนำแล้วแตะจอเพื่อถ่าย
+///           กดได้เฉพาะเมื่ออยู่ในมุมที่ยังไม่ได้ถ่ายเท่านั้น
 class MultiAngleCaptureController {
   MultiAngleCaptureController({
     required this.cameraStreamController,
     required this.deviceAngleSensor,
-    Duration autoCaptureCheckInterval = const Duration(milliseconds: 100),
-    Duration requiredStableDuration = const Duration(milliseconds: 700),
-  })  : _autoCaptureCheckInterval = autoCaptureCheckInterval,
-        _requiredStableDuration = requiredStableDuration {
+  }) {
     _init();
   }
 
   final ArScanCameraStreamController cameraStreamController;
   final DeviceAngleSensor deviceAngleSensor;
-
-  final Duration _autoCaptureCheckInterval;
-  final Duration _requiredStableDuration;
 
   bool _isDisposed = false;
   Future<void>? _pendingCapture;
@@ -39,16 +34,12 @@ class MultiAngleCaptureController {
     AngleZone.side,
   ];
 
-  Timer? _autoCaptureTimer;
   VoidCallback? _angleZoneListener;
 
   final Set<AngleZone> _capturedZones = {};
 
   /// Phase 1 → Phase 2: user กดเริ่มแล้ว
   final ValueNotifier<bool> isStarted = ValueNotifier<bool>(false);
-
-  /// มุมองศาตอน user กดเริ่ม (baseline สำหรับ gyro calibration)
-  double? baselineAngle;
 
   final ValueNotifier<int> capturedCount = ValueNotifier<int>(0);
 
@@ -69,58 +60,54 @@ class MultiAngleCaptureController {
 
   final ValueNotifier<bool> isComplete = ValueNotifier<bool>(false);
 
+  /// true เมื่อมือถืออยู่ในมุมที่ยังไม่ได้ถ่าย → user กดถ่ายได้
+  final ValueNotifier<bool> canCapture = ValueNotifier<bool>(false);
+
   final List<AngleCaptureResult> capturedImages = <AngleCaptureResult>[];
 
   void _init() {
     currentDeviceZone.value = deviceAngleSensor.currentZone.value;
     _angleZoneListener = () {
       currentDeviceZone.value = deviceAngleSensor.currentZone.value;
-      if (isStarted.value) {
-        _updateTargetFromDeviceZone();
-      }
+      _updateState();
     };
     deviceAngleSensor.currentZone.addListener(_angleZoneListener!);
-
-    _autoCaptureTimer = Timer.periodic(
-      _autoCaptureCheckInterval,
-      (_) => _maybeAutoCapture(),
-    );
   }
 
   // ─── Phase 1 → Phase 2 transition ───
 
-  /// User กดเริ่ม: ถ่ายรูปแรก + เปิด auto-capture
+  /// User กดเริ่ม: ถ่ายรูปแรกจากมุมปัจจุบัน
   Future<void> startCapture() async {
     if (isStarted.value) return;
 
-    baselineAngle = currentAngle.value;
-
-    await _captureCurrentAngle(isAuto: false);
+    await _captureCurrentAngle();
 
     if (capturedImages.isNotEmpty) {
       isStarted.value = true;
-      _updateTargetFromDeviceZone();
+      _updateState();
     }
   }
 
-  // ─── Target zone logic ───
+  // ─── State logic ───
 
-  void _updateTargetFromDeviceZone() {
+  void _updateState() {
     if (isComplete.value) {
       currentTargetZone.value = null;
+      canCapture.value = false;
       return;
     }
 
     final deviceZone = currentDeviceZone.value;
-    if (deviceZone == null || deviceZone == AngleZone.outOfRange) {
-      currentTargetZone.value = _nextUncapturedZone();
-      return;
-    }
 
-    if (_capturedZones.contains(deviceZone)) {
+    // แนะนำมุมถัดไปที่ยังไม่ถ่าย
+    if (deviceZone == null ||
+        deviceZone == AngleZone.outOfRange ||
+        _capturedZones.contains(deviceZone)) {
       currentTargetZone.value = _nextUncapturedZone();
+      canCapture.value = false;
     } else {
       currentTargetZone.value = deviceZone;
+      canCapture.value = isStarted.value && !isCapturing.value;
     }
   }
 
@@ -140,57 +127,38 @@ class MultiAngleCaptureController {
     return null;
   }
 
-  // ─── Auto-capture (Phase 2): gyro-only, ไม่พึ่ง ML Kit ───
+  // ─── Manual capture: user แตะจอเมื่ออยู่ในมุมถูกต้อง ───
 
-  void _maybeAutoCapture() {
-    if (_isDisposed) return;
+  /// เรียกเมื่อ user แตะจอ — ถ่ายได้เฉพาะเมื่อ canCapture == true
+  Future<void> captureManual() async {
     if (!isStarted.value) return;
-    if (isCapturing.value) return;
-    if (isComplete.value) return;
-
-    final deviceZone = currentDeviceZone.value;
-    if (deviceZone == null || deviceZone == AngleZone.outOfRange) return;
-    if (_capturedZones.contains(deviceZone)) return;
-
-    final isStable = deviceAngleSensor.isStableInZone(
-      deviceZone,
-      _requiredStableDuration,
-    );
-    if (!isStable) return;
-
-    final capture = _captureCurrentAngle(isAuto: true);
-    _pendingCapture = capture;
-    unawaited(capture.whenComplete(() {
-      if (_pendingCapture == capture) _pendingCapture = null;
-    }));
+    if (!canCapture.value) return;
+    return _captureCurrentAngle();
   }
 
-  /// Manual capture (ใช้ได้หลัง start เท่านั้น)
-  Future<void> captureManual() {
-    if (!isStarted.value) return Future.value();
-    return _captureCurrentAngle(isAuto: false);
-  }
-
-  Future<void> _captureCurrentAngle({
-    required bool isAuto,
-  }) async {
+  Future<void> _captureCurrentAngle() async {
     if (_isDisposed) return;
     if (isCapturing.value) return;
-    if (isComplete.value && isAuto) return;
 
     final cameraController = cameraStreamController.cameraController;
     if (cameraController == null ||
         !cameraController.value.isInitialized) {
       debugPrint(
-        '[MultiAngleCaptureController] cameraController not ready',
+        '[MultiAngleCapture] cameraController not ready',
       );
       return;
     }
 
     isCapturing.value = true;
+    canCapture.value = false;
 
     try {
-      await cameraStreamController.stopStream();
+      // Stop stream before taking picture (required by camera plugin)
+      try {
+        await cameraStreamController.stopStream();
+      } catch (e) {
+        debugPrint('[MultiAngleCapture] stopStream error: $e');
+      }
 
       if (_isDisposed) return;
 
@@ -203,11 +171,22 @@ class MultiAngleCaptureController {
         zone = _closestZone(angleAtCapture);
       }
 
-      final XFile xfile = await cameraController.takePicture();
+      XFile? xfile;
+      try {
+        xfile = await cameraController.takePicture();
+      } catch (e) {
+        debugPrint('[MultiAngleCapture] takePicture error: $e');
+        // Restart stream even on failure
+        if (!_isDisposed) {
+          try {
+            await cameraStreamController.startStream();
+          } catch (_) {}
+        }
+        return;
+      }
 
-      // ให้ native callbacks (เช่น unlockAutoFocus) ทำงานเสร็จ
-      // ก่อนจะ startStream หรือ dispose camera
-      await Future.delayed(const Duration(milliseconds: 150));
+      // Wait for native camera callbacks (e.g. unlockAutoFocus on Android)
+      await Future.delayed(const Duration(milliseconds: 200));
 
       if (_isDisposed) return;
 
@@ -229,16 +208,20 @@ class MultiAngleCaptureController {
         _upsertCaptureResult(result);
       }
 
-      if (!_isDisposed) {
-        await cameraStreamController.startStream();
+      // Restart stream for next capture
+      if (!_isDisposed && !isComplete.value) {
+        try {
+          await cameraStreamController.startStream();
+        } catch (e) {
+          debugPrint('[MultiAngleCapture] startStream error: $e');
+        }
       }
     } catch (e) {
-      debugPrint(
-        '[MultiAngleCaptureController] capture error: $e',
-      );
+      debugPrint('[MultiAngleCapture] capture error: $e');
     } finally {
       if (!_isDisposed) {
         isCapturing.value = false;
+        _updateState();
       }
     }
   }
@@ -266,18 +249,13 @@ class MultiAngleCaptureController {
     if (_capturedZones.length >= allZones.length) {
       isComplete.value = true;
       currentTargetZone.value = null;
-    } else {
-      _updateTargetFromDeviceZone();
+      canCapture.value = false;
     }
   }
 
   Future<void> dispose() async {
     _isDisposed = true;
-    _autoCaptureTimer?.cancel();
-    _autoCaptureTimer = null;
 
-    // รอ capture ที่กำลังทำงานอยู่ให้เสร็จก่อน dispose
-    // ป้องกัน native Camera2 callback crash (unlockAutoFocus NPE)
     final pending = _pendingCapture;
     if (pending != null) {
       try {
@@ -298,5 +276,6 @@ class MultiAngleCaptureController {
     isCapturing.dispose();
     isComplete.dispose();
     isStarted.dispose();
+    canCapture.dispose();
   }
 }

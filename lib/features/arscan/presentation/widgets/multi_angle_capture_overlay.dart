@@ -113,7 +113,7 @@ class _MultiAngleCaptureOverlayState extends State<MultiAngleCaptureOverlay>
               _buildGauge(),
               _buildZoneIndicators(),
               _buildCaptureConfirmation(context),
-              _buildCaptureButton(),
+              _buildTapHint(),
             ],
           ],
         );
@@ -451,11 +451,12 @@ class _MultiAngleCaptureOverlayState extends State<MultiAngleCaptureOverlay>
     );
   }
 
-  Widget _buildCaptureButton() {
+  Widget _buildTapHint() {
+    final l10n = L10n.of(context)!;
     return Positioned(
       left: 0,
       right: 0,
-      bottom: MediaQuery.of(context).padding.bottom + 24,
+      bottom: MediaQuery.of(context).padding.bottom + 32,
       child: Center(
         child: ValueListenableBuilder<bool>(
           valueListenable: _ctrl.isCapturing,
@@ -463,37 +464,71 @@ class _MultiAngleCaptureOverlayState extends State<MultiAngleCaptureOverlay>
             return ValueListenableBuilder<bool>(
               valueListenable: _ctrl.isComplete,
               builder: (_, complete, __) {
-                if (complete) {
-                  return _buildCompleteIndicator();
-                }
-                return GestureDetector(
-                  onTap: capturing ? null : () => _ctrl.captureManual(),
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: capturing ? 0.4 : 1.0,
-                    child: Container(
-                      width: 76,
-                      height: 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.15),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 4,
+                if (complete) return _buildCompleteIndicator();
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _ctrl.canCapture,
+                  builder: (_, canTap, __) {
+                    if (capturing) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
+                        child: const SizedBox(
+                          width: 20, height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white,
                           ),
                         ),
+                      );
+                    }
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: canTap
+                            ? const Color(0xFF22C55E)
+                            : Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: canTap
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF22C55E)
+                                      .withValues(alpha: 0.4),
+                                  blurRadius: 16,
+                                  spreadRadius: 2,
+                                ),
+                              ]
+                            : null,
                       ),
-                    ),
-                  ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            canTap
+                                ? Icons.touch_app_rounded
+                                : Icons.screen_rotation_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            canTap
+                                ? l10n.arScanTapToCapture
+                                : l10n.arScanMoveToAngle,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             );

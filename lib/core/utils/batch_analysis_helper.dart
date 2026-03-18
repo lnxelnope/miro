@@ -524,21 +524,24 @@ class BatchAnalysisHelper {
         ArImageDetectionData.decodeMultiImage(entry.arLabelsJson);
 
     if (multiImageData.isNotEmpty) {
-      // Multi-angle: per-image detection data
-      final angleNames = ['top-down', 'diagonal', 'side'];
+      final angleRoles = [
+        'top-down — PRIMARY for food identification',
+        'diagonal — container/depth reference',
+        'side — container/height reference',
+      ];
       buffer.writeln(
         'DETECTED OBJECTS PER IMAGE (${multiImageData.length} angles):',
       );
       for (final img in multiImageData) {
-        final angleName = img.imageIndex < angleNames.length
-            ? angleNames[img.imageIndex]
+        final role = img.imageIndex < angleRoles.length
+            ? angleRoles[img.imageIndex]
             : 'angle ${img.imageIndex}';
         if (img.labels.isEmpty) {
-          buffer.writeln('Image ${img.imageIndex + 1} ($angleName): no objects detected.');
+          buffer.writeln('Image ${img.imageIndex + 1} ($role): no objects detected.');
           continue;
         }
         buffer.writeln(
-          'Image ${img.imageIndex + 1} ($angleName) — '
+          'Image ${img.imageIndex + 1} ($role) — '
           '${img.imageWidth.toInt()}x${img.imageHeight.toInt()} px:',
         );
         for (final obj in img.labels) {
@@ -558,7 +561,8 @@ class BatchAnalysisHelper {
         }
       }
       buffer.writeln(
-        'Use object sizes from ALL angles to estimate portion size and depth accurately.',
+        'Use Image 1 (top-down) to identify food. '
+        'Use object sizes from diagonal/side angles to estimate portion depth and height.',
       );
     } else {
       // Legacy single-image format
