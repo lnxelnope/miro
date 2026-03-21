@@ -439,3 +439,41 @@ class IngredientTreeNode {
         children.fold<double>(0, (sum, child) => sum + child.calories);
   }
 }
+
+/// แปลง meal ingredient tree เป็น map สำหรับ `FoodEntry.ingredientsJson` (รวม sub_ingredients)
+List<Map<String, dynamic>> ingredientTreeToJsonMaps(
+    List<IngredientTreeNode> tree) {
+  return tree.map((node) {
+    final rootMap = <String, dynamic>{
+      'name': node.ingredient.ingredientName,
+      'amount': node.ingredient.amount,
+      'unit': node.ingredient.unit,
+      'calories': node.ingredient.calories,
+      'protein': node.ingredient.protein,
+      'carbs': node.ingredient.carbs,
+      'fat': node.ingredient.fat,
+    };
+    final detail = node.ingredient.detail;
+    if (detail != null && detail.isNotEmpty) {
+      rootMap['detail'] = detail;
+    }
+    if (node.children.isNotEmpty) {
+      rootMap['sub_ingredients'] = node.children.map((child) {
+        final subMap = <String, dynamic>{
+          'name': child.ingredientName,
+          'amount': child.amount,
+          'unit': child.unit,
+          'calories': child.calories,
+          'protein': child.protein,
+          'carbs': child.carbs,
+          'fat': child.fat,
+        };
+        if (child.detail != null && child.detail!.isNotEmpty) {
+          subMap['detail'] = child.detail;
+        }
+        return subMap;
+      }).toList();
+    }
+    return rootMap;
+  }).toList();
+}

@@ -2,25 +2,39 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-17 (Build 65)
+**อัปเดตล่าสุด:** 2026-03-18 (Build 67)
 
 ---
 
-## ✅ Build 65 (v1.2.6) - Status: READY FOR RELEASE
+## ✅ Build 67 (v1.2.6) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+65`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 65`, `versionName = "1.2.6"`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+67`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 67`, `versionName = "1.2.6"`)
 - [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.6'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
 - [ ] **Version Naming** - ตาม Semantic Versioning (`1.2.6`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+65)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+67)
 - [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
+- Bump build 67 สำหรับอัปโหลดขึ้น Store
+
+---
+
+## ✅ Build 66 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 67 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 65 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
 - iOS: Info.plist base values เป็นภาษาอังกฤษ, register InfoPlist.strings + PrivacyInfo.xcprivacy, bump build สำหรับ resubmit
 
 ---
@@ -510,16 +524,16 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.6+65
+version: 1.2.6+67
 ```
 **Format:** `versionName+versionCode`
 - `1.2.6` = Version name (แสดงให้ user เห็น)
-- `65` = Build number / Version code (internal)
+- `67` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 65
+    versionCode = 67
     versionName = "1.2.6"
 }
 ```
@@ -599,7 +613,9 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 65 | 1.2.6 | 2026-03-17 | ✅ Current |
+| 67 | 1.2.6 | 2026-03-18 | ✅ Current |
+| 66 | 1.2.6 | 2026-03-18 | ✅ Released |
+| 65 | 1.2.6 | 2026-03-17 | ✅ Released |
 | 64 | 1.2.6 | 2026-03-17 | ✅ Released |
 | 63 | 1.2.6 | 2026-03-17 | ✅ Released |
 | 62 | 1.2.6 | 2026-03-03 | ✅ Released |
@@ -663,11 +679,11 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 65):
-- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+65`)
-- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (64 → 65)
+### Pre-flight Checklist (Build 67):
+- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+67`)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (66 → 67)
 - [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.6'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.6+65)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.6+67)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)

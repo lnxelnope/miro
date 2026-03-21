@@ -55,6 +55,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   // Multi-image page tracking
   int _imagePage = 0;
 
+  /// กันโหลดซ้ำ — fallback เหมือน FoodDetailBottomSheet เมื่อไม่มี ingredientsJson
+  bool _loadedFromMeal = false;
+
   // Unit options ใช้จาก UnitConverter (single source of truth)
 
   @override
@@ -136,7 +139,29 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
         // Fix: ถ้าผลรวม ingredients ไม่ตรงกับ entry → recalculate
         _fixCaloriesIfMismatch();
+        return;
       } catch (_) {}
+    }
+    if (widget.entry.myMealId != null && !_loadedFromMeal) {
+      _loadedFromMeal = true;
+      _loadIngredientsFromMyMeal(widget.entry.myMealId!);
+    }
+  }
+
+  Future<void> _loadIngredientsFromMyMeal(int mealId) async {
+    try {
+      final tree = await ref.read(mealIngredientTreeProvider(mealId).future);
+      if (!mounted || tree.isEmpty) return;
+      final maps = ingredientTreeToJsonMaps(tree);
+      setState(() {
+        _ingredients =
+            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+        _baseIngredients =
+            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+      });
+      _fixCaloriesIfMismatch();
+    } catch (e) {
+      AppLogger.warn('SimpleFoodDetail: load ingredients from meal failed', e);
     }
   }
 
