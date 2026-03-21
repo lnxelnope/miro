@@ -439,7 +439,8 @@ class _QuestBarState extends ConsumerState<QuestBar> {
     final ctaText = offer['ctaText'] as String? ?? l10n.questBarViewDetails;
     final offerType = offer['type'] as String? ?? '';
 
-    final isUrgent = offerType == 'first_purchase';
+    final isUrgent =
+        offerType == 'first_purchase' || offerType == 'starter_deal';
     final isSubscription = offerType == 'winback' || offerType == 'sub_upsell';
 
     final gradientColors = isSubscription
@@ -1687,7 +1688,8 @@ class _QuestBarState extends ConsumerState<QuestBar> {
     final ctaText = offer['ctaText'] as String? ?? l10n.questBarViewDetails;
     final offerType = offer['type'] as String? ?? '';
 
-    final isUrgent = offerType == 'first_purchase';
+    final isUrgent =
+        offerType == 'first_purchase' || offerType == 'starter_deal';
     final isSubscription = offerType == 'winback' || offerType == 'sub_upsell';
 
     final gradientColors = isSubscription

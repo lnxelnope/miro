@@ -83,7 +83,7 @@ void main() {
 
     testWidgets('Quest Bar displays active offer when available', (WidgetTester tester) async {
       // Arrange
-      await mockUserWithOffer('first_purchase', expiry: const Duration(hours: 4));
+      await mockUserWithOffer('starter_deal', expiry: const Duration(hours: 4));
       
       // Act
       await tester.pumpWidget(
@@ -100,7 +100,7 @@ void main() {
 
     testWidgets('Countdown timer updates correctly', (WidgetTester tester) async {
       // Arrange
-      await mockUserWithOffer('first_purchase', expiry: const Duration(seconds: 10));
+      await mockUserWithOffer('starter_deal', expiry: const Duration(seconds: 10));
       
       // Act
       await tester.pumpWidget(
@@ -130,7 +130,7 @@ void main() {
 
     testWidgets('Swipe left dismisses offer and shows Snackbar', (WidgetTester tester) async {
       // Arrange
-      await mockUserWithOffer('first_purchase');
+      await mockUserWithOffer('starter_deal');
       
       // Act
       await tester.pumpWidget(
@@ -156,7 +156,7 @@ void main() {
 
     testWidgets('Undo button restores dismissed offer', (WidgetTester tester) async {
       // Arrange
-      await mockUserWithOffer('first_purchase');
+      await mockUserWithOffer('starter_deal');
       
       // Act
       await tester.pumpWidget(
@@ -238,8 +238,8 @@ void main() {
               'priority': 3,
             },
             {
-              'id': 'first_purchase',
-              'type': 'first_purchase',
+              'id': 'starter_deal',
+              'type': 'starter_deal',
               'title': '🔥 200E แค่ \$1!',
               'priority': 1,
             },
@@ -262,7 +262,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       
-      // Assert: first_purchase (priority 1) should be shown
+      // Assert: starter_deal (priority 1) should be shown
       expect(find.text('🔥 200E แค่ \$1!'), findsOneWidget);
       expect(find.text('💰 40% Bonus'), findsNothing);
       

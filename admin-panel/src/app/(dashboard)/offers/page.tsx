@@ -13,7 +13,6 @@ import {
   Gift,
   Percent,
   Zap,
-  CreditCard,
   Clock,
   TrendingUp,
   Eye,
@@ -47,14 +46,12 @@ const ENERGY_PRODUCTS: Record<string, { name: string; energy: number; price: str
   energy_550: { name: 'Value Pack', energy: 550, price: '$4.99' },
   energy_1200: { name: 'Power User', energy: 1200, price: '$7.99' },
   energy_2000: { name: 'Ultimate Saver', energy: 2000, price: '$9.99' },
-  energy_first_purchase_200: { name: 'Starter Deal', energy: 200, price: '$0.99' },
 };
 
 const REWARD_TYPE_CONFIG: Record<string, { label: string; color: string; bgColor: string; icon: any }> = {
-  special_product: { label: 'Special Product', color: 'text-orange-700', bgColor: 'bg-orange-50 border-orange-200', icon: CreditCard },
   bonus_rate: { label: 'Bonus Rate', color: 'text-purple-700', bgColor: 'bg-purple-50 border-purple-200', icon: Percent },
   free_energy: { label: 'Free Energy', color: 'text-green-700', bgColor: 'bg-green-50 border-green-200', icon: Zap },
-  subscription_deal: { label: 'Sub Deal', color: 'text-blue-700', bgColor: 'bg-blue-50 border-blue-200', icon: Gift },
+  freepass: { label: 'Freepass', color: 'text-blue-700', bgColor: 'bg-blue-50 border-blue-200', icon: Gift },
 };
 
 const TRIGGER_LABELS: Record<string, string> = {
@@ -185,17 +182,15 @@ export default function OffersPage() {
 
   function formatReward(offer: OfferTemplate): string {
     const { rewardType, rewardConfig } = offer;
-    if (rewardType === 'special_product') {
-      return `$${rewardConfig.displayPrice || '?'} → ${rewardConfig.energyAmount || '?'}E`;
-    }
     if (rewardType === 'bonus_rate') {
-      return `+${Math.round((rewardConfig.bonusRate || 0) * 100)}% Bonus`;
+      const pct = `+${Math.round((rewardConfig.bonusRate || 0) * 100)}%`;
+      return rewardConfig.applyToProductId ? `${pct} (${rewardConfig.applyToProductId})` : `${pct} Bonus`;
     }
     if (rewardType === 'free_energy') {
       return `${rewardConfig.amount || '?'}E Free`;
     }
-    if (rewardType === 'subscription_deal') {
-      return `Sub: ${rewardConfig.offerId || '?'}`;
+    if (rewardType === 'freepass') {
+      return `${rewardConfig.days || '?'} days free`;
     }
     return rewardType;
   }
@@ -222,8 +217,8 @@ export default function OffersPage() {
     total: offers.length,
     active: offers.filter((o) => o.isActive).length,
     bonusRate: offers.filter((o) => o.rewardType === 'bonus_rate').length,
-    specialProduct: offers.filter((o) => o.rewardType === 'special_product').length,
     freeEnergy: offers.filter((o) => o.rewardType === 'free_energy').length,
+    freepass: offers.filter((o) => o.rewardType === 'freepass').length,
   };
 
   return (
@@ -254,8 +249,8 @@ export default function OffersPage() {
         <StatCard label="Total" value={stats.total} color="gray" />
         <StatCard label="Active" value={stats.active} color="green" />
         <StatCard label="Bonus Rate" value={stats.bonusRate} color="purple" />
-        <StatCard label="Special Product" value={stats.specialProduct} color="orange" />
         <StatCard label="Free Energy" value={stats.freeEnergy} color="emerald" />
+        <StatCard label="Freepass" value={stats.freepass} color="blue" />
       </div>
 
       {/* Filters + View Toggle */}
@@ -268,9 +263,8 @@ export default function OffersPage() {
           >
             <option value="all">All Types</option>
             <option value="bonus_rate">Bonus Rate</option>
-            <option value="special_product">Special Product</option>
             <option value="free_energy">Free Energy</option>
-            <option value="subscription_deal">Subscription Deal</option>
+            <option value="freepass">Freepass</option>
           </select>
 
           <select
@@ -370,7 +364,7 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     gray: 'bg-gray-50 border-gray-200 text-gray-700',
     green: 'bg-green-50 border-green-200 text-green-700',
     purple: 'bg-purple-50 border-purple-200 text-purple-700',
-    orange: 'bg-orange-50 border-orange-200 text-orange-700',
+    blue: 'bg-blue-50 border-blue-200 text-blue-700',
     emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
   };
   return (

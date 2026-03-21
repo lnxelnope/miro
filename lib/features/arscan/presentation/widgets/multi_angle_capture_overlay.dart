@@ -583,7 +583,7 @@ class _ViewfinderPainter extends CustomPainter {
       Path()
         ..moveTo(0, cornerLen)
         ..lineTo(0, r)
-        ..arcTo(Rect.fromLTWH(0, 0, r * 2, r * 2), math.pi, math.pi / 2,
+        ..arcTo(const Rect.fromLTWH(0, 0, r * 2, r * 2), math.pi, math.pi / 2,
             false)
         ..lineTo(cornerLen, 0),
       paint,

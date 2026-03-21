@@ -14,14 +14,19 @@ export default function CreateOfferPage() {
       const response = await fetch('/api/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
-      if (result.success) {
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.success) {
         router.push('/offers');
       } else {
-        alert(`Error: ${result.error}`);
+        const msg =
+          result.error ||
+          (response.status === 401 ? 'Unauthorized — sign in again' : null) ||
+          `HTTP ${response.status}`;
+        alert(`Error: ${msg}`);
       }
     } catch (error) {
       console.error('Error creating offer:', error);

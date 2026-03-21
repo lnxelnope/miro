@@ -6,7 +6,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { 
   LayoutDashboard, 
   Users, 
-  Settings, 
   AlertTriangle,
   Send,
   CreditCard,
@@ -28,7 +27,6 @@ const menuItems = [
   { icon: FlaskConical, label: 'Test Scenarios', href: '/test-scenarios' },
   { icon: UsersRound, label: 'Bulk Management', href: '/bulk-management' },
   { icon: FileText, label: 'Audit Logs', href: '/audit-logs' },
-  { icon: Settings, label: 'Config', href: '/config' },
   { icon: CreditCard, label: 'Subscriptions', href: '/subscriptions' },
   { icon: BarChart3, label: 'Promotion Analytics', href: '/analytics/promotions' },
   { icon: Database, label: 'Data Mining', href: '/data-mining' },

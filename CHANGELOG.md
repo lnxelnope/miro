@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.6+68] - 2026-03-21
+
+### 📦 Build
+- Bump build 67→68 สำหรับส่ง App Store / Play อีกครั้ง (หลังจัดการ promotion offer / ลบ IAP 200E ที่มีปัญหา)
+
+---
+
 ## [1.2.6+64] - 2026-03-17
 
 ### 📦 Build

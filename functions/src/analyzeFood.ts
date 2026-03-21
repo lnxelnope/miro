@@ -11,7 +11,6 @@ import * as crypto from "crypto";
 import fetch from "node-fetch";
 import * as admin from "firebase-admin";
 import {checkReferralProgress} from "./referral/checkReferralProgress";
-import {checkWelcomeOfferPromotion} from "./energy/promotions";
 import {checkAndProcessMilestone} from "./energy/milestoneV2";
 import {evaluateOffers} from "./energy/offerEngine";
 import {processCheckIn, CheckInResult} from "./energy/dailyCheckIn";
@@ -1460,16 +1459,12 @@ export const analyzeFood = onRequest(
 
         // Milestone check
         let milestoneResult = null;
-        let offerResult = null;
         let challengesData: any = {};
         let milestonesData: any = {};
-        let updatedData: any = userData; // Initialize with userData as fallback
+        let updatedData: any = userData;
         try {
           milestoneResult = await checkAndProcessMilestone(deviceId, baseCost);
           if (milestoneResult.milestoneReached) newBalance += milestoneResult.reward;
-          if (milestoneResult.triggerFirstPurchaseOffer) {
-            offerResult = await checkWelcomeOfferPromotion(deviceId, milestoneResult.newTotalSpent);
-          }
           const updatedUser = await db.collection("users").doc(deviceId).get();
           updatedData = updatedUser.data()!;
           challengesData = updatedData.challenges || {};
@@ -1505,7 +1500,6 @@ export const analyzeFood = onRequest(
           wasFreeAi: isFreeChatRequest,
           isFreeChat: isFreeChatRequest,
           ...(milestoneResult?.milestoneReached ? {milestone: {label: milestoneResult.milestoneLabel, reward: milestoneResult.reward, nextMilestone: milestoneResult.nextMilestone}} : {}),
-          ...(offerResult ? {newOffer: {type: offerResult.type}} : {}),
           streak: {
             current: checkInResult?.currentStreak ?? updatedData.currentStreak ?? 0,
             longest: checkInResult?.longestStreak ?? updatedData.longestStreak ?? 0,
@@ -1564,16 +1558,12 @@ export const analyzeFood = onRequest(
 
       // Milestone check
       let milestoneResult2 = null;
-      let offerResult2 = null;
       let challengesData2: any = {};
       let milestonesData2: any = {};
-      let updatedData2: any = userData; // Initialize with userData as fallback
+      let updatedData2: any = userData;
       try {
         milestoneResult2 = await checkAndProcessMilestone(deviceId, baseCost);
         if (milestoneResult2.milestoneReached) newBalance += milestoneResult2.reward;
-        if (milestoneResult2.triggerFirstPurchaseOffer) {
-          offerResult2 = await checkWelcomeOfferPromotion(deviceId, milestoneResult2.newTotalSpent);
-        }
         const updatedUser = await db.collection("users").doc(deviceId).get();
         updatedData2 = updatedUser.data()!;
         challengesData2 = updatedData2.challenges || {};
@@ -1606,7 +1596,6 @@ export const analyzeFood = onRequest(
         success: true, data: geminiResponse, balance: newBalance,
         energyUsed: baseCost, energyCost: baseCost, wasFreeAi: false,
         ...(milestoneResult2?.milestoneReached ? {milestone: {label: milestoneResult2.milestoneLabel, reward: milestoneResult2.reward, nextMilestone: milestoneResult2.nextMilestone}} : {}),
-        ...(offerResult2 ? {newOffer: {type: offerResult2.type}} : {}),
         streak: {
           current: checkInResult?.currentStreak ?? updatedData2.currentStreak ?? 0,
           longest: checkInResult?.longestStreak ?? updatedData2.longestStreak ?? 0,

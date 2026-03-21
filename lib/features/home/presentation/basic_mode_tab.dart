@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/permission_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../l10n/app_localizations.dart';
@@ -275,6 +276,23 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   }
 
   Future<void> _openARScan() async {
+    final permService = PermissionService();
+    final hasPermission = await permService.hasCameraPermission();
+    if (!hasPermission) {
+      final granted = await permService.requestCameraPermission();
+      if (!granted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cameraFailedToInitialize),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
     final result = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(builder: (_) => const ARscanScreen()),

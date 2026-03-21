@@ -114,6 +114,12 @@ export async function evaluateOffers(
         }
       }
 
+      if (triggerCondition.requiresStarterEnergy100Bonus === true) {
+        if (!eventData.starterEnergy100Bonus) {
+          conditionMet = false;
+        }
+      }
+
       if (!conditionMet) {
         continue; // เงื่อนไขไม่ตรง → ข้าม
       }

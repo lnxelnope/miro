@@ -41,6 +41,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   Duration? _remainingTime;
   DateTime? _offerExpiryTime;
   bool _isClaimingFreeEnergy = false;
+  bool _isClaimingFreepass = false;
   bool _isConvertingToFreepass = false;
   final Map<String, GlobalKey> _offerKeys = {};
   String? _userLocale;
@@ -425,24 +426,17 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
       Widget? card;
       switch (rewardType) {
-        case 'special_product':
-          card = _buildFirstPurchaseCard(offer);
-          break;
         case 'bonus_rate':
           card = _buildBonusBanner(offer);
           break;
         case 'free_energy':
           card = _buildFreeEnergyCard(offer);
           break;
-        case 'subscription_deal':
-          // Navigate to SubscriptionScreen
-          card = _buildSubscriptionDealCard(offer);
+        case 'freepass':
+          card = _buildFreepassOfferCard(offer);
           break;
         default:
-          // Fallback to old type-based logic
-          if (type == 'first_purchase') {
-            card = _buildFirstPurchaseCard(offer);
-          } else if (type == 'bonus_40' || type == 'tier_promo') {
+          if (type == 'bonus_40' || type == 'tier_promo' || type == 'starter_deal') {
             card = _buildBonusBanner(offer);
           }
       }
@@ -504,7 +498,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     final description = offer['description'] as String? ?? '';
     final ctaText = offer['ctaText'] as String? ?? 'Buy Now';
     final metadata = offer['metadata'] as Map<String, dynamic>?;
-    final productId = metadata?['productId'] as String? ?? 'energy_first_purchase_200';
+    final productId = metadata?['productId'] as String? ?? PurchaseService.energy100;
     final energyAmount = (metadata?['energyAmount'] as num?)?.toInt() ?? 200;
     final price = metadata?['price'] as String? ?? '\$1.00';
 
@@ -844,6 +838,155 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     } finally {
       if (mounted) {
         setState(() => _isClaimingFreeEnergy = false);
+      }
+    }
+  }
+
+  Widget _buildFreepassOfferCard(dynamic offer) {
+    final title = offer['title'] as String? ?? 'Freepass';
+    final description = offer['description'] as String? ?? '';
+    final ctaText = offer['ctaText'] as String? ?? 'Claim';
+    final offerId = offer['id'] as String? ?? '';
+    final metadata = offer['metadata'] as Map<String, dynamic>?;
+    final days = (metadata?['days'] as num?)?.toInt() ?? 0;
+    final remainingSeconds = offer['remainingSeconds'] as int?;
+    final icon = offer['icon'] as String? ?? '🎫';
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [const Color(0xFF2196F3).withValues(alpha: 0.8), const Color(0xFF1565C0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: AppRadius.xl,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2196F3).withValues(alpha: 0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _isClaimingFreepass ? null : () => _claimFreepass(offerId),
+          borderRadius: AppRadius.xl,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: AppRadius.md,
+                      ),
+                      child: Text(icon, style: const TextStyle(fontSize: 28)),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          if (description.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(description, style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 14)),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('$days days free AI', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                        if (remainingSeconds != null && remainingSeconds > 0) ...[
+                          const SizedBox(height: 4),
+                          Text(_formatDuration(Duration(seconds: remainingSeconds)), style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
+                        ],
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: _isClaimingFreepass ? null : () => _claimFreepass(offerId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1565C0),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
+                      ),
+                      child: Text(
+                        _isClaimingFreepass ? 'Claiming...' : ctaText,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _claimFreepass(String offerId) async {
+    setState(() => _isClaimingFreepass = true);
+
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+      final url = Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/claimFreepassEndpoint');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'deviceId': deviceId, 'templateId': offerId}),
+      );
+
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+      if (data['success'] == true) {
+        final daysAdded = data['daysAdded'] as int? ?? 0;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('ได้รับ Freepass $daysAdded วัน!'),
+              backgroundColor: AppColors.info,
+            ),
+          );
+        }
+        _loadOffers();
+        ref.read(gamificationProvider.notifier).refresh();
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['error'] as String? ?? 'ไม่สามารถ claim ได้'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[EnergyStore] Error claiming freepass: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('เกิดข้อผิดพลาด'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isClaimingFreepass = false);
       }
     }
   }

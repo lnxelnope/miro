@@ -5,15 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  OFFER_LOCALES,
+  LOCALE_LABELS,
+  LOCALE_TITLES,
+  normalizeOfferLocaleStrings,
+  type OfferLocale,
+} from '@/lib/offer-locales';
 
 interface OfferTemplate {
   id?: string;
   slug: string;
   triggerEvent: string;
   triggerCondition: Record<string, any>;
-  title: { en: string; th: string };
-  description: { en: string; th: string };
-  ctaText: { en: string; th: string };
+  title: Record<OfferLocale, string>;
+  description: Record<OfferLocale, string>;
+  ctaText: Record<OfferLocale, string>;
   icon: string;
   rewardType: string;
   rewardConfig: Record<string, any>;
@@ -39,10 +46,17 @@ const TRIGGER_EVENTS = [
 ];
 
 const REWARD_TYPES = [
-  { value: 'special_product', label: 'Special Product (สินค้าพิเศษ IAP)' },
-  { value: 'bonus_rate', label: 'Bonus Rate (โบนัส %)' },
+  { value: 'bonus_rate', label: 'Bonus Rate (โบนัส % เมื่อซื้อ IAP)' },
   { value: 'free_energy', label: 'Free Energy (Energy ฟรี)' },
-  { value: 'subscription_deal', label: 'Subscription Deal (ส่วนลด subscription)' },
+  { value: 'freepass', label: 'Freepass (ใช้ AI ฟรี N วัน)' },
+];
+
+const IAP_PRODUCTS = [
+  { value: '', label: 'All products (ทุกแพ็ก)' },
+  { value: 'energy_100', label: 'Starter Kick — 100E ($0.99)' },
+  { value: 'energy_550', label: 'Value Pack — 550E ($4.99)' },
+  { value: 'energy_1200', label: 'Power User — 1200E ($7.99)' },
+  { value: 'energy_2000', label: 'Ultimate Saver — 2000E ($9.99)' },
 ];
 
 const TIER_OPTIONS = [
@@ -58,9 +72,9 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
     slug: initialData?.slug || '',
     triggerEvent: initialData?.triggerEvent || 'first_energy_use',
     triggerCondition: initialData?.triggerCondition || {},
-    title: initialData?.title || { en: '', th: '' },
-    description: initialData?.description || { en: '', th: '' },
-    ctaText: initialData?.ctaText || { en: '', th: '' },
+    title: normalizeOfferLocaleStrings(initialData?.title),
+    description: normalizeOfferLocaleStrings(initialData?.description),
+    ctaText: normalizeOfferLocaleStrings(initialData?.ctaText),
     icon: initialData?.icon || '🎁',
     rewardType: initialData?.rewardType || 'bonus_rate',
     rewardConfig: initialData?.rewardConfig || {},
@@ -71,7 +85,44 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [activeLocale, setActiveLocale] = useState<'en' | 'th'>('en');
+  const [activeLocale, setActiveLocale] = useState<string>('en');
+  const [translateBusy, setTranslateBusy] = useState(false);
+  const [translateError, setTranslateError] = useState<string | null>(null);
+
+  async function handleTranslateFromEnglish() {
+    if (!formData.title.en.trim()) {
+      setTranslateError('กรอก English title ก่อน');
+      return;
+    }
+    setTranslateError(null);
+    setTranslateBusy(true);
+    try {
+      const res = await fetch('/api/offers/translate-preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          titleEn: formData.title.en,
+          descriptionEn: formData.description.en,
+          ctaEn: formData.ctaText.en.trim() ? formData.ctaText.en : 'Claim',
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setTranslateError(data.error || 'แปลไม่สำเร็จ');
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        title: normalizeOfferLocaleStrings(data.title),
+        description: normalizeOfferLocaleStrings(data.description),
+        ctaText: normalizeOfferLocaleStrings(data.ctaText),
+      }));
+    } catch {
+      setTranslateError('เรียก API ไม่สำเร็จ');
+    } finally {
+      setTranslateBusy(false);
+    }
+  }
 
   function updateField(field: string, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -126,22 +177,18 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
       newErrors.maxClaimsPerUser = 'Max claims must be >= 1';
     }
 
-    // Conditional validation
-    if (formData.rewardType === 'special_product') {
-      if (!formData.rewardConfig?.productId) newErrors['rewardConfig.productId'] = 'Product ID required';
-      if (!formData.rewardConfig?.energyAmount) newErrors['rewardConfig.energyAmount'] = 'Energy amount required';
-    } else if (formData.rewardType === 'bonus_rate') {
-      if (!formData.rewardConfig?.bonusRate || formData.rewardConfig.bonusRate < 0.01 || formData.rewardConfig.bonusRate > 1.0) {
-        newErrors['rewardConfig.bonusRate'] = 'Bonus rate must be 0.01-1.0';
+    if (formData.rewardType === 'bonus_rate') {
+      if (!formData.rewardConfig?.bonusRate || formData.rewardConfig.bonusRate < 0.01 || formData.rewardConfig.bonusRate > 10.0) {
+        newErrors['rewardConfig.bonusRate'] = 'Bonus rate must be 0.01-10.0 (e.g. 1.0 = +100%)';
       }
     } else if (formData.rewardType === 'free_energy') {
       if (!formData.rewardConfig?.amount || formData.rewardConfig.amount < 1) {
         newErrors['rewardConfig.amount'] = 'Amount must be >= 1';
       }
-    } else if (formData.rewardType === 'subscription_deal') {
-      if (!formData.rewardConfig?.productId) newErrors['rewardConfig.productId'] = 'Product ID required';
-      if (!formData.rewardConfig?.basePlanId) newErrors['rewardConfig.basePlanId'] = 'Base Plan ID required';
-      if (!formData.rewardConfig?.offerId) newErrors['rewardConfig.offerId'] = 'Offer ID required';
+    } else if (formData.rewardType === 'freepass') {
+      if (!formData.rewardConfig?.days || formData.rewardConfig.days < 1) {
+        newErrors['rewardConfig.days'] = 'Days must be >= 1';
+      }
     }
 
     setErrors(newErrors);
@@ -281,88 +328,106 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
         )}
 
         {formData.triggerEvent === 'first_purchase_complete' && (
-          <div>
-            <Label htmlFor="afterProductId">After Product ID</Label>
-            <Input
-              id="afterProductId"
-              value={formData.triggerCondition?.afterProductId || ''}
-              onChange={(e) => updateNestedField(['triggerCondition', 'afterProductId'], e.target.value)}
-              placeholder="energy_first_purchase_200"
-            />
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="afterProductId">After Product ID (optional)</Label>
+              <Input
+                id="afterProductId"
+                value={formData.triggerCondition?.afterProductId || ''}
+                onChange={(e) => updateNestedField(['triggerCondition', 'afterProductId'], e.target.value || undefined)}
+                placeholder="energy_100"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="requiresStarterBonus"
+                checked={formData.triggerCondition?.requiresStarterEnergy100Bonus || false}
+                onChange={(e) => updateNestedField(['triggerCondition', 'requiresStarterEnergy100Bonus'], e.target.checked || undefined)}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="requiresStarterBonus">
+                Requires Starter Deal bonus (energy_100 + starter_deal only)
+              </Label>
+            </div>
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Content</h2>
-        <Tabs value={activeLocale} onValueChange={(v) => setActiveLocale(v as 'en' | 'th')}>
-          <TabsList>
-            <TabsTrigger value="en">English</TabsTrigger>
-            <TabsTrigger value="th">ไทย</TabsTrigger>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Content</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              กด Translate เพื่อเติมทุกภาษาจากช่องภาษาอังกฤษ แล้วตรวจแก้ทีละแท็บก่อน Save
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={translateBusy || !formData.title.en.trim()}
+            onClick={handleTranslateFromEnglish}
+            className="shrink-0"
+          >
+            {translateBusy ? 'กำลังแปล…' : 'Translate from English'}
+          </Button>
+        </div>
+        {translateError && (
+          <p className="text-sm text-red-600" role="alert">
+            {translateError}
+          </p>
+        )}
+        <Tabs value={activeLocale} onValueChange={setActiveLocale}>
+          <TabsList className="flex h-auto w-full max-w-full flex-wrap justify-start gap-1">
+            {OFFER_LOCALES.map((loc) => (
+              <TabsTrigger
+                key={loc}
+                value={loc}
+                title={LOCALE_TITLES[loc]}
+                className="text-xs sm:text-sm"
+              >
+                {LOCALE_LABELS[loc]}
+              </TabsTrigger>
+            ))}
           </TabsList>
-          <TabsContent value="en" className="space-y-4">
-            <div>
-              <Label htmlFor="title-en">Title</Label>
-              <Input
-                id="title-en"
-                value={formData.title.en}
-                onChange={(e) => updateNestedField(['title', 'en'], e.target.value)}
-                placeholder="⚡ Starter Deal"
-                className={errors['title.en'] ? 'border-red-500' : ''}
-              />
-              {errors['title.en'] && <p className="text-sm text-red-500 mt-1">{errors['title.en']}</p>}
-            </div>
-            <div>
-              <Label htmlFor="description-en">Description</Label>
-              <textarea
-                id="description-en"
-                value={formData.description.en}
-                onChange={(e) => updateNestedField(['description', 'en'], e.target.value)}
-                placeholder="200 Energy for just $1!"
-                className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <Label htmlFor="cta-en">CTA Text</Label>
-              <Input
-                id="cta-en"
-                value={formData.ctaText.en}
-                onChange={(e) => updateNestedField(['ctaText', 'en'], e.target.value)}
-                placeholder="Buy Now"
-              />
-            </div>
-          </TabsContent>
-          <TabsContent value="th" className="space-y-4">
-            <div>
-              <Label htmlFor="title-th">Title</Label>
-              <Input
-                id="title-th"
-                value={formData.title.th}
-                onChange={(e) => updateNestedField(['title', 'th'], e.target.value)}
-                placeholder="⚡ ดีลสตาร์ทเตอร์"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description-th">Description</Label>
-              <textarea
-                id="description-th"
-                value={formData.description.th}
-                onChange={(e) => updateNestedField(['description', 'th'], e.target.value)}
-                placeholder="200 Energy แค่ $1!"
-                className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <Label htmlFor="cta-th">CTA Text</Label>
-              <Input
-                id="cta-th"
-                value={formData.ctaText.th}
-                onChange={(e) => updateNestedField(['ctaText', 'th'], e.target.value)}
-                placeholder="ซื้อเลย"
-              />
-            </div>
-          </TabsContent>
+          {OFFER_LOCALES.map((loc) => (
+            <TabsContent key={loc} value={loc} className="space-y-4 mt-4">
+              <p className="text-xs text-muted-foreground">{LOCALE_TITLES[loc]}</p>
+              <div>
+                <Label htmlFor={`title-${loc}`}>Title</Label>
+                <Input
+                  id={`title-${loc}`}
+                  value={formData.title[loc]}
+                  onChange={(e) => updateNestedField(['title', loc], e.target.value)}
+                  placeholder={loc === 'en' ? '⚡ Starter Deal' : ''}
+                  className={loc === 'en' && errors['title.en'] ? 'border-red-500' : ''}
+                />
+                {loc === 'en' && errors['title.en'] && (
+                  <p className="text-sm text-red-500 mt-1">{errors['title.en']}</p>
+                )}
+              </div>
+              <div>
+                <Label htmlFor={`description-${loc}`}>Description</Label>
+                <textarea
+                  id={`description-${loc}`}
+                  value={formData.description[loc]}
+                  onChange={(e) => updateNestedField(['description', loc], e.target.value)}
+                  placeholder={loc === 'en' ? '200 Energy for just $1!' : ''}
+                  className="w-full min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <Label htmlFor={`cta-${loc}`}>CTA Text</Label>
+                <Input
+                  id={`cta-${loc}`}
+                  value={formData.ctaText[loc]}
+                  onChange={(e) => updateNestedField(['ctaText', loc], e.target.value)}
+                  placeholder={loc === 'en' ? 'Buy Now' : ''}
+                />
+              </div>
+            </TabsContent>
+          ))}
         </Tabs>
       </div>
 
@@ -389,63 +454,45 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
         </div>
 
         {/* Dynamic Reward Config */}
-        {formData.rewardType === 'special_product' && (
+        {formData.rewardType === 'bonus_rate' && (
           <div className="space-y-4">
             <div>
-              <Label htmlFor="productId">Product ID</Label>
+              <Label htmlFor="bonusRate">Bonus Rate (e.g. 0.4 = +40%, 1.0 = +100%)</Label>
               <Input
-                id="productId"
-                value={formData.rewardConfig?.productId || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'productId'], e.target.value)}
-                placeholder="energy_first_purchase_200"
-                className={errors['rewardConfig.productId'] ? 'border-red-500' : ''}
-              />
-              {errors['rewardConfig.productId'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.productId']}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="energyAmount">Energy Amount</Label>
-              <Input
-                id="energyAmount"
+                id="bonusRate"
                 type="number"
-                value={formData.rewardConfig?.energyAmount || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'energyAmount'], parseInt(e.target.value) || 0)}
-                min={1}
-                className={errors['rewardConfig.energyAmount'] ? 'border-red-500' : ''}
+                step="0.01"
+                min="0.01"
+                max="10.0"
+                value={formData.rewardConfig?.bonusRate || ''}
+                onChange={(e) => updateNestedField(['rewardConfig', 'bonusRate'], parseFloat(e.target.value) || 0)}
+                className={errors['rewardConfig.bonusRate'] ? 'border-red-500' : ''}
               />
-              {errors['rewardConfig.energyAmount'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.energyAmount']}</p>
+              {errors['rewardConfig.bonusRate'] && (
+                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.bonusRate']}</p>
+              )}
+              {formData.rewardConfig?.bonusRate > 0 && (
+                <p className="text-sm text-purple-600 mt-1">
+                  = +{Math.round((formData.rewardConfig.bonusRate || 0) * 100)}% bonus
+                </p>
               )}
             </div>
             <div>
-              <Label htmlFor="displayPrice">Display Price</Label>
-              <Input
-                id="displayPrice"
-                value={formData.rewardConfig?.displayPrice || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'displayPrice'], e.target.value)}
-                placeholder="$1.00"
-              />
+              <Label htmlFor="applyToProductId">Apply to Product (optional)</Label>
+              <select
+                id="applyToProductId"
+                value={formData.rewardConfig?.applyToProductId || ''}
+                onChange={(e) => updateNestedField(['rewardConfig', 'applyToProductId'], e.target.value || undefined)}
+                className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+              >
+                {IAP_PRODUCTS.map((p) => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Leave empty to apply bonus to any IAP purchase
+              </p>
             </div>
-          </div>
-        )}
-
-        {formData.rewardType === 'bonus_rate' && (
-          <div>
-            <Label htmlFor="bonusRate">Bonus Rate (0.01-1.0, e.g., 0.4 = 40%)</Label>
-            <Input
-              id="bonusRate"
-              type="number"
-              step="0.01"
-              min="0.01"
-              max="1.0"
-              value={formData.rewardConfig?.bonusRate || ''}
-              onChange={(e) => updateNestedField(['rewardConfig', 'bonusRate'], parseFloat(e.target.value) || 0)}
-              className={errors['rewardConfig.bonusRate'] ? 'border-red-500' : ''}
-            />
-            {errors['rewardConfig.bonusRate'] && (
-              <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.bonusRate']}</p>
-            )}
           </div>
         )}
 
@@ -466,47 +513,24 @@ export function OfferForm({ initialData, onSubmit, isLoading }: OfferFormProps) 
           </div>
         )}
 
-        {formData.rewardType === 'subscription_deal' && (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="subProductId">Product ID</Label>
-              <Input
-                id="subProductId"
-                value={formData.rewardConfig?.productId || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'productId'], e.target.value)}
-                placeholder="miro_normal_subscription"
-                className={errors['rewardConfig.productId'] ? 'border-red-500' : ''}
-              />
-              {errors['rewardConfig.productId'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.productId']}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="basePlanId">Base Plan ID</Label>
-              <Input
-                id="basePlanId"
-                value={formData.rewardConfig?.basePlanId || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'basePlanId'], e.target.value)}
-                placeholder="energy-pass-monthly"
-                className={errors['rewardConfig.basePlanId'] ? 'border-red-500' : ''}
-              />
-              {errors['rewardConfig.basePlanId'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.basePlanId']}</p>
-              )}
-            </div>
-            <div>
-              <Label htmlFor="offerId">Offer ID</Label>
-              <Input
-                id="offerId"
-                value={formData.rewardConfig?.offerId || ''}
-                onChange={(e) => updateNestedField(['rewardConfig', 'offerId'], e.target.value)}
-                placeholder="winback-3usd"
-                className={errors['rewardConfig.offerId'] ? 'border-red-500' : ''}
-              />
-              {errors['rewardConfig.offerId'] && (
-                <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.offerId']}</p>
-              )}
-            </div>
+        {formData.rewardType === 'freepass' && (
+          <div>
+            <Label htmlFor="days">Freepass Days</Label>
+            <Input
+              id="days"
+              type="number"
+              value={formData.rewardConfig?.days || ''}
+              onChange={(e) => updateNestedField(['rewardConfig', 'days'], parseInt(e.target.value) || 0)}
+              min={1}
+              placeholder="3"
+              className={errors['rewardConfig.days'] ? 'border-red-500' : ''}
+            />
+            {errors['rewardConfig.days'] && (
+              <p className="text-sm text-red-500 mt-1">{errors['rewardConfig.days']}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              User gets N days of unlimited AI usage (no energy cost)
+            </p>
           </div>
         )}
       </div>

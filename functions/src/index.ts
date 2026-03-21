@@ -80,7 +80,7 @@ export {convertEnergyToFreepass} from "./freepass/convertEnergyToFreepass";
 export {getMilestoneProgress, claimMilestoneRewardsEndpoint} from "./energy/milestoneV2";
 
 // Offers V3
-export {getActiveOffersEndpoint, dismissOfferEndpoint, claimFreeEnergyEndpoint} from "./energy/offersV2";
+export {getActiveOffersEndpoint, dismissOfferEndpoint, claimFreeEnergyEndpoint, claimFreepassEndpoint} from "./energy/offersV2";
 
 // Rewarded Ads SSV
 export {verifyRewardedAd, claimAdReward, getAdStatus} from "./energy/rewardedAd";

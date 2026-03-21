@@ -28,16 +28,12 @@ class PurchaseService {
   static const String energy1200 = 'energy_1200'; // $7.99
   static const String energy2000 = 'energy_2000'; // $9.99
 
-  /// Offer-specific packages (managed by backend offersV2)
-  static const String energyFirstPurchase200 = 'energy_first_purchase_200'; // $1.00
-
-  /// Map: Product ID → Energy amount
+  /// Map: Product ID → Energy amount (base; โบนัสจากเซิร์ฟเวอร์รวมใน verifyPurchase)
   static const Map<String, int> energyAmounts = {
     energy100: 100,
     energy550: 550,
     energy1200: 1200,
     energy2000: 2000,
-    energyFirstPurchase200: 200,
   };
 
   /// Approximate THB prices for analytics (actual prices from Google Play)
@@ -47,7 +43,6 @@ class PurchaseService {
       'energy_550': 179.0,
       'energy_1200': 289.0,
       'energy_2000': 359.0,
-      'energy_first_purchase_200': 35.0,
     };
     return prices[productId] ?? 0.0;
   }

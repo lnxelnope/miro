@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { checkAuth } from '@/lib/auth';
 import { Timestamp } from 'firebase-admin/firestore';
+import { autoTranslateOfferFields } from '@/lib/translate';
+import { normalizeOfferLocaleStrings } from '@/lib/offer-locales';
 
 // GET: ดึง offer templates ทั้งหมด (เรียงตาม priority)
 export async function GET(request: NextRequest) {
@@ -107,7 +109,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validRewardTypes = ['special_product', 'bonus_rate', 'free_energy', 'subscription_deal'];
+    const validRewardTypes = ['bonus_rate', 'free_energy', 'freepass'];
     if (!rewardType || !validRewardTypes.includes(rewardType)) {
       return NextResponse.json(
         { success: false, error: `rewardType must be one of: ${validRewardTypes.join(', ')}` },
@@ -115,18 +117,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate rewardConfig based on rewardType
-    if (rewardType === 'special_product') {
-      if (!rewardConfig?.productId || !rewardConfig?.energyAmount) {
+    if (rewardType === 'bonus_rate') {
+      if (rewardConfig?.bonusRate === undefined || rewardConfig.bonusRate < 0.01 || rewardConfig.bonusRate > 10.0) {
         return NextResponse.json(
-          { success: false, error: 'rewardConfig.productId and rewardConfig.energyAmount are required for special_product' },
-          { status: 400 }
-        );
-      }
-    } else if (rewardType === 'bonus_rate') {
-      if (rewardConfig?.bonusRate === undefined || rewardConfig.bonusRate < 0.01 || rewardConfig.bonusRate > 1.0) {
-        return NextResponse.json(
-          { success: false, error: 'rewardConfig.bonusRate must be 0.01-1.0 for bonus_rate' },
+          { success: false, error: 'rewardConfig.bonusRate must be 0.01-10.0 for bonus_rate' },
           { status: 400 }
         );
       }
@@ -137,10 +131,10 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    } else if (rewardType === 'subscription_deal') {
-      if (!rewardConfig?.productId || !rewardConfig?.basePlanId || !rewardConfig?.offerId) {
+    } else if (rewardType === 'freepass') {
+      if (!rewardConfig?.days || rewardConfig.days < 1) {
         return NextResponse.json(
-          { success: false, error: 'rewardConfig.productId, basePlanId, and offerId are required for subscription_deal' },
+          { success: false, error: 'rewardConfig.days must be >= 1 for freepass' },
           { status: 400 }
         );
       }
@@ -160,23 +154,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ─── Auto-translate: เติม locale ที่ว่างจาก EN (และคงค่าที่ส่งมาครบแล้ว) ───
+    const titleNorm = normalizeOfferLocaleStrings(title);
+    const descNorm = normalizeOfferLocaleStrings(description);
+    const ctaNorm = normalizeOfferLocaleStrings(ctaText);
+    if (!ctaNorm.en.trim()) ctaNorm.en = 'Claim';
+
+    const translated = await autoTranslateOfferFields(titleNorm, descNorm, ctaNorm);
+
     // ─── Save ───
     const offerData = {
       slug: slug.trim(),
       triggerEvent,
       triggerCondition: triggerCondition || {},
-      title: {
-        en: title.en.trim(),
-        th: title.th?.trim() || title.en.trim(),
-      },
-      description: {
-        en: description?.en?.trim() || '',
-        th: description?.th?.trim() || description?.en?.trim() || '',
-      },
-      ctaText: {
-        en: ctaText?.en?.trim() || 'Claim',
-        th: ctaText?.th?.trim() || ctaText?.en?.trim() || 'Claim',
-      },
+      title: translated.title,
+      description: translated.description,
+      ctaText: translated.ctaText,
       icon: icon || '🎁',
       rewardType,
       rewardConfig: rewardConfig || {},

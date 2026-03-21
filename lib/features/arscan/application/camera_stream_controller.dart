@@ -22,6 +22,10 @@ class ArScanCameraStreamController {
   bool _isStreaming = false;
   bool _isDisposed = false;
 
+  /// Static lock: ป้องกัน instance เก่ายัง dispose ไม่เสร็จ
+  /// แล้ว instance ใหม่พยายามเปิดกล้องซ้อน → Camera2 NPE crash
+  static Future<void>? _pendingDispose;
+
   final ArScanDetectionService _detectionService = ArScanDetectionService();
 
   ArScanDetectionService get detectionService => _detectionService;
@@ -87,42 +91,58 @@ class ArScanCameraStreamController {
     }
   }
 
-  /// เตรียมกล้องสำหรับใช้งาน
+  /// เตรียมกล้องสำหรับใช้งาน — รอ dispose เก่าจบก่อนแล้วค่อยเปิดใหม่
   Future<void> initialize() async {
+    if (_isDisposed) return;
+
+    // รอ instance เก่า dispose ให้เสร็จก่อน (ป้องกัน Camera2 ซ้อน)
+    final pending = _pendingDispose;
+    if (pending != null) {
+      debugPrint('[ArScanCameraStreamController] waiting for previous dispose…');
+      await pending;
+    }
+
     if (_isDisposed) return;
     if (_cameraController != null && _cameraController!.value.isInitialized) {
       return;
     }
 
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        debugPrint('[ArScanCameraStreamController] No cameras available');
+    const maxRetries = 2;
+    for (var attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final cameras = await availableCameras();
+        if (cameras.isEmpty) {
+          debugPrint('[ArScanCameraStreamController] No cameras available');
+          return;
+        }
+
+        final controller = CameraController(
+          cameras.first,
+          resolutionPreset,
+          enableAudio: enableAudio,
+          imageFormatGroup: Platform.isAndroid
+              ? ImageFormatGroup.nv21
+              : ImageFormatGroup.bgra8888,
+        );
+
+        await controller.initialize();
+
+        if (_isDisposed) {
+          await controller.dispose();
+          return;
+        }
+
+        _cameraController = controller;
         return;
+      } catch (e) {
+        debugPrint(
+          '[ArScanCameraStreamController] initialize error (attempt $attempt): $e',
+        );
+        if (attempt < maxRetries) {
+          await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+          if (_isDisposed) return;
+        }
       }
-
-      // ใช้กล้องตัวแรก (โดยทั่วไปคือกล้องหลัง)
-      // Android ต้องใช้ nv21 เพื่อให้ ML Kit detect ได้
-      // iOS ใช้ bgra8888 (default)
-      final controller = CameraController(
-        cameras.first,
-        resolutionPreset,
-        enableAudio: enableAudio,
-        imageFormatGroup: Platform.isAndroid
-            ? ImageFormatGroup.nv21
-            : ImageFormatGroup.bgra8888,
-      );
-
-      await controller.initialize();
-
-      if (_isDisposed) {
-        await controller.dispose();
-        return;
-      }
-
-      _cameraController = controller;
-    } catch (e) {
-      debugPrint('[ArScanCameraStreamController] initialize error: $e');
     }
   }
 
@@ -216,6 +236,16 @@ class ArScanCameraStreamController {
     if (_isDisposed) return;
     _isDisposed = true;
 
+    final future = _doDispose();
+    _pendingDispose = future;
+    await future;
+    // เคลียร์ static ref เฉพาะเมื่อยังเป็น future เดิมอยู่
+    if (identical(_pendingDispose, future)) {
+      _pendingDispose = null;
+    }
+  }
+
+  Future<void> _doDispose() async {
     try {
       await stopStream();
     } catch (e) {
@@ -232,7 +262,7 @@ class ArScanCameraStreamController {
     if (controller != null) {
       // รอให้ native Camera2 callbacks (เช่น unlockAutoFocus) ทำงานเสร็จ
       // ก่อน dispose camera controller เพื่อป้องกัน NPE crash
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 500));
       try {
         await controller.dispose();
       } catch (e) {

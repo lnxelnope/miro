@@ -24,18 +24,19 @@ class ARscanScreen extends ConsumerStatefulWidget {
 
 class _ARscanScreenState extends ConsumerState<ARscanScreen>
     with WidgetsBindingObserver {
-  final ArScanCameraStreamController _streamController =
-      ArScanCameraStreamController();
+  late final ArScanCameraStreamController _streamController;
   late final DeviceAngleSensor _angleSensor;
   late final MultiAngleCaptureController _captureController;
   bool _isInitialized = false;
   bool _isPopping = false;
+  bool _isDisposing = false;
   VoidCallback? _completeListener;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _streamController = ArScanCameraStreamController();
     _angleSensor = DeviceAngleSensor();
     _captureController = MultiAngleCaptureController(
       cameraStreamController: _streamController,
@@ -66,6 +67,8 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_isDisposing) return;
+
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused) {
       if (mounted) {
@@ -80,10 +83,12 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
   }
 
   Future<void> _initializeCamera() async {
+    if (_isDisposing) return;
+
     try {
       await _streamController.initialize();
 
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
 
       if (!_streamController.isInitialized) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +107,7 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
       await _streamController.startStream();
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || _isDisposing) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(L10n.of(context)!.cameraFailedToInitialize),
@@ -115,15 +120,14 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
   @override
   void dispose() {
+    _isDisposing = true;
+    _isInitialized = false;
+
     if (_completeListener != null) {
       _captureController.isComplete.removeListener(_completeListener!);
     }
     WidgetsBinding.instance.removeObserver(this);
-    _isInitialized = false;
 
-    // ต้อง dispose captureController ก่อน (รอ pending capture เสร็จ)
-    // แล้วค่อย dispose streamController (dispose camera)
-    // ป้องกัน Camera2 unlockAutoFocus NPE crash
     _disposeAsync();
     super.dispose();
   }
@@ -131,11 +135,19 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
   Future<void> _disposeAsync() async {
     try {
       await _captureController.dispose();
-    } catch (_) {}
-    _angleSensor.dispose();
+    } catch (e) {
+      debugPrint('[ARscanScreen] captureController.dispose error: $e');
+    }
+    try {
+      await _angleSensor.dispose();
+    } catch (e) {
+      debugPrint('[ARscanScreen] angleSensor.dispose error: $e');
+    }
     try {
       await _streamController.dispose();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[ARscanScreen] streamController.dispose error: $e');
+    }
   }
 
   void _onScreenTap() {

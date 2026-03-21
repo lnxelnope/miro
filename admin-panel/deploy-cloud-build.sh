@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Deploy Admin Panel → Google Cloud Run (Auth.js + Google + Firebase + Translate)
-# Usage: from admin-panel/: ./deploy.sh
+# Deploy โดยให้ Google Cloud Build สร้าง image จาก source (ไม่ต้องมี Docker บนเครื่อง)
+# Usage: from admin-panel/: ./deploy-cloud-build.sh
 set -euo pipefail
 
 PROJECT_ID="${GCP_PROJECT_ID:-miro-d6856}"
 REGION="${GCP_REGION:-asia-southeast1}"
 SERVICE_NAME="${CLOUD_RUN_SERVICE:-admin-panel}"
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
-# Cloud Run --set-secrets: ENV=secret-name:version
 SECRETS_ARG="FIREBASE_CLIENT_EMAIL=firebase-client-email:latest,FIREBASE_PRIVATE_KEY=firebase-private-key:latest,AUTH_SECRET=nextauth-secret:latest,GOOGLE_CLIENT_ID=google-client-id:latest,GOOGLE_CLIENT_SECRET=google-client-secret:latest,ALLOWED_ADMIN_EMAILS=allowed-admin-emails:latest,NEXTAUTH_URL=nextauth-url:latest"
 
 REQUIRED_SECRETS=(
@@ -21,25 +19,18 @@ REQUIRED_SECRETS=(
   nextauth-url
 )
 
-echo "🚀 Deploy ${SERVICE_NAME} → ${REGION} (project ${PROJECT_ID})"
+echo "🚀 Cloud Build deploy ${SERVICE_NAME} → ${REGION} (project ${PROJECT_ID})"
+echo "   (ไม่ใช้ Docker บน Mac — build บน GCP)"
 
 if ! command -v gcloud &>/dev/null; then
   echo "❌ gcloud CLI not found"
-  exit 1
-fi
-if ! command -v docker &>/dev/null; then
-  echo "❌ docker not found"
-  echo ""
-  echo "   ตัวเลือก:"
-  echo "   • ติดตั้ง Docker Desktop แล้วเปิดแอปให้รัน จากนั้นรัน ./deploy.sh อีกครั้ง"
-  echo "   • หรือไม่ติดตั้ง Docker — รัน ./deploy-cloud-build.sh (build บน Google Cloud Build)"
   exit 1
 fi
 
 gcloud config set project "${PROJECT_ID}"
 
 echo "🔧 Enabling APIs..."
-gcloud services enable cloudbuild.googleapis.com run.googleapis.com containerregistry.googleapis.com secretmanager.googleapis.com translate.googleapis.com --quiet
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com translate.googleapis.com --quiet
 
 echo "🔒 Checking Secret Manager secrets..."
 MISSING_ANY=0
@@ -59,6 +50,8 @@ if [ -x scripts/grant-secret-access-for-cloud-run.sh ]; then
   ./scripts/grant-secret-access-for-cloud-run.sh || true
 fi
 
+# สคริปต์เก่าผูก FIREBASE_PROJECT_ID จาก Secret Manager — GCP ไม่ให้เปลี่ยนเป็นค่า literal ใน deploy เดียวกัน
+# ต้อง update ถอด secret ก่อน แล้วค่อย deploy รอบถัดไป (ดู SO #75725564)
 if gcloud run services describe "${SERVICE_NAME}" --region "${REGION}" --project "${PROJECT_ID}" &>/dev/null; then
   echo "🔧 Unbind legacy secret env FIREBASE_PROJECT_ID (if present)..."
   gcloud run services update "${SERVICE_NAME}" \
@@ -68,15 +61,9 @@ if gcloud run services describe "${SERVICE_NAME}" --region "${REGION}" --project
     --quiet 2>/dev/null || true
 fi
 
-echo "🏗️  Building image..."
-docker build -t "${IMAGE_NAME}:latest" .
-
-echo "📤 Pushing ${IMAGE_NAME}:latest ..."
-docker push "${IMAGE_NAME}:latest"
-
-echo "🚀 Deploying Cloud Run..."
+echo "🏗️  Building on Cloud Build & deploying (อาจใช้เวลา 5–15 นาที)..."
 gcloud run deploy "${SERVICE_NAME}" \
-  --image "${IMAGE_NAME}:latest" \
+  --source . \
   --platform managed \
   --region "${REGION}" \
   --allow-unauthenticated \
@@ -92,5 +79,3 @@ echo ""
 echo "✅ Done."
 echo "🌐 URL:"
 gcloud run services describe "${SERVICE_NAME}" --region "${REGION}" --format 'value(status.url)'
-echo ""
-echo "If login fails: set nextauth-url secret to this URL + add redirect URI in Google OAuth client."

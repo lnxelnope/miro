@@ -3,15 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { OfferForm } from '@/components/offers/OfferForm';
+import type { OfferLocale } from '@/lib/offer-locales';
 
 interface OfferTemplate {
   id: string;
   slug: string;
   triggerEvent: string;
   triggerCondition: Record<string, any>;
-  title: { en: string; th: string };
-  description: { en: string; th: string };
-  ctaText: { en: string; th: string };
+  title: Record<OfferLocale, string>;
+  description: Record<OfferLocale, string>;
+  ctaText: Record<OfferLocale, string>;
   icon: string;
   rewardType: string;
   rewardConfig: Record<string, any>;
@@ -59,14 +60,19 @@ export default function EditOfferPage() {
       const response = await fetch(`/api/offers/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
-      if (result.success) {
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.success) {
         router.push('/offers');
       } else {
-        alert(`Error: ${result.error}`);
+        const msg =
+          result.error ||
+          (response.status === 401 ? 'Unauthorized — sign in again' : null) ||
+          `HTTP ${response.status}`;
+        alert(`Error: ${msg}`);
       }
     } catch (error) {
       console.error('Error updating offer:', error);

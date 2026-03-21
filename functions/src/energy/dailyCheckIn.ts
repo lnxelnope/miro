@@ -10,13 +10,15 @@
 
 import {onRequest} from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import {
-  getTierUpgradeReward,
-  activateTierUpgradePromotion,
-  activateWelcomeBackPromotion,
-} from "./promotions";
 import {sendTierUpNotification} from "../notifications/pushTriggers";
 import {evaluateOffers} from "./offerEngine";
+
+const TIER_UPGRADE_REWARDS: Record<string, number> = {
+  bronze: 5,
+  silver: 10,
+  gold: 15,
+  diamond: 25,
+};
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -232,7 +234,7 @@ export async function processCheckIn(
       const promotions = user.promotions || {};
       const tierRewardsClaimed = promotions.tierRewardClaimed || {};
       if (!tierRewardsClaimed[newTier]) {
-        tierRewardEnergy = getTierUpgradeReward(newTier);
+        tierRewardEnergy = TIER_UPGRADE_REWARDS[newTier] || 0;
         console.log(`🏆 [Check-in] Tier reward: +${tierRewardEnergy} Energy (${newTier})`);
       }
     }
@@ -338,25 +340,14 @@ export async function processCheckIn(
       };
   });
 
-  // ─── Post-transaction: Activate promotions (outside transaction) ───
+  // ─── Post-transaction: Notifications + offer evaluation ───
   if (result.tierUpgraded && result.newTier) {
-    try {
-      const promo = await activateTierUpgradePromotion(deviceId, result.newTier);
-      if (promo) {
-        result.promotionBonusRate = promo.bonusRate;
-      }
-    } catch (error) {
-      console.error("[Check-in] Failed to activate tier promo:", error);
-    }
-
-    // V3: ส่ง push notification เมื่อ tier upgrade
     try {
       await sendTierUpNotification(deviceId, result.newTier, result.tierRewardEnergy);
     } catch (error) {
       console.error("[Check-in] Failed to send tier up notification:", error);
     }
 
-    // NEW: Evaluate offers for tier_up event
     try {
       await evaluateOffers(deviceId, "tier_up", {
         newTier: result.newTier,
@@ -364,17 +355,6 @@ export async function processCheckIn(
       });
     } catch (e) {
       console.error("[dailyCheckIn] evaluateOffers error:", e);
-    }
-  }
-
-  if (result.showWelcomeBackOffer) {
-    try {
-      const promo = await activateWelcomeBackPromotion(deviceId);
-      if (promo) {
-        result.promotionBonusRate = promo.bonusRate;
-      }
-    } catch (error) {
-      console.error("[Check-in] Failed to activate welcome back promo:", error);
     }
   }
 

@@ -377,6 +377,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Future<void> _openARScan() async {
+    final permService = PermissionService();
+    final hasPermission = await permService.hasCameraPermission();
+    if (!hasPermission) {
+      final granted = await permService.requestCameraPermission();
+      if (!granted) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cameraFailedToInitialize),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    }
+
+    if (!mounted) return;
     final result = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(builder: (_) => const ARscanScreen()),

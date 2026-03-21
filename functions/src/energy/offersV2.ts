@@ -343,3 +343,119 @@ export const claimFreeEnergyEndpoint = onRequest(
     }
   }
 );
+
+// ─── Claim Freepass Offer ───
+
+/**
+ * Claim a freepass offer — adds N days to user's freepass.totalDays (no energy cost).
+ */
+export async function claimFreepassOffer(
+  deviceId: string,
+  templateId: string
+): Promise<{success: boolean; daysAdded: number; newTotalDays: number}> {
+  const templateDoc = await db.collection("offer_templates").doc(templateId).get();
+  if (!templateDoc.exists) {
+    throw new Error("Offer template not found");
+  }
+
+  const template = templateDoc.data()!;
+  if (template.rewardType !== "freepass") {
+    throw new Error("This offer is not a freepass offer");
+  }
+
+  const days = template.rewardConfig?.days || 0;
+  if (days <= 0) {
+    throw new Error("Invalid freepass days");
+  }
+
+  const userRef = db.collection("users").doc(deviceId);
+  const result = await db.runTransaction(async (transaction) => {
+    const userDoc = await transaction.get(userRef);
+    if (!userDoc.exists) {
+      throw new Error("User not found");
+    }
+
+    const user = userDoc.data()!;
+    const activeOffers = user.offers?.active || {};
+    const offerState = activeOffers[templateId];
+
+    if (!offerState) {
+      throw new Error("Offer not found or not active");
+    }
+
+    if (offerState.claimed === true) {
+      throw new Error("Offer already claimed");
+    }
+
+    const now = admin.firestore.Timestamp.now();
+    if (offerState.expiresAt && offerState.expiresAt.toDate() <= now.toDate()) {
+      throw new Error("Offer expired");
+    }
+
+    const currentTotalDays = user.freepass?.totalDays ?? 0;
+    const newTotalDays = currentTotalDays + days;
+
+    transaction.update(userRef, {
+      "freepass.totalDays": newTotalDays,
+      [`offers.active.${templateId}.claimed`]: true,
+      [`offers.active.${templateId}.claimedAt`]: admin.firestore.FieldValue.serverTimestamp(),
+      [`offers.active.${templateId}.claimCount`]: (offerState.claimCount || 0) + 1,
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return {newTotalDays, miroId: user.miroId || "unknown"};
+  });
+
+  await db.collection("transactions").add({
+    deviceId,
+    miroId: result.miroId,
+    type: "offer_freepass",
+    amount: 0,
+    balanceAfter: 0,
+    description: `Claimed ${days}-day freepass from offer: ${template.slug || templateId}`,
+    metadata: {
+      templateId,
+      slug: template.slug,
+      rewardType: "freepass",
+      daysAdded: days,
+      newTotalDays: result.newTotalDays,
+    },
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  console.log(`✅ [claimFreepass] ${deviceId} claimed ${days} days from offer ${template.slug || templateId}`);
+
+  return {
+    success: true,
+    daysAdded: days,
+    newTotalDays: result.newTotalDays,
+  };
+}
+
+/**
+ * claimFreepassEndpoint — POST { deviceId, templateId }
+ */
+export const claimFreepassEndpoint = onRequest(
+  {timeoutSeconds: 10, memory: "256MiB", cors: true},
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({error: "Method not allowed"});
+      return;
+    }
+
+    try {
+      const {deviceId, templateId} = req.body;
+
+      if (!deviceId || !templateId) {
+        res.status(400).json({error: "Missing deviceId or templateId"});
+        return;
+      }
+
+      const result = await claimFreepassOffer(deviceId, templateId);
+      res.status(200).json(result);
+    } catch (error: any) {
+      console.error("❌ [claimFreepass] Error:", error);
+      res.status(500).json({error: error.message});
+    }
+  }
+);

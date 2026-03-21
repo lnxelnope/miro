@@ -1,5 +1,12 @@
 # Setup Google OAuth for MiRO Admin Panel
 
+## 💻 พัฒนาบน localhost
+
+Production ใช้ได้แต่ localhost ไม่ได้มักเพราะ **ยังไม่ลง redirect URI / พอร์ตไม่ตรง / `NEXTAUTH_URL` ชี้ผิด**  
+อ่านคู่มือภาษาไทย: **[LOCALHOST_GOOGLE_OAUTH.md](./LOCALHOST_GOOGLE_OAUTH.md)**
+
+---
+
 ## 🔐 Create Google OAuth Credentials
 
 ### Step 1: Go to Google Cloud Console

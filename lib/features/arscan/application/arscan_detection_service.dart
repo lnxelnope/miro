@@ -10,14 +10,15 @@ import '../../../core/utils/logger.dart';
 import '../domain/models/ar_scan_detection.dart';
 
 /// Service สำหรับเชื่อม CameraImage → ML Kit ObjectDetector → ArScanDetection
+///
+/// ไม่สร้าง ObjectDetector ใน constructor เพื่อป้องกัน race condition
+/// เมื่อ instance เก่ากำลัง close อยู่ — ใช้ lazy init ตอน detectFrame แทน
 class ArScanDetectionService {
   ArScanDetectionService({
     Duration throttleInterval = const Duration(milliseconds: 250),
     double foodConfidenceThreshold = 0.6,
   })  : _throttleInterval = throttleInterval,
-        _foodConfidenceThreshold = foodConfidenceThreshold {
-    _initDetector();
-  }
+        _foodConfidenceThreshold = foodConfidenceThreshold;
 
   static const Set<String> _foodLabels = {
     'Food',
@@ -51,13 +52,18 @@ class ArScanDetectionService {
   ObjectDetector? _singleDetector;
   DateTime? _lastDetectionTime;
   List<ArScanDetection> _lastDetections = const [];
+  bool _isDisposed = false;
+  bool _isInitializing = false;
 
   Future<void> _initDetector() async {
+    if (_isDisposed || _isInitializing) return;
+    if (_objectDetector != null) return;
     if (Platform.isWindows) {
       debugPrint('[ArScanDetectionService] ML Kit not supported on Windows');
       return;
     }
 
+    _isInitializing = true;
     try {
       final options = ObjectDetectorOptions(
         mode: DetectionMode.stream,
@@ -71,6 +77,8 @@ class ArScanDetectionService {
         '[ArScanDetectionService] Failed to initialize ObjectDetector',
         e,
       );
+    } finally {
+      _isInitializing = false;
     }
   }
 
@@ -84,20 +92,19 @@ class ArScanDetectionService {
     CameraImage image,
     InputImageRotation rotation,
   ) async {
-    if (Platform.isWindows) {
+    if (_isDisposed || Platform.isWindows) {
       return const [];
     }
 
     final now = DateTime.now();
     if (_lastDetectionTime != null &&
         now.difference(_lastDetectionTime!) < _throttleInterval) {
-      // ใช้ผลลัพธ์เดิมตาม throttle
       return _lastDetections;
     }
 
     if (_objectDetector == null) {
       await _initDetector();
-      if (_objectDetector == null) {
+      if (_objectDetector == null || _isDisposed) {
         return const [];
       }
     }
@@ -327,9 +334,18 @@ class ArScanDetectionService {
   }
 
   Future<void> dispose() async {
-    await _objectDetector?.close();
+    _isDisposed = true;
+    try {
+      await _objectDetector?.close();
+    } catch (e) {
+      debugPrint('[ArScanDetectionService] objectDetector.close error: $e');
+    }
     _objectDetector = null;
-    await _singleDetector?.close();
+    try {
+      await _singleDetector?.close();
+    } catch (e) {
+      debugPrint('[ArScanDetectionService] singleDetector.close error: $e');
+    }
     _singleDetector = null;
   }
 }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase-admin';
 import { checkAuth } from '@/lib/auth';
 import { Timestamp } from 'firebase-admin/firestore';
+import { autoTranslateOfferFields } from '@/lib/translate';
+import { mergeOfferLocaleStringsForUpdate } from '@/lib/offer-locales';
 
 // GET: ดึง offer template เดียว
 export async function GET(
@@ -124,7 +126,7 @@ export async function PUT(
     }
 
     if (body.rewardType !== undefined) {
-      const validRewardTypes = ['special_product', 'bonus_rate', 'free_energy', 'subscription_deal'];
+      const validRewardTypes = ['bonus_rate', 'free_energy', 'freepass'];
       if (!validRewardTypes.includes(body.rewardType)) {
         return NextResponse.json(
           { success: false, error: `rewardType must be one of: ${validRewardTypes.join(', ')}` },
@@ -150,17 +152,10 @@ export async function PUT(
       const rewardType = effectiveRewardType;
       const rewardConfig = effectiveRewardConfig;
 
-      if (rewardType === 'special_product') {
-        if (!rewardConfig?.productId || !rewardConfig?.energyAmount) {
+      if (rewardType === 'bonus_rate') {
+        if (rewardConfig?.bonusRate === undefined || rewardConfig.bonusRate < 0.01 || rewardConfig.bonusRate > 10.0) {
           return NextResponse.json(
-            { success: false, error: 'rewardConfig.productId and rewardConfig.energyAmount are required for special_product' },
-            { status: 400 }
-          );
-        }
-      } else if (rewardType === 'bonus_rate') {
-        if (rewardConfig?.bonusRate === undefined || rewardConfig.bonusRate < 0.01 || rewardConfig.bonusRate > 1.0) {
-          return NextResponse.json(
-            { success: false, error: 'rewardConfig.bonusRate must be 0.01-1.0 for bonus_rate' },
+            { success: false, error: 'rewardConfig.bonusRate must be 0.01-10.0 for bonus_rate' },
             { status: 400 }
           );
         }
@@ -171,10 +166,10 @@ export async function PUT(
             { status: 400 }
           );
         }
-      } else if (rewardType === 'subscription_deal') {
-        if (!rewardConfig?.productId || !rewardConfig?.basePlanId || !rewardConfig?.offerId) {
+      } else if (rewardType === 'freepass') {
+        if (!rewardConfig?.days || rewardConfig.days < 1) {
           return NextResponse.json(
-            { success: false, error: 'rewardConfig.productId, basePlanId, and offerId are required for subscription_deal' },
+            { success: false, error: 'rewardConfig.days must be >= 1 for freepass' },
             { status: 400 }
           );
         }
@@ -203,23 +198,16 @@ export async function PUT(
     if (body.slug !== undefined) updateData.slug = body.slug.trim();
     if (body.triggerEvent !== undefined) updateData.triggerEvent = body.triggerEvent;
     if (body.triggerCondition !== undefined) updateData.triggerCondition = body.triggerCondition;
-    if (body.title !== undefined) {
-      updateData.title = {
-        en: body.title.en?.trim() || existingData.title?.en || '',
-        th: body.title.th?.trim() || body.title.en?.trim() || existingData.title?.th || existingData.title?.en || '',
-      };
-    }
-    if (body.description !== undefined) {
-      updateData.description = {
-        en: body.description.en?.trim() || '',
-        th: body.description.th?.trim() || body.description.en?.trim() || '',
-      };
-    }
-    if (body.ctaText !== undefined) {
-      updateData.ctaText = {
-        en: body.ctaText.en?.trim() || 'Claim',
-        th: body.ctaText.th?.trim() || body.ctaText.en?.trim() || 'Claim',
-      };
+    if (body.title !== undefined || body.description !== undefined || body.ctaText !== undefined) {
+      const titleMerged = mergeOfferLocaleStringsForUpdate(body.title, existingData.title);
+      const descMerged = mergeOfferLocaleStringsForUpdate(body.description, existingData.description);
+      const ctaMerged = mergeOfferLocaleStringsForUpdate(body.ctaText, existingData.ctaText);
+      if (!ctaMerged.en.trim()) ctaMerged.en = 'Claim';
+
+      const translated = await autoTranslateOfferFields(titleMerged, descMerged, ctaMerged);
+      updateData.title = translated.title;
+      updateData.description = translated.description;
+      updateData.ctaText = translated.ctaText;
     }
     if (body.icon !== undefined) updateData.icon = body.icon;
     if (body.rewardType !== undefined) updateData.rewardType = body.rewardType;

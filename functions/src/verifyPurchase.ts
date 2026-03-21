@@ -38,69 +38,7 @@ const ENERGY_PRODUCTS: Record<string, number> = {
   "energy_550": 550,
   "energy_1200": 1200,
   "energy_2000": 2000,
-  "energy_first_purchase_200": 200,   // $1 = 200E Starter Deal (1-time)
-  "energy_100_welcome": 100,
-  "energy_550_welcome": 550,
-  "energy_1200_welcome": 1200,
-  "energy_2000_welcome": 2000,
 };
-
-// Regular repeatable products — these can ALWAYS be re-purchased (consumable)
-const REGULAR_PRODUCTS = new Set([
-  "energy_100",
-  "energy_550",
-  "energy_1200",
-  "energy_2000",
-]);
-
-// Legacy one-time products (backward compat — ใช้คู่กับ template-based check)
-const ONE_TIME_PRODUCTS: Record<string, {
-  claimField: string;
-  errorMessage: string;
-}> = {
-  "energy_100_welcome": {
-    claimField: "welcomeBonusClaimed",
-    errorMessage: "Welcome bonus already claimed",
-  },
-  "energy_550_welcome": {
-    claimField: "welcomeBonusClaimed",
-    errorMessage: "Welcome bonus already claimed",
-  },
-  "energy_1200_welcome": {
-    claimField: "welcomeBonusClaimed",
-    errorMessage: "Welcome bonus already claimed",
-  },
-  "energy_2000_welcome": {
-    claimField: "welcomeBonusClaimed",
-    errorMessage: "Welcome bonus already claimed",
-  },
-};
-
-/**
- * Check if an offer product has been claimed (template-based)
- * ตรวจจาก offers.active map — หา template ที่มี rewardConfig.productId ตรง
- */
-async function isOfferProductClaimed(
-  deviceId: string,
-  productId: string
-): Promise<boolean> {
-  const userDoc = await db.collection("users").doc(deviceId).get();
-  if (!userDoc.exists) return false;
-
-  const activeOffers = userDoc.data()?.offers?.active || {};
-
-  for (const [templateId, offerState] of Object.entries(activeOffers)) {
-    const state = offerState as any;
-    if (state.claimed) {
-      const templateDoc = await db.collection("offer_templates").doc(templateId).get();
-      const template = templateDoc.data();
-      if (template?.rewardConfig?.productId === productId) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
 
 /**
  * Mark an offer as claimed after purchase verified
@@ -119,7 +57,8 @@ async function markOfferClaimed(
     if (!state.claimed) {
       const templateDoc = await db.collection("offer_templates").doc(templateId).get();
       const template = templateDoc.data();
-      if (template?.rewardConfig?.productId === productId) {
+      const rc = template?.rewardConfig;
+      if (rc?.productId === productId || rc?.applyToProductId === productId) {
         await userDoc.ref.update({
           [`offers.active.${templateId}.claimed`]: true,
           [`offers.active.${templateId}.claimedAt`]: admin.firestore.FieldValue.serverTimestamp(),
@@ -201,47 +140,6 @@ export const verifyPurchase = onRequest(
           });
           return;
         }
-      }
-
-      // ─── 2b. One-time offer validation (ONLY for non-regular products) ───
-      // Regular products (energy_100, energy_550, etc.) are always re-purchasable
-      const oneTimeConfig = ONE_TIME_PRODUCTS[productId];
-      if (!REGULAR_PRODUCTS.has(productId)) {
-        // Template-based check (only for offer-specific products)
-        const templateClaimed = await isOfferProductClaimed(deviceId, productId);
-        if (templateClaimed) {
-          console.log(
-            `🚫 [verifyPurchase] Offer product already claimed (template): ${productId} for ${deviceId}`
-          );
-          res.status(409).json({
-            error: "This offer has already been claimed",
-            alreadyClaimed: true,
-          });
-          return;
-        }
-
-        // Legacy fallback (for users not yet migrated)
-        if (oneTimeConfig) {
-          const userDoc = await db.collection("users").doc(deviceId).get();
-          if (!userDoc.exists) {
-            res.status(404).json({error: "User not found"});
-            return;
-          }
-
-          const offers = userDoc.data()?.offers || {};
-          if (offers[oneTimeConfig.claimField] === true) {
-            console.log(
-              `🚫 [verifyPurchase] One-time offer already claimed (legacy): ${productId} for ${deviceId}`
-            );
-            res.status(409).json({
-              error: oneTimeConfig.errorMessage,
-              alreadyClaimed: true,
-            });
-            return;
-          }
-        }
-      } else {
-        console.log(`ℹ️ [verifyPurchase] Regular product "${productId}" — skipping one-time offer checks`);
       }
 
       // ─── 3. Verify purchase (Google Play or Apple) ───
@@ -425,16 +323,10 @@ export const verifyPurchase = onRequest(
         purchaseRecordRef = db.collection("purchase_records").doc(purchaseHash);
       }
 
-      // ─── 6. Calculate Bonus Energy (tier + promotion + dynamic offers) ───
+      // ─── 6. Calculate Bonus Energy (tier + dynamic offer templates) ───
       const userDoc = await db.collection("users").doc(deviceId).get();
       const userData_ = userDoc.exists ? userDoc.data()! : {};
       const tierBonusRate = userData_.bonusRate || 0;
-
-      // Legacy promotion bonus
-      const promoBonusRate = userData_.promotionBonusRate || 0;
-      const promoExpires = userData_.promotionExpiresAt?.toDate?.() || new Date(0);
-      const promoType = userData_.promotionType || "";
-      const isPromoActive = promoExpires > new Date() && promoBonusRate > 0;
 
       // Dynamic offer bonus — check active offers with rewardType 'bonus_rate'
       let offerBonusRate = 0;
@@ -454,7 +346,11 @@ export const verifyPurchase = onRequest(
         const templateDoc = await db.collection("offer_templates").doc(templateId).get();
         if (!templateDoc.exists) continue;
         const template = templateDoc.data()!;
-        if (template.rewardType === "bonus_rate" && template.isActive) {
+        if (template.rewardType === "bonus_rate" && template.isActive !== false) {
+          const applyTo = template.rewardConfig?.applyToProductId as string | undefined;
+          if (applyTo && applyTo !== productId) {
+            continue;
+          }
           const rate = template.rewardConfig?.bonusRate || 0;
           if (rate > offerBonusRate) {
             offerBonusRate = rate;
@@ -464,18 +360,12 @@ export const verifyPurchase = onRequest(
         }
       }
 
-      // Use the highest bonus: tier vs legacy promo vs dynamic offer
-      const bonusRate = Math.max(
-        tierBonusRate,
-        isPromoActive ? promoBonusRate : 0,
-        offerBonusRate
-      );
+      // Use the highest bonus: tier vs dynamic offer
+      const bonusRate = Math.max(tierBonusRate, offerBonusRate);
 
       let bonusSource = "tier";
       if (bonusRate === offerBonusRate && offerBonusRate > 0) {
         bonusSource = `offer:${offerBonusSlug}`;
-      } else if (bonusRate === promoBonusRate && isPromoActive) {
-        bonusSource = `promo:${promoType}`;
       }
 
       const baseEnergy = energyAmount;
@@ -505,13 +395,6 @@ export const verifyPurchase = onRequest(
           totalPurchased: (userData.totalPurchased || 0) + totalEnergy,
           lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
         };
-
-        // Mark one-time offer as claimed (prevent re-purchase)
-        if (oneTimeConfig) {
-          updates[`offers.${oneTimeConfig.claimField}`] = true;
-          updates[`offers.${oneTimeConfig.claimField}At`] =
-            admin.firestore.FieldValue.serverTimestamp();
-        }
 
         transaction.update(userRef, updates);
 
@@ -556,6 +439,7 @@ export const verifyPurchase = onRequest(
           bonusEnergy,
           totalEnergy,
           purchaseToken: purchaseToken.substring(0, 20) + "...",
+          ...(offerBonusTemplateId ? {offerTemplateId: offerBonusTemplateId, offerSlug: offerBonusSlug} : {}),
         },
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -589,9 +473,17 @@ export const verifyPurchase = onRequest(
       }
 
       // ─── Evaluate offers triggered by this purchase
+      // bonus_40 โซ่: ต้องซื้อ energy_100 แบบใช้โบนัส starter_deal (+100%) ครั้งแรกเท่านั้น
+      const starterEnergy100Bonus =
+        productId === "energy_100" &&
+        offerBonusSlug === "starter_deal" &&
+        bonusRate === offerBonusRate &&
+        offerBonusRate > 0;
+
       try {
         await evaluateOffers(deviceId, "first_purchase_complete", {
           productId: productId,
+          starterEnergy100Bonus,
         });
       } catch (e) {
         console.error("[verifyPurchase] evaluateOffers error:", e);
@@ -605,8 +497,6 @@ export const verifyPurchase = onRequest(
         baseEnergy,
         bonusEnergy,
         bonusRate,
-        promotionActive: isPromoActive,
-        promotionType: isPromoActive ? promoType : undefined,
         productId,
       });
     } catch (error: any) {
