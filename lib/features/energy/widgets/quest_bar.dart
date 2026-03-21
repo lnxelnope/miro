@@ -53,7 +53,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
 
   // Ad Reward
   static const int _adRewardEnergy = 3;
-  final AdService _adService = AdService();
+  final AdService _adService = AdService.instance;
   bool _isAdLoading = false;
   bool _adInitialized = false;
 
@@ -80,7 +80,6 @@ class _QuestBarState extends ConsumerState<QuestBar> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
-    _adService.dispose();
     super.dispose();
   }
 
@@ -140,7 +139,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
 
       // Load canClaim status (from syncBalanceWithServer or local fallback)
       try {
-        final energyService = EnergyService(DatabaseService.isar);
+        final energyService = EnergyService(DatabaseService.db);
         final syncData = await energyService.syncBalanceWithServer();
         final tier = syncData['tier'] as String? ?? 'starter';
         final energyMap = {
@@ -287,7 +286,7 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       final deviceId = await DeviceIdService.getDeviceId();
       
       // TODO: Replace with actual Firebase Dynamic Link when available
-      final referralLink = 'https://miro.app/ref/$deviceId';
+      final referralLink = 'https://arcal.app/ref/$deviceId';
       
       final l10n = L10n.of(context)!;
       await Share.share(
@@ -326,11 +325,14 @@ class _QuestBarState extends ConsumerState<QuestBar> {
       );
     }
 
+    // Subscriber (Energy Pass) → ซ่อน offer ทั้งหมด (ซื้อไปแล้ว ไม่ต้องโชว์)
+    final isSubscriber = gamification.isSubscriber;
+
     // Check if we have active offers (after filtering dismissed)
     final visibleOffers = _activeOffers
         .where((o) => !_dismissedOffers.contains(o['id'] as String?))
         .toList();
-    final hasActiveOffer = visibleOffers.isNotEmpty;
+    final hasActiveOffer = visibleOffers.isNotEmpty && !isSubscriber;
 
     // ถ้ายังมี offer → แสดงแค่ offer banner, ซ่อน quest bar
     // ผู้ใช้ต้องปิด offer ก่อนถึงจะเห็น streak

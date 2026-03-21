@@ -5,10 +5,11 @@ import 'package:miro_hybrid/core/services/energy_service.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
 import 'package:miro_hybrid/core/services/rating_service.dart';
 import 'package:miro_hybrid/core/database/database_service.dart';
+import 'package:miro_hybrid/features/subscription/models/freepass_data.dart';
 
 final gamificationProvider =
     StateNotifierProvider<GamificationNotifier, GamificationState>((ref) {
-  final energyService = EnergyService(DatabaseService.isar);
+  final energyService = EnergyService(DatabaseService.db);
   return GamificationNotifier(energyService);
 });
 
@@ -68,6 +69,13 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
       final seasonalQuests = _parseSeasonalQuests(result['seasonalQuests']);
       debugPrint('[Gamification] seasonalQuests parsed: ${seasonalQuests.length} active quests');
 
+      // Parse freepass data
+      final rawFreepass = result['freepass'];
+      final freepass = rawFreepass is Map<String, dynamic>
+          ? FreepassData.fromFirestore(rawFreepass)
+          : FreepassData.empty();
+      debugPrint('[Gamification] freepass: totalDays=${freepass.totalDays}, isActive=${freepass.isActive}');
+
       state = GamificationState(
         miroId: result['miroId']?.toString() ?? '',
         currentStreak: (result['currentStreak'] as num?)?.toInt() ?? 0,
@@ -88,6 +96,7 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
         subscriptionExpiryDate: subExpiryDate,
         tierCelebrations: tierCelebrations,
         seasonalQuests: seasonalQuests,
+        freepass: freepass,
       );
 
       debugPrint('[Gamification] State set: miroId="${state.miroId}", '
@@ -154,6 +163,12 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
         ? _parseSeasonalQuests(response['seasonalQuests'])
         : null;
 
+    // Freepass
+    final rawFreepass = response['freepass'];
+    final freepass = rawFreepass is Map<String, dynamic>
+        ? FreepassData.fromFirestore(rawFreepass)
+        : null;
+
     state = state.copyWith(
       currentStreak: (streak?['current'] as num?)?.toInt(),
       longestStreak: (streak?['longest'] as num?)?.toInt(),
@@ -176,6 +191,7 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
           : null,
       tierCelebrations: tierCelebrations,
       seasonalQuests: seasonalQuests,
+      freepass: freepass,
     );
 
     // Return daily check-in data for welcome dialog
@@ -249,6 +265,16 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
   /// Refresh state จาก server
   Future<void> refresh() async {
     await _loadState();
+  }
+
+  /// Update freepass data directly (after convert)
+  void updateFreepass(FreepassData freepass) {
+    state = state.copyWith(freepass: freepass);
+  }
+
+  /// Update balance directly
+  void updateBalance(int balance) {
+    state = state.copyWith(balance: balance);
   }
 
   /// Parse tier celebration data from API response

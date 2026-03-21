@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/database/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -9,13 +10,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'core/theme/app_theme.dart';
-import 'core/database/database_service.dart';
+import 'core/theme/app_colors.dart';
 import 'core/services/purchase_service.dart';
 import 'core/services/energy_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/analytics_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/services/admob_consent_service.dart';
+import 'core/services/data_sync_service.dart';
 import 'core/ai/llm_service.dart';
 import 'core/ai/gemini_service.dart';
 import 'core/utils/logger.dart';
@@ -60,7 +62,7 @@ void main() async {
   // === แสดง UI ทันที ===
   runApp(
     const ProviderScope(
-      child: MiroApp(),
+      child: ArCalApp(),
     ),
   );
 
@@ -70,7 +72,7 @@ void main() async {
 
 void _initServicesInBackground() async {
   try {
-    final energyService = EnergyService(DatabaseService.isar);
+    final energyService = EnergyService(DatabaseService.db);
 
     try {
       await energyService.migrateToSecureStorage()
@@ -121,17 +123,13 @@ void _initServicesInBackground() async {
       AppLogger.warn('⚠️ PurchaseService.initialize: $e');
     }
 
-    try {
-      await NotificationService.initialize()
-          .timeout(const Duration(seconds: 10), onTimeout: () {});
-    } catch (e) {
-      AppLogger.warn('⚠️ NotificationService: $e');
-    }
-
+    // Notification, Analytics, and AdMob consent are now handled
+    // by the unified PrivacyConsentSheet on first launch.
+    // On subsequent launches, initialize with saved preferences.
     try {
       final hasConsent = await ConsentService.hasConsent();
       await AnalyticsService.initialize(
-        appVersion: '1.1.5',
+        appVersion: '1.2.5',
         enabled: hasConsent,
       );
     } catch (e) {
@@ -139,10 +137,32 @@ void _initServicesInBackground() async {
     }
 
     try {
-      await AdmobConsentService.initializeWithConsent()
-          .timeout(const Duration(seconds: 15), onTimeout: () {});
+      final consentAsked = !(await ConsentService.needsConsent());
+      if (consentAsked) {
+        await NotificationService.initialize()
+            .timeout(const Duration(seconds: 10), onTimeout: () {});
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ NotificationService: $e');
+    }
+
+    try {
+      if (AdmobConsentService.isInitialized) {
+        // Already initialized by PrivacyConsentSheet
+      } else {
+        await AdmobConsentService.initializeWithConsent()
+            .timeout(const Duration(seconds: 15), onTimeout: () {});
+      }
     } catch (e) {
       AppLogger.warn('⚠️ AdmobConsentService: $e');
+    }
+
+    // Auto cloud sync — once per day on first app open
+    try {
+      await DataSyncService.autoSyncIfNeeded()
+          .timeout(const Duration(seconds: 15), onTimeout: () {});
+    } catch (e) {
+      AppLogger.warn('⚠️ AutoSync: $e');
     }
 
     AppLogger.info('✅ All background services initialized');
@@ -151,14 +171,14 @@ void _initServicesInBackground() async {
   }
 }
 
-class MiroApp extends ConsumerStatefulWidget {
-  const MiroApp({super.key});
+class ArCalApp extends ConsumerStatefulWidget {
+  const ArCalApp({super.key});
 
   @override
-  ConsumerState<MiroApp> createState() => _MiroAppState();
+  ConsumerState<ArCalApp> createState() => _ArCalAppState();
 }
 
-class _MiroAppState extends ConsumerState<MiroApp> {
+class _ArCalAppState extends ConsumerState<ArCalApp> {
   bool _isLoading = true;
   bool _languageSelected = false;
   bool _onboardingComplete = false;
@@ -181,17 +201,16 @@ class _MiroAppState extends ConsumerState<MiroApp> {
         _languageSelected = prefs.getBool('language_selected') ?? false;
       }
 
-      final count = await DatabaseService.userProfiles.count();
+      final allProfiles = await DatabaseService.db.select(DatabaseService.db.userProfiles).get();
+      final count = allProfiles.length;
       if (count > 0) {
-        final profile = await DatabaseService.userProfiles.get(1);
+        final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)..where((tbl) => tbl.id.equals(1))).getSingleOrNull();
         _onboardingComplete = profile?.onboardingComplete ?? false;
 
         if (profile != null && profile.platform == null) {
           profile.platform = Platform.isIOS ? 'ios' : 'android';
           profile.updatedAt = DateTime.now();
-          await DatabaseService.isar.writeTxn(() async {
-            await DatabaseService.userProfiles.put(profile);
-          });
+          await DatabaseService.db.into(DatabaseService.db.userProfiles).insertOnConflictUpdate(profile);
         }
       }
     } catch (e) {
@@ -209,7 +228,7 @@ class _MiroAppState extends ConsumerState<MiroApp> {
 
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'MIRO - My Intake Record Oracle',
+      title: 'ArCal',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -235,8 +254,57 @@ class _MiroAppState extends ConsumerState<MiroApp> {
 
   Widget _buildHome() {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final bgColor = isDark ? const Color(0xFF152a15) : const Color(0xFFebffe9);
+      final titleColor = isDark ? Colors.white : AppColors.primary;
+      final subtitleColor = isDark ? Colors.white70 : Colors.grey.shade500;
+      return Scaffold(
+        backgroundColor: bgColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Image.asset(
+                  'assets/icon/logo.png',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'ArCal',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: titleColor,
+                  letterSpacing: 4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'AI Calorie Counter',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: subtitleColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: titleColor,
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 

@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import '../models/energy_transaction.dart';
+import '../database/app_database.dart';
+import 'data_sync_service.dart';
 import 'device_id_service.dart';
 import 'energy_token_service.dart';
 
@@ -20,9 +21,9 @@ class EnergyService {
 
   static const _storage = FlutterSecureStorage();
 
-  final Isar _isar;
+  final AppDatabase _db;
 
-  EnergyService(this._isar);
+  EnergyService(this._db);
 
   // ───────────────────────────────────────────────────────────
   // 1. BALANCE MANAGEMENT
@@ -207,6 +208,7 @@ class EnergyService {
           'subscription': data['subscription'] ?? {},
           'tierCelebration': data['tierCelebration'] ?? {},
           'seasonalQuests': data['seasonalQuests'] ?? [],
+          'freepass': data['freepass'] ?? {},
         };
       } else {
         throw Exception('Server returned ${response.statusCode}');
@@ -244,7 +246,7 @@ class EnergyService {
         final miroId = data['miroId']?.toString() ?? '';
         final balance = (data['balance'] as num?)?.toInt() ?? 0;
 
-        // Cache MiRO ID
+        // Cache ArCal ID
         if (miroId.isNotEmpty) {
           await _storage.write(key: 'miro_id', value: miroId);
         }
@@ -270,6 +272,7 @@ class EnergyService {
           'subscription': data['subscription'] ?? {},
           'tierCelebration': data['tierCelebration'] ?? {},
           'seasonalQuests': data['seasonalQuests'] ?? [],
+          'freepass': data['freepass'] ?? {},
         };
       }
 
@@ -292,7 +295,7 @@ class EnergyService {
     }
   }
 
-  /// ดึง MiRO ID ที่ cached ไว้
+  /// ดึง ArCal ID ที่ cached ไว้
   Future<String?> getMiroId() async {
     return await _storage.read(key: 'miro_id');
   }
@@ -327,7 +330,7 @@ class EnergyService {
     await addEnergy(
       welcomeGift,
       type: 'welcome_gift',
-      description: 'Welcome to MIRO! 🎉',
+      description: 'Welcome to ArCal! 🎉',
     );
 
     // Save flag in both places
@@ -432,7 +435,7 @@ class EnergyService {
   // 4. TRANSACTION HISTORY
   // ───────────────────────────────────────────────────────────
 
-  /// บันทึก transaction ลง Isar database
+  /// บันทึก transaction ลง Drift database
   Future<void> _saveTransaction({
     required String type,
     required int amount,
@@ -443,39 +446,40 @@ class EnergyService {
   }) async {
     final deviceId = await DeviceIdService.getDeviceId();
 
-    final transaction = EnergyTransaction(
-      type: type,
-      amount: amount,
-      balanceAfter: balanceAfter,
-      packageId: packageId,
-      purchaseToken: purchaseToken,
-      description: description,
-      deviceId: deviceId,
-    );
-
-    await _isar.writeTxn(() async {
-      await _isar.energyTransactions.put(transaction);
-    });
+    await _db.into(_db.energyTransactions).insert(
+          EnergyTransactionsCompanion.insert(
+            type: type,
+            amount: amount,
+            balanceAfter: balanceAfter,
+            packageId: Value(packageId),
+            purchaseToken: Value(purchaseToken),
+            description: Value(description),
+            deviceId: Value(deviceId),
+            timestamp: Value(DateTime.now()),
+          ),
+        );
   }
 
   /// ดึงประวัติ transaction ทั้งหมด (ใหม่สุดก่อน)
-  Future<List<EnergyTransaction>> getTransactionHistory(
+  Future<List<EnergyTransactionData>> getTransactionHistory(
       {int limit = 50}) async {
-    return await _isar.energyTransactions
-        .where()
-        .sortByTimestampDesc()
-        .limit(limit)
-        .findAll();
+    return await (_db.select(_db.energyTransactions)
+          ..orderBy([
+            (tbl) => OrderingTerm.desc(tbl.timestamp),
+          ])
+          ..limit(limit))
+        .get();
   }
 
   /// ดึงประวัติการใช้ (เฉพาะ type='usage')
-  Future<List<EnergyTransaction>> getUsageHistory({int limit = 30}) async {
-    return await _isar.energyTransactions
-        .filter()
-        .typeEqualTo('usage')
-        .sortByTimestampDesc()
-        .limit(limit)
-        .findAll();
+  Future<List<EnergyTransactionData>> getUsageHistory({int limit = 30}) async {
+    return await (_db.select(_db.energyTransactions)
+          ..where((tbl) => tbl.type.equals('usage'))
+          ..orderBy([
+            (tbl) => OrderingTerm.desc(tbl.timestamp),
+          ])
+          ..limit(limit))
+        .get();
   }
 
   // ───────────────────────────────────────────────────────────
@@ -552,7 +556,8 @@ class EnergyService {
   }
 
   /// V3: Claim Daily Energy (Manual) — Static helper
-  /// เรียก endpoint claimDailyEnergy เพื่อ claim daily reward
+  /// Also piggybacks a data sync payload (food entries + meals since last sync)
+  /// for automatic cloud backup. Server stores this in Firestore.
   /// Returns: { success, energyClaimed, newBalance, newStreak, tierUpgraded, ... }
   static Future<Map<String, dynamic>> claimDailyEnergy() async {
     try {
@@ -560,10 +565,28 @@ class EnergyService {
       const url =
           'https://us-central1-miro-d6856.cloudfunctions.net/claimDailyEnergy';
 
+      // Build sync payload (food entries + meals since last sync)
+      Map<String, dynamic>? syncPayload;
+      try {
+        syncPayload = await DataSyncService.buildSyncPayload();
+      } catch (e) {
+        debugPrint('[EnergyService] Sync payload build failed (non-fatal): $e');
+      }
+
+      final requestBody = <String, dynamic>{
+        'deviceId': deviceId,
+      };
+      if (syncPayload != null &&
+          ((syncPayload['entries'] as List).isNotEmpty ||
+           (syncPayload['meals'] as List).isNotEmpty ||
+           syncPayload['summary'] != null)) {
+        requestBody['sync'] = syncPayload;
+      }
+
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'deviceId': deviceId}),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
@@ -579,6 +602,23 @@ class EnergyService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setInt(_keyBalance, newBalance);
           debugPrint('[EnergyService] ✅ Daily claim balance updated: $newBalance');
+        }
+
+        // Mark sync as successful if server acknowledged it
+        if (syncPayload != null && data['syncAck'] == true) {
+          await DataSyncService.markSyncSuccess(
+            syncPayload['syncTimestamp'] as int,
+          );
+          final entryIds = (syncPayload['entries'] as List)
+              .map((e) => (e as Map<String, dynamic>)['id'] as int)
+              .toList();
+          if (entryIds.isNotEmpty) {
+            await DataSyncService.markEntriesSynced(entryIds);
+          }
+          // Track backup date for greeting reminders
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('last_backup_date', DateTime.now().millisecondsSinceEpoch);
+          debugPrint('[EnergyService] ✅ Data sync acknowledged by server');
         }
 
         return data;

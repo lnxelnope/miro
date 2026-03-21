@@ -130,7 +130,7 @@ import '../../../l10n/app_localizations.dart';
 
 ## General Conventions
 - State management: **Riverpod** (`ConsumerStatefulWidget`, providers)
-- Local DB: **Isar**
+- Local DB: **Drift** (SQLite) — schema อยู่ที่ `lib/core/database/app_database.dart`, service facade อยู่ที่ `lib/core/database/database_service.dart`
 - AI: **Gemini API** (user BYOK)
 - All food-related widgets should use `ConsumerStatefulWidget` for access to providers
 - Always `ref.invalidate()` relevant providers after saving data

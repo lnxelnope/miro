@@ -1,12 +1,12 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
-import '../models/my_meal.dart';
-import '../models/food_entry.dart';
 import '../providers/my_meal_provider.dart';
 
 /// Bottom sheet สำหรับบันทึกอาหารจาก MyMeal
@@ -32,6 +32,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   late double _baseProtPerUnit;
   late double _baseCarbPerUnit;
   late double _baseFatPerUnit;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -335,7 +336,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _servingSize > 0 ? _confirm : null,
+                onPressed: (_servingSize > 0 && !_isSaving) ? _confirm : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.health,
                   foregroundColor: Colors.white,
@@ -343,9 +344,18 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   shape: RoundedRectangleBorder(
                       borderRadius: AppRadius.md),
                 ),
-                child: const Text('Save',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Save',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
             ),
           ],
@@ -388,75 +398,59 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
   }
 
   Future<void> _confirm() async {
-    // โหลด ingredients จาก MyMeal (ใช้ tree provider สำหรับ nested structure)
-    final treeAsync = ref.read(mealIngredientTreeProvider(widget.meal.id));
-    final tree = treeAsync.value ?? [];
+    if (_isSaving) return;
+    setState(() => _isSaving = true);
+    try {
+      List<IngredientTreeNode> tree;
+      try {
+        // ต้อง await — ถ้าอ่าน .value ขณะยังโหลด จะได้ [] และ Basic จะไม่มี ingredientsJson
+        tree =
+            await ref.read(mealIngredientTreeProvider(widget.meal.id).future);
+      } catch (_) {
+        tree = [];
+      }
 
-    // แปลงเป็น JSON สำหรับบันทึกลง FoodEntry (รวม sub_ingredients)
-    String? ingredientsJsonStr;
-    if (tree.isNotEmpty) {
-      final ingredientsData = tree.map((node) {
-        final rootMap = <String, dynamic>{
-          'name': node.ingredient.ingredientName,
-          'amount': node.ingredient.amount,
-          'unit': node.ingredient.unit,
-          'calories': node.ingredient.calories,
-          'protein': node.ingredient.protein,
-          'carbs': node.ingredient.carbs,
-          'fat': node.ingredient.fat,
-        };
+      String? ingredientsJsonStr;
+      if (tree.isNotEmpty) {
+        ingredientsJsonStr = jsonEncode(ingredientTreeToJsonMaps(tree));
+      }
 
-        // เพิ่ม detail ถ้ามี
-        if (node.ingredient.detail != null &&
-            node.ingredient.detail!.isNotEmpty) {
-          rootMap['detail'] = node.ingredient.detail;
-        }
+      final logNow = DateTime.now();
+      final entry = FoodEntry(
+        id: 0,
+        foodName: widget.meal.name,
+        foodNameEn: widget.meal.nameEn,
+        mealType: _selectedMealType,
+        timestamp: logNow,
+        servingSize: _servingSize,
+        servingUnit: widget.meal.parsedServingUnit,
+        calories: _calories,
+        protein: _protein,
+        carbs: _carbs,
+        fat: _fat,
+        baseCalories: _baseCalPerUnit,
+        baseProtein: _baseProtPerUnit,
+        baseCarbs: _baseCarbPerUnit,
+        baseFat: _baseFatPerUnit,
+        myMealId: widget.meal.id,
+        ingredientsJson: ingredientsJsonStr,
+        source: DataSource.database,
+        searchMode: FoodSearchMode.normal,
+        isVerified: false,
+        isDeleted: false,
+        isGroupOriginal: false,
+        editCount: 0,
+        isUserCorrected: false,
+        isCalibrated: false,
+        isSynced: false,
+        createdAt: logNow,
+        updatedAt: logNow,
+      );
 
-        // เพิ่ม sub_ingredients ถ้ามี
-        if (node.children.isNotEmpty) {
-          rootMap['sub_ingredients'] = node.children.map((child) {
-            final subMap = <String, dynamic>{
-              'name': child.ingredientName,
-              'amount': child.amount,
-              'unit': child.unit,
-              'calories': child.calories,
-              'protein': child.protein,
-              'carbs': child.carbs,
-              'fat': child.fat,
-            };
-            if (child.detail != null && child.detail!.isNotEmpty) {
-              subMap['detail'] = child.detail;
-            }
-            return subMap;
-          }).toList();
-        }
-
-        return rootMap;
-      }).toList();
-      ingredientsJsonStr = jsonEncode(ingredientsData);
+      widget.onConfirm(entry);
+      if (mounted) Navigator.pop(context);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-
-    final entry = FoodEntry()
-      ..foodName = widget.meal.name
-      ..foodNameEn = widget.meal.nameEn
-      ..mealType = _selectedMealType
-      ..timestamp = DateTime.now()
-      ..servingSize = _servingSize
-      ..servingUnit = widget.meal.parsedServingUnit
-      ..calories = _calories
-      ..protein = _protein
-      ..carbs = _carbs
-      ..fat = _fat
-      // Base values per 1 unit (เช่น kcal ต่อ 1 ลูก)
-      ..baseCalories = _baseCalPerUnit
-      ..baseProtein = _baseProtPerUnit
-      ..baseCarbs = _baseCarbPerUnit
-      ..baseFat = _baseFatPerUnit
-      ..myMealId = widget.meal.id
-      ..ingredientsJson = ingredientsJsonStr // บันทึก ingredients JSON
-      ..source = DataSource.database;
-
-    widget.onConfirm(entry);
-    Navigator.pop(context);
   }
 }

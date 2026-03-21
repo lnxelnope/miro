@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing query' }, { status: 400 });
     }
 
-    // Try search by MiRO ID first
+    // Try search by ArCal ID first
     let userDoc: any = null;
     const miroIdQuery = await db
       .collection('users')
@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
         isSubscriber: userData.subscription?.status === 'active' || userData.isSubscriber || false,
         subscriptionStatus: userData.subscription?.status || userData.subscriptionStatus,
         isBanned: userData.isBanned || false,
+        freepass: userData.freepass || null,
         createdAt: userData.createdAt?.toDate?.()?.toISOString() || null,
         lastUpdated: userData.lastUpdated?.toDate?.()?.toISOString() || null,
       },

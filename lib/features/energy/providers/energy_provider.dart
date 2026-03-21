@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:miro_hybrid/core/database/database_service.dart';
+import '../../../core/database/database_service.dart';
 import 'package:miro_hybrid/core/services/energy_service.dart';
 
 /// Provider สำหรับ EnergyService (singleton)
 final energyServiceProvider = Provider<EnergyService>((ref) {
-  return EnergyService(DatabaseService.isar);
+  return EnergyService(DatabaseService.db);
 });
 
 /// Provider สำหรับ Energy Balance (auto-refresh)

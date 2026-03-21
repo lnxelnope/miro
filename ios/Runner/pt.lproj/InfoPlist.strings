@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "O ArCal precisa de acesso à câmara para digitalizar códigos de barras e analisar alimentos.";
+NSHealthShareUsageDescription = "O ArCal precisa ler os seus dados de energia ativa para os adicionar à sua meta calórica diária.";
+NSHealthUpdateUsageDescription = "O ArCal guarda dados nutricionais das suas refeições registadas no Apple Health.";
+NSPhotoLibraryAddUsageDescription = "O ArCal guarda fotos de alimentos analisados.";
+NSPhotoLibraryUsageDescription = "O ArCal precisa de acesso à biblioteca de fotos para analisar nutrição a partir de fotos de alimentos.";

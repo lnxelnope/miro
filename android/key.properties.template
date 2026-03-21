@@ -2,7 +2,7 @@
 # คัดลอกไฟล์นี้เป็น key.properties แล้วกรอกรหัสผ่านของคุณ
 # ไฟล์ key.properties จะถูก ignore โดย .gitignore
 
-storePassword=your_keystore_password_here
-keyPassword=your_key_password_here
+storePassword=6six6yesonly
+keyPassword=6six6yesonly
 keyAlias=miro
-storeFile=../android/miro-release-key.jks
+storeFile=/Users/nu_mac_studio/ai_program/miro/android/miro-release-key.jks

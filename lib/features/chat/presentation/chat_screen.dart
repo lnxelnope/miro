@@ -7,15 +7,14 @@ import '../../../core/theme/app_icons.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ai/gemini_chat_service.dart';
 import '../providers/chat_provider.dart';
-import '../models/chat_message.dart';
-import '../models/chat_ai_mode.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import '../services/greeting_service.dart';
 import '../widgets/message_bubble.dart';
 import '../../health/providers/health_provider.dart';
-import '../../health/models/food_entry.dart';
-import '../../health/presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/providers/energy_provider.dart';
+import '../../../core/services/usage_limiter.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -65,17 +64,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messages = ref.watch(chatNotifierProvider);
     final isLoading = ref.watch(chatLoadingProvider);
 
-    // Listen for AI mode changes (moved from initState)
-    ref.listen<ChatAiMode>(
-      chatAiModeProvider,
-      (previous, next) {
-        if (previous == ChatAiMode.local && next == ChatAiMode.miroAi) {
-          // Switched to Miro AI → Show greeting
-          _showMiroAiGreeting();
-        }
-      },
-    );
-
     // Auto-send greeting when chat opens with empty messages
     if (messages.isEmpty && !_greetingSent && !isLoading) {
       _greetingSent = true;
@@ -99,9 +87,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       children: [
         // Top toolbar (replaces AppBar actions)
         _buildChatToolbar(),
-
-        // AI mode indicator
-        _buildAiModeIndicator(),
 
         // Quick actions (expandable)
         if (_showQuickActions) _buildQuickActions(),
@@ -313,32 +298,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  /// Quick FAQ buttons (below AI mode toggle)
+  /// Quick action buttons
   Widget _buildQuickActions() {
-    final aiMode = ref.watch(chatAiModeProvider);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: aiMode == ChatAiMode.miroAi
-              ? _buildMiroAiActions()
-              : _buildLocalAiActions(),
+          children: _buildQuickActionChips(),
         ),
       ),
     );
   }
 
-  /// Miro AI Quick Actions (No Log Food)
-  List<Widget> _buildMiroAiActions() {
+  List<Widget> _buildQuickActionChips() {
     return [
       _buildActionChip(
         icon: AppIcons.meal,
         iconColor: AppIcons.mealColor,
         label: L10n.of(context)!.menuLabel,
         action: () => _requestMenuSuggestion(),
-        energyCost: 1,
+        energyCost: 0,
       ),
       const SizedBox(width: AppSpacing.sm),
       _buildActionChip(
@@ -362,34 +342,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         iconColor: AppIcons.tipsColor,
         label: L10n.of(context)!.tipsLabel,
         action: () => _sendQuickMessage(L10n.of(context)!.giveMeTipsForHealthyEating),
-        energyCost: 1,
-      ),
-    ];
-  }
-
-  /// Local AI Quick Actions (No Log Food)
-  List<Widget> _buildLocalAiActions() {
-    return [
-      _buildActionChip(
-        icon: AppIcons.statistics,
-        iconColor: AppIcons.statisticsColor,
-        label: L10n.of(context)!.summaryLabel,
-        action: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const TodaySummaryDashboardScreen(),
-            ),
-          );
-        },
-        energyCost: 0,
-      ),
-      const SizedBox(width: AppSpacing.sm),
-      _buildActionChip(
-        icon: Icons.help_outline_rounded,
-        iconColor: Theme.of(context).brightness == Brightness.dark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-        label: L10n.of(context)!.helpLabel,
-        action: () => _showLocalAiHelp(),
         energyCost: 0,
       ),
     ];
@@ -536,17 +488,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
 
       // Add message to chat
-      final message = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = buffer.toString();
+      final message = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: buffer.toString(),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(message);
     } catch (e) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToLoadWeeklySummary(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToLoadWeeklySummary(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -611,40 +569,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
 
       // Add message to chat
-      final message = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = buffer.toString();
+      final message = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: buffer.toString(),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(message);
     } catch (e) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToLoadMonthlySummary(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToLoadMonthlySummary(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
-  }
-
-  /// Show Local AI help
-  Future<void> _showLocalAiHelp() async {
-    final helpText = '''
-${L10n.of(context)!.localAiHelpTitle}
-
-${L10n.of(context)!.localAiHelpFormat}
-
-${L10n.of(context)!.localAiHelpExamples}
-
-${L10n.of(context)!.localAiHelpNote}
-''';
-
-    final message = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = helpText;
-
-    await ref.read(chatNotifierProvider.notifier).addMessage(message);
   }
 
   /// Helper: Format date as "Feb 10"
@@ -914,7 +858,7 @@ ${L10n.of(context)!.localAiHelpNote}
           return Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxlValue)),
           ),
           child: Column(
             children: [
@@ -1219,48 +1163,6 @@ ${L10n.of(context)!.localAiHelpNote}
     );
   }
 
-  /// AI Mode Indicator — clean pill badge
-  Widget _buildAiModeIndicator() {
-    final chatAiMode = ref.watch(chatAiModeProvider);
-    final isMiroAi = chatAiMode == ChatAiMode.miroAi;
-    final modeColor =
-        isMiroAi ? AppColors.ai : AppColors.success;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + AppSpacing.xxs),
-            decoration: BoxDecoration(
-              color: modeColor.withValues(alpha: 0.08),
-              borderRadius: AppRadius.xl,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isMiroAi ? Icons.auto_awesome : Icons.psychology,
-                  size: 14,
-                  color: modeColor,
-                ),
-                const SizedBox(width: AppSpacing.xs + AppSpacing.xxs),
-                Text(
-                  chatAiMode.displayName,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: modeColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// Auto-send a random greeting message when chat is opened for the first time
   Future<void> _sendAutoGreeting() async {
     try {
@@ -1273,10 +1175,13 @@ ${L10n.of(context)!.localAiHelpNote}
 
       if (!mounted) return;
 
-      final greetingMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = greeting;
+      final greetingMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: greeting,
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(greetingMsg);
     } catch (e) {
@@ -1285,79 +1190,33 @@ ${L10n.of(context)!.localAiHelpNote}
     }
   }
 
-  /// Show smart greeting when switching to Miro AI
-  Future<void> _showMiroAiGreeting() async {
-    try {
-      // Get today's calories
-      final todayCaloriesAsync = ref.read(todayCaloriesProvider);
-      final todayCalories = await todayCaloriesAsync.when(
-        data: (data) => Future.value(data),
-        loading: () => Future.value(0.0),
-        error: (_, __) => Future.value(0.0),
-      );
-
-      // Get health goal from profile
-      final profileAsync = ref.read(profileNotifierProvider);
-      final profile = await profileAsync.when(
-        data: (data) => Future.value(data),
-        loading: () => Future.value(null),
-        error: (_, __) => Future.value(null),
-      );
-      final targetCalories = profile?.calorieGoal ?? 2000;
-
-      // Calculate remaining
-      final remaining = targetCalories - todayCalories;
-
-      // Build greeting message
-      String greeting;
-      if (todayCalories == 0) {
-        greeting = L10n.of(context)!.hiNoFoodLogged(targetCalories.toStringAsFixed(0));
-      } else if (remaining > 0) {
-        greeting = L10n.of(context)!.hiKcalLeft(remaining.toStringAsFixed(0));
-      } else {
-        greeting = L10n.of(context)!.hiOverTarget(todayCalories.toStringAsFixed(0), (-remaining).toStringAsFixed(0));
-      }
-
-      // Add greeting message
-      final greetingMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = greeting;
-
-      await ref.read(chatNotifierProvider.notifier).addMessage(greetingMsg);
-    } catch (e) {
-      // Fallback greeting
-      final fallbackMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.hiReadyToLog;
-
-      await ref.read(chatNotifierProvider.notifier).addMessage(fallbackMsg);
-    }
-  }
-
-  /// Request menu suggestions from Miro AI (costs 1 Energy)
+  /// Request menu suggestions from ArCal AI (free, daily limit)
   Future<void> _requestMenuSuggestion() async {
-    // Check Energy (2 required for menu suggestion)
-    final energyService = ref.read(energyServiceProvider);
-    final balance = await energyService.getBalance();
-
-    if (balance < 2) {
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content =
-            L10n.of(context)!.notEnoughEnergy;
+    final canChat = await UsageLimiter.canUseFreeChat();
+    if (!canChat) {
+      const limit = UsageLimiter.freeChatPerDay;
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: 'ถึงลิมิตวันนี้แล้ว ($limit ครั้ง/วัน) กลับมาคุยกันใหม่พรุ่งนี้นะครับ 🙏',
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
       return;
     }
 
+    final energyService = ref.read(energyServiceProvider);
+
     // Show loading
-    final loadingMsg = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = L10n.of(context)!.thinkingMealIdeas;
+    final loadingMsg = ChatMessageData(
+      id: 0,
+      sessionId: ref.read(currentSessionIdProvider),
+      role: MessageRole.assistant,
+      content: L10n.of(context)!.thinkingMealIdeas,
+      createdAt: DateTime.now(),
+    );
 
     await ref.read(chatNotifierProvider.notifier).addMessage(loadingMsg);
 
@@ -1416,6 +1275,9 @@ ${L10n.of(context)!.localAiHelpNote}
         userProfile: profile,
       );
 
+      // Record daily chat usage
+      await UsageLimiter.recordFreeChatUsage();
+
       // Remove loading message
       await ref.read(chatNotifierProvider.notifier).removeMessage(loadingMsg);
 
@@ -1426,10 +1288,13 @@ ${L10n.of(context)!.localAiHelpNote}
       await ref.read(chatNotifierProvider.notifier).removeMessage(loadingMsg);
 
       // Show error
-      final errorMsg = ChatMessage()
-        ..sessionId = ref.read(currentSessionIdProvider)
-        ..role = MessageRole.assistant
-        ..content = L10n.of(context)!.failedToGetMenuSuggestions(e.toString());
+      final errorMsg = ChatMessageData(
+        id: 0,
+        sessionId: ref.read(currentSessionIdProvider),
+        role: MessageRole.assistant,
+        content: L10n.of(context)!.failedToGetMenuSuggestions(e.toString()),
+        createdAt: DateTime.now(),
+      );
 
       await ref.read(chatNotifierProvider.notifier).addMessage(errorMsg);
     }
@@ -1466,13 +1331,15 @@ ${L10n.of(context)!.localAiHelpNote}
     }
 
     buffer.writeln(L10n.of(context)!.pickOneAndLog);
-    buffer.writeln(L10n.of(context)!.energyCost(2));
 
     // Add message
-    final message = ChatMessage()
-      ..sessionId = ref.read(currentSessionIdProvider)
-      ..role = MessageRole.assistant
-      ..content = buffer.toString();
+    final message = ChatMessageData(
+      id: 0,
+      sessionId: ref.read(currentSessionIdProvider),
+      role: MessageRole.assistant,
+      content: buffer.toString(),
+      createdAt: DateTime.now(),
+    );
 
     await ref.read(chatNotifierProvider.notifier).addMessage(message);
   }

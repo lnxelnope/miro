@@ -1,5 +1,5 @@
 /**
- * Firebase Cloud Functions for MIRO Energy System
+ * Firebase Cloud Functions for ArCal Energy System
  *
  * Export all functions here
  */
@@ -23,6 +23,9 @@ export {verifyPurchase} from "./verifyPurchase";
 
 // Transfer Key API
 export {generateTransferKey, redeemTransferKey} from "./transferKey";
+
+// Recovery Key API (cross-device account restoration with data sync)
+export {registerRecoveryKey, redeemRecoveryKey} from "./recoveryKey";
 
 // Migration API
 export {migrateToUsersCollection} from "./migration";
@@ -68,6 +71,9 @@ export {verifySubscription} from "./subscription/verifySubscription";
 export {handleRTDN} from "./subscription/handleRTDN";
 export {winbackScheduler} from "./subscription/winbackScheduler";
 
+// Freepass API (energy → days conversion)
+export {convertEnergyToFreepass} from "./freepass/convertEnergyToFreepass";
+
 // ─── V3: Energy Marketing ───────────────────────────────────
 
 // Milestone V3 (10 steps)
@@ -81,3 +87,6 @@ export {verifyRewardedAd, claimAdReward, getAdStatus} from "./energy/rewardedAd"
 
 // Push Notification Triggers
 export {checkOfferExpiry, streakReminder} from "./notifications/pushTriggers";
+
+// ─── Data Mining ────────────────────────────────────────────
+export {computeDataMiningReports, getDataMiningReport, triggerDataMining, exportDataset} from "./admin/dataMining";

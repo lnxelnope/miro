@@ -9,7 +9,7 @@ class L10nTh extends L10n {
   L10nTh([String locale = 'th']) : super(locale);
 
   @override
-  String get appName => 'MiRO';
+  String get appName => 'ArCal';
 
   @override
   String get save => 'บันทึก';
@@ -210,7 +210,7 @@ class L10nTh extends L10n {
   String get openAiStudio => 'เปิด Google AI Studio';
 
   @override
-  String get chatHint => 'สั่ง Miro เช่น \"บันทึกข้าวผัด\"...';
+  String get chatHint => 'สั่ง ArCal เช่น \"บันทึกข้าวผัด\"...';
 
   @override
   String get chatFoodSaved => 'บันทึกอาหารแล้ว!';
@@ -271,7 +271,7 @@ class L10nTh extends L10n {
   String get upgradePro => 'อัปเกรด Pro';
 
   @override
-  String get proUnlocked => 'MiRO Pro';
+  String get proUnlocked => 'ArCal Pro';
 
   @override
   String get proDescription => 'ใช้ AI วิเคราะห์อาหารไม่จำกัด';
@@ -286,6 +286,23 @@ class L10nTh extends L10n {
 
   @override
   String get restorePurchase => 'กู้คืนการซื้อ';
+
+  @override
+  String get restorePurchaseSubtitle => 'กู้คืน Energy Pass ที่เคยซื้อไว้';
+
+  @override
+  String get restorePurchaseRestoring => 'กำลังกู้คืนการซื้อ…';
+
+  @override
+  String get restorePurchaseSuccess => 'กู้คืนการซื้อสำเร็จ!';
+
+  @override
+  String get restorePurchaseNotFound =>
+      'ไม่พบรายการซื้อก่อนหน้าสำหรับ Apple ID นี้';
+
+  @override
+  String get restorePurchaseFailed =>
+      'กู้คืนการซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
 
   @override
   String get myMeals => 'อาหารของฉัน:';
@@ -318,7 +335,7 @@ class L10nTh extends L10n {
   String get quickAdd => 'Quick Add';
 
   @override
-  String get welcomeTitle => 'MiRO';
+  String get welcomeTitle => 'ArCal';
 
   @override
   String get welcomeSubtitle => 'บันทึกอาหารง่ายๆ ด้วย AI';
@@ -543,13 +560,13 @@ class L10nTh extends L10n {
   String get appBarAiChat => 'แชท AI';
 
   @override
-  String get appBarMiro => 'MIRO';
+  String get appBarMiro => 'ArCal';
 
   @override
   String get permissionRequired => 'ต้องการสิทธิ์';
 
   @override
-  String get permissionRequiredDesc => 'MIRO ต้องการเข้าถึง:';
+  String get permissionRequiredDesc => 'ArCal ต้องการเข้าถึง:';
 
   @override
   String get permissionPhotos => 'รูปภาพ — เพื่อสแกนอาหาร';
@@ -1160,6 +1177,9 @@ class L10nTh extends L10n {
   String get intakeGoalLabel => 'การกิน';
 
   @override
+  String get activeBurnLabel => 'เผาผลาญ';
+
+  @override
   String get netEnergyLabel => 'พลังงานสุทธิ';
 
   @override
@@ -1277,7 +1297,7 @@ class L10nTh extends L10n {
   String get clear => 'ล้าง';
 
   @override
-  String get helloImMiro => 'สวัสดี! ผมคือ Miro';
+  String get helloImMiro => 'สวัสดี! ผมคือ ArCal';
 
   @override
   String get tellMeWhatYouAteToday => 'บอกผมว่าคุณกินอะไรวันนี้!';
@@ -1411,7 +1431,7 @@ class L10nTh extends L10n {
 
   @override
   String get localAiHelpNote =>
-      'หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ Miro AI เพื่อผลลัพธ์ที่ดีกว่า!';
+      'หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ ArCal AI เพื่อผลลัพธ์ที่ดีกว่า!';
 
   @override
   String hiNoFoodLogged(String target) {
@@ -1614,7 +1634,7 @@ class L10nTh extends L10n {
   String get referralEnterReferralCode => 'ใส่รหัสแนะนำ';
 
   @override
-  String get referralCodeHint => 'MIRO-XXXX-XXXX-XXXX';
+  String get referralCodeHint => 'ARCAL-XXXX-XXXX-XXXX';
 
   @override
   String get referralSubmitCode => 'ส่งรหัส';
@@ -1641,7 +1661,7 @@ class L10nTh extends L10n {
 
   @override
   String get referralStep1Description =>
-      'คัดลอกและแชร์ MiRO ID ของคุณกับเพื่อน';
+      'คัดลอกและแชร์ ArCal ID ของคุณกับเพื่อน';
 
   @override
   String get referralStep2Title => 'เพื่อนใส่รหัสของคุณ';
@@ -1796,6 +1816,10 @@ class L10nTh extends L10n {
       'การสมัครสมาชิกของคุณจะต่ออายุอัตโนมัติ คุณสามารถยกเลิกได้ทุกเมื่อจาก Google Play';
 
   @override
+  String get subscriptionAutoRenewTermsIos =>
+      'ค่าสมัครจะถูกเรียกเก็บจากบัญชี Apple ID ของคุณเมื่อยืนยันการซื้อ การสมัครจะต่ออายุอัตโนมัติ เว้นแต่จะยกเลิกก่อนสิ้นสุดรอบปัจจุบันอย่างน้อย 24 ชั่วโมง คุณสามารถจัดการและยกเลิกการสมัครได้ในการตั้งค่าบัญชี App Store';
+
+  @override
   String subscriptionRenewsDate(String date) {
     return 'ต่ออายุ: $date';
   }
@@ -1876,7 +1900,7 @@ class L10nTh extends L10n {
   String get privacyPolicyTitle => 'นโยบายความเป็นส่วนตัว';
 
   @override
-  String get privacyPolicySubtitle => 'MiRO — My Intake Record Oracle';
+  String get privacyPolicySubtitle => 'ArCal — AI Calorie Counter';
 
   @override
   String get privacyPolicyHeaderNote =>
@@ -1929,7 +1953,7 @@ class L10nTh extends L10n {
   String get termsOfServiceTitle => 'เงื่อนไขการใช้งาน';
 
   @override
-  String get termsSubtitle => 'MiRO — My Intake Record Oracle';
+  String get termsSubtitle => 'ArCal — AI Calorie Counter';
 
   @override
   String get termsSectionAcceptanceOfTerms => 'การยอมรับเงื่อนไข';
@@ -1976,7 +2000,7 @@ class L10nTh extends L10n {
 
   @override
   String get termsAcknowledgment =>
-      'โดยการใช้ MiRO คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว';
+      'โดยการใช้ ArCal คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว';
 
   @override
   String get termsLastUpdated => 'อัพเดทล่าสุด: 15 กุมภาพันธ์ 2026';
@@ -2002,7 +2026,7 @@ class L10nTh extends L10n {
   String get selectAiPowersChat => 'เลือก AI ที่จะใช้ในแชท';
 
   @override
-  String get miroAi => 'Miro AI';
+  String get miroAi => 'ArCal AI';
 
   @override
   String get miroAiSubtitle => 'ใช้ Gemini • รองรับหลายภาษา • ความแม่นยำสูง';
@@ -2128,10 +2152,10 @@ class L10nTh extends L10n {
   String get accountSection => 'บัญชี';
 
   @override
-  String get miroId => 'MiRO ID';
+  String get miroId => 'ArCal ID';
 
   @override
-  String get miroIdCopied => 'คัดลอก MiRO ID แล้ว!';
+  String get miroIdCopied => 'คัดลอก ArCal ID แล้ว!';
 
   @override
   String get inviteFriends => 'เชิญเพื่อน';
@@ -2192,13 +2216,49 @@ class L10nTh extends L10n {
       'ข้อมูลทั้งหมดจะถูกลบ:\n• รายการอาหาร\n• อาหารของฉัน\n• ส่วนผสม\n• เป้าหมาย\n• ข้อมูลส่วนตัว\n\nไม่สามารถกู้คืนได้!';
 
   @override
+  String get clearAllDataStorageDetails =>
+      'รวมถึง: Isar DB, SharedPreferences, SecureStorage';
+
+  @override
+  String get clearAllDataFactoryResetHint =>
+      '(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)';
+
+  @override
   String get allDataClearedSuccess => 'ล้างข้อมูลทั้งหมดเรียบร้อย';
+
+  @override
+  String get deleteAccount => 'ลบบัญชี';
+
+  @override
+  String get deleteAccountSubtitle => 'ลบข้อมูลทั้งหมดจากอุปกรณ์และคลาวด์';
+
+  @override
+  String get deleteAccountTitle => 'ลบบัญชี?';
+
+  @override
+  String get deleteAccountContent =>
+      'การดำเนินการนี้จะลบอย่างถาวร:\n• ข้อมูลในเครื่องทั้งหมด (รายการอาหาร, เมนู, เป้าหมาย)\n• ข้อมูลบนคลาวด์ (พลังงาน, ข้อมูลสำรอง)\n• ข้อมูลการสมัครสมาชิก\n\nไม่สามารถกู้คืนได้';
+
+  @override
+  String get deleteAccountConfirm => 'ลบบัญชี';
+
+  @override
+  String get deleteAccountSuccess => 'ลบบัญชีเรียบร้อย';
+
+  @override
+  String get deleteAccountFailed => 'ลบบัญชีไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+
+  @override
+  String get deleteAccountDeleting => 'กำลังลบบัญชี…';
 
   @override
   String get aboutSection => 'เกี่ยวกับ';
 
   @override
   String get version => 'เวอร์ชัน';
+
+  @override
+  String get eula => 'ข้อตกลงสิทธิ์การใช้งาน';
 
   @override
   String get healthDisclaimer => 'ข้อจำกัดความรับผิดด้านสุขภาพ';
@@ -2217,7 +2277,7 @@ class L10nTh extends L10n {
 
   @override
   String get showTutorialDialogContent =>
-      'จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ Miro AI\n\nคุณจะกลับไปที่หน้าหลัก';
+      'จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ ArCal AI\n\nคุณจะกลับไปที่หน้าหลัก';
 
   @override
   String get showTutorialButton => 'แสดงทัวร์';
@@ -2316,6 +2376,14 @@ class L10nTh extends L10n {
 
   @override
   String get invalidBackupFile => 'ไฟล์สำรองข้อมูลไม่ถูกต้อง';
+
+  @override
+  String get restoreSelectDataFile =>
+      'ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (arcal_data_*.json) แทน';
+
+  @override
+  String get restoreZeroEntriesHint =>
+      'ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (arcal_data_*.json) ไม่ใช่ไฟล์ energy';
 
   @override
   String get restoreFailed => 'กู้คืนล้มเหลว';
@@ -2484,11 +2552,11 @@ class L10nTh extends L10n {
 
   @override
   String questBarShareText(String link) {
-    return 'มาลองแอป MiRO กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n$link';
+    return 'มาลองแอป ArCal กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n$link';
   }
 
   @override
-  String get questBarShareSubject => 'ชวนใช้ MiRO';
+  String get questBarShareSubject => 'ชวนใช้ ArCal';
 
   @override
   String get claimButtonTitle => 'กดเพื่อรับ Daily Energy';
@@ -2673,7 +2741,7 @@ class L10nTh extends L10n {
 
   @override
   String get retroScanDescription =>
-      'เราสามารถสแกนรูปภาพ 7 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ';
+      'เราสามารถสแกนรูปภาพ 1 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ';
 
   @override
   String get retroScanNote =>
@@ -2690,7 +2758,7 @@ class L10nTh extends L10n {
 
   @override
   String get retroScanTagline =>
-      'MiRO กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ';
+      'ArCal กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ';
 
   @override
   String get retroScanFetchingPhotos => 'กำลังดึงรูปภาพล่าสุด...';
@@ -2700,7 +2768,7 @@ class L10nTh extends L10n {
 
   @override
   String retroScanPhotosFound(int count) {
-    return 'พบ $count รูปใน 7 วันที่ผ่านมา';
+    return 'พบ $count รูปใน 1 วันที่ผ่านมา';
   }
 
   @override
@@ -2716,7 +2784,7 @@ class L10nTh extends L10n {
 
   @override
   String get retroScanNoResultsDesc =>
-      'ไม่พบรูปอาหารใน 7 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!';
+      'ไม่พบรูปอาหารใน 1 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!';
 
   @override
   String get retroScanAnalyzeHint =>
@@ -2726,10 +2794,10 @@ class L10nTh extends L10n {
   String get retroScanDone => 'เข้าใจแล้ว!';
 
   @override
-  String get welcomeEndTitle => 'ยินดีต้อนรับสู่ MiRO!';
+  String get welcomeEndTitle => 'ยินดีต้อนรับสู่ ArCal!';
 
   @override
-  String get welcomeEndMessage => 'MiRO ยินดีรับใช้';
+  String get welcomeEndMessage => 'ArCal ยินดีรับใช้';
 
   @override
   String get welcomeEndJourney => 'Have a nice journey together!!';
@@ -2755,11 +2823,11 @@ class L10nTh extends L10n {
 
   @override
   String get greetingRenamePhotoTip =>
-      'คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ MiRO วิเคราะห์ได้แม่นยำขึ้นนะคะ';
+      'คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ ArCal วิเคราะห์ได้แม่นยำขึ้นนะคะ';
 
   @override
   String get greetingAddIngredientsTip =>
-      'คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ MiRO วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง';
+      'คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ ArCal วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง';
 
   @override
   String greetingBackupReminder(int days) {
@@ -2788,6 +2856,43 @@ class L10nTh extends L10n {
 
   @override
   String get exitButton => 'Exit';
+
+  @override
+  String get imageFoodNameHint => 'มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่';
+
+  @override
+  String get reanalyze => 'วิเคราะห์ใหม่';
+
+  @override
+  String get reanalyzeFree => 'ฟรี';
+
+  @override
+  String get reanalyzing => 'กำลังวิเคราะห์...';
+
+  @override
+  String get reanalyzeSuccess => 'อัพเดทผลวิเคราะห์แล้ว!';
+
+  @override
+  String savedAsNewMeal(String name) {
+    return 'บันทึกเป็นเมนูใหม่: $name';
+  }
+
+  @override
+  String get keepOrReanalyzeTitle => 'เก็บวัตถุดิบไหนไว้?';
+
+  @override
+  String get keepOrReanalyzeDesc =>
+      'รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่';
+
+  @override
+  String dailyCapReached(int count, int max) {
+    return 'ถึงขีดจำกัดการวิเคราะห์วันนี้แล้ว ($count/$max) ลองใหม่พรุ่งนี้!';
+  }
+
+  @override
+  String dailyCapPartial(int done) {
+    return 'ถึงขีดจำกัดวันนี้แล้ว หลังวิเคราะห์ไป $done รายการ รายการที่เหลือจะวิเคราะห์ได้พรุ่งนี้';
+  }
 
   @override
   String get amountAutoAdjust => 'Change → calories adjust automatically';
@@ -2877,8 +2982,7 @@ class L10nTh extends L10n {
   String get addButton => 'Add';
 
   @override
-  String get noIngredientsHint =>
-      'Tap \"Add\" button to add ingredients\nOr enter total nutrition below';
+  String get noIngredientsHint => 'ยังไม่มีวัตถุดิบ กดเพิ่มเพื่อบันทึก';
 
   @override
   String get totalNutritionTitle => 'Total Nutrition';
@@ -3173,7 +3277,7 @@ class L10nTh extends L10n {
 
   @override
   String get bmrDialogDescription =>
-      'MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์';
+      'ArCal ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์';
 
   @override
   String get healthSyncEnabledBmrHint =>
@@ -3310,4 +3414,485 @@ class L10nTh extends L10n {
   @override
   String get subscriptionCannotLoadPrices =>
       'ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้';
+
+  @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get cloudSyncSynced => 'ข้อมูลซิงค์แล้ว';
+
+  @override
+  String cloudSyncPending(int count) {
+    return '$count รายการรอซิงค์';
+  }
+
+  @override
+  String cloudSyncLastDate(String date) {
+    return 'ซิงค์ล่าสุด: $date';
+  }
+
+  @override
+  String get cloudSyncNever => 'ยังไม่เคยซิงค์';
+
+  @override
+  String get cloudSyncAutoDescription =>
+      'ซิงค์อัตโนมัติเมื่อเปิดแอปครั้งแรกของวัน';
+
+  @override
+  String get cloudSyncNow => 'ซิงค์ตอนนี้';
+
+  @override
+  String get cloudSyncSuccess => 'ซิงค์ข้อมูลสำเร็จ';
+
+  @override
+  String cloudSyncFailed(String error) {
+    return 'ซิงค์ไม่สำเร็จ: $error';
+  }
+
+  @override
+  String get backupExportSubtitle => 'ส่งออกไฟล์สำหรับย้ายเครื่อง';
+
+  @override
+  String get foodResearch => 'Food Research';
+
+  @override
+  String get foodResearchSubtitleOn => 'กำลังช่วยพัฒนา AI วิเคราะห์อาหาร';
+
+  @override
+  String get foodResearchSubtitleOff => 'ร่วมวิจัยด้านอาหารด้วยรูปอาหารของคุณ';
+
+  @override
+  String get foodResearchDialogTitle => 'Food Environment Research';
+
+  @override
+  String get foodResearchDialogDescription =>
+      'ช่วยเราพัฒนา AI วิเคราะห์อาหารให้ดีขึ้นด้วยการแชร์ข้อมูลรูปอาหาร';
+
+  @override
+  String get foodResearchWhatWeAnalyze => 'สิ่งที่วิเคราะห์:';
+
+  @override
+  String get foodResearchAnalyze1 => 'อาหาร, เครื่องดื่ม, ขนม ในรูป';
+
+  @override
+  String get foodResearchAnalyze2 =>
+      'ยี่ห้อ + ขนาดสินค้าอาหาร (ช่วย calibrate portion)';
+
+  @override
+  String get foodResearchAnalyze3 => 'ร้านอาหาร (ถ้าเห็นโลโก้)';
+
+  @override
+  String get foodResearchAnalyze4 => 'ภาชนะ, ช้อนส้อม';
+
+  @override
+  String get foodResearchWhatWeSkip => 'สิ่งที่ไม่เก็บ:';
+
+  @override
+  String get foodResearchSkip1 => 'ใบหน้า, ข้อมูลส่วนตัว';
+
+  @override
+  String get foodResearchSkip2 => 'ของใช้ส่วนตัว, เสื้อผ้า, กระเป๋า';
+
+  @override
+  String get foodResearchSkip3 => 'บัตรเครดิต, เอกสาร';
+
+  @override
+  String get foodResearchPrivacyNote =>
+      'ข้อมูลจะถูก anonymize และใช้เป็น aggregate เท่านั้น ปิดได้ทุกเมื่อ';
+
+  @override
+  String get foodResearchDecline => 'ไม่ร่วม';
+
+  @override
+  String get foodResearchAccept => 'ยินดีร่วม';
+
+  @override
+  String get foodResearchThanks => 'ขอบคุณที่ร่วมสนับสนุนงานวิจัยด้านอาหาร!';
+
+  @override
+  String get foodResearchDisabled => 'ปิดการแชร์ข้อมูลเพื่อวิจัยแล้ว';
+
+  @override
+  String get consentDialogTitle => 'ข้อมูล & งานวิจัย';
+
+  @override
+  String get consentAnalyticsSection => 'ข้อมูลการใช้งานแอป';
+
+  @override
+  String get consentAnalyticsDescription =>
+      'เราใช้ Firebase Analytics เพื่อพัฒนาประสบการณ์การใช้แอป';
+
+  @override
+  String get consentAnalyticsCollect => 'เก็บ: การใช้ฟีเจอร์, หน้าที่เข้าชม';
+
+  @override
+  String get consentAnalyticsNotCollect =>
+      'ไม่เก็บ: ข้อมูลอาหาร, รูปภาพ, ข้อมูลสุขภาพ';
+
+  @override
+  String get consentAnalyticsAnonymous => 'ข้อมูลถูกรวมและเป็นนิรนาม';
+
+  @override
+  String get consentFoodResearchSection => 'วิจัยด้านอาหาร (ทางเลือก)';
+
+  @override
+  String get consentChangeAnytime => 'เปลี่ยนได้ทุกเมื่อใน โปรไฟล์ → ตั้งค่า';
+
+  @override
+  String get ingredientSearchHintExample => 'เช่น ไข่, น้ำมันพืช, หมูสับ';
+
+  @override
+  String get freeIngredientSearch => 'ค้นหาวัตถุดิบฟรี ไม่เสีย Energy!';
+
+  @override
+  String get recoveryKeyRestoreTitle => 'กู้คืนด้วย Recovery Key';
+
+  @override
+  String get recoveryKeyRestoreSubtitle =>
+      'ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์';
+
+  @override
+  String get recoveryKeyRegenerateConfirm => 'สร้าง Key ใหม่?';
+
+  @override
+  String get recoveryKeyRegenerateWarning =>
+      'Key เก่าจะใช้ไม่ได้อีก\n\nถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน';
+
+  @override
+  String get recoveryKeyRegenerate => 'สร้างใหม่';
+
+  @override
+  String get recoveryKeyRegenerated => 'สร้าง Recovery Key ใหม่แล้ว';
+
+  @override
+  String get recoveryKeyDescription => 'ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง';
+
+  @override
+  String get recoveryKeyRegenerateTooltip => 'สร้าง Key ใหม่';
+
+  @override
+  String get recoveryKeyLoading => 'กำลังโหลด...';
+
+  @override
+  String get recoveryKeyHide => 'ซ่อน';
+
+  @override
+  String get recoveryKeyShow => 'แสดง';
+
+  @override
+  String get recoveryKeyCopied => 'คัดลอก Recovery Key แล้ว';
+
+  @override
+  String get recoveryKeyCopyTooltip => 'คัดลอก';
+
+  @override
+  String get recoveryKeyWarning => '⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น';
+
+  @override
+  String get restoreAccountTitle => 'กู้คืนบัญชี';
+
+  @override
+  String get restoreFromRecoveryKey => 'กู้คืนจาก Recovery Key';
+
+  @override
+  String get restoreEnterKey =>
+      'ใส่ Recovery Key จากเครื่องเดิม\nเพื่อกู้คืนประวัติการทานและ Energy';
+
+  @override
+  String get restoreButton => 'กู้คืนบัญชี';
+
+  @override
+  String get restoreKeyLocation =>
+      'Recovery Key อยู่ใน Settings > Account ของเครื่องเดิม';
+
+  @override
+  String get restoreSuccess => 'กู้คืนสำเร็จ!';
+
+  @override
+  String restoreFoodEntries(int count) {
+    return '$count รายการอาหาร';
+  }
+
+  @override
+  String get restoreProfileRecovered => 'โปรไฟล์ & เป้าหมายกู้คืนแล้ว';
+
+  @override
+  String get restoreStartUsing => 'เริ่มใช้งาน';
+
+  @override
+  String get restoreEmptyKey => 'กรุณาใส่ Recovery Key';
+
+  @override
+  String get restoreFailedGeneric => 'ไม่สามารถกู้คืนได้ กรุณาตรวจสอบ Key';
+
+  @override
+  String get restoreInvalidKey =>
+      'Recovery Key ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง';
+
+  @override
+  String get restoreExpiredKey =>
+      'Recovery Key หมดอายุแล้ว กรุณาสร้างใหม่จากเครื่องเดิม';
+
+  @override
+  String get restoreSameDevice => 'ไม่สามารถกู้คืนบนเครื่องเดิมได้';
+
+  @override
+  String get restoreNoInternet => 'ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่';
+
+  @override
+  String restoreErrorGeneric(String error) {
+    return 'เกิดข้อผิดพลาด: $error';
+  }
+
+  @override
+  String get nameChangeReAnalyzeTitle => 'ชื่ออาหารเปลี่ยน';
+
+  @override
+  String nameChangeReAnalyzeMessage(String newName) {
+    return 'คุณเปลี่ยนชื่อเป็น \"$newName\"\nวัตถุดิบที่ ✓ จะถูกวิเคราะห์ใหม่\nเอา ✓ ออก เพื่อเก็บไว้ตามเดิม';
+  }
+
+  @override
+  String get nameChangeReAnalyzeConfirm => 'วิเคราะห์ใหม่';
+
+  @override
+  String get nameChangeSaveAsIs => 'บันทึกตามเดิม';
+
+  @override
+  String get nameChangeAnalyzing => 'กำลังวิเคราะห์วัตถุดิบใหม่...';
+
+  @override
+  String get nameChangeAnalysisFailed => 'วิเคราะห์ใหม่ไม่สำเร็จ บันทึกตามเดิม';
+
+  @override
+  String get nameChangeNoIngredientToAnalyze =>
+      'ไม่มีวัตถุดิบที่ต้องวิเคราะห์ใหม่';
+
+  @override
+  String get freepassTitle => 'Freepass';
+
+  @override
+  String get freepassActive => 'ใช้งานอยู่';
+
+  @override
+  String get freepassUnlimitedAI => 'ใช้ AI ได้ไม่จำกัด';
+
+  @override
+  String freepassDaysRemaining(int days) {
+    return 'เหลืออีก $days วัน';
+  }
+
+  @override
+  String get freepassDaysTitle => 'วัน Freepass';
+
+  @override
+  String get freepassDaysUnit => 'วัน';
+
+  @override
+  String freepassDaysSaved(int days) {
+    return 'คุณมี $days วันสะสม';
+  }
+
+  @override
+  String freepassDaysBadge(int days) {
+    return '$daysว';
+  }
+
+  @override
+  String get freepassConvertTitle => 'แลก Energy เป็น Freepass';
+
+  @override
+  String freepassConvertRate(int energy) {
+    return '$energy Energy = 1 วัน ใช้ AI ได้ไม่จำกัด';
+  }
+
+  @override
+  String get freepassConvertDescription =>
+      'วัน Freepass ไม่มีวันหมดอายุ จะเปิดใช้อัตโนมัติเมื่อ Energy Pass หมดอายุ';
+
+  @override
+  String freepassConvertButton(int days) {
+    return 'แลก (สูงสุด $days วัน)';
+  }
+
+  @override
+  String freepassConvertMinimum(int energy) {
+    return 'ต้องมี Energy อย่างน้อย $energy';
+  }
+
+  @override
+  String get freepassConvertConverting => 'กำลังแลก...';
+
+  @override
+  String get freepassConvertDialogTitle => 'แลกเป็น Freepass';
+
+  @override
+  String get freepassConvertDialogQuestion => 'ต้องการกี่วัน?';
+
+  @override
+  String get freepassConvertDialogDay => 'วัน';
+
+  @override
+  String get freepassConvertDialogDays => 'วัน';
+
+  @override
+  String get freepassConvertDialogEnergyCost => 'ใช้ Energy';
+
+  @override
+  String get freepassConvertDialogRemainingBalance => 'Energy คงเหลือ';
+
+  @override
+  String get freepassConvertDialogConfirm => 'แลก';
+
+  @override
+  String freepassConvertSuccess(int energy, int days) {
+    return 'แลก $energy Energy → $days วัน Freepass สำเร็จ!';
+  }
+
+  @override
+  String get freepassConvertFailed => 'แลกไม่สำเร็จ';
+
+  @override
+  String get freepassConvertError => 'เกิดข้อผิดพลาดในการแลก';
+
+  @override
+  String get freepassConvertServiceUnavailable =>
+      'บริการไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง';
+
+  @override
+  String get subscriptionChangePlan => 'เปลี่ยนแพ็กเกจ';
+
+  @override
+  String get subscriptionChangePlanDescAndroid =>
+      'คุณสามารถเปลี่ยนแพ็กเกจผ่านการจัดการ subscription ของ Google Play แพ็กเกจใหม่จะเริ่มในรอบบิลถัดไป';
+
+  @override
+  String get subscriptionChangePlanDescIos =>
+      'คุณสามารถอัปเกรดหรือดาวน์เกรดแพ็กเกจผ่านการจัดการ subscription ของ App Store';
+
+  @override
+  String get subscriptionCurrentPlan => 'ปัจจุบัน';
+
+  @override
+  String get subscriptionChangePlanButton => 'เปลี่ยน';
+
+  @override
+  String get unifiedPermissionsScrollHint =>
+      'กรุณาเลื่อนลงเพื่ออ่านสิทธิ์ทั้งหมด แล้วกดอนุญาต';
+
+  @override
+  String get unifiedPermissionsScrollToEnable => 'เลื่อนลงเพื่อเปิดใช้งาน';
+
+  @override
+  String get unifiedPermissionsHealthTitle => 'Health App';
+
+  @override
+  String get unifiedPermissionsHealthDesc =>
+      'เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect';
+
+  @override
+  String get privacyConsentTitle => 'ความเป็นส่วนตัวของคุณสำคัญ';
+
+  @override
+  String get privacyConsentSubtitle =>
+      'กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ';
+
+  @override
+  String get privacyConsentNotifTitle => 'การแจ้งเตือน';
+
+  @override
+  String get privacyConsentNotifDesc =>
+      'รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ';
+
+  @override
+  String get privacyConsentNotifBullet1 => 'แจ้งเตือนบันทึกมื้ออาหารรายวัน';
+
+  @override
+  String get privacyConsentNotifBullet2 => 'แจ้งเตือน streak และความสำเร็จ';
+
+  @override
+  String get privacyConsentNotifBullet3 => 'ปิดได้ทุกเมื่อใน Settings';
+
+  @override
+  String get privacyConsentResearchDesc =>
+      'ช่วยปรับปรุงฐานข้อมูลอาหารและความแม่นยำทางโภชนาการสำหรับชุมชน';
+
+  @override
+  String get privacyConsentResearchBullet1 =>
+      'รูปอาหารแบบไม่ระบุตัวตนช่วยฝึก AI';
+
+  @override
+  String get privacyConsentResearchBullet2 => 'ไม่มีการแชร์ข้อมูลส่วนบุคคล';
+
+  @override
+  String get privacyConsentAdsTitle => 'โฆษณา';
+
+  @override
+  String get privacyConsentAdsDesc =>
+      'โฆษณาที่ปรับแต่งช่วยให้ ArCal ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ';
+
+  @override
+  String get privacyConsentAdsBullet1 => 'โฆษณาไม่อิงจากข้อมูลอาหารหรือสุขภาพ';
+
+  @override
+  String get privacyConsentAdsBullet2 => 'ยกเลิกเพื่อดูโฆษณาทั่วไปแทน';
+
+  @override
+  String get privacyConsentHealthNote =>
+      'การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings';
+
+  @override
+  String get privacyConsentReadPolicy => 'อ่านนโยบายความเป็นส่วนตัว';
+
+  @override
+  String get privacyConsentAccept => 'ดำเนินการต่อ';
+
+  @override
+  String get privacyConsentOptional => 'ไม่บังคับ';
+
+  @override
+  String get arScan => 'สแกน AR';
+
+  @override
+  String get arScanPositionFood => 'วางอาหารในกรอบ';
+
+  @override
+  String get arScanStartCapture => 'เริ่มสแกน';
+
+  @override
+  String get arScanContinueAnalysis => 'ดำเนินการวิเคราะห์';
+
+  @override
+  String get takePhoto => 'ถ่ายรูป';
+
+  @override
+  String get pickFromGallery => 'เลือกจากแกลเลอรี';
+
+  @override
+  String get arScanFoodNotDetected => 'ไม่พบอาหาร';
+
+  @override
+  String get arScanAngleTop => 'บน';
+
+  @override
+  String get arScanAngleDiagonal => 'เฉียง';
+
+  @override
+  String get arScanAngleSide => 'ด้านข้าง';
+
+  @override
+  String arScanAngleProgress(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String arScanAngleCaptured(String zone, int current, int total) {
+    return 'ถ่ายมุม$zoneแล้ว ($current/$total)';
+  }
+
+  @override
+  String get arScanTapToCapture => 'แตะจอเพื่อถ่ายภาพ';
+
+  @override
+  String get arScanMoveToAngle => 'เอียงไปมุมถัดไป';
 }

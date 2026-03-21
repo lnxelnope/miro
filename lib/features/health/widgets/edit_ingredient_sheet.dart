@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -10,8 +11,6 @@ import '../../../core/services/usage_limiter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
-import '../models/ingredient.dart';
-
 /// Bottom sheet for editing or creating ingredient with AI search
 class EditIngredientSheet extends ConsumerStatefulWidget {
   final Ingredient ingredient;

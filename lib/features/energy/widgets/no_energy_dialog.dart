@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/services/energy_service.dart';
 import '../../../core/services/ad_service.dart';
-import '../../../core/database/database_service.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../energy/providers/energy_provider.dart';
 import '../presentation/energy_store_screen.dart';
 
 /// Dialog shown when Energy runs out
@@ -33,7 +30,7 @@ class NoEnergyDialog extends ConsumerStatefulWidget {
 }
 
 class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
-  final AdService _adService = AdService();
+  final AdService _adService = AdService.instance;
   bool _isLoadingAd = false;
   int _remainingAds = 3;
 
@@ -45,6 +42,7 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
 
   Future<void> _initAd() async {
     await _adService.initialize();
+    await _adService.preload();
     if (mounted) {
       setState(() => _remainingAds = _adService.remainingAds);
     }
@@ -77,7 +75,6 @@ class _NoEnergyDialogState extends ConsumerState<NoEnergyDialog> {
 
   @override
   void dispose() {
-    _adService.dispose();
     super.dispose();
   }
 

@@ -1,11 +1,13 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ai/gemini_service.dart';
+import '../services/thumbnail_service.dart';
 import '../services/usage_limiter.dart';
 import '../utils/logger.dart';
-import '../constants/enums.dart';
-import '../../features/health/models/food_entry.dart';
+import '../ar_scale/models/detected_object_label.dart';
 import '../../features/health/providers/health_provider.dart';
 import '../../features/health/providers/my_meal_provider.dart';
 import '../../features/energy/providers/energy_provider.dart';
@@ -14,11 +16,13 @@ class BatchAnalysisResult {
   final int successCount;
   final int failedCount;
   final bool wasCancelled;
+  final bool capReached;
 
   BatchAnalysisResult({
     required this.successCount,
     required this.failedCount,
     required this.wasCancelled,
+    this.capReached = false,
   });
 }
 
@@ -137,11 +141,45 @@ class BatchAnalysisHelper {
     entry.isVerified = true;
     entry.aiConfidence = result.confidence;
 
+    // AR Scale calibration data
+    entry.referenceObjectUsed = result.referenceObjectUsed;
+    entry.referenceConfidence = result.referenceConfidence;
+    entry.plateDiameterCm = result.plateDiameterCm;
+    entry.estimatedVolumeMl = result.estimatedVolumeMl;
+    entry.isCalibrated = result.isCalibrated;
+
     if (result.ingredientsDetail != null &&
         result.ingredientsDetail!.isNotEmpty) {
       entry.ingredientsJson = jsonEncode(
         result.ingredientsDetail!.map((item) => item.toJson()).toList(),
       );
+    }
+
+    // Capture user's raw input text before AI overwrites foodName
+    if (entry.userInputText == null && entry.foodName != result.foodName) {
+      entry.userInputText = entry.foodName;
+    }
+
+    // Brand / Product metadata from AI response
+    entry.brandName ??= result.brandName;
+    entry.brandNameEn ??= result.brandNameEn;
+    entry.productCategory ??= result.productCategory;
+    entry.packageSize ??= result.packageSize;
+    entry.chainName ??= result.chainName;
+    entry.nutritionSource ??= result.nutritionSource;
+
+    // Auto-set searchMode from AI food_type
+    if (result.foodType == 'product') {
+      entry.searchMode = FoodSearchMode.product;
+    }
+
+    // Scene context (food/beverage/dining items in the image)
+    if (result.sceneContext != null && result.sceneContext!.isNotEmpty) {
+      entry.sceneContextJson = jsonEncode(result.sceneContext);
+
+      // Also extract chain name from scene_context if not already set
+      entry.chainName ??=
+          result.sceneContext!['restaurant_chain'] as String?;
     }
   }
 
@@ -182,20 +220,27 @@ class BatchAnalysisHelper {
   }
 
   /// Analyze รายการที่เลือก (ใช้ได้ทั้ง analyze all และ analyze selected)
-  /// [onProgress] callback: (currentIndex, totalCount, currentItemName)
+  /// [onProgress] callback: (currentIndex, totalCount, currentItemName, {itemId})
   /// [shouldCancel] callback: return true เพื่อยกเลิก
   static Future<BatchAnalysisResult> analyzeEntries({
     required Ref ref,
     required List<FoodEntry> entries,
     required DateTime selectedDate,
-    required void Function(int current, int total, String itemName) onProgress,
+    required void Function(int current, int total, String itemName, {int? itemId}) onProgress,
     required bool Function() shouldCancel,
   }) async {
     int totalSuccessCount = 0;
     List<int> failedIds = [];
     var entriesToProcess = entries;
+    final d = dateOnly(selectedDate);
 
     while (entriesToProcess.isNotEmpty && !shouldCancel()) {
+      // Daily safety cap check
+      if (await UsageLimiter.hasReachedDailyCap()) {
+        AppLogger.warn('[BatchAnalyze] Daily cap of ${UsageLimiter.maxAnalysesPerDay} reached');
+        break;
+      }
+
       int batchSuccessCount = 0;
 
       final textEntries = entriesToProcess
@@ -210,6 +255,10 @@ class BatchAnalysisHelper {
           chunkStart < textEntries.length;
           chunkStart += _batchSize) {
         if (shouldCancel()) break;
+        if (await UsageLimiter.hasReachedDailyCap()) {
+          AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (text)');
+          break;
+        }
 
         final chunkEnd =
             (chunkStart + _batchSize).clamp(0, textEntries.length);
@@ -218,7 +267,8 @@ class BatchAnalysisHelper {
         onProgress(
           totalSuccessCount + batchSuccessCount + failedIds.length + 1,
           entries.length,
-          '${chunk.length} items',
+          chunk.first.foodName,
+          itemId: chunk.first.id,
         );
 
         try {
@@ -252,7 +302,20 @@ class BatchAnalysisHelper {
                   .updateFoodEntry(entry);
               await autoSaveToDatabase(ref, entry, result);
               await UsageLimiter.recordAiUsage();
+              await UsageLimiter.recordAnalysisForCap();
+              _uploadThumbnailInBackground(entry);
               batchSuccessCount++;
+
+              // Refresh UI immediately so user sees each completed item
+              final nextIdx = i + 1;
+              final nextId = nextIdx < chunk.length ? chunk[nextIdx].id : null;
+              onProgress(
+                totalSuccessCount + batchSuccessCount + failedIds.length,
+                entries.length,
+                nextIdx < chunk.length ? chunk[nextIdx].foodName : entry.foodName,
+                itemId: nextId,
+              );
+              _refreshProviders(ref, selectedDate);
             } else {
               failedIds.add(entry.id);
             }
@@ -261,11 +324,16 @@ class BatchAnalysisHelper {
           AppLogger.error('[BatchAnalyze] Batch failed, falling back', e);
           for (final entry in chunk) {
             if (shouldCancel()) break;
+            if (await UsageLimiter.hasReachedDailyCap()) {
+              AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (fallback)');
+              break;
+            }
             try {
               onProgress(
                 totalSuccessCount + batchSuccessCount + failedIds.length + 1,
                 entries.length,
                 entry.foodName,
+                itemId: entry.id,
               );
 
               final extracted = extractIngredientsFromJson(entry);
@@ -289,7 +357,10 @@ class BatchAnalysisHelper {
                     .updateFoodEntry(entry);
                 await autoSaveToDatabase(ref, entry, result);
                 await UsageLimiter.recordAiUsage();
+                await UsageLimiter.recordAnalysisForCap();
+                _uploadThumbnailInBackground(entry);
                 batchSuccessCount++;
+                _refreshProviders(ref, selectedDate);
               } else {
                 failedIds.add(entry.id);
               }
@@ -309,21 +380,37 @@ class BatchAnalysisHelper {
       // Process image entries one-by-one
       for (int i = 0; i < imageEntries.length; i++) {
         if (shouldCancel()) break;
+        if (await UsageLimiter.hasReachedDailyCap()) {
+          AppLogger.warn('[BatchAnalyze] Daily cap reached mid-batch (image)');
+          break;
+        }
 
         final entry = imageEntries[i];
         onProgress(
           totalSuccessCount + batchSuccessCount + failedIds.length + 1,
           entries.length,
           entry.foodName,
+          itemId: entry.id,
         );
 
         try {
+          final calibrationHint = _buildCalibrationHint(entry);
+
+          // Collect supplementary images if available
+          final supFiles = <File>[];
+          for (final path in entry.allImagePaths.skip(1)) {
+            final f = File(path);
+            if (f.existsSync()) supFiles.add(f);
+          }
+
           final result = await GeminiService.analyzeFoodImage(
             File(entry.imagePath!),
+            supplementaryImages: supFiles.isNotEmpty ? supFiles : null,
             foodName: entry.foodName,
             quantity: entry.servingSize,
             unit: entry.servingUnit,
             searchMode: entry.searchMode,
+            calibrationHint: calibrationHint,
           );
 
           if (result != null) {
@@ -333,7 +420,10 @@ class BatchAnalysisHelper {
                 .updateFoodEntry(entry);
             await autoSaveToDatabase(ref, entry, result);
             await UsageLimiter.recordAiUsage();
+            await UsageLimiter.recordAnalysisForCap();
+            _uploadThumbnailInBackground(entry);
             batchSuccessCount++;
+            _refreshProviders(ref, selectedDate);
           } else {
             failedIds.add(entry.id);
           }
@@ -349,34 +439,16 @@ class BatchAnalysisHelper {
 
       totalSuccessCount += batchSuccessCount;
 
-      // Refresh providers — invalidate foodEntriesByDate first so healthTimeline gets fresh DB data
-      final d = dateOnly(selectedDate);
-      ref.invalidate(foodEntriesByDateProvider(d));
-      ref.invalidate(healthTimelineProvider(d));
-      ref.invalidate(todayCaloriesProvider);
-      ref.invalidate(todayMacrosProvider);
+      // Final refresh for this round
+      _refreshProviders(ref, selectedDate);
 
-      if (shouldCancel()) break;
-
-      // Check for new unanalyzed entries
-      try {
-        final refreshed =
-            await ref.read(foodEntriesByDateProvider(d).future);
-        entriesToProcess = refreshed
-            .where(
-                (f) => !f.hasNutritionData && !failedIds.contains(f.id))
-            .toList();
-
-        if (entriesToProcess.isNotEmpty) {
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-      } catch (e) {
-        break;
-      }
+      // Only process the entries that were explicitly requested — do not auto-pickup
+      break;
     }
 
+    final capHit = await UsageLimiter.hasReachedDailyCap();
+
     // Final refresh so UI shows results immediately when analyze completes
-    final d = dateOnly(selectedDate);
     ref.invalidate(foodEntriesByDateProvider(d));
     ref.invalidate(healthTimelineProvider(d));
     ref.invalidate(todayCaloriesProvider);
@@ -386,6 +458,159 @@ class BatchAnalysisHelper {
       successCount: totalSuccessCount,
       failedCount: failedIds.length,
       wasCancelled: shouldCancel(),
+      capReached: capHit,
+    );
+  }
+
+  /// Refresh UI providers so completed items appear immediately
+  static void _refreshProviders(Ref ref, DateTime selectedDate) {
+    final d = dateOnly(selectedDate);
+    ref.invalidate(foodEntriesByDateProvider(d));
+    ref.invalidate(healthTimelineProvider(d));
+    ref.invalidate(todayCaloriesProvider);
+    ref.invalidate(todayMacrosProvider);
+  }
+
+  /// สร้าง calibration hint string จาก FoodEntry ที่มีข้อมูล AR Scale
+  static String? _buildCalibrationHint(FoodEntry entry) {
+    final buffer = StringBuffer();
+
+    // --- Part 1: Calibration data (ถ้ามี) ---
+    final isCalibrated = entry.isCalibrated;
+    final confidence = entry.referenceConfidence;
+
+    if (isCalibrated && confidence != null && confidence >= 0.65) {
+      final diameterCm = entry.plateDiameterCm;
+      final volumeMl = entry.estimatedVolumeMl;
+      final refType = entry.referenceObjectUsed;
+
+      final confLabel = confidence >= 0.85
+          ? 'HIGH confidence'
+          : 'MEDIUM confidence (verify visually)';
+      final confPct = (confidence * 100).toStringAsFixed(0);
+      final refName = refType ?? 'reference object';
+
+      buffer
+        ..writeln('PHYSICAL CALIBRATION DATA ($confLabel):')
+        ..writeln(
+          'A $refName was detected in the image with $confPct% confidence.',
+        );
+
+      if (diameterCm != null) {
+        buffer.writeln(
+          'Measured plate/bowl diameter: ~${diameterCm.toStringAsFixed(1)} cm.',
+        );
+      }
+      if (volumeMl != null) {
+        buffer.writeln(
+          'Estimated container volume: ~${volumeMl.toStringAsFixed(0)} ml.',
+        );
+      }
+
+      buffer.writeln(
+        'Use this measurement to estimate portion size more accurately.',
+      );
+
+      if (confidence < 0.85) {
+        buffer.writeln(
+          'Note: Medium confidence — cross-check with visual estimation.',
+        );
+      }
+    }
+
+    // --- Part 2: Object detection metadata ---
+    // Try multi-image format first, fall back to legacy single-image
+    final multiImageData =
+        ArImageDetectionData.decodeMultiImage(entry.arLabelsJson);
+
+    if (multiImageData.isNotEmpty) {
+      final angleRoles = [
+        'top-down — PRIMARY for food identification',
+        'diagonal — container/depth reference',
+        'side — container/height reference',
+      ];
+      buffer.writeln(
+        'DETECTED OBJECTS PER IMAGE (${multiImageData.length} angles):',
+      );
+      for (final img in multiImageData) {
+        final role = img.imageIndex < angleRoles.length
+            ? angleRoles[img.imageIndex]
+            : 'angle ${img.imageIndex}';
+        if (img.labels.isEmpty) {
+          buffer.writeln('Image ${img.imageIndex + 1} ($role): no objects detected.');
+          continue;
+        }
+        buffer.writeln(
+          'Image ${img.imageIndex + 1} ($role) — '
+          '${img.imageWidth.toInt()}x${img.imageHeight.toInt()} px:',
+        );
+        for (final obj in img.labels) {
+          final confPct = (obj.confidence * 100).toStringAsFixed(0);
+          final pxCm = img.pixelPerCm;
+          if (pxCm != null && pxCm > 0) {
+            final wCm = (obj.bboxWidth / pxCm).toStringAsFixed(1);
+            final hCm = (obj.bboxHeight / pxCm).toStringAsFixed(1);
+            buffer.writeln(
+              '  - ${obj.label} ($confPct%): $wCm×$hCm cm',
+            );
+          } else {
+            buffer.writeln(
+              '  - ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px',
+            );
+          }
+        }
+      }
+      buffer.writeln(
+        'Use Image 1 (top-down) to identify food. '
+        'Use object sizes from diagonal/side angles to estimate portion depth and height.',
+      );
+    } else {
+      // Legacy single-image format
+      final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+      if (labels.isNotEmpty) {
+        final pxPerCm = entry.arPixelPerCm;
+        final imgW = entry.arImageWidth;
+        final imgH = entry.arImageHeight;
+
+        buffer.writeln('DETECTED OBJECTS IN IMAGE (${labels.length}):');
+        if (imgW != null && imgH != null) {
+          buffer.writeln(
+            'Image dimensions: ${imgW.toInt()}x${imgH.toInt()} pixels.',
+          );
+        }
+
+        for (final obj in labels) {
+          final confPct = (obj.confidence * 100).toStringAsFixed(0);
+          if (pxPerCm != null && pxPerCm > 0) {
+            final wCm = (obj.bboxWidth / pxPerCm).toStringAsFixed(1);
+            final hCm = (obj.bboxHeight / pxPerCm).toStringAsFixed(1);
+            buffer.writeln(
+              '- ${obj.label} ($confPct%): $wCm×$hCm cm '
+              'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+            );
+          } else {
+            buffer.writeln(
+              '- ${obj.label} ($confPct%): ${obj.bboxWidth.toInt()}×${obj.bboxHeight.toInt()} px '
+              'at position (${obj.centerX.toInt()}, ${obj.centerY.toInt()}) px',
+            );
+          }
+        }
+        buffer.writeln(
+          'Use these object sizes and positions to better estimate food portion sizes.',
+        );
+      }
+    }
+
+    final result = buffer.toString().trim();
+    return result.isEmpty ? null : result;
+  }
+
+  /// Fire-and-forget thumbnail upload (non-blocking, non-fatal).
+  static void _uploadThumbnailInBackground(FoodEntry entry) {
+    if (!entry.hasLocalImage) return;
+    ThumbnailService.uploadThumbnail(
+      entry: entry,
+      imageFile: File(entry.imagePath!),
     );
   }
 }

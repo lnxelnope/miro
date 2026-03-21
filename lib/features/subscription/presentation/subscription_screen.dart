@@ -12,6 +12,8 @@ import '../providers/subscription_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../profile/presentation/terms_screen.dart';
+import '../../profile/presentation/privacy_policy_screen.dart';
 
 /// Subscription Screen
 /// 
@@ -28,6 +30,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   List<ProductDetails> _products = [];
   String? _error;
   bool _isPurchasing = false;
+  bool _isRestoring = false;
   Map<String, String> _basePlanPrices = {};
 
   @override
@@ -129,6 +132,54 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     }
   }
 
+  Future<void> _handleRestorePurchase() async {
+    if (_isRestoring) return;
+    setState(() => _isRestoring = true);
+
+    try {
+      final service = ref.read(subscriptionServiceProvider);
+      await service.restorePurchases();
+
+      // Wait for Firestore listener to pick up changes
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
+      final subState = ref.read(subscriptionProvider);
+      if (subState.subscription.isActive) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseSuccess),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseNotFound),
+            backgroundColor: AppColors.warning,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseFailed),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRestoring = false);
+      }
+    }
+  }
+
   Future<void> _openSubscriptionManagement() async {
     final Uri url;
     if (Platform.isIOS) {
@@ -219,7 +270,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.xxl),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [AppColors.premium, AppColors.premiumDark],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -317,6 +368,30 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
           const SizedBox(height: 28),
 
+          // Upgrade Plan Section
+          Text(
+            L10n.of(context)!.subscriptionChangePlan,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            Platform.isIOS
+                ? L10n.of(context)!.subscriptionChangePlanDescIos
+                : L10n.of(context)!.subscriptionChangePlanDescAndroid,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                ),
+          ),
+          const SizedBox(height: 12),
+
+          // Show available upgrade/downgrade options
+          ..._buildUpgradeOptions(subscription, isDark),
+
+          const SizedBox(height: 20),
+
           // Manage Subscription Button
           SizedBox(
             width: double.infinity,
@@ -347,6 +422,39 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             textAlign: TextAlign.center,
           ),
 
+          const SizedBox(height: 12),
+
+          Center(
+            child: TextButton(
+              onPressed: _isRestoring ? null : _handleRestorePurchase,
+              child: _isRestoring
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          L10n.of(context)!.restorePurchaseRestoring,
+                          style: TextStyle(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      L10n.of(context)!.restorePurchase,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+            ),
+          ),
+
           const SizedBox(height: 20),
         ],
       ),
@@ -366,6 +474,111 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       case SubscriptionStatus.none:
         return AppColors.textSecondary;
     }
+  }
+
+  List<Widget> _buildUpgradeOptions(SubscriptionData subscription, bool isDark) {
+    final currentProductId = subscription.productId ?? '';
+    final plans = SubscriptionPlan.availablePlans();
+
+    return plans.map((plan) {
+      final isCurrent = currentProductId == plan.basePlanId ||
+          currentProductId == plan.iosProductId;
+
+      final borderColor = isCurrent
+          ? AppColors.success
+          : (isDark ? AppColors.dividerDark : AppColors.divider);
+      final bg = isCurrent
+          ? AppColors.success.withValues(alpha: 0.05)
+          : (isDark ? AppColors.surfaceDark : AppColors.surface);
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: AppRadius.md,
+          border: Border.all(color: borderColor, width: isCurrent ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        plan.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      if (isCurrent) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.success,
+                            borderRadius: AppRadius.sm,
+                          ),
+                          child: Text(
+                            L10n.of(context)!.subscriptionCurrentPlan,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    plan.displayPrice,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                  if (plan.savingsText != null)
+                    Text(
+                      plan.savingsText!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.success,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (!isCurrent)
+              TextButton(
+                onPressed: _openSubscriptionManagement,
+                child: Text(
+                  L10n.of(context)!.subscriptionChangePlanButton,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -427,7 +640,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.warning, size: 20),
+                  const Icon(Icons.info_outline, color: AppColors.warning, size: 20),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -468,11 +681,50 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           const SizedBox(height: 24),
 
           Text(
-            L10n.of(context)!.subscriptionAutoRenewTerms,
+            Platform.isIOS
+                ? L10n.of(context)!.subscriptionAutoRenewTermsIos
+                : L10n.of(context)!.subscriptionAutoRenewTerms,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
             textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 16),
+
+          _buildLegalLinks(isDark),
+
+          const SizedBox(height: 12),
+
+          Center(
+            child: TextButton(
+              onPressed: _isRestoring ? null : _handleRestorePurchase,
+              child: _isRestoring
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          L10n.of(context)!.restorePurchaseRestoring,
+                          style: TextStyle(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      L10n.of(context)!.restorePurchase,
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
@@ -659,6 +911,64 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLegalLinks(bool isDark) {
+    final linkColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    const linkStyle = TextStyle(decoration: TextDecoration.underline);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TermsScreen()),
+          ),
+          child: Text(
+            L10n.of(context)!.termsOfService,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: linkColor,
+                  decoration: TextDecoration.underline,
+                ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text('·', style: TextStyle(color: linkColor)),
+        ),
+        GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+          ),
+          child: Text(
+            L10n.of(context)!.privacyPolicy,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: linkColor,
+                  decoration: TextDecoration.underline,
+                ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Text('·', style: TextStyle(color: linkColor)),
+        ),
+        GestureDetector(
+          onTap: () => launchUrl(
+            Uri.parse('https://miro-d6856.web.app/arcal/eula/'),
+            mode: LaunchMode.externalApplication,
+          ),
+          child: Text(
+            L10n.of(context)!.eula,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: linkColor,
+                  decoration: TextDecoration.underline,
+                ),
+          ),
+        ),
+      ],
     );
   }
 

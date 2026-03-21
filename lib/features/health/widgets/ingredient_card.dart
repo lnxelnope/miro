@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../models/ingredient.dart';
-
 class IngredientCard extends StatelessWidget {
   final Ingredient ingredient;
   final VoidCallback onEdit;

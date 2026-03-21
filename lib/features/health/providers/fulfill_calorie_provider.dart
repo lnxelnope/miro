@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/enums.dart';
+import '../../../core/database/app_database.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'health_provider.dart';
 import 'my_meal_provider.dart';
 import '../../profile/providers/profile_provider.dart';

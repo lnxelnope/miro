@@ -1,44 +1,37 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
-import '../../../core/services/secure_storage_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/constants/app_constants.dart';
-import '../models/user_profile.dart';
+import '../../../core/services/secure_storage_service.dart';
 
-// User Profile Provider
 final userProfileProvider = FutureProvider<UserProfile>((ref) async {
-  final profiles = await DatabaseService.userProfiles
-      .filter()
-      .idGreaterThan(0)
-      .sortByCreatedAt()
-      .findAll();
+  final profiles = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+        ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
+      .get();
 
   if (profiles.isEmpty) {
-    // สร้าง default profile
-    final profile = UserProfile()
-      ..name = 'User'
-      ..calorieGoal = AppConstants.defaultCalorieGoal
-      ..proteinGoal = AppConstants.defaultProteinGoal
-      ..carbGoal = AppConstants.defaultCarbGoal
-      ..fatGoal = AppConstants.defaultFatGoal
-      ..waterGoal = AppConstants.defaultWaterGoal;
-
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.userProfiles.put(profile);
-    });
-
+    final profile = await DatabaseService.db
+        .into(DatabaseService.db.userProfiles)
+        .insertReturning(UserProfilesCompanion.insert(
+          name: const Value('User'),
+          calorieGoal: const Value(AppConstants.defaultCalorieGoal),
+          proteinGoal: const Value(AppConstants.defaultProteinGoal),
+          carbGoal: const Value(AppConstants.defaultCarbGoal),
+          fatGoal: const Value(AppConstants.defaultFatGoal),
+          waterGoal: const Value(AppConstants.defaultWaterGoal),
+        ));
     return profile;
   }
 
   return profiles.first;
 });
 
-// Has API Key Provider
 final hasApiKeyProvider = FutureProvider<bool>((ref) async {
   return await SecureStorageService.hasGeminiApiKey();
 });
 
-// Update Profile Notifier
 class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
   ProfileNotifier() : super(const AsyncValue.loading()) {
     _loadProfile();
@@ -47,25 +40,21 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
   Future<void> _loadProfile() async {
     state = const AsyncValue.loading();
     try {
-      final profiles = await DatabaseService.userProfiles
-          .filter()
-          .idGreaterThan(0)
-          .sortByCreatedAt()
-          .findAll();
+      final profiles = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+            ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
+          .get();
 
       if (profiles.isEmpty) {
-        final profile = UserProfile()
-          ..name = 'User'
-          ..calorieGoal = AppConstants.defaultCalorieGoal
-          ..proteinGoal = AppConstants.defaultProteinGoal
-          ..carbGoal = AppConstants.defaultCarbGoal
-          ..fatGoal = AppConstants.defaultFatGoal
-          ..waterGoal = AppConstants.defaultWaterGoal;
-
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.userProfiles.put(profile);
-        });
-
+        final profile = await DatabaseService.db
+            .into(DatabaseService.db.userProfiles)
+            .insertReturning(UserProfilesCompanion.insert(
+              name: const Value('User'),
+              calorieGoal: const Value(AppConstants.defaultCalorieGoal),
+              proteinGoal: const Value(AppConstants.defaultProteinGoal),
+              carbGoal: const Value(AppConstants.defaultCarbGoal),
+              fatGoal: const Value(AppConstants.defaultFatGoal),
+              waterGoal: const Value(AppConstants.defaultWaterGoal),
+            ));
         state = AsyncValue.data(profile);
       } else {
         state = AsyncValue.data(profiles.first);
@@ -77,9 +66,9 @@ class ProfileNotifier extends StateNotifier<AsyncValue<UserProfile>> {
 
   Future<void> updateProfile(UserProfile profile) async {
     profile.updatedAt = DateTime.now();
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.userProfiles.put(profile);
-    });
+    await DatabaseService.db
+        .into(DatabaseService.db.userProfiles)
+        .insertOnConflictUpdate(profile);
     state = AsyncValue.data(profile);
   }
 

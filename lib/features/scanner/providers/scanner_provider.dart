@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:miro_hybrid/features/scanner/logic/scan_controller.dart';
 import 'package:miro_hybrid/features/scanner/services/gallery_service.dart';
 import 'package:miro_hybrid/features/scanner/services/vision_processor.dart';
-import 'package:miro_hybrid/features/scanner/services/qr_parser.dart';
 import 'package:miro_hybrid/core/services/permission_service.dart';
-import 'package:miro_hybrid/core/database/database_service.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
-import 'package:miro_hybrid/features/health/models/food_entry.dart';
-import 'package:miro_hybrid/core/constants/enums.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -17,17 +17,18 @@ part 'scanner_provider.g.dart';
 /// Provider สำหรับ ScanController
 /// ใช้สำหรับสแกนรูปจาก Gallery
 @riverpod
-ScanController scanController(ScanControllerRef ref) {
-  return ScanController(
+ScanController scanController(Ref ref) {
+  final controller = ScanController(
     GalleryService(),
     VisionProcessor(),
-    QRParser(),
   );
+  ref.onDispose(() => controller.dispose());
+  return controller;
 }
 
 /// Provider สำหรับ PermissionService
 @riverpod
-PermissionService permissionService(PermissionServiceRef ref) {
+PermissionService permissionService(Ref ref) {
   return PermissionService();
 }
 
@@ -50,6 +51,11 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
     }
     state = const AsyncValue.loading();
 
+    final controller = ScanController(
+      GalleryService(),
+      VisionProcessor(),
+    );
+
     try {
       // ตรวจสอบ permission
       AppLogger.info('Checking Gallery permission...');
@@ -68,15 +74,12 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
         }
       }
 
-      final controller = ref.read(scanControllerProvider);
       int savedCount;
 
       if (specificDate != null) {
-        // สแกนเฉพาะวันที่ที่กำหนด
         AppLogger.info('Calling ScanController.scanNewImages() for date: ${specificDate.toString()}');
         savedCount = await controller.scanNewImages(specificDate: specificDate);
       } else {
-        // สแกนรูปล่าสุด (ตาม scan limit)
         AppLogger.info('Calling ScanController.scanNewImages() for recent images');
         savedCount = await controller.scanNewImages();
       }
@@ -94,13 +97,15 @@ class GalleryScanNotifier extends _$GalleryScanNotifier {
       AppLogger.error('Error occurred', e, stack);
       state = AsyncValue.error(e, stack);
       return 0;
+    } finally {
+      controller.dispose();
     }
   }
 }
 
 /// ผลลัพธ์การ scan รูปภาพ
 class ScanResult {
-  final String type; // 'health' หรือ 'finance'
+  final String type; // 'health'
   final int? entryId;
   final String? message;
 
@@ -147,28 +152,23 @@ class SingleImagePicker extends _$SingleImagePicker {
         // Save as FoodEntry
         final mealType = _getMealTypeFromTime(DateTime.now());
 
-        final entry = FoodEntry()
-          ..foodName = result['label'] as String? ?? 'Food'
-          ..foodNameEn = result['label'] as String? ?? 'Food'
-          ..timestamp = DateTime.now()
-          ..imagePath = file.path
-          ..mealType = mealType
-          ..servingSize = 1.0
-          ..servingUnit = 'serving'
-          ..calories = 0
-          ..protein = 0
-          ..carbs = 0
-          ..fat = 0
-          ..source = DataSource.galleryScanned
-          ..aiConfidence = 0.7
-          ..isVerified = false
-          ..notes = 'Selected from Gallery - please verify and edit'
-          ..createdAt = DateTime.now()
-          ..updatedAt = DateTime.now();
-
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.put(entry);
-        });
+        final entry = await DatabaseService.db.into(DatabaseService.db.foodEntries).insertReturning(FoodEntriesCompanion.insert(
+          foodName: result['label'] as String? ?? 'Food',
+          timestamp: DateTime.now(),
+          mealType: mealType,
+          servingSize: 1.0,
+          servingUnit: 'serving',
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          source: DataSource.galleryScanned,
+          foodNameEn: Value(result['label'] as String? ?? 'Food'),
+          imagePath: Value(file.path),
+          aiConfidence: const Value(0.7),
+          isVerified: const Value(false),
+          notes: const Value('Selected from Gallery - please verify and edit'),
+        ));
 
         scanResult = ScanResult(
           type: 'health',

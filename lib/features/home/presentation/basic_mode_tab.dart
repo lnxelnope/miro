@@ -1,24 +1,29 @@
 import 'dart:io';
+import 'dart:ui' as ui;
+import 'package:miro_hybrid/core/database/model_extensions.dart';
+import '../../../core/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/services/usage_limiter.dart';
 import '../../../core/theme/app_icons.dart';
-import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../health/models/food_entry.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/analysis_provider.dart';
 import '../../health/providers/fulfill_calorie_provider.dart';
 import '../../../core/widgets/analyze_bar.dart';
 import '../../health/widgets/daily_summary_card.dart';
 import '../../energy/widgets/quest_bar.dart';
-import '../../camera/presentation/camera_screen.dart';
+import '../../arscan/presentation/arscan_screen.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/image_picker_service.dart';
+import '../../../core/ar_scale/ar_scale.dart';
+import '../../../core/utils/logger.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../widgets/food_sandbox.dart';
 import '../widgets/basic_meal_suggestion.dart';
@@ -36,6 +41,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
   final _chatController = TextEditingController();
   bool _isComposing = false;
   bool _isScanning = false;
+  bool _selectionModeActive = false;
 
   late DateTime _selectedDate;
 
@@ -108,11 +114,12 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
           ),
         ),
 
-        // 4. Analyze Bar (above action buttons, visible only when needed)
-        AnalyzeBar(
-          selectedDate: _selectedDate,
-          onAnalyze: _startBatchAnalysis,
-        ),
+        // 4. Analyze Bar — ซ่อนเมื่อโหมดเลือกเปิด เพื่อให้กดได้แค่ "Analyze selected"
+        if (!_selectionModeActive)
+          AnalyzeBar(
+            selectedDate: _selectedDate,
+            onAnalyze: _startBatchAnalysis,
+          ),
 
         // 5. Action Buttons (Camera | Gallery | Add)
         _buildActionButtons(l10n),
@@ -192,6 +199,9 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
       onMoveToDate: _moveEntriesToDate,
+      onSelectionModeChanged: (active) {
+        setState(() => _selectionModeActive = active);
+      },
     );
   }
 
@@ -205,18 +215,14 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Camera
-          _actionButton(
-            icon: Icons.camera_alt_rounded,
-            label: l10n.navCamera,
-            onTap: _openCamera,
-          ),
-          // Gallery
+          // Gallery (+Camera)
           _actionButton(
             icon: Icons.photo_library_rounded,
             label: l10n.gallery,
-            onTap: _pickFromGallery,
+            onTap: _openGalleryOrCamera,
           ),
+          // AR Scan (prominent, center)
+          _arScanButton(l10n),
           // Quick Add (+)
           _actionButton(
             icon: Icons.add_rounded,
@@ -224,6 +230,72 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
             onTap: _quickAdd,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _arScanButton(L10n l10n) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: _openARScan,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: AppRadius.xl,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.center_focus_strong_rounded,
+              size: 20,
+              color: isDark ? Colors.black : Colors.white,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              l10n.arScan,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.black : Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openARScan() async {
+    final result = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(builder: (_) => const ARscanScreen()),
+    );
+
+    if (result == null || result.isEmpty || !mounted) return;
+
+    final imageFiles = result
+        .map((p) => File(p))
+        .where((f) => f.existsSync())
+        .toList();
+    if (imageFiles.isEmpty) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageAnalysisPreviewScreen(
+          imageFile: imageFiles.first,
+          arScanImages: imageFiles.length > 1 ? imageFiles : null,
+          selectedDate: _selectedDate,
+        ),
       ),
     );
   }
@@ -390,31 +462,181 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     });
   }
 
-  Future<void> _openCamera() async {
-    final File? capturedImage = await Navigator.push<File>(
-      context,
-      MaterialPageRoute(builder: (_) => const CameraScreen()),
-    );
-    if (capturedImage != null && mounted) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ImageAnalysisPreviewScreen(imageFile: capturedImage),
+  void _openGalleryOrCamera() {
+    final l10n = L10n.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded),
+              title: Text(l10n.pickFromGallery),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickFromGallery();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded),
+              title: Text(l10n.takePhoto),
+              onTap: () async {
+                Navigator.pop(ctx);
+                final file = await ImagePickerService.pickFromCamera();
+                if (file != null && mounted) {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ImageAnalysisPreviewScreen(
+                        imageFile: file,
+                        selectedDate: _selectedDate,
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
   Future<void> _pickFromGallery() async {
-    final File? image = await ImagePickerService.pickFromGallery();
-    if (image != null && mounted) {
+    final images = await ImagePickerService.pickMultipleFromGallery();
+    if (images.isEmpty || !mounted) return;
+
+    if (images.length == 1) {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ImageAnalysisPreviewScreen(imageFile: image),
+          builder: (_) => ImageAnalysisPreviewScreen(
+            imageFile: images.first,
+            selectedDate: _selectedDate,
+          ),
         ),
       );
+      return;
     }
+
+    // Multiple images: create entries + enqueue for analysis
+    final now = DateTime.now();
+    final date = _selectedDate;
+    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+    final mealType = _guessMealTypeFromHour(now.hour);
+    final appDir = await getApplicationDocumentsDirectory();
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    final savedEntries = <FoodEntry>[];
+
+    final detector = ReferenceDetectorService.instance;
+
+    for (final image in images) {
+      try {
+        final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final destPath = '${appDir.path}/$fileName';
+        await image.copy(destPath);
+        final destFile = File(destPath);
+
+        // AR detection
+        String? arLabelsJson;
+        double? arImgW, arImgH, arPixelPerCm;
+        try {
+          final bytes = await destFile.readAsBytes();
+          final codec = await ui.instantiateImageCodec(bytes);
+          final frame = await codec.getNextFrame();
+          arImgW = frame.image.width.toDouble();
+          arImgH = frame.image.height.toDouble();
+          frame.image.dispose();
+
+          final allLabels = await detector.detectAllObjectLabels(destFile);
+          if (allLabels.isNotEmpty) {
+            arLabelsJson = DetectedObjectLabel.encode(allLabels);
+          }
+
+          final detected = await detector.detectFromImage(destFile);
+          if (detected.isNotEmpty) {
+            final plate = await detector.detectPlate(destFile);
+            final calibration = ScaleCalibrationService.calibrate(
+              referenceObject: detected.first,
+              plateBoundingBox: plate?.boundingBox,
+              imageWidth: arImgW,
+              imageHeight: arImgH,
+            );
+            arPixelPerCm = calibration?.pixelPerCm;
+          }
+        } catch (e) {
+          AppLogger.warn('AR detection failed for image: $e');
+        }
+
+        final entry = FoodEntry(
+          id: 0,
+          foodName: '--',
+          mealType: mealType,
+          timestamp: entryTimestamp,
+          imagePath: destPath,
+          servingSize: 1.0,
+          servingUnit: 'serving',
+          calories: 0, protein: 0, carbs: 0, fat: 0,
+          baseCalories: 0, baseProtein: 0, baseCarbs: 0, baseFat: 0,
+          source: DataSource.galleryScanned,
+          isVerified: false,
+          searchMode: FoodSearchMode.normal,
+          arLabelsJson: arLabelsJson,
+          arImageWidth: arImgW,
+          arImageHeight: arImgH,
+          arPixelPerCm: arPixelPerCm,
+          isDeleted: false,
+          isGroupOriginal: false,
+          editCount: 0,
+          isUserCorrected: false,
+          isCalibrated: arPixelPerCm != null,
+          isSynced: false,
+          createdAt: now,
+          updatedAt: now,
+        );
+        await notifier.addFoodEntry(entry);
+        savedEntries.add(entry);
+      } catch (e) {
+        AppLogger.warn('Failed to save image: $e');
+      }
+    }
+
+    if (savedEntries.isEmpty || !mounted) return;
+
+    final selectedDate = dateOnly(date);
+    refreshFoodProviders(ref, selectedDate);
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(L10n.of(context)!.scanFoundNewImages(
+            savedEntries.length, DateFormat('d MMM yyyy').format(date))),
+        backgroundColor: AppColors.success,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  MealType _guessMealTypeFromHour(int hour) {
+    if (hour >= 5 && hour < 11) return MealType.breakfast;
+    if (hour >= 11 && hour < 15) return MealType.lunch;
+    if (hour >= 15 && hour < 21) return MealType.dinner;
+    return MealType.snack;
   }
 
   Future<void> _quickAdd() async {
@@ -463,6 +685,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
                   count, DateFormat('d MMM yyyy').format(_selectedDate))
               : L10n.of(context)!.scanNoNewImages(
                   DateFormat('d MMM yyyy').format(_selectedDate))),
+          backgroundColor: count > 0 ? AppColors.success : AppColors.info,
         ),
       );
     } finally {
@@ -556,8 +779,25 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     _startBatchAnalysis(entries);
   }
 
-  void _startBatchAnalysis(List<FoodEntry> entries) {
+  Future<void> _startBatchAnalysis(List<FoodEntry> entries) async {
     if (entries.isEmpty) return;
+
+    if (await UsageLimiter.hasReachedDailyCap()) {
+      if (!mounted) return;
+      final l10n = L10n.of(context)!;
+      final remaining = await UsageLimiter.remainingAnalysesToday();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.dailyCapReached(
+            UsageLimiter.maxAnalysesPerDay - remaining,
+            UsageLimiter.maxAnalysesPerDay,
+          )),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     ref.read(analysisProvider.notifier).enqueue(
           entries: entries,
           selectedDate: _selectedDate,

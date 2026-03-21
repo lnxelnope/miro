@@ -66,7 +66,7 @@ export const winbackScheduler = onSchedule(
             await admin.messaging().send({
               token: user.fcmToken,
               notification: {
-                title: "กลับมาใช้ MiRO!",
+                title: "กลับมาใช้ ArCal!",
                 body: "Energy Pass เดือนแรกแค่ $3",
               },
               data: {

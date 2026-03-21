@@ -6,10 +6,9 @@ import '../../../l10n/app_localizations.dart';
 import '../logic/scan_controller.dart';
 import '../services/gallery_service.dart';
 import '../services/vision_processor.dart';
-import '../services/qr_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Dialog that offers to scan the user's gallery photos from the last 7 days
+/// Dialog that offers to scan the user's gallery photos from the last 1 day
 /// on first launch, after the Feature Tour completes.
 class RetroScanDialog extends StatefulWidget {
   const RetroScanDialog({super.key});
@@ -75,21 +74,18 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       _statusText = L10n.of(context)!.retroScanFetchingPhotos;
     });
 
+    final galleryService = GalleryService();
+    final scanController = ScanController(
+      galleryService,
+      VisionProcessor(),
+    );
+
     try {
-      final galleryService = GalleryService();
-      final visionProcessor = VisionProcessor();
-      final qrParser = QRParser();
-      final scanController = ScanController(
-        galleryService,
-        visionProcessor,
-        qrParser,
-      );
+      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
 
-      final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+      AppLogger.info('RetroScan: Starting scan for images from last 1 day...');
 
-      AppLogger.info('RetroScan: Starting scan for images from last 7 days...');
-
-      final images = await galleryService.fetchNewImages(after: sevenDaysAgo);
+      final images = await galleryService.fetchNewImages(after: oneDayAgo);
 
       if (!mounted) return;
 
@@ -107,9 +103,7 @@ class _RetroScanDialogState extends State<RetroScanDialog>
         return;
       }
 
-      final savedCount = await scanController.scanNewImages(after: sevenDaysAgo);
-
-      visionProcessor.dispose();
+      final savedCount = await scanController.scanNewImages(after: oneDayAgo);
 
       if (!mounted) return;
 
@@ -131,6 +125,8 @@ class _RetroScanDialogState extends State<RetroScanDialog>
       });
 
       await RetroScanDialog.markRetroScanDone();
+    } finally {
+      scanController.dispose();
     }
   }
 

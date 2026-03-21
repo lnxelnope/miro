@@ -2,35 +2,161 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-02-28 (Build 50 - Ready for Play Store)
+**อัปเดตล่าสุด:** 2026-03-18 (Build 67)
 
 ---
 
-## ✅ Build 50 (v1.2.2) - Status: READY FOR PRODUCTION
+## ✅ Build 67 (v1.2.6) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.2+50`)
-- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 50`, `versionName = "1.2.2"`)
-- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.2'`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.6+67`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 67`, `versionName = "1.2.6"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.6'`)
+- [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
+- [ ] **Target SDK** - 35 (Android 15)
+- [ ] **Compile SDK** - 36 (Android 16)
+- [ ] **Version Naming** - ตาม Semantic Versioning (`1.2.6`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.6+67)
+- [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
+
+### ✨ Changes in this version:
+- Bump build 67 สำหรับอัปโหลดขึ้น Store
+
+---
+
+## ✅ Build 66 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 67 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 65 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- iOS: Info.plist base values เป็นภาษาอังกฤษ, register InfoPlist.strings + PrivacyInfo.xcprivacy, bump build สำหรับ resubmit
+
+---
+
+## ✅ Build 64 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 65 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 63 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- (เลขเดิมใช้ไปแล้ว — bump เป็น 64 สำหรับ build ใหม่)
+
+---
+
+## ✅ Build 62 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Energy Fix** - ปิดช่องโหว่: ลบ free edit lookup, ทุกครั้งที่เรียก AI วิเคราะห์อาหารต้องหัก energy
+- **Chat ฟรี** - AI Chat ฟรีวันละ 10 ครั้ง (รวม menu suggestion)
+- **ลบ Local AI** - ลบระบบ Local AI Chat ทั้งหมด ใช้ Miro AI เสมอ
+- **UI Fix** - แก้ label "ฟรี" ที่ไม่เป็นจริงแล้ว (AI Lookup, Re-analyze)
+
+---
+
+## ✅ Build 61 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Same as Build 63
+
+---
+
+## ✅ Build 60 (v1.2.6) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Same as Build 63
+
+---
+
+## ✅ Build 59 (v1.2.5) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Unified Privacy Consent Bottom Sheet** - รวมสิทธิ์ privacy ทั้งหมด (Notifications, Analytics, Food Research, Ads) ใน bottom sheet เดียว
+- **Scroll-to-bottom requirement** - บังคับให้ผู้ใช้เลื่อนลงจนสุดก่อนกดยอมรับ (มืออาชีพตาม store policy)
+- แทนที่ AnalyticsConsentDialog ด้วย PrivacyConsentSheet บน first launch
+- Defer NotificationService init จนกว่าผู้ใช้จะยอมรับใน consent sheet
+
+---
+
+## ✅ Build 58 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Billing Library Version Fix** - แก้ไข AndroidManifest.xml meta-data จาก `6.0.1` → `7.1.1` เพื่อให้ผ่าน Google Play policy (Billing Library 7.0+ requirement)
+
+---
+
+## ✅ Build 57 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- AD_ID Permission Fix, Remove flutter_native_splash, Build Fix for release
+
+---
+
+## ✅ Build 56 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Profile Data Persistence, Locale & Cuisine, Clear Data Dialog, AD_ID permission fix
+
+---
+
+## ✅ Build 55 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- Profile Data Persistence, Locale & Cuisine, Clear Data Dialog
+
+---
+
+## ✅ Build 54 (v1.2.4) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Name Change Re-Analysis Feature** - Dialog เลือก keep/re-analyze วัตถุดิบเมื่อเปลี่ยนชื่ออาหาร
+- **Data Mining Value** - user_kept, ai_reanalyzed sources
+
+---
+
+## ✅ Build 53 (v1.2.3) - Status: RELEASED
+
+### 📋 Checklist
+
+- [x] **pubspec.yaml** - Version format ถูกต้อง (`1.2.3+53`)
+- [x] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 53`, `versionName = "1.2.3"`)
+- [x] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.3'`)
 - [x] **Google Play Billing Library** - รองรับ 7.0+ (ใช้ `in_app_purchase: ^3.2.3`)
 - [x] **Target SDK** - 35 (Android 15)
 - [x] **Compile SDK** - 36 (Android 16)
-- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.2`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.2+50)
+- [x] **Version Naming** - ตาม Semantic Versioning (`1.2.3`)
+- [x] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.3+53)
 - [x] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 
 ### ✨ Changes in this version:
-- **Dark Mode Support** - แก้ไข dark mode สำหรับ Nutrition Summary และ Energy Pass screens
-  - DateNavigationBar: รองรับ dark mode และ period-aware navigation (Day/Week/Month/Year/All)
-  - TodaySummaryDashboardScreen: aggregate data ตาม period ที่เลือก
-  - SubscriptionScreen: รองรับ dark mode ทั้งหมด (plan cards, info cards, buttons)
-- **Period-Aware Date Navigation** - Navigation bar แสดงและขยับตาม period ที่เลือก
-  - Day: แสดงวันเดียว, ขยับทีละวัน
-  - Week: แสดงช่วงสัปดาห์, ขยับทีละสัปดาห์
-  - Month: แสดงเดือน, ขยับทีละเดือน
-  - Year: แสดงปี, ขยับทีละปี
-- **Subscription Screen Improvements** - แสดง plan cards เสมอแม้ store ดึงราคาไม่ได้
+- **iOS Resubmit** - Bump build 51→53 (ITMS-90118: ลบ Routing App Coverage File ใน App Store Connect)
+- **iOS Active Energy Fix** - HealthKit entitlements, provider invalidation, debug logging
+- **Deficit Gauge** - Scale -TDEE to 0, surplus needle clamped at rightmost
+
+---
+
+## ✅ Build 51 (v1.2.3) - Status: REJECTED (iOS)
+
+### ✨ Changes in that version:
+- Same as Build 53 — Rejected due to ITMS-90118 (Routing App Coverage File)
+
+---
+
+## ✅ Build 50 (v1.2.2) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **Dark Mode Support** - Nutrition Summary, Energy Pass, Subscription screens
+- **Period-Aware Date Navigation** - Day/Week/Month/Year navigation
+- **Subscription Screen Improvements** - Plan cards always visible
 
 ---
 
@@ -398,29 +524,29 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.2+50
+version: 1.2.6+67
 ```
 **Format:** `versionName+versionCode`
-- `1.2.0` = Version name (แสดงให้ user เห็น)
-- `48` = Build number / Version code (internal)
+- `1.2.6` = Version name (แสดงให้ user เห็น)
+- `67` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 50
-    versionName = "1.2.2"
+    versionCode = 67
+    versionName = "1.2.6"
 }
 ```
 **Format:**
 - `versionCode` = **Integer** (ไม่มี quotes)
 - `versionName` = **String** (ต้องมี quotes `""`)
 
-### 3. `lib/features/profile/presentation/profile_screen.dart` (บรรทัด ~310)
+### 3. `lib/features/profile/presentation/profile_screen.dart` (บรรทัด ~370)
 ```dart
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.2',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '1.2.6',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -445,22 +571,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.1+49 → 1.2.2+50
-version: 1.2.2+50
+# ตัวอย่าง: จาก 1.2.5+59 → 1.2.5+60
+version: 1.2.5+60
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 50  // เพิ่มทีละ 1
-    versionName = "1.2.2"  // ตรงกับ pubspec
+    versionCode = 60  // เพิ่มทีละ 1
+    versionName = "1.2.5"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.2.2',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '1.2.5',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -487,7 +613,21 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 50 | 1.2.2 | 2026-02-28 | ✅ Current |
+| 67 | 1.2.6 | 2026-03-18 | ✅ Current |
+| 66 | 1.2.6 | 2026-03-18 | ✅ Released |
+| 65 | 1.2.6 | 2026-03-17 | ✅ Released |
+| 64 | 1.2.6 | 2026-03-17 | ✅ Released |
+| 63 | 1.2.6 | 2026-03-17 | ✅ Released |
+| 62 | 1.2.6 | 2026-03-03 | ✅ Released |
+| 61 | 1.2.6 | 2026-03-03 | ✅ Released |
+| 60 | 1.2.6 | 2026-03-03 | ✅ Released |
+| 59 | 1.2.5 | 2026-03-03 | ✅ Released |
+| 58 | 1.2.4 | 2026-03-02 | ✅ Released |
+| 57 | 1.2.4 | 2026-03-02 | ✅ Released |
+| 54 | 1.2.4 | 2026-03-01 | ✅ Released |
+| 53 | 1.2.3 | 2026-03-01 | ✅ Released |
+| 51 | 1.2.3 | 2026-02-28 | ❌ Rejected (iOS) |
+| 50 | 1.2.2 | 2026-02-28 | ✅ Released |
 | 49 | 1.2.1 | 2026-02-27 | ✅ Released |
 | 48 | 1.2.0 | 2026-02-26 | ✅ Released |
 | 47 | 1.1.22 | 2026-02-26 | ✅ Released |
@@ -524,14 +664,14 @@ git commit -m "build: v1.1.18+43 - description here"
 ### ❌ Flutter Build ล้มเหลว: "Version mismatch"
 **สาเหตุ:** pubspec.yaml และ build.gradle.kts ไม่ตรงกัน
 **วิธีแก้:** ตรวจสอบให้ตรงกัน:
-- `pubspec.yaml`: `1.2.2+50`
-- `build.gradle.kts`: `versionCode = 50`, `versionName = "1.2.2"`
+- `pubspec.yaml`: `1.2.4+58`
+- `build.gradle.kts`: `versionCode = 58`, `versionName = "1.2.4"`
 
 ### ❌ Version ไม่ตรงในหน้า Settings
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.2.2',  // แก้ให้ตรงกับ versionName
+subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
@@ -539,14 +679,14 @@ subtitle: '1.2.2',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 50):
-- [x] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.2+50`)
-- [x] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (49 → 50)
-- [x] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.2'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.2+50)
+### Pre-flight Checklist (Build 67):
+- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.6+67`)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (66 → 67)
+- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.6'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.6+67)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
-- [x] Google Play Billing Library รองรับ 7.0+ (`in_app_purchase: ^3.2.3`)
+- [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] Build และทดสอบ APK/AAB บนเครื่อง
 - [ ] Git commit และ push แล้ว
 

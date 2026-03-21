@@ -76,7 +76,7 @@ export const submitReferralCode = onRequest(
         return;
       }
 
-      // 6. หา referrer (คนชวน) จาก MiRO ID
+      // 6. หา referrer (คนชวน) จาก ArCal ID
       const referrerSnapshot = await db
         .collection("users")
         .where("miroId", "==", referralCode)

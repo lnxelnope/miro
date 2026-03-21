@@ -1,20 +1,16 @@
 import 'dart:convert';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/database/database_service.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_chat_service.dart';
-import '../../../core/constants/enums.dart';
-import '../models/chat_message.dart';
-import '../models/chat_ai_mode.dart';
-import '../services/intent_handler.dart';
+import '../../../core/services/usage_limiter.dart';
 import '../services/food_lookup_service.dart';
 import '../../health/providers/health_provider.dart';
-import '../../health/models/food_entry.dart';
-import '../../health/models/my_meal.dart';
-import '../../health/models/ingredient.dart';
 import '../../energy/providers/energy_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 
@@ -44,11 +40,9 @@ final activePageContextProvider = StateProvider<String>((ref) => 'health');
 final chatMessagesProvider = FutureProvider<List<ChatMessage>>((ref) async {
   final sessionId = ref.watch(currentSessionIdProvider);
 
-  return await DatabaseService.chatMessages
-      .filter()
-      .sessionIdEqualTo(sessionId)
-      .sortByCreatedAt()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.chatMessages)
+      ..where((tbl) => tbl.sessionId.equals(sessionId))
+      ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)])).get();
 });
 
 // Loading state
@@ -58,26 +52,20 @@ final chatLoadingProvider = StateProvider<bool>((ref) => false);
 
 // Provider สำหรับดึง sessions ทั้งหมด
 final chatSessionsProvider = FutureProvider<List<ChatSession>>((ref) async {
-  return await DatabaseService.chatSessions
-      .where()
-      .sortByUpdatedAtDesc()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.chatSessions)..orderBy([(tbl) => OrderingTerm.desc(tbl.updatedAt)])).get();
 });
 
 // Provider สำหรับดึง messages ของ session ที่เลือก
 final sessionMessagesProvider =
     FutureProvider.family<List<ChatMessage>, String>((ref, sessionId) async {
-  return await DatabaseService.chatMessages
-      .filter()
-      .sessionIdEqualTo(sessionId)
-      .sortByCreatedAt()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.chatMessages)
+      ..where((tbl) => tbl.sessionId.equals(sessionId))
+      ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)])).get();
 });
 
 // Chat notifier
 class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   final Ref ref;
-  final IntentHandler _intentHandler = IntentHandler();
 
   ChatNotifier(this.ref) : super([]);
 
@@ -90,14 +78,13 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         pageContext ?? ref.read(activePageContextProvider);
 
     // 1. Create user message
-    final userMessage = ChatMessage()
-      ..sessionId = sessionId
-      ..role = MessageRole.user
-      ..content = content;
-
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.chatMessages.put(userMessage);
-    });
+    final userMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
+      ChatMessagesCompanion.insert(
+        sessionId: sessionId,
+        role: MessageRole.user,
+        content: content,
+      ),
+    );
 
     state = [...state, userMessage];
 
@@ -119,84 +106,43 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     final sessionId = ref.read(currentSessionIdProvider);
 
     try {
-      // Get current AI mode
-      final aiMode = ref.read(chatAiModeProvider);
+      final replyMessage = await _handleArCalAi(userMessage);
+      const detectedIntent = 'food';
 
-      String replyMessage;
-      String? detectedIntent;
-
-      if (aiMode == ChatAiMode.local) {
-        // LOCAL AI — Free, use existing IntentHandler flow
-        final response = await _intentHandler.processMessage(userMessage,
-            pageContext: pageContext);
-        replyMessage = response.replyMessage;
-        detectedIntent = response.actionResult?.entryType ?? 'unknown';
-
-        // Refresh providers if food entry was created
-        if (response.actionResult != null &&
-            response.actionResult!.entryType == 'food') {
-          debugPrint(
-              '🔄 [ChatProvider] Refreshing food providers after Local AI food entry...');
-          final today = dateOnly(DateTime.now());
-          DateTime entryDate = today;
-          if (response.actionResult!.data != null &&
-              response.actionResult!.data!['date'] != null) {
-            final parsedDate = DateTime.tryParse(
-                response.actionResult!.data!['date'] as String);
-            if (parsedDate != null) entryDate = dateOnly(parsedDate);
-          }
-          ref.invalidate(foodEntriesByDateProvider(entryDate));
-          ref.invalidate(foodEntriesByDateProvider(today));
-          ref.invalidate(todayCaloriesProvider);
-          ref.invalidate(todayMacrosProvider);
-          ref.invalidate(healthTimelineProvider(entryDate));
-          ref.invalidate(healthTimelineProvider(today));
-        }
-      } else {
-        // MIRO AI — 1 Energy cost, use Gemini Backend
-        final miroResponse = await _handleMiroAi(userMessage);
-        replyMessage = miroResponse;
-        detectedIntent = 'food';
-      }
-
-      // สร้าง assistant message
-      final assistantMessage = ChatMessage()
-        ..sessionId = sessionId
-        ..role = MessageRole.assistant
-        ..content = replyMessage
-        ..detectedIntent = detectedIntent;
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.chatMessages.put(assistantMessage);
-      });
+      final assistantMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
+        ChatMessagesCompanion.insert(
+          sessionId: sessionId,
+          role: MessageRole.assistant,
+          content: replyMessage,
+          detectedIntent: const Value(detectedIntent),
+        ),
+      );
 
       state = [...state, assistantMessage];
     } on ChatContentTooLongException catch (_) {
       // Use English fallback (l10n will be applied by UI layer if context available)
       const fallbackMessage = 'List is too long. Could you split it into 2-3 items? 🙏\n\nYour Energy has not been deducted.';
       
-      final errorMessage = ChatMessage()
-        ..sessionId = sessionId
-        ..role = MessageRole.assistant
-        ..content = '📝 $fallbackMessage'
-        ..detectedIntent = 'error';
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.chatMessages.put(errorMessage);
-      });
+      final errorMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
+        ChatMessagesCompanion.insert(
+          sessionId: sessionId,
+          role: MessageRole.assistant,
+          content: '📝 $fallbackMessage',
+          detectedIntent: const Value('error'),
+        ),
+      );
 
       state = [...state, errorMessage];
     } catch (e) {
       final errorText = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
-      final errorMessage = ChatMessage()
-        ..sessionId = sessionId
-        ..role = MessageRole.assistant
-        ..content = '❌ เกิดข้อผิดพลาด: $errorText\n\nลองใหม่อีกครั้งนะครับ'
-        ..detectedIntent = 'error';
-
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.chatMessages.put(errorMessage);
-      });
+      final errorMessage = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
+        ChatMessagesCompanion.insert(
+          sessionId: sessionId,
+          role: MessageRole.assistant,
+          content: '❌ เกิดข้อผิดพลาด: $errorText\n\nลองใหม่อีกครั้งนะครับ',
+          detectedIntent: const Value('error'),
+        ),
+      );
 
       state = [...state, errorMessage];
     }
@@ -209,21 +155,17 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 
     try {
       // 1. MyMeal DB: top 50 by usage count
-      final myMeals = await DatabaseService.myMeals
-          .where()
-          .sortByUsageCountDesc()
-          .limit(50)
-          .findAll();
+      final myMeals = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+          ..limit(50)).get();
       if (myMeals.isNotEmpty) {
         context['savedMeals'] = myMeals.map((m) => m.name).toList();
       }
 
       // 2. Ingredient DB: top 50 by usage count
-      final ingredients = await DatabaseService.ingredients
-          .where()
-          .sortByUsageCountDesc()
-          .limit(50)
-          .findAll();
+      final ingredients = await (DatabaseService.db.select(DatabaseService.db.ingredients)
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+          ..limit(50)).get();
       if (ingredients.isNotEmpty) {
         context['savedIngredients'] = ingredients.map((i) => i.name).toList();
       }
@@ -310,18 +252,17 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     }
   }
 
-  /// Handle Miro AI (new flow with Gemini Backend)
+  /// Handle ArCal AI (new flow with Gemini Backend)
   /// Returns reply message string
   ///
-  /// Energy pricing: flat 1⚡ per chat request
+  /// Chat is free with daily limit (10/day)
   /// Food entries are saved as unanalyzed (check DB first, 0 kcal if not found)
-  Future<String> _handleMiroAi(String text) async {
-    final energyService = ref.read(energyServiceProvider);
-    final balance = await energyService.getBalance();
-
-    if (balance < 1) {
+  Future<String> _handleArCalAi(String text) async {
+    final canChat = await UsageLimiter.canUseFreeChat();
+    if (!canChat) {
+      const limit = UsageLimiter.freeChatPerDay;
       throw Exception(
-          'Not enough Energy (minimum 1⚡ required). Please purchase more from the store.');
+          'ถึงลิมิตแชทวันนี้แล้ว ($limit ครั้ง/วัน) กลับมาคุยกันใหม่พรุ่งนี้นะครับ 🙏');
     }
 
     final profileAsync = ref.read(profileNotifierProvider);
@@ -334,6 +275,7 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     // Gather food context from local database
     final foodContext = await _gatherFoodContext();
 
+    final energyService = ref.read(energyServiceProvider);
     final response = await GeminiChatService.analyzeChatMessage(
       message: text,
       energyService: energyService,
@@ -341,22 +283,22 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       foodContext: foodContext,
     );
 
+    // Record daily chat usage after successful response
+    await UsageLimiter.recordFreeChatUsage();
+    final remaining = await UsageLimiter.remainingFreeChatToday();
+
     // Parse response: check DB first, save as unanalyzed if not found
-    final saveResult = await _parseMiroAiResponse(response);
+    final saveResult = await _parseArCalAiResponse(response);
 
     // Refresh providers
     debugPrint(
-        '🔄 [ChatProvider] Refreshing food providers after Miro AI food entry...');
+        '🔄 [ChatProvider] Refreshing food providers after ArCal AI food entry...');
     final today = dateOnly(DateTime.now());
     ref.invalidate(foodEntriesByDateProvider(today));
     ref.invalidate(todayCaloriesProvider);
     ref.invalidate(todayMacrosProvider);
     ref.invalidate(healthTimelineProvider(today));
 
-    final energyCost = response['energyCost'] as int? ?? 1;
-
-    // Build reply ourselves (don't use AI reply — it contains AI-calculated kcal
-    // that we no longer use since entries are saved as unanalyzed)
     final buffer = StringBuffer();
     if (saveResult != null && saveResult.totalCount > 0) {
       buffer.write(
@@ -371,7 +313,6 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
             '\n⏳ ${saveResult.unanalyzedCount} รายการรอ Analyze (กด Analyze All ที่ Timeline)');
       }
 
-      // Show item names with source icons
       buffer.write('\n\n');
       for (final name in saveResult.itemNames) {
         buffer.write('$name\n');
@@ -380,18 +321,18 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
       final reply = response['reply'] as String? ?? 'Message received';
       buffer.write(reply);
     }
-    buffer.write('\n⚡ -$energyCost Energy');
+    buffer.write('\n💬 เหลือ $remaining ครั้งวันนี้');
 
     return buffer.toString();
   }
 
-  /// Parse Miro AI response and save food entries to timeline
+  /// Parse ArCal AI response and save food entries to timeline
   ///
   /// Flow: AI parses food names → check DB (MyMeal/Ingredient) →
   /// - Found: use DB nutrition, mark as verified
   /// - Not found: save with 0 kcal, mark as unanalyzed (user can Analyze All later)
   /// Does NOT auto-save to MyMeal/Ingredient database
-  Future<_ChatSaveResult?> _parseMiroAiResponse(
+  Future<_ChatSaveResult?> _parseArCalAiResponse(
       Map<String, dynamic> response) async {
     if (response['type'] != 'food_log') return null;
 
@@ -512,46 +453,46 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
         servingUnit: servingUnit,
       );
 
-      final foodEntry = FoodEntry()
-        ..foodName = foodName
-        ..foodNameEn = foodNameEn
-        ..servingSize = servingSize
-        ..servingUnit = servingUnit
-        ..mealType = mealType
-        ..timestamp = DateTime.now()
-        ..ingredientsJson = preliminaryIngredientsJson;
+      final chatNow = DateTime.now();
+      final foundInDb = lookupResult.type != FoodLookupType.notFound;
 
-      if (lookupResult.type != FoodLookupType.notFound) {
-        // Found in DB → use DB nutrition
-        foodEntry
-          ..calories = lookupResult.calories
-          ..protein = lookupResult.protein
-          ..carbs = lookupResult.carbs
-          ..fat = lookupResult.fat
-          ..baseCalories = lookupResult.calories
-          ..baseProtein = lookupResult.protein
-          ..baseCarbs = lookupResult.carbs
-          ..baseFat = lookupResult.fat
-          ..source = DataSource.database
-          ..isVerified = true;
+      final foodEntry = FoodEntry(
+        id: 0,
+        foodName: foodName,
+        foodNameEn: foodNameEn,
+        servingSize: servingSize,
+        servingUnit: servingUnit,
+        mealType: mealType,
+        timestamp: chatNow,
+        ingredientsJson: preliminaryIngredientsJson,
+        calories: foundInDb ? lookupResult.calories : 0,
+        protein: foundInDb ? lookupResult.protein : 0,
+        carbs: foundInDb ? lookupResult.carbs : 0,
+        fat: foundInDb ? lookupResult.fat : 0,
+        baseCalories: foundInDb ? lookupResult.calories : 0,
+        baseProtein: foundInDb ? lookupResult.protein : 0,
+        baseCarbs: foundInDb ? lookupResult.carbs : 0,
+        baseFat: foundInDb ? lookupResult.fat : 0,
+        source: foundInDb ? DataSource.database : DataSource.manual,
+        isVerified: foundInDb,
+        searchMode: FoodSearchMode.normal,
+        isDeleted: false,
+        isGroupOriginal: false,
+        editCount: 0,
+        isUserCorrected: false,
+        isCalibrated: false,
+        isSynced: false,
+        createdAt: chatNow,
+        updatedAt: chatNow,
+      );
+
+      if (foundInDb) {
         fromDbCount++;
         itemNames.add(
             '🗄️ $foodName (${lookupResult.calories.toInt()} kcal)');
         AppLogger.info(
             'Chat: "$foodName" found in DB (${lookupResult.type.name}) → ${lookupResult.calories.toInt()} kcal');
       } else {
-        // Not found → save as unanalyzed (0 kcal)
-        foodEntry
-          ..calories = 0
-          ..protein = 0
-          ..carbs = 0
-          ..fat = 0
-          ..baseCalories = 0
-          ..baseProtein = 0
-          ..baseCarbs = 0
-          ..baseFat = 0
-          ..source = DataSource.manual
-          ..isVerified = false;
         unanalyzedCount++;
         itemNames.add('✏️ $foodName (รอ Analyze)');
         AppLogger.info(
@@ -572,32 +513,24 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   Future<void> _updateSession(String sessionId, String firstMessage) async {
     try {
       // Check if session already exists
-      final existing = await DatabaseService.chatSessions
-          .filter()
-          .sessionIdEqualTo(sessionId)
-          .findFirst();
+      final existing = await (DatabaseService.db.select(DatabaseService.db.chatSessions)
+          ..where((tbl) => tbl.sessionId.equals(sessionId))
+          ..limit(1)).getSingleOrNull();
 
       if (existing != null) {
-        // Update timestamp
         existing.updatedAt = DateTime.now();
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.chatSessions.put(existing);
-        });
+        await DatabaseService.db.into(DatabaseService.db.chatSessions).insertOnConflictUpdate(existing);
       } else {
-        // Create new session with title from first message
         final title = firstMessage.length > 30
             ? '${firstMessage.substring(0, 30)}...'
             : firstMessage;
 
-        final session = ChatSession()
-          ..sessionId = sessionId
-          ..title = title
-          ..createdAt = DateTime.now()
-          ..updatedAt = DateTime.now();
-
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.chatSessions.put(session);
-        });
+        await DatabaseService.db.into(DatabaseService.db.chatSessions).insertReturning(
+          ChatSessionsCompanion.insert(
+            title: title,
+            sessionId: Value(sessionId),
+          ),
+        );
 
         AppLogger.info('Created new session: $title');
       }
@@ -615,11 +548,9 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
     ref.read(currentSessionIdProvider.notifier).state = sessionId;
 
     // Load messages
-    final messages = await DatabaseService.chatMessages
-        .filter()
-        .sessionIdEqualTo(sessionId)
-        .sortByCreatedAt()
-        .findAll();
+    final messages = await (DatabaseService.db.select(DatabaseService.db.chatMessages)
+        ..where((tbl) => tbl.sessionId.equals(sessionId))
+        ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)])).get();
 
     state = messages;
     AppLogger.info('Loaded session with ${messages.length} messages');
@@ -635,18 +566,11 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   /// Delete a session and its messages
   Future<void> deleteSession(String sessionId) async {
     try {
-      await DatabaseService.isar.writeTxn(() async {
-        // Delete messages
-        await DatabaseService.chatMessages
-            .filter()
-            .sessionIdEqualTo(sessionId)
-            .deleteAll();
-
-        // Delete session
-        await DatabaseService.chatSessions
-            .filter()
-            .sessionIdEqualTo(sessionId)
-            .deleteAll();
+      await DatabaseService.db.transaction(() async {
+        await (DatabaseService.db.delete(DatabaseService.db.chatMessages)
+            ..where((tbl) => tbl.sessionId.equals(sessionId))).go();
+        await (DatabaseService.db.delete(DatabaseService.db.chatSessions)
+            ..where((tbl) => tbl.sessionId.equals(sessionId))).go();
       });
 
       // If current session was deleted, start new one
@@ -672,21 +596,27 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
   /// Add a message to chat (for system messages like greeting)
   Future<void> addMessage(ChatMessage message) async {
     final sessionId = ref.read(currentSessionIdProvider);
-    message.sessionId = sessionId;
 
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.chatMessages.put(message);
-    });
+    final saved = await DatabaseService.db.into(DatabaseService.db.chatMessages).insertReturning(
+      ChatMessagesCompanion.insert(
+        sessionId: sessionId,
+        role: message.role,
+        content: message.content,
+        responseType: Value(message.responseType),
+        cardDataJson: Value(message.cardDataJson),
+        actionsJson: Value(message.actionsJson),
+        detectedIntent: Value(message.detectedIntent),
+        confidence: Value(message.confidence),
+      ),
+    );
 
-    state = [...state, message];
+    state = [...state, saved];
   }
 
   /// Remove a message from chat (for removing loading messages)
   Future<void> removeMessage(ChatMessage message) async {
-    // Remove from database
-    await DatabaseService.isar.writeTxn(() async {
-      await DatabaseService.chatMessages.delete(message.id);
-    });
+    await (DatabaseService.db.delete(DatabaseService.db.chatMessages)
+        ..where((tbl) => tbl.id.equals(message.id))).go();
 
     // Remove from state
     state = state.where((msg) => msg.id != message.id).toList();
@@ -696,11 +626,4 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
 final chatNotifierProvider =
     StateNotifierProvider<ChatNotifier, List<ChatMessage>>((ref) {
   return ChatNotifier(ref);
-});
-
-/// Provider สำหรับเก็บ AI Mode ที่ user เลือก
-/// Default: ChatAiMode.miroAi (แม่นยำสูง, หลายภาษา)
-/// เปลี่ยนได้ใน Settings
-final chatAiModeProvider = StateProvider<ChatAiMode>((ref) {
-  return ChatAiMode.miroAi;
 });

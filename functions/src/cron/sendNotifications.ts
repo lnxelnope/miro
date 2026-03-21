@@ -73,7 +73,7 @@ export const sendStreakReminders = onSchedule(
         token: user.fcmToken,
         notification: {
           title: `🔥 Streak ${streak} วัน!`,
-          body: `อย่าลืมเข้า MIRO วันนี้ — ${tierText}`,
+          body: `อย่าลืมเข้า ArCal วันนี้ — ${tierText}`,
         },
         data: {
           type: "streak_reminder",

@@ -1,7 +1,7 @@
 import 'dart:io';
+import '../../../core/database/app_database.dart' as app_db show MealType;
 import 'package:health/health.dart';
 import 'package:permission_handler/permission_handler.dart' show openAppSettings;
-import '../constants/enums.dart' as app_enums;
 import '../utils/logger.dart';
 
 class HealthSyncService {
@@ -46,12 +46,17 @@ class HealthSyncService {
         ..._writeTypes.map((_) => HealthDataAccess.WRITE),
       ];
 
-      return await _health.requestAuthorization(
+      AppLogger.info('[Health] Requesting permissions for: '
+          '${types.map((t) => t.name).join(", ")}');
+      final granted = await _health.requestAuthorization(
         types,
         permissions: permissions,
       );
+      AppLogger.info('[Health] requestAuthorization result: $granted '
+          '(iOS always returns true even if denied)');
+      return granted;
     } catch (e) {
-      AppLogger.error('Health permission request failed', e);
+      AppLogger.error('[Health] Permission request failed', e);
       return false;
     }
   }
@@ -90,13 +95,72 @@ class HealthSyncService {
       final now = DateTime.now();
       final startOfDay = DateTime(now.year, now.month, now.day);
 
-      final data = await _health.getHealthDataFromTypes(
-        types: _readTypes,
-        startTime: startOfDay,
-        endTime: now,
-      );
+      AppLogger.info('[Health] ── getTodayActiveEnergy START ──');
+      AppLogger.info('[Health] now=$now  startOfDay=$startOfDay');
+      AppLogger.info('[Health] Platform: ${Platform.isIOS ? "iOS" : "Android"}');
 
-      final uniqueData = Health().removeDuplicates(data);
+      // Try fetching each type separately for better debugging
+      AppLogger.info('[Health] ── Fetch ACTIVE_ENERGY_BURNED ──');
+      List<HealthDataPoint> activeData = [];
+      try {
+        activeData = await _health.getHealthDataFromTypes(
+          types: [HealthDataType.ACTIVE_ENERGY_BURNED],
+          startTime: startOfDay,
+          endTime: now,
+        );
+        AppLogger.info('[Health] ACTIVE_ENERGY raw points: ${activeData.length}');
+      } catch (e) {
+        AppLogger.error('[Health] ACTIVE_ENERGY fetch error', e);
+      }
+
+      AppLogger.info('[Health] ── Fetch TOTAL_CALORIES_BURNED ──');
+      List<HealthDataPoint> totalData = [];
+      try {
+        totalData = await _health.getHealthDataFromTypes(
+          types: [HealthDataType.TOTAL_CALORIES_BURNED],
+          startTime: startOfDay,
+          endTime: now,
+        );
+        AppLogger.info('[Health] TOTAL_CALORIES raw points: ${totalData.length}');
+      } catch (e) {
+        AppLogger.error('[Health] TOTAL_CALORIES fetch error', e);
+      }
+
+      // Also try 24h window as debug fallback
+      if (activeData.isEmpty && totalData.isEmpty) {
+        AppLogger.info('[Health] ── No data from today, trying 24h window ──');
+        final yesterday = now.subtract(const Duration(hours: 24));
+        try {
+          activeData = await _health.getHealthDataFromTypes(
+            types: [HealthDataType.ACTIVE_ENERGY_BURNED],
+            startTime: yesterday,
+            endTime: now,
+          );
+          AppLogger.info('[Health] 24h ACTIVE_ENERGY points: ${activeData.length}');
+          totalData = await _health.getHealthDataFromTypes(
+            types: [HealthDataType.TOTAL_CALORIES_BURNED],
+            startTime: yesterday,
+            endTime: now,
+          );
+          AppLogger.info('[Health] 24h TOTAL_CALORIES points: ${totalData.length}');
+        } catch (e) {
+          AppLogger.error('[Health] 24h fallback fetch error', e);
+        }
+      }
+
+      final allData = [...activeData, ...totalData];
+      final uniqueData = Health().removeDuplicates(allData);
+      AppLogger.info('[Health] Combined unique points: ${uniqueData.length}');
+
+      // Log each data point for debugging
+      for (final point in uniqueData) {
+        AppLogger.info('[Health] Point: type=${point.type.name}, '
+            'value=${point.value}, '
+            'unit=${point.unit}, '
+            'dateFrom=${point.dateFrom}, '
+            'dateTo=${point.dateTo}, '
+            'source=${point.sourceName}');
+      }
 
       double active = 0;
       double total = 0;
@@ -115,22 +179,18 @@ class HealthSyncService {
 
       double result;
       if (Platform.isIOS && active > 0) {
-        // iOS HealthKit: ACTIVE_ENERGY_BURNED is pure exercise/movement
         result = active;
       } else if (total > 0) {
-        // Android / fallback: Bonus = max(0, TBC − full-day BMR)
         result = (total - safeBmr).clamp(0.0, double.infinity);
       } else if (active > 0) {
-        // Android with active data but no total
         result = active;
       } else {
         result = 0;
       }
 
-      AppLogger.info(
-          'Energy today — active: $active, total: $total, bmr: $safeBmr, '
-          'platform: ${Platform.isIOS ? "iOS" : "Android"}, '
-          'bonus: ${result.toInt()} kcal');
+      AppLogger.info('[Health] ── RESULT ──  '
+          'active=$active, total=$total, bmr=$safeBmr, '
+          'bonus=${result.toInt()} kcal');
       return result;
     } catch (e) {
       AppLogger.error('Failed to get active energy', e);
@@ -147,7 +207,7 @@ class HealthSyncService {
     required double carbs,
     required double fat,
     required DateTime timestamp,
-    app_enums.MealType? mealType,
+    app_db.MealType? mealType,
     double? fiber,
     double? sugar,
     double? sodium,
@@ -238,7 +298,7 @@ class HealthSyncService {
     required double carbs,
     required double fat,
     required DateTime timestamp,
-    app_enums.MealType? mealType,
+    app_db.MealType? mealType,
     double? fiber,
     double? sugar,
     double? sodium,
@@ -286,15 +346,15 @@ class HealthSyncService {
     }
   }
 
-  static MealType _mapMealType(app_enums.MealType? type) {
+  static MealType _mapMealType(app_db.MealType? type) {
     switch (type) {
-      case app_enums.MealType.breakfast:
+      case app_db.MealType.breakfast:
         return MealType.BREAKFAST;
-      case app_enums.MealType.lunch:
+      case app_db.MealType.lunch:
         return MealType.LUNCH;
-      case app_enums.MealType.dinner:
+      case app_db.MealType.dinner:
         return MealType.DINNER;
-      case app_enums.MealType.snack:
+      case app_db.MealType.snack:
         return MealType.SNACK;
       default:
         return MealType.UNKNOWN;

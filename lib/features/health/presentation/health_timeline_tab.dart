@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
@@ -13,9 +16,6 @@ import '../widgets/daily_summary_card.dart';
 import '../widgets/edit_food_bottom_sheet.dart';
 import '../widgets/log_from_meal_sheet.dart';
 import '../widgets/meal_section.dart';
-import '../../../core/database/database_service.dart';
-import '../models/food_entry.dart';
-import '../../../core/constants/enums.dart';
 import '../widgets/add_food_bottom_sheet.dart';
 import '../../scanner/providers/scanner_provider.dart';
 import '../../../core/services/usage_limiter.dart';
@@ -331,7 +331,7 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
       MealType mealType, FoodSuggestion suggestion) async {
     // If from MyMeal → open LogFromMealSheet with full ingredients
     if (suggestion.myMealId != null) {
-      final meal = await DatabaseService.myMeals.get(suggestion.myMealId!);
+      final meal = await (DatabaseService.db.select(DatabaseService.db.myMeals)..where((tbl) => tbl.id.equals(suggestion.myMealId!))).getSingleOrNull();
       if (meal != null && mounted) {
         showModalBottomSheet(
           context: context,

@@ -1,5 +1,45 @@
 # Changelog
 
+## [1.2.6+64] - 2026-03-17
+
+### 📦 Build
+- Bump build 63→64 สำหรับส่ง store (เลขเดิมใช้ไปแล้ว)
+
+---
+
+## [1.2.6+61] - 2026-03-03
+
+### 🔒 Energy & Chat
+- **Energy Fix** - ปิดช่องโหว่: ลบ free edit lookup, ทุกครั้งที่เรียก AI วิเคราะห์อาหารต้องหัก energy
+- **Chat ฟรี** - AI Chat ฟรีวันละ 10 ครั้ง (รวม menu suggestion)
+- **ลบ Local AI** - ลบระบบ Local AI Chat ทั้งหมด ใช้ Miro AI เสมอ
+- **UI Fix** - แก้ label "ฟรี" ที่ไม่เป็นจริงแล้ว (AI Lookup, Re-analyze)
+
+---
+
+## [1.2.3+53] - 2026-03-01
+
+### 📦 Build
+- **iOS Resubmit** - Bump build 51→53 for App Store resubmission (ITMS-90118: ลบ Routing App Coverage File ใน App Store Connect)
+
+---
+
+## [1.2.3+51] - 2026-02-28
+
+### 🐛 Bug Fixes
+- **Fixed: iOS Active Energy Not Showing** - Active Energy (Exercise) now displays correctly from Apple Health
+  - Added HealthKit entitlements (`com.apple.developer.healthkit.access`) and SystemCapabilities in Xcode
+  - Fixed Riverpod provider caching: added `ref.invalidate(activeEnergyProvider)` on Health Sync toggle and pull-to-refresh
+  - Added debug logging in HealthSyncService for troubleshooting
+
+### ✨ Improvements
+- **Deficit Gauge Redesign** - Gauge scale now -TDEE to 0 (right = maintenance)
+  - Surplus (positive net energy): needle stays at rightmost, number shows +xxx in red
+  - Sweet spot zone more visible (~21% of gauge)
+  - Dynamic zones: Danger → Careful → Sweet Spot → Maintain
+
+---
+
 ## [1.2.0+48] - 2026-02-26
 
 ### 🎉 Major Feature: Health Sync (Apple Health / Google Health Connect)

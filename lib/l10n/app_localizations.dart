@@ -120,7 +120,7 @@ abstract class L10n {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'MiRO'**
+  /// **'ArCal'**
   String get appName;
 
   /// No description provided for @save.
@@ -510,7 +510,7 @@ abstract class L10n {
   /// No description provided for @chatHint.
   ///
   /// In en, this message translates to:
-  /// **'Tell Miro e.g. \"Log fried rice\"...'**
+  /// **'Tell ArCal e.g. \"Log fried rice\"...'**
   String get chatHint;
 
   /// No description provided for @chatFoodSaved.
@@ -625,7 +625,7 @@ abstract class L10n {
   /// No description provided for @proUnlocked.
   ///
   /// In en, this message translates to:
-  /// **'MiRO Pro'**
+  /// **'ArCal Pro'**
   String get proUnlocked;
 
   /// No description provided for @proDescription.
@@ -651,6 +651,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Restore purchase'**
   String get restorePurchase;
+
+  /// No description provided for @restorePurchaseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore your Energy Pass subscription'**
+  String get restorePurchaseSubtitle;
+
+  /// No description provided for @restorePurchaseRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring purchases…'**
+  String get restorePurchaseRestoring;
+
+  /// No description provided for @restorePurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase restored successfully!'**
+  String get restorePurchaseSuccess;
+
+  /// No description provided for @restorePurchaseNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous purchases found for this Apple ID'**
+  String get restorePurchaseNotFound;
+
+  /// No description provided for @restorePurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore purchase. Please try again.'**
+  String get restorePurchaseFailed;
 
   /// No description provided for @myMeals.
   ///
@@ -715,7 +745,7 @@ abstract class L10n {
   /// No description provided for @welcomeTitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO'**
+  /// **'ArCal'**
   String get welcomeTitle;
 
   /// No description provided for @welcomeSubtitle.
@@ -1141,7 +1171,7 @@ abstract class L10n {
   /// No description provided for @appBarMiro.
   ///
   /// In en, this message translates to:
-  /// **'MIRO'**
+  /// **'ArCal'**
   String get appBarMiro;
 
   /// No description provided for @permissionRequired.
@@ -1153,7 +1183,7 @@ abstract class L10n {
   /// No description provided for @permissionRequiredDesc.
   ///
   /// In en, this message translates to:
-  /// **'MIRO needs access to the following:'**
+  /// **'ArCal needs access to the following:'**
   String get permissionRequiredDesc;
 
   /// No description provided for @permissionPhotos.
@@ -2165,6 +2195,12 @@ abstract class L10n {
   /// **'Intake Goal'**
   String get intakeGoalLabel;
 
+  /// No description provided for @activeBurnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Burn'**
+  String get activeBurnLabel;
+
   /// No description provided for @netEnergyLabel.
   ///
   /// In en, this message translates to:
@@ -2360,7 +2396,7 @@ abstract class L10n {
   /// No description provided for @helloImMiro.
   ///
   /// In en, this message translates to:
-  /// **'Hello! I\'m Miro'**
+  /// **'Hello! I\'m ArCal'**
   String get helloImMiro;
 
   /// No description provided for @tellMeWhatYouAteToday.
@@ -2552,7 +2588,7 @@ abstract class L10n {
   /// No description provided for @localAiHelpNote.
   ///
   /// In en, this message translates to:
-  /// **'Note: English only, basic parsing\nSwitch to Miro AI for better results!'**
+  /// **'Note: English only, basic parsing\nSwitch to ArCal AI for better results!'**
   String get localAiHelpNote;
 
   /// No description provided for @hiNoFoodLogged.
@@ -2907,7 +2943,7 @@ abstract class L10n {
   /// No description provided for @referralCodeHint.
   ///
   /// In en, this message translates to:
-  /// **'MIRO-XXXX-XXXX-XXXX'**
+  /// **'ARCAL-XXXX-XXXX-XXXX'**
   String get referralCodeHint;
 
   /// No description provided for @referralSubmitCode.
@@ -2955,7 +2991,7 @@ abstract class L10n {
   /// No description provided for @referralStep1Description.
   ///
   /// In en, this message translates to:
-  /// **'Copy and share your MiRO ID with friends'**
+  /// **'Copy and share your ArCal ID with friends'**
   String get referralStep1Description;
 
   /// No description provided for @referralStep2Title.
@@ -3240,6 +3276,12 @@ abstract class L10n {
   /// **'Your subscription will renew automatically. You can cancel anytime from Google Play.'**
   String get subscriptionAutoRenewTerms;
 
+  /// No description provided for @subscriptionAutoRenewTermsIos.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.'**
+  String get subscriptionAutoRenewTermsIos;
+
   /// No description provided for @subscriptionRenewsDate.
   ///
   /// In en, this message translates to:
@@ -3393,7 +3435,7 @@ abstract class L10n {
   /// No description provided for @privacyPolicySubtitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO — My Intake Record Oracle'**
+  /// **'ArCal — AI Calorie Counter'**
   String get privacyPolicySubtitle;
 
   /// No description provided for @privacyPolicyHeaderNote.
@@ -3489,7 +3531,7 @@ abstract class L10n {
   /// No description provided for @termsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'MiRO — My Intake Record Oracle'**
+  /// **'ArCal — AI Calorie Counter'**
   String get termsSubtitle;
 
   /// No description provided for @termsSectionAcceptanceOfTerms.
@@ -3579,7 +3621,7 @@ abstract class L10n {
   /// No description provided for @termsAcknowledgment.
   ///
   /// In en, this message translates to:
-  /// **'By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.'**
+  /// **'By using ArCal, you acknowledge that you have read, understood, and agree to these Terms of Service.'**
   String get termsAcknowledgment;
 
   /// No description provided for @termsLastUpdated.
@@ -3627,7 +3669,7 @@ abstract class L10n {
   /// No description provided for @miroAi.
   ///
   /// In en, this message translates to:
-  /// **'Miro AI'**
+  /// **'ArCal AI'**
   String get miroAi;
 
   /// No description provided for @miroAiSubtitle.
@@ -3873,13 +3915,13 @@ abstract class L10n {
   /// No description provided for @miroId.
   ///
   /// In en, this message translates to:
-  /// **'MiRO ID'**
+  /// **'ArCal ID'**
   String get miroId;
 
   /// No description provided for @miroIdCopied.
   ///
   /// In en, this message translates to:
-  /// **'MiRO ID copied!'**
+  /// **'ArCal ID copied!'**
   String get miroIdCopied;
 
   /// No description provided for @inviteFriends.
@@ -3996,11 +4038,71 @@ abstract class L10n {
   /// **'All data will be deleted:\n• Food entries\n• My Meals\n• Ingredients\n• Goals\n• Personal info\n\nThis cannot be undone!'**
   String get clearAllDataContent;
 
+  /// No description provided for @clearAllDataStorageDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Including: Isar DB, SharedPreferences, SecureStorage'**
+  String get clearAllDataStorageDetails;
+
+  /// No description provided for @clearAllDataFactoryResetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'(Like a fresh install — use together with Factory Reset in Admin Panel)'**
+  String get clearAllDataFactoryResetHint;
+
   /// No description provided for @allDataClearedSuccess.
   ///
   /// In en, this message translates to:
   /// **'All data cleared successfully'**
   String get allDataClearedSuccess;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all data from device and cloud'**
+  String get deleteAccountSubtitle;
+
+  /// No description provided for @deleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account?'**
+  String get deleteAccountTitle;
+
+  /// No description provided for @deleteAccountContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete:\n• All local data (food entries, meals, goals)\n• Cloud-synced data (energy balance, backups)\n• Subscription data\n\nThis action cannot be undone.'**
+  String get deleteAccountContent;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Account deleted successfully'**
+  String get deleteAccountSuccess;
+
+  /// No description provided for @deleteAccountFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete account. Please try again.'**
+  String get deleteAccountFailed;
+
+  /// No description provided for @deleteAccountDeleting.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleting account…'**
+  String get deleteAccountDeleting;
 
   /// No description provided for @aboutSection.
   ///
@@ -4013,6 +4115,12 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Version'**
   String get version;
+
+  /// No description provided for @eula.
+  ///
+  /// In en, this message translates to:
+  /// **'EULA'**
+  String get eula;
 
   /// No description provided for @healthDisclaimer.
   ///
@@ -4047,7 +4155,7 @@ abstract class L10n {
   /// No description provided for @showTutorialDialogContent.
   ///
   /// In en, this message translates to:
-  /// **'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with Miro AI\n\nYou will return to the Home screen.'**
+  /// **'This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with ArCal AI\n\nYou will return to the Home screen.'**
   String get showTutorialDialogContent;
 
   /// No description provided for @showTutorialButton.
@@ -4236,6 +4344,18 @@ abstract class L10n {
   /// **'Invalid Backup File'**
   String get invalidBackupFile;
 
+  /// No description provided for @restoreSelectDataFile.
+  ///
+  /// In en, this message translates to:
+  /// **'This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.'**
+  String get restoreSelectDataFile;
+
+  /// No description provided for @restoreZeroEntriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.'**
+  String get restoreZeroEntriesHint;
+
   /// No description provided for @restoreFailed.
   ///
   /// In en, this message translates to:
@@ -4251,13 +4371,13 @@ abstract class L10n {
   /// No description provided for @analyticsEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป'**
+  /// **'Analytics enabled - Thanks for helping improve the app'**
   String get analyticsEnabled;
 
   /// No description provided for @analyticsDisabled.
   ///
   /// In en, this message translates to:
-  /// **'Analytics disabled - ไม่เก็บข้อมูลการใช้งาน'**
+  /// **'Analytics disabled - No usage data collected'**
   String get analyticsDisabled;
 
   /// No description provided for @enabled.
@@ -4269,7 +4389,7 @@ abstract class L10n {
   /// No description provided for @enabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน'**
+  /// **'Enabled - Helps improve user experience'**
   String get enabledSubtitle;
 
   /// No description provided for @disabled.
@@ -4281,7 +4401,7 @@ abstract class L10n {
   /// No description provided for @disabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Disabled - ไม่เก็บข้อมูลการใช้งาน'**
+  /// **'Disabled - No usage data collected'**
   String get disabledSubtitle;
 
   /// No description provided for @imagesPerDay.
@@ -4509,13 +4629,13 @@ abstract class L10n {
   /// No description provided for @questBarShareText.
   ///
   /// In en, this message translates to:
-  /// **'Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}'**
+  /// **'Try ArCal! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}'**
   String questBarShareText(String link);
 
   /// No description provided for @questBarShareSubject.
   ///
   /// In en, this message translates to:
-  /// **'Try MiRO'**
+  /// **'Try ArCal'**
   String get questBarShareSubject;
 
   /// No description provided for @claimButtonTitle.
@@ -4815,7 +4935,7 @@ abstract class L10n {
   /// No description provided for @retroScanDescription.
   ///
   /// In en, this message translates to:
-  /// **'We can scan your photos from the last 7 days to automatically find food photos and add them to your diary.'**
+  /// **'We can scan your photos from the last 1 day to automatically find food photos and add them to your diary.'**
   String get retroScanDescription;
 
   /// No description provided for @retroScanNote.
@@ -4845,7 +4965,7 @@ abstract class L10n {
   /// No description provided for @retroScanTagline.
   ///
   /// In en, this message translates to:
-  /// **'MiRO is transforming your\nfood photos into health data.'**
+  /// **'ArCal is transforming your\nfood photos into health data.'**
   String get retroScanTagline;
 
   /// No description provided for @retroScanFetchingPhotos.
@@ -4863,7 +4983,7 @@ abstract class L10n {
   /// No description provided for @retroScanPhotosFound.
   ///
   /// In en, this message translates to:
-  /// **'{count} photos found in last 7 days'**
+  /// **'{count} photos found in last 1 day'**
   String retroScanPhotosFound(int count);
 
   /// No description provided for @retroScanCompleteTitle.
@@ -4887,7 +5007,7 @@ abstract class L10n {
   /// No description provided for @retroScanNoResultsDesc.
   ///
   /// In en, this message translates to:
-  /// **'No food photos detected in the last 7 days. Try taking a photo of your next meal!'**
+  /// **'No food photos detected in the last 1 day. Try taking a photo of your next meal!'**
   String get retroScanNoResultsDesc;
 
   /// No description provided for @retroScanAnalyzeHint.
@@ -4905,13 +5025,13 @@ abstract class L10n {
   /// No description provided for @welcomeEndTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to MiRO!'**
+  /// **'Welcome to ArCal!'**
   String get welcomeEndTitle;
 
   /// No description provided for @welcomeEndMessage.
   ///
   /// In en, this message translates to:
-  /// **'MiRO is at your service.'**
+  /// **'ArCal is at your service.'**
   String get welcomeEndMessage;
 
   /// No description provided for @welcomeEndJourney.
@@ -4947,13 +5067,13 @@ abstract class L10n {
   /// No description provided for @greetingRenamePhotoTip.
   ///
   /// In en, this message translates to:
-  /// **'Tip: You can rename food photos to help MiRO analyze more accurately!'**
+  /// **'Tip: You can rename food photos to help ArCal analyze more accurately!'**
   String get greetingRenamePhotoTip;
 
   /// No description provided for @greetingAddIngredientsTip.
   ///
   /// In en, this message translates to:
-  /// **'Tip: You can add ingredients you\'re sure about before sending to MiRO for analysis. I\'ll figure out all the boring little details for you!'**
+  /// **'Tip: You can add ingredients you\'re sure about before sending to ArCal for analysis. I\'ll figure out all the boring little details for you!'**
   String get greetingAddIngredientsTip;
 
   /// No description provided for @greetingBackupReminder.
@@ -5003,6 +5123,66 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Exit'**
   String get exitButton;
+
+  /// No description provided for @imageFoodNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything special? e.g. has hidden meat inside'**
+  String get imageFoodNameHint;
+
+  /// No description provided for @reanalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze'**
+  String get reanalyze;
+
+  /// No description provided for @reanalyzeFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get reanalyzeFree;
+
+  /// No description provided for @reanalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing...'**
+  String get reanalyzing;
+
+  /// No description provided for @reanalyzeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis updated!'**
+  String get reanalyzeSuccess;
+
+  /// No description provided for @savedAsNewMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved as new meal: {name}'**
+  String savedAsNewMeal(String name);
+
+  /// No description provided for @keepOrReanalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which ingredients to keep?'**
+  String get keepOrReanalyzeTitle;
+
+  /// No description provided for @keepOrReanalyzeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked items will be kept, unchecked will be re-analyzed'**
+  String get keepOrReanalyzeDesc;
+
+  /// No description provided for @dailyCapReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily analysis limit reached ({count}/{max}). Try again tomorrow!'**
+  String dailyCapReached(int count, int max);
+
+  /// No description provided for @dailyCapPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily limit reached after analyzing {done} items. Remaining items will be available tomorrow.'**
+  String dailyCapPartial(int done);
 
   /// No description provided for @amountAutoAdjust.
   ///
@@ -5170,7 +5350,7 @@ abstract class L10n {
   /// No description provided for @noIngredientsHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap \"Add\" button to add ingredients\nOr enter total nutrition below'**
+  /// **'No ingredients yet. Tap add to record.'**
   String get noIngredientsHint;
 
   /// No description provided for @totalNutritionTitle.
@@ -5693,7 +5873,7 @@ abstract class L10n {
   /// No description provided for @bmrDialogDescription.
   ///
   /// In en, this message translates to:
-  /// **'MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.'**
+  /// **'ArCal uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.'**
   String get bmrDialogDescription;
 
   /// No description provided for @healthSyncEnabledBmrHint.
@@ -5947,6 +6127,858 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Unable to load prices from the Store right now'**
   String get subscriptionCannotLoadPrices;
+
+  /// No description provided for @cloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get cloudSync;
+
+  /// No description provided for @cloudSyncSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Data synced'**
+  String get cloudSyncSynced;
+
+  /// No description provided for @cloudSyncPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} entries pending sync'**
+  String cloudSyncPending(int count);
+
+  /// No description provided for @cloudSyncLastDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync: {date}'**
+  String cloudSyncLastDate(String date);
+
+  /// No description provided for @cloudSyncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never synced'**
+  String get cloudSyncNever;
+
+  /// No description provided for @cloudSyncAutoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-syncs when app opens for the first time each day'**
+  String get cloudSyncAutoDescription;
+
+  /// No description provided for @cloudSyncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now'**
+  String get cloudSyncNow;
+
+  /// No description provided for @cloudSyncSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data synced successfully'**
+  String get cloudSyncSuccess;
+
+  /// No description provided for @cloudSyncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync failed: {error}'**
+  String cloudSyncFailed(String error);
+
+  /// No description provided for @backupExportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export file for device transfer'**
+  String get backupExportSubtitle;
+
+  /// No description provided for @foodResearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Research'**
+  String get foodResearch;
+
+  /// No description provided for @foodResearchSubtitleOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Helping improve food AI analysis'**
+  String get foodResearchSubtitleOn;
+
+  /// No description provided for @foodResearchSubtitleOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Help food research with your food photos'**
+  String get foodResearchSubtitleOff;
+
+  /// No description provided for @foodResearchDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Environment Research'**
+  String get foodResearchDialogTitle;
+
+  /// No description provided for @foodResearchDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Help us improve food AI analysis by sharing your food photo data'**
+  String get foodResearchDialogDescription;
+
+  /// No description provided for @foodResearchWhatWeAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'What we analyze:'**
+  String get foodResearchWhatWeAnalyze;
+
+  /// No description provided for @foodResearchAnalyze1.
+  ///
+  /// In en, this message translates to:
+  /// **'Food, beverages, snacks in photos'**
+  String get foodResearchAnalyze1;
+
+  /// No description provided for @foodResearchAnalyze2.
+  ///
+  /// In en, this message translates to:
+  /// **'Food brand + size (helps calibrate portion)'**
+  String get foodResearchAnalyze2;
+
+  /// No description provided for @foodResearchAnalyze3.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant (if logo is visible)'**
+  String get foodResearchAnalyze3;
+
+  /// No description provided for @foodResearchAnalyze4.
+  ///
+  /// In en, this message translates to:
+  /// **'Utensils, plates, bowls'**
+  String get foodResearchAnalyze4;
+
+  /// No description provided for @foodResearchWhatWeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'What we do NOT collect:'**
+  String get foodResearchWhatWeSkip;
+
+  /// No description provided for @foodResearchSkip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Faces, personal info'**
+  String get foodResearchSkip1;
+
+  /// No description provided for @foodResearchSkip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal belongings, clothing, bags'**
+  String get foodResearchSkip2;
+
+  /// No description provided for @foodResearchSkip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit cards, documents'**
+  String get foodResearchSkip3;
+
+  /// No description provided for @foodResearchPrivacyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is anonymized and used in aggregate only. You can turn this off anytime.'**
+  String get foodResearchPrivacyNote;
+
+  /// No description provided for @foodResearchDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get foodResearchDecline;
+
+  /// No description provided for @foodResearchAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'d like to help'**
+  String get foodResearchAccept;
+
+  /// No description provided for @foodResearchThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for supporting food research!'**
+  String get foodResearchThanks;
+
+  /// No description provided for @foodResearchDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Food research sharing disabled'**
+  String get foodResearchDisabled;
+
+  /// No description provided for @consentDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Research'**
+  String get consentDialogTitle;
+
+  /// No description provided for @consentAnalyticsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'App Usage Analytics'**
+  String get consentAnalyticsSection;
+
+  /// No description provided for @consentAnalyticsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We use Firebase Analytics to improve your app experience'**
+  String get consentAnalyticsDescription;
+
+  /// No description provided for @consentAnalyticsCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'What we collect: Feature usage, screens viewed'**
+  String get consentAnalyticsCollect;
+
+  /// No description provided for @consentAnalyticsNotCollect.
+  ///
+  /// In en, this message translates to:
+  /// **'Not collected: Food data, photos, health info'**
+  String get consentAnalyticsNotCollect;
+
+  /// No description provided for @consentAnalyticsAnonymous.
+  ///
+  /// In en, this message translates to:
+  /// **'Data is aggregated and anonymous'**
+  String get consentAnalyticsAnonymous;
+
+  /// No description provided for @consentFoodResearchSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Research (Optional)'**
+  String get consentFoodResearchSection;
+
+  /// No description provided for @consentChangeAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change these anytime in Profile → Settings'**
+  String get consentChangeAnytime;
+
+  /// No description provided for @ingredientSearchHintExample.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. egg, vegetable oil, ground pork'**
+  String get ingredientSearchHintExample;
+
+  /// No description provided for @freeIngredientSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Free ingredient search — no Energy cost!'**
+  String get freeIngredientSearch;
+
+  /// No description provided for @recoveryKeyRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore with Recovery Key'**
+  String get recoveryKeyRestoreTitle;
+
+  /// No description provided for @recoveryKeyRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Key from your old device, no file needed'**
+  String get recoveryKeyRestoreSubtitle;
+
+  /// No description provided for @recoveryKeyRegenerateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new Key?'**
+  String get recoveryKeyRegenerateConfirm;
+
+  /// No description provided for @recoveryKeyRegenerateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'The old Key will no longer work.\n\nIf you wrote it down, you\'ll need to note the new one instead.'**
+  String get recoveryKeyRegenerateWarning;
+
+  /// No description provided for @recoveryKeyRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new'**
+  String get recoveryKeyRegenerate;
+
+  /// No description provided for @recoveryKeyRegenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'New Recovery Key generated'**
+  String get recoveryKeyRegenerated;
+
+  /// No description provided for @recoveryKeyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover your account when switching devices'**
+  String get recoveryKeyDescription;
+
+  /// No description provided for @recoveryKeyRegenerateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate new Key'**
+  String get recoveryKeyRegenerateTooltip;
+
+  /// No description provided for @recoveryKeyLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get recoveryKeyLoading;
+
+  /// No description provided for @recoveryKeyHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get recoveryKeyHide;
+
+  /// No description provided for @recoveryKeyShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get recoveryKeyShow;
+
+  /// No description provided for @recoveryKeyCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key copied'**
+  String get recoveryKeyCopied;
+
+  /// No description provided for @recoveryKeyCopyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get recoveryKeyCopyTooltip;
+
+  /// No description provided for @recoveryKeyWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'⚠️ Keep this safe. Do not share with others.'**
+  String get recoveryKeyWarning;
+
+  /// No description provided for @restoreAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Account'**
+  String get restoreAccountTitle;
+
+  /// No description provided for @restoreFromRecoveryKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Recovery Key'**
+  String get restoreFromRecoveryKey;
+
+  /// No description provided for @restoreEnterKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the Recovery Key from your old device\nto recover your food history and Energy'**
+  String get restoreEnterKey;
+
+  /// No description provided for @restoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Account'**
+  String get restoreButton;
+
+  /// No description provided for @restoreKeyLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key is in Settings > Account on your old device'**
+  String get restoreKeyLocation;
+
+  /// No description provided for @restoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore successful!'**
+  String get restoreSuccess;
+
+  /// No description provided for @restoreFoodEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} food entries'**
+  String restoreFoodEntries(int count);
+
+  /// No description provided for @restoreProfileRecovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile & goals recovered'**
+  String get restoreProfileRecovered;
+
+  /// No description provided for @restoreStartUsing.
+  ///
+  /// In en, this message translates to:
+  /// **'Start using'**
+  String get restoreStartUsing;
+
+  /// No description provided for @restoreEmptyKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a Recovery Key'**
+  String get restoreEmptyKey;
+
+  /// No description provided for @restoreFailedGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to restore. Please check your Key.'**
+  String get restoreFailedGeneric;
+
+  /// No description provided for @restoreInvalidKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid Recovery Key. Please check again.'**
+  String get restoreInvalidKey;
+
+  /// No description provided for @restoreExpiredKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery Key has expired. Please generate a new one from the original device.'**
+  String get restoreExpiredKey;
+
+  /// No description provided for @restoreSameDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot restore on the same device'**
+  String get restoreSameDevice;
+
+  /// No description provided for @restoreNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please try again.'**
+  String get restoreNoInternet;
+
+  /// No description provided for @restoreErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String restoreErrorGeneric(String error);
+
+  /// No description provided for @nameChangeReAnalyzeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Food Name Changed'**
+  String get nameChangeReAnalyzeTitle;
+
+  /// No description provided for @nameChangeReAnalyzeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You changed the name to \"{newName}\"\nIngredients with ✓ will be re-analyzed\nUncheck to keep as-is'**
+  String nameChangeReAnalyzeMessage(String newName);
+
+  /// No description provided for @nameChangeReAnalyzeConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyze'**
+  String get nameChangeReAnalyzeConfirm;
+
+  /// No description provided for @nameChangeSaveAsIs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as-is'**
+  String get nameChangeSaveAsIs;
+
+  /// No description provided for @nameChangeAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analyzing ingredients...'**
+  String get nameChangeAnalyzing;
+
+  /// No description provided for @nameChangeAnalysisFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-analysis failed. Saved as-is.'**
+  String get nameChangeAnalysisFailed;
+
+  /// No description provided for @nameChangeNoIngredientToAnalyze.
+  ///
+  /// In en, this message translates to:
+  /// **'No ingredients to re-analyze'**
+  String get nameChangeNoIngredientToAnalyze;
+
+  /// No description provided for @freepassTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass'**
+  String get freepassTitle;
+
+  /// No description provided for @freepassActive.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get freepassActive;
+
+  /// No description provided for @freepassUnlimitedAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Analysis'**
+  String get freepassUnlimitedAI;
+
+  /// No description provided for @freepassDaysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days remaining'**
+  String freepassDaysRemaining(int days);
+
+  /// No description provided for @freepassDaysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass Days'**
+  String get freepassDaysTitle;
+
+  /// No description provided for @freepassDaysUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get freepassDaysUnit;
+
+  /// No description provided for @freepassDaysSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {days} days saved'**
+  String freepassDaysSaved(int days);
+
+  /// No description provided for @freepassDaysBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d'**
+  String freepassDaysBadge(int days);
+
+  /// No description provided for @freepassConvertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert Energy to Freepass'**
+  String get freepassConvertTitle;
+
+  /// No description provided for @freepassConvertRate.
+  ///
+  /// In en, this message translates to:
+  /// **'{energy} Energy = 1 Day of Unlimited AI'**
+  String freepassConvertRate(int energy);
+
+  /// No description provided for @freepassConvertDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Freepass days never expire. They auto-activate when your Energy Pass subscription ends.'**
+  String get freepassConvertDescription;
+
+  /// No description provided for @freepassConvertButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert (up to {days} days)'**
+  String freepassConvertButton(int days);
+
+  /// No description provided for @freepassConvertMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Need {energy} Energy minimum'**
+  String freepassConvertMinimum(int energy);
+
+  /// No description provided for @freepassConvertConverting.
+  ///
+  /// In en, this message translates to:
+  /// **'Converting...'**
+  String get freepassConvertConverting;
+
+  /// No description provided for @freepassConvertDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to Freepass'**
+  String get freepassConvertDialogTitle;
+
+  /// No description provided for @freepassConvertDialogQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How many days?'**
+  String get freepassConvertDialogQuestion;
+
+  /// No description provided for @freepassConvertDialogDay.
+  ///
+  /// In en, this message translates to:
+  /// **'day'**
+  String get freepassConvertDialogDay;
+
+  /// No description provided for @freepassConvertDialogDays.
+  ///
+  /// In en, this message translates to:
+  /// **'days'**
+  String get freepassConvertDialogDays;
+
+  /// No description provided for @freepassConvertDialogEnergyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Cost'**
+  String get freepassConvertDialogEnergyCost;
+
+  /// No description provided for @freepassConvertDialogRemainingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance'**
+  String get freepassConvertDialogRemainingBalance;
+
+  /// No description provided for @freepassConvertDialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert'**
+  String get freepassConvertDialogConfirm;
+
+  /// No description provided for @freepassConvertSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Converted {energy} Energy → {days} Freepass days!'**
+  String freepassConvertSuccess(int energy, int days);
+
+  /// No description provided for @freepassConvertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion failed'**
+  String get freepassConvertFailed;
+
+  /// No description provided for @freepassConvertError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error occurred during conversion'**
+  String get freepassConvertError;
+
+  /// No description provided for @freepassConvertServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Service temporarily unavailable. Please try again later.'**
+  String get freepassConvertServiceUnavailable;
+
+  /// No description provided for @subscriptionChangePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Plan'**
+  String get subscriptionChangePlan;
+
+  /// No description provided for @subscriptionChangePlanDescAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.'**
+  String get subscriptionChangePlanDescAndroid;
+
+  /// No description provided for @subscriptionChangePlanDescIos.
+  ///
+  /// In en, this message translates to:
+  /// **'You can upgrade or downgrade your plan through App Store subscription management.'**
+  String get subscriptionChangePlanDescIos;
+
+  /// No description provided for @subscriptionCurrentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'CURRENT'**
+  String get subscriptionCurrentPlan;
+
+  /// No description provided for @subscriptionChangePlanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get subscriptionChangePlanButton;
+
+  /// No description provided for @unifiedPermissionsScrollHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please scroll down to read all permissions, then tap Allow.'**
+  String get unifiedPermissionsScrollHint;
+
+  /// No description provided for @unifiedPermissionsScrollToEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll down to enable'**
+  String get unifiedPermissionsScrollToEnable;
+
+  /// No description provided for @unifiedPermissionsHealthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health App'**
+  String get unifiedPermissionsHealthTitle;
+
+  /// No description provided for @unifiedPermissionsHealthDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable in Settings to sync calories with Apple Health / Health Connect'**
+  String get unifiedPermissionsHealthDesc;
+
+  /// No description provided for @privacyConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Privacy Matters'**
+  String get privacyConsentTitle;
+
+  /// No description provided for @privacyConsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.'**
+  String get privacyConsentSubtitle;
+
+  /// No description provided for @privacyConsentNotifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get privacyConsentNotifTitle;
+
+  /// No description provided for @privacyConsentNotifDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get helpful reminders and updates about your nutrition tracking.'**
+  String get privacyConsentNotifDesc;
+
+  /// No description provided for @privacyConsentNotifBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily meal tracking reminders'**
+  String get privacyConsentNotifBullet1;
+
+  /// No description provided for @privacyConsentNotifBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak and achievement alerts'**
+  String get privacyConsentNotifBullet2;
+
+  /// No description provided for @privacyConsentNotifBullet3.
+  ///
+  /// In en, this message translates to:
+  /// **'You can turn off anytime in Settings'**
+  String get privacyConsentNotifBullet3;
+
+  /// No description provided for @privacyConsentResearchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Help improve food databases and nutritional accuracy for the community.'**
+  String get privacyConsentResearchDesc;
+
+  /// No description provided for @privacyConsentResearchBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymized food photos help train AI models'**
+  String get privacyConsentResearchBullet1;
+
+  /// No description provided for @privacyConsentResearchBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal data is ever shared'**
+  String get privacyConsentResearchBullet2;
+
+  /// No description provided for @privacyConsentAdsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertising'**
+  String get privacyConsentAdsTitle;
+
+  /// No description provided for @privacyConsentAdsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalized ads help keep ArCal free. You can opt out anytime.'**
+  String get privacyConsentAdsDesc;
+
+  /// No description provided for @privacyConsentAdsBullet1.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are never based on your food or health data'**
+  String get privacyConsentAdsBullet1;
+
+  /// No description provided for @privacyConsentAdsBullet2.
+  ///
+  /// In en, this message translates to:
+  /// **'Opt out to see generic, non-personalized ads'**
+  String get privacyConsentAdsBullet2;
+
+  /// No description provided for @privacyConsentHealthNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.'**
+  String get privacyConsentHealthNote;
+
+  /// No description provided for @privacyConsentReadPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Read full Privacy Policy'**
+  String get privacyConsentReadPolicy;
+
+  /// No description provided for @privacyConsentAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get privacyConsentAccept;
+
+  /// No description provided for @privacyConsentOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get privacyConsentOptional;
+
+  /// No description provided for @arScan.
+  ///
+  /// In en, this message translates to:
+  /// **'AR Scan'**
+  String get arScan;
+
+  /// No description provided for @arScanPositionFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Position food in the frame'**
+  String get arScanPositionFood;
+
+  /// No description provided for @arScanStartCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Scanning'**
+  String get arScanStartCapture;
+
+  /// No description provided for @arScanContinueAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Analysis'**
+  String get arScanContinueAnalysis;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @pickFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick from Gallery'**
+  String get pickFromGallery;
+
+  /// No description provided for @arScanFoodNotDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Food not detect'**
+  String get arScanFoodNotDetected;
+
+  /// No description provided for @arScanAngleTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get arScanAngleTop;
+
+  /// No description provided for @arScanAngleDiagonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagonal'**
+  String get arScanAngleDiagonal;
+
+  /// No description provided for @arScanAngleSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Side'**
+  String get arScanAngleSide;
+
+  /// No description provided for @arScanAngleProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current}/{total}'**
+  String arScanAngleProgress(int current, int total);
+
+  /// No description provided for @arScanAngleCaptured.
+  ///
+  /// In en, this message translates to:
+  /// **'{zone} angle captured ({current}/{total})'**
+  String arScanAngleCaptured(String zone, int current, int total);
+
+  /// No description provided for @arScanTapToCapture.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap anywhere to capture'**
+  String get arScanTapToCapture;
+
+  /// No description provided for @arScanMoveToAngle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tilt to next angle'**
+  String get arScanMoveToAngle;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

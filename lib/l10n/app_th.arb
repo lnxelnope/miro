@@ -1,7 +1,7 @@
 {
   "@@locale": "th",
 
-  "appName": "MiRO",
+  "appName": "ArCal",
   
   "save": "บันทึก",
   "cancel": "ยกเลิก",
@@ -94,7 +94,7 @@
   "deleteKey": "ลบ API Key",
   "openAiStudio": "เปิด Google AI Studio",
 
-  "chatHint": "สั่ง Miro เช่น \"บันทึกข้าวผัด\"...",
+  "chatHint": "สั่ง ArCal เช่น \"บันทึกข้าวผัด\"...",
   "chatFoodSaved": "บันทึกอาหารแล้ว!",
   "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
   "@chatFoodSavedDetail": {
@@ -132,7 +132,7 @@
   "language": "ภาษา",
 
   "upgradePro": "อัปเกรด Pro",
-  "proUnlocked": "MiRO Pro",
+  "proUnlocked": "ArCal Pro",
   "proDescription": "ใช้ AI วิเคราะห์อาหารไม่จำกัด",
   "aiRemaining": "AI วิเคราะห์: เหลือ {remaining}/{total} ครั้งวันนี้",
   "@aiRemaining": {
@@ -147,6 +147,11 @@
   },
   "aiLimitReached": "ใช้ AI ครบ 3 ครั้งแล้ววันนี้",
   "restorePurchase": "กู้คืนการซื้อ",
+  "restorePurchaseSubtitle": "กู้คืน Energy Pass ที่เคยซื้อไว้",
+  "restorePurchaseRestoring": "กำลังกู้คืนการซื้อ…",
+  "restorePurchaseSuccess": "กู้คืนการซื้อสำเร็จ!",
+  "restorePurchaseNotFound": "ไม่พบรายการซื้อก่อนหน้าสำหรับ Apple ID นี้",
+  "restorePurchaseFailed": "กู้คืนการซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
 
   "myMeals": "เมนูของฉัน",
   "createMeal": "สร้างเมนู",
@@ -161,7 +166,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "MiRO",
+  "welcomeTitle": "ArCal",
   "welcomeSubtitle": "บันทึกอาหารง่ายๆ ด้วย AI",
   "onboardingFeature1": "ถ่ายรูปอาหาร",
   "onboardingFeature1Desc": "AI วิเคราะห์ kcal อัตโนมัติ",
@@ -244,10 +249,10 @@
   "appBarMyMeals": "เมนูของฉัน",
   "appBarCamera": "กล้อง",
   "appBarAiChat": "แชท AI",
-  "appBarMiro": "MIRO",
+  "appBarMiro": "ArCal",
   
   "permissionRequired": "ต้องการสิทธิ์",
-  "permissionRequiredDesc": "MIRO ต้องการเข้าถึง:",
+  "permissionRequiredDesc": "ArCal ต้องการเข้าถึง:",
   "permissionPhotos": "รูปภาพ — เพื่อสแกนอาหาร",
   "permissionCamera": "กล้อง — เพื่อถ่ายรูปอาหาร",
   "permissionSkip": "ข้าม",
@@ -825,6 +830,7 @@
     }
   },
   "intakeGoalLabel": "การกิน",
+  "activeBurnLabel": "เผาผลาญ",
   "netEnergyLabel": "พลังงานสุทธิ",
   "underEatingWarning": "กินน้อยเกินไป",
   "surplusWarning": "เกินเป้าหมาย",
@@ -940,14 +946,13 @@
     }
   },
   "cancelDateChange": "ยกเลิกการเปลี่ยนวันที่",
-  "confirm": "ยืนยัน",
   "undo": "ยกเลิก",
 
   "chatHistory": "ประวัติการแชท",
   "newChat": "แชทใหม่",
   "quickActions": "การกระทำด่วน",
   "clear": "ล้าง",
-  "helloImMiro": "สวัสดี! ผมคือ Miro",
+  "helloImMiro": "สวัสดี! ผมคือ ArCal",
   "tellMeWhatYouAteToday": "บอกผมว่าคุณกินอะไรวันนี้!",
   "tellMeWhatYouAte": "บอกผมว่าคุณกินอะไร...",
   "clearHistoryTitle": "ล้างประวัติ?",
@@ -1120,7 +1125,7 @@
   "localAiHelpTitle": "🤖 คำแนะนำ Local AI",
   "localAiHelpFormat": "รูปแบบ: [อาหาร] [ปริมาณ] [หน่วย]",
   "localAiHelpExamples": "ตัวอย่าง:\n• chicken 100g and rice 200g\n• pizza 2 slices\n• apple 1 piece, banana 1 piece",
-  "localAiHelpNote": "หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ Miro AI เพื่อผลลัพธ์ที่ดีกว่า!",
+  "localAiHelpNote": "หมายเหตุ: ภาษาอังกฤษเท่านั้น การแยกคำพื้นฐาน\nเปลี่ยนไปใช้ ArCal AI เพื่อผลลัพธ์ที่ดีกว่า!",
   "hiNoFoodLogged": "🤖 สวัสดี! ยังไม่มีอาหารบันทึกวันนี้\n   เป้าหมาย: {target} kcal — พร้อมเริ่มบันทึกแล้วหรือยัง? 🍽️",
   "@hiNoFoodLogged": {
     "placeholders": {
@@ -1256,7 +1261,7 @@
   "referralCopy": "คัดลอก",
   "referralShareCodeDescription": "แชร์รหัสนี้กับเพื่อน! เมื่อเพื่อนใช้ AI 3 ครั้ง คุณทั้งคู่จะได้รับรางวัล!",
   "referralEnterReferralCode": "ใส่รหัสแนะนำ",
-  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralCodeHint": "ARCAL-XXXX-XXXX-XXXX",
   "referralSubmitCode": "ส่งรหัส",
   "referralPleaseEnterCode": "กรุณาใส่รหัสแนะนำ",
   "referralCodeAccepted": "ยอมรับรหัสแนะนำแล้ว!",
@@ -1271,7 +1276,7 @@
   },
   "referralHowItWorks": "วิธีใช้งาน",
   "referralStep1Title": "แชร์รหัสแนะนำของคุณ",
-  "referralStep1Description": "คัดลอกและแชร์ MiRO ID ของคุณกับเพื่อน",
+  "referralStep1Description": "คัดลอกและแชร์ ArCal ID ของคุณกับเพื่อน",
   "referralStep2Title": "เพื่อนใส่รหัสของคุณ",
   "referralStep2Description": "เพื่อนจะได้รับ +20 พลังงานทันที",
   "referralStep3Title": "เพื่อนใช้ AI 3 ครั้ง",
@@ -1328,6 +1333,7 @@
   "subscriptionSubscribe": "สมัครสมาชิก",
   "subscriptionCancelAnytime": "ยกเลิกได้ทุกเมื่อ",
   "subscriptionAutoRenewTerms": "การสมัครสมาชิกของคุณจะต่ออายุอัตโนมัติ คุณสามารถยกเลิกได้ทุกเมื่อจาก Google Play",
+  "subscriptionAutoRenewTermsIos": "ค่าสมัครจะถูกเรียกเก็บจากบัญชี Apple ID ของคุณเมื่อยืนยันการซื้อ การสมัครจะต่ออายุอัตโนมัติ เว้นแต่จะยกเลิกก่อนสิ้นสุดรอบปัจจุบันอย่างน้อย 24 ชั่วโมง คุณสามารถจัดการและยกเลิกการสมัครได้ในการตั้งค่าบัญชี App Store",
   "subscriptionRenewsDate": "ต่ออายุ: {date}",
   "@subscriptionRenewsDate": {
     "placeholders": {
@@ -1366,7 +1372,7 @@
   "disclaimerIUnderstand": "ฉันเข้าใจแล้ว",
 
   "privacyPolicyTitle": "นโยบายความเป็นส่วนตัว",
-  "privacyPolicySubtitle": "MiRO — My Intake Record Oracle",
+  "privacyPolicySubtitle": "ArCal — AI Calorie Counter",
   "privacyPolicyHeaderNote": "ข้อมูลอาหารของคุณเก็บไว้บนอุปกรณ์ของคุณ พลังงานซิงค์อย่างปลอดภัยผ่าน Firebase",
   "privacyPolicySectionInformationWeCollect": "ข้อมูลที่เรารวบรวม",
   "privacyPolicySectionDataStorage": "การเก็บข้อมูล",
@@ -1383,7 +1389,7 @@
   "privacyPolicyEffectiveDate": "วันที่มีผลบังคับใช้: 18 กุมภาพันธ์ 2026\nอัพเดทล่าสุด: 18 กุมภาพันธ์ 2026",
 
   "termsOfServiceTitle": "เงื่อนไขการใช้งาน",
-  "termsSubtitle": "MiRO — My Intake Record Oracle",
+  "termsSubtitle": "ArCal — AI Calorie Counter",
   "termsSectionAcceptanceOfTerms": "การยอมรับเงื่อนไข",
   "termsSectionServiceDescription": "คำอธิบายบริการ",
   "termsSectionDisclaimerOfWarranties": "ข้อจำกัดความรับผิด",
@@ -1398,7 +1404,7 @@
   "termsSectionChangesToTerms": "การเปลี่ยนแปลงเงื่อนไข",
   "termsSectionGoverningLaw": "กฎหมายที่ใช้บังคับ",
   "termsSectionContactUs": "ติดต่อเรา",
-  "termsAcknowledgment": "โดยการใช้ MiRO คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว",
+  "termsAcknowledgment": "โดยการใช้ ArCal คุณยอมรับว่าคุณได้อ่าน เข้าใจ และยอมรับเงื่อนไขการใช้งานเหล่านี้แล้ว",
   "termsLastUpdated": "อัพเดทล่าสุด: 15 กุมภาพันธ์ 2026",
 
   "profileAndSettings": "โปรไฟล์และการตั้งค่า",
@@ -1414,7 +1420,7 @@
   "dailyGoals": "เป้าหมายรายวัน",
   "chatAiModeSection": "โหมด Chat AI",
   "selectAiPowersChat": "เลือก AI ที่จะใช้ในแชท",
-  "miroAi": "Miro AI",
+  "miroAi": "ArCal AI",
   "miroAiSubtitle": "ใช้ Gemini • รองรับหลายภาษา • ความแม่นยำสูง",
   "localAi": "Local AI",
   "localAiSubtitle": "ทำงานบนอุปกรณ์ • ภาษาอังกฤษเท่านั้น • ความแม่นยำพื้นฐาน",
@@ -1442,8 +1448,8 @@
     }
   },
   "accountSection": "บัญชี",
-  "miroId": "MiRO ID",
-  "miroIdCopied": "คัดลอก MiRO ID แล้ว!",
+  "miroId": "ArCal ID",
+  "miroIdCopied": "คัดลอก ArCal ID แล้ว!",
   "inviteFriends": "เชิญเพื่อน",
   "inviteFriendsSubtitle": "แชร์รหัสแนะนำของคุณและรับรางวัล!",
   "unlimitedAiDoubleRewards": "AI ไม่จำกัด + รางวัลสองเท่า",
@@ -1463,18 +1469,29 @@
   "restoreFromBackupSubtitle": "นำเข้าข้อมูลจากไฟล์สำรอง",
   "clearAllDataTitle": "ล้างข้อมูลทั้งหมด?",
   "clearAllDataContent": "ข้อมูลทั้งหมดจะถูกลบ:\n• รายการอาหาร\n• อาหารของฉัน\n• ส่วนผสม\n• เป้าหมาย\n• ข้อมูลส่วนตัว\n\nไม่สามารถกู้คืนได้!",
+  "clearAllDataStorageDetails": "รวมถึง: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)",
   "deleteAll": "ลบทั้งหมด",
   "allDataClearedSuccess": "ล้างข้อมูลทั้งหมดเรียบร้อย",
+  "deleteAccount": "ลบบัญชี",
+  "deleteAccountSubtitle": "ลบข้อมูลทั้งหมดจากอุปกรณ์และคลาวด์",
+  "deleteAccountTitle": "ลบบัญชี?",
+  "deleteAccountContent": "การดำเนินการนี้จะลบอย่างถาวร:\n• ข้อมูลในเครื่องทั้งหมด (รายการอาหาร, เมนู, เป้าหมาย)\n• ข้อมูลบนคลาวด์ (พลังงาน, ข้อมูลสำรอง)\n• ข้อมูลการสมัครสมาชิก\n\nไม่สามารถกู้คืนได้",
+  "deleteAccountConfirm": "ลบบัญชี",
+  "deleteAccountSuccess": "ลบบัญชีเรียบร้อย",
+  "deleteAccountFailed": "ลบบัญชีไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+  "deleteAccountDeleting": "กำลังลบบัญชี…",
   "aboutSection": "เกี่ยวกับ",
   "version": "เวอร์ชัน",
   "privacyPolicy": "นโยบายความเป็นส่วนตัว",
   "termsOfService": "เงื่อนไขการใช้งาน",
+  "eula": "ข้อตกลงสิทธิ์การใช้งาน",
   "healthDisclaimer": "ข้อจำกัดความรับผิดด้านสุขภาพ",
   "importantLegalInformation": "ข้อมูลกฎหมายสำคัญ",
   "showTutorialAgain": "แสดงทัวร์อีกครั้ง",
   "viewFeatureTour": "ดูทัวร์ฟีเจอร์",
   "showTutorialDialogTitle": "แสดงทัวร์",
-  "showTutorialDialogContent": "จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ Miro AI\n\nคุณจะกลับไปที่หน้าหลัก",
+  "showTutorialDialogContent": "จะแสดงทัวร์ฟีเจอร์ที่เน้น:\n\n• ระบบพลังงาน\n• ดึงลงเพื่อสแกนรูปภาพ\n• แชทกับ ArCal AI\n\nคุณจะกลับไปที่หน้าหลัก",
   "showTutorialButton": "แสดงทัวร์",
   "tutorialResetMessage": "รีเซ็ตทัวร์แล้ว! ไปที่หน้าหลักเพื่อดู",
   "foodAnalysisTutorial": "ทัวร์การวิเคราะห์อาหาร",
@@ -1514,6 +1531,8 @@
   "appWillRefresh": "แอปจะรีเฟรชเพื่อแสดงข้อมูลที่กู้คืน",
   "backupFailed": "สร้างสำรองข้อมูลล้มเหลว",
   "invalidBackupFile": "ไฟล์สำรองข้อมูลไม่ถูกต้อง",
+  "restoreSelectDataFile": "ไฟล์นี้มีเฉพาะ Energy เท่านั้น หากต้องการกู้คืนรายการอาหาร กรุณาเลือกไฟล์ข้อมูล (arcal_data_*.json) แทน",
+  "restoreZeroEntriesHint": "ไม่มีรายการอาหารถูกนำเข้า กรุณาตรวจสอบว่าเลือกไฟล์ข้อมูล (arcal_data_*.json) ไม่ใช่ไฟล์ energy",
   "restoreFailed": "กู้คืนล้มเหลว",
   "analyticsDataCollection": "การเก็บข้อมูลการวิเคราะห์",
   "analyticsEnabled": "เปิดการวิเคราะห์แล้ว - ขอบคุณที่ช่วยปรับปรุงแอป",
@@ -1659,7 +1678,7 @@
   "questBarClaimed": "เคลมแล้ว!",
   "questBarHideOffer": "ซ่อน",
   "questBarViewDetails": "ดูเลย",
-  "questBarShareText": "มาลองแอป MiRO กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n{link}",
+  "questBarShareText": "มาลองแอป ArCal กัน! วิเคราะห์อาหารด้วย AI 🍔\nใช้ลิงก์นี้ — คุณได้ +5 Energy เพื่อนได้ +20 Energy ฟรี!\n\n{link}",
   "@questBarShareText": {
     "placeholders": {
       "link": {
@@ -1667,7 +1686,7 @@
       }
     }
   },
-  "questBarShareSubject": "ชวนใช้ MiRO",
+  "questBarShareSubject": "ชวนใช้ ArCal",
 
   "claimButtonTitle": "กดเพื่อรับ Daily Energy",
   "claimButtonReceived": "ได้รับ +{energy}E แล้ว!",
@@ -1840,15 +1859,15 @@
   "pleaseAddAtLeastOneIngredient": "กรุณาเพิ่มวัตถุดิบอย่างน้อย 1 รายการ",
   "hiddenIngredientsDiscovered": "วัตถุดิบที่ AI ค้นพบ",
   "retroScanTitle": "สแกนรูปย้อนหลัง?",
-  "retroScanDescription": "เราสามารถสแกนรูปภาพ 7 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ",
+  "retroScanDescription": "เราสามารถสแกนรูปภาพ 1 วันที่ผ่านมา เพื่อค้นหารูปอาหารและเพิ่มลง diary ให้อัตโนมัติ",
   "retroScanNote": "ตรวจจับเฉพาะรูปอาหาร — รูปอื่นจะถูกข้าม ไม่มีรูปถูกส่งออกนอกเครื่อง",
   "retroScanStart": "สแกนรูปของฉัน",
   "retroScanSkip": "ข้ามไปก่อน",
   "retroScanInProgress": "กำลังสแกน...",
-  "retroScanTagline": "MiRO กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ",
+  "retroScanTagline": "ArCal กำลังเปลี่ยนรูปอาหารของคุณ\nให้เป็นข้อมูลสุขภาพ",
   "retroScanFetchingPhotos": "กำลังดึงรูปภาพล่าสุด...",
   "retroScanAnalyzing": "กำลังตรวจจับรูปอาหาร...",
-  "retroScanPhotosFound": "พบ {count} รูปใน 7 วันที่ผ่านมา",
+  "retroScanPhotosFound": "พบ {count} รูปใน 1 วันที่ผ่านมา",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1866,11 +1885,11 @@
     }
   },
   "retroScanNoResultsTitle": "ไม่พบรูปอาหาร",
-  "retroScanNoResultsDesc": "ไม่พบรูปอาหารใน 7 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!",
+  "retroScanNoResultsDesc": "ไม่พบรูปอาหารใน 1 วันที่ผ่านมา ลองถ่ายรูปมื้อต่อไปดูนะ!",
   "retroScanAnalyzeHint": "กด \"วิเคราะห์ทั้งหมด\" บน timeline เพื่อให้ AI วิเคราะห์โภชนาการ",
   "retroScanDone": "เข้าใจแล้ว!",
-  "welcomeEndTitle": "ยินดีต้อนรับสู่ MiRO!",
-  "welcomeEndMessage": "MiRO ยินดีรับใช้",
+  "welcomeEndTitle": "ยินดีต้อนรับสู่ ArCal!",
+  "welcomeEndMessage": "ArCal ยินดีรับใช้",
   "welcomeEndJourney": "Have a nice journey together!!",
   "welcomeEndStart": "เริ่มใช้งานเลย!",
   "greetingCalorieSummary": "สวัสดีค่ะ วันนี้ช่วยอะไรได้บ้าง? ตอนนี้คุณเหลือแคลอรี่ให้ทานอีก {remaining} kcal ทานโปรตีน {protein}g คาร์บ {carbs}g ไขมัน {fat}g ทานอะไรเล่าให้ฉันฟัง แยกเป็นมื้อๆ มาทีเดียวได้เลยค่ะ ดิฉันจะแยกเป็นรายการๆ และบันทึกให้เองค่ะ ยิ่งบอกละเอียด ยิ่งแม่นยำคะ",
@@ -1894,8 +1913,8 @@
       "balance": { "type": "int" }
     }
   },
-  "greetingRenamePhotoTip": "คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ MiRO วิเคราะห์ได้แม่นยำขึ้นนะคะ",
-  "greetingAddIngredientsTip": "คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ MiRO วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง",
+  "greetingRenamePhotoTip": "คุณสามารถเปลี่ยนชื่ออาหารของรูปถ่ายเพื่อให้ ArCal วิเคราะห์ได้แม่นยำขึ้นนะคะ",
+  "greetingAddIngredientsTip": "คุณสามารถเพิ่มวัตถุดิบที่คุณมั่นใจในปริมาณที่ทานไปในรายการก่อนส่งมาให้ ArCal วิเคราะห์ได้นะ ฉันจะวิเคราะห์ส่วนยิบย่อยน่าเบื่อให้เอง",
   "greetingBackupReminder": "เจ้านายตอนนี้คุณไม่ได้ backup ข้อมูลมาแล้ว {days} วันนะคะ ดิฉันแนะนำให้ backup ใน Setting เพราะข้อมูลของเจ้านายอยู่ในเครื่อง ไม่ได้อยู่ใน internet และฉันไม่สามารถกู้คืนข้อมูลให้ได้นะคะ",
   "@greetingBackupReminder": {
     "placeholders": {
@@ -1970,7 +1989,7 @@
   "bmrSettingTitle": "BMR (อัตราการเผาผลาญขั้นพื้นฐาน)",
   "bmrSettingSubtitle": "ใช้คำนวณพลังงานจากการเคลื่อนไหว",
   "bmrDialogTitle": "ตั้งค่า BMR ของคุณ",
-  "bmrDialogDescription": "MiRO ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
+  "bmrDialogDescription": "ArCal ใช้ค่า BMR หักพลังงานพื้นฐานออกจากพลังงานรวมที่เผาผลาญ เพื่อแสดงเฉพาะพลังงานจากการเคลื่อนไหว ค่าเริ่มต้น 1500 kcal/วัน คุณสามารถดูค่า BMR ได้จากแอปสุขภาพหรือเครื่องคำนวณออนไลน์",
   "healthSyncEnabledBmrHint": "เปิด Health Sync แล้ว BMR เริ่มต้น: 1500 kcal/วัน — ปรับได้ใน Settings",
   "privacyPolicySectionHealthData": "การเชื่อมต่อข้อมูลสุขภาพ",
   "termsSectionHealthDataSync": "การซิงค์ข้อมูลสุขภาพ",
@@ -2020,5 +2039,201 @@
   "subscriptionAutoRenewOff": "ปิด — หมดอายุเมื่อสิ้นสุดรอบ",
   "subscriptionManagedByAppStore": "การสมัครสมาชิกจัดการผ่าน App Store",
   "subscriptionManagedByPlayStore": "การสมัครสมาชิกจัดการผ่าน Google Play",
-  "subscriptionCannotLoadPrices": "ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้"
+  "subscriptionCannotLoadPrices": "ไม่สามารถโหลดราคาจาก Store ได้ในขณะนี้",
+
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSynced": "ข้อมูลซิงค์แล้ว",
+  "cloudSyncPending": "{count} รายการรอซิงค์",
+  "@cloudSyncPending": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cloudSyncLastDate": "ซิงค์ล่าสุด: {date}",
+  "@cloudSyncLastDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cloudSyncNever": "ยังไม่เคยซิงค์",
+  "cloudSyncAutoDescription": "ซิงค์อัตโนมัติเมื่อเปิดแอปครั้งแรกของวัน",
+  "cloudSyncNow": "ซิงค์ตอนนี้",
+  "cloudSyncSuccess": "ซิงค์ข้อมูลสำเร็จ",
+  "cloudSyncFailed": "ซิงค์ไม่สำเร็จ: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "backupExportSubtitle": "ส่งออกไฟล์สำหรับย้ายเครื่อง",
+
+  "foodResearch": "Food Research",
+  "foodResearchSubtitleOn": "กำลังช่วยพัฒนา AI วิเคราะห์อาหาร",
+  "foodResearchSubtitleOff": "ร่วมวิจัยด้านอาหารด้วยรูปอาหารของคุณ",
+  "foodResearchDialogTitle": "Food Environment Research",
+  "foodResearchDialogDescription": "ช่วยเราพัฒนา AI วิเคราะห์อาหารให้ดีขึ้นด้วยการแชร์ข้อมูลรูปอาหาร",
+  "foodResearchWhatWeAnalyze": "สิ่งที่วิเคราะห์:",
+  "foodResearchAnalyze1": "อาหาร, เครื่องดื่ม, ขนม ในรูป",
+  "foodResearchAnalyze2": "ยี่ห้อ + ขนาดสินค้าอาหาร (ช่วย calibrate portion)",
+  "foodResearchAnalyze3": "ร้านอาหาร (ถ้าเห็นโลโก้)",
+  "foodResearchAnalyze4": "ภาชนะ, ช้อนส้อม",
+  "foodResearchWhatWeSkip": "สิ่งที่ไม่เก็บ:",
+  "foodResearchSkip1": "ใบหน้า, ข้อมูลส่วนตัว",
+  "foodResearchSkip2": "ของใช้ส่วนตัว, เสื้อผ้า, กระเป๋า",
+  "foodResearchSkip3": "บัตรเครดิต, เอกสาร",
+  "foodResearchPrivacyNote": "ข้อมูลจะถูก anonymize และใช้เป็น aggregate เท่านั้น ปิดได้ทุกเมื่อ",
+  "foodResearchDecline": "ไม่ร่วม",
+  "foodResearchAccept": "ยินดีร่วม",
+  "foodResearchThanks": "ขอบคุณที่ร่วมสนับสนุนงานวิจัยด้านอาหาร!",
+  "foodResearchDisabled": "ปิดการแชร์ข้อมูลเพื่อวิจัยแล้ว",
+  "noIngredientsHint": "ยังไม่มีวัตถุดิบ กดเพิ่มเพื่อบันทึก",
+
+  "consentDialogTitle": "ข้อมูล & งานวิจัย",
+  "consentAnalyticsSection": "ข้อมูลการใช้งานแอป",
+  "consentAnalyticsDescription": "เราใช้ Firebase Analytics เพื่อพัฒนาประสบการณ์การใช้แอป",
+  "consentAnalyticsCollect": "เก็บ: การใช้ฟีเจอร์, หน้าที่เข้าชม",
+  "consentAnalyticsNotCollect": "ไม่เก็บ: ข้อมูลอาหาร, รูปภาพ, ข้อมูลสุขภาพ",
+  "consentAnalyticsAnonymous": "ข้อมูลถูกรวมและเป็นนิรนาม",
+  "consentFoodResearchSection": "วิจัยด้านอาหาร (ทางเลือก)",
+  "consentChangeAnytime": "เปลี่ยนได้ทุกเมื่อใน โปรไฟล์ → ตั้งค่า",
+
+  "ingredientSearchHintExample": "เช่น ไข่, น้ำมันพืช, หมูสับ",
+  "freeIngredientSearch": "ค้นหาวัตถุดิบฟรี ไม่เสีย Energy!",
+
+  "recoveryKeyRestoreTitle": "กู้คืนด้วย Recovery Key",
+  "recoveryKeyRestoreSubtitle": "ใช้ Key จากเครื่องเดิม ไม่ต้องใช้ไฟล์",
+  "recoveryKeyRegenerateConfirm": "สร้าง Key ใหม่?",
+  "recoveryKeyRegenerateWarning": "Key เก่าจะใช้ไม่ได้อีก\n\nถ้าคุณเคยจด Key เก่าไว้ จะต้องจด Key ใหม่แทน",
+  "recoveryKeyRegenerate": "สร้างใหม่",
+  "recoveryKeyRegenerated": "สร้าง Recovery Key ใหม่แล้ว",
+  "recoveryKeyDescription": "ใช้กู้คืนบัญชีเมื่อเปลี่ยนเครื่อง",
+  "recoveryKeyRegenerateTooltip": "สร้าง Key ใหม่",
+  "recoveryKeyLoading": "กำลังโหลด...",
+  "recoveryKeyHide": "ซ่อน",
+  "recoveryKeyShow": "แสดง",
+  "recoveryKeyCopied": "คัดลอก Recovery Key แล้ว",
+  "recoveryKeyCopyTooltip": "คัดลอก",
+  "recoveryKeyWarning": "⚠️ จดเก็บไว้ในที่ปลอดภัย ห้ามให้คนอื่น",
+
+  "restoreAccountTitle": "กู้คืนบัญชี",
+  "restoreFromRecoveryKey": "กู้คืนจาก Recovery Key",
+  "restoreEnterKey": "ใส่ Recovery Key จากเครื่องเดิม\nเพื่อกู้คืนประวัติการทานและ Energy",
+  "restoreButton": "กู้คืนบัญชี",
+  "restoreKeyLocation": "Recovery Key อยู่ใน Settings > Account ของเครื่องเดิม",
+  "restoreSuccess": "กู้คืนสำเร็จ!",
+  "restoreFoodEntries": "{count} รายการอาหาร",
+  "@restoreFoodEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreProfileRecovered": "โปรไฟล์ & เป้าหมายกู้คืนแล้ว",
+  "restoreStartUsing": "เริ่มใช้งาน",
+  "restoreEmptyKey": "กรุณาใส่ Recovery Key",
+  "restoreFailedGeneric": "ไม่สามารถกู้คืนได้ กรุณาตรวจสอบ Key",
+  "restoreInvalidKey": "Recovery Key ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+  "restoreExpiredKey": "Recovery Key หมดอายุแล้ว กรุณาสร้างใหม่จากเครื่องเดิม",
+  "restoreSameDevice": "ไม่สามารถกู้คืนบนเครื่องเดิมได้",
+  "restoreNoInternet": "ไม่มีการเชื่อมต่ออินเทอร์เน็ต กรุณาลองใหม่",
+  "restoreErrorGeneric": "เกิดข้อผิดพลาด: {error}",
+  "@restoreErrorGeneric": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "nameChangeReAnalyzeTitle": "ชื่ออาหารเปลี่ยน",
+  "nameChangeReAnalyzeMessage": "คุณเปลี่ยนชื่อเป็น \"{newName}\"\nวัตถุดิบที่ ✓ จะถูกวิเคราะห์ใหม่\nเอา ✓ ออก เพื่อเก็บไว้ตามเดิม",
+  "@nameChangeReAnalyzeMessage": {
+    "placeholders": {
+      "newName": {"type": "String"}
+    }
+  },
+  "nameChangeReAnalyzeConfirm": "วิเคราะห์ใหม่",
+  "nameChangeSaveAsIs": "บันทึกตามเดิม",
+  "nameChangeKeepIngredient": "เก็บไว้",
+  "nameChangeReAnalyzeIngredient": "วิเคราะห์ใหม่",
+  "nameChangeAnalyzing": "กำลังวิเคราะห์วัตถุดิบใหม่...",
+  "nameChangeAnalysisFailed": "วิเคราะห์ใหม่ไม่สำเร็จ บันทึกตามเดิม",
+  "nameChangeNoIngredientToAnalyze": "ไม่มีวัตถุดิบที่ต้องวิเคราะห์ใหม่",
+
+  "freepassTitle": "Freepass",
+  "freepassActive": "ใช้งานอยู่",
+  "freepassUnlimitedAI": "ใช้ AI ได้ไม่จำกัด",
+  "freepassDaysRemaining": "เหลืออีก {days} วัน",
+  "freepassDaysTitle": "วัน Freepass",
+  "freepassDaysUnit": "วัน",
+  "freepassDaysSaved": "คุณมี {days} วันสะสม",
+  "freepassDaysBadge": "{days}ว",
+  "freepassConvertTitle": "แลก Energy เป็น Freepass",
+  "freepassConvertRate": "{energy} Energy = 1 วัน ใช้ AI ได้ไม่จำกัด",
+  "freepassConvertDescription": "วัน Freepass ไม่มีวันหมดอายุ จะเปิดใช้อัตโนมัติเมื่อ Energy Pass หมดอายุ",
+  "freepassConvertButton": "แลก (สูงสุด {days} วัน)",
+  "freepassConvertMinimum": "ต้องมี Energy อย่างน้อย {energy}",
+  "freepassConvertConverting": "กำลังแลก...",
+  "freepassConvertDialogTitle": "แลกเป็น Freepass",
+  "freepassConvertDialogQuestion": "ต้องการกี่วัน?",
+  "freepassConvertDialogDay": "วัน",
+  "freepassConvertDialogDays": "วัน",
+  "freepassConvertDialogEnergyCost": "ใช้ Energy",
+  "freepassConvertDialogRemainingBalance": "Energy คงเหลือ",
+  "freepassConvertDialogConfirm": "แลก",
+  "freepassConvertSuccess": "แลก {energy} Energy → {days} วัน Freepass สำเร็จ!",
+  "freepassConvertFailed": "แลกไม่สำเร็จ",
+  "freepassConvertError": "เกิดข้อผิดพลาดในการแลก",
+  "freepassConvertServiceUnavailable": "บริการไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง",
+
+  "subscriptionChangePlan": "เปลี่ยนแพ็กเกจ",
+  "subscriptionChangePlanDescAndroid": "คุณสามารถเปลี่ยนแพ็กเกจผ่านการจัดการ subscription ของ Google Play แพ็กเกจใหม่จะเริ่มในรอบบิลถัดไป",
+  "subscriptionChangePlanDescIos": "คุณสามารถอัปเกรดหรือดาวน์เกรดแพ็กเกจผ่านการจัดการ subscription ของ App Store",
+  "subscriptionCurrentPlan": "ปัจจุบัน",
+  "subscriptionChangePlanButton": "เปลี่ยน",
+
+  "unifiedPermissionsScrollHint": "กรุณาเลื่อนลงเพื่ออ่านสิทธิ์ทั้งหมด แล้วกดอนุญาต",
+  "unifiedPermissionsScrollToEnable": "เลื่อนลงเพื่อเปิดใช้งาน",
+  "unifiedPermissionsHealthTitle": "Health App",
+  "unifiedPermissionsHealthDesc": "เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect",
+
+  "privacyConsentTitle": "ความเป็นส่วนตัวของคุณสำคัญ",
+  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ",
+  "privacyConsentNotifTitle": "การแจ้งเตือน",
+  "privacyConsentNotifDesc": "รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ",
+  "privacyConsentNotifBullet1": "แจ้งเตือนบันทึกมื้ออาหารรายวัน",
+  "privacyConsentNotifBullet2": "แจ้งเตือน streak และความสำเร็จ",
+  "privacyConsentNotifBullet3": "ปิดได้ทุกเมื่อใน Settings",
+  "privacyConsentResearchDesc": "ช่วยปรับปรุงฐานข้อมูลอาหารและความแม่นยำทางโภชนาการสำหรับชุมชน",
+  "privacyConsentResearchBullet1": "รูปอาหารแบบไม่ระบุตัวตนช่วยฝึก AI",
+  "privacyConsentResearchBullet2": "ไม่มีการแชร์ข้อมูลส่วนบุคคล",
+  "privacyConsentAdsTitle": "โฆษณา",
+  "privacyConsentAdsDesc": "โฆษณาที่ปรับแต่งช่วยให้ ArCal ใช้ฟรีได้ คุณสามารถยกเลิกได้ทุกเมื่อ",
+  "privacyConsentAdsBullet1": "โฆษณาไม่อิงจากข้อมูลอาหารหรือสุขภาพ",
+  "privacyConsentAdsBullet2": "ยกเลิกเพื่อดูโฆษณาทั่วไปแทน",
+  "privacyConsentHealthNote": "การเชื่อมต่อ Health app (Apple Health / Health Connect) แยกต่างหาก สามารถเปิดใช้ภายหลังใน Settings",
+  "privacyConsentReadPolicy": "อ่านนโยบายความเป็นส่วนตัว",
+  "privacyConsentAccept": "ดำเนินการต่อ",
+  "privacyConsentOptional": "ไม่บังคับ",
+  "arScan": "สแกน AR",
+  "arScanPositionFood": "วางอาหารในกรอบ",
+  "arScanStartCapture": "เริ่มสแกน",
+  "arScanContinueAnalysis": "ดำเนินการวิเคราะห์",
+  "takePhoto": "ถ่ายรูป",
+  "pickFromGallery": "เลือกจากแกลเลอรี",
+  "arScanFoodNotDetected": "ไม่พบอาหาร",
+  "imageFoodNameHint": "มีอะไรพิเศษไหม? เช่น ข้างในมีเนื้อซ่อนอยู่",
+  "reanalyze": "วิเคราะห์ใหม่",
+  "reanalyzeFree": "ฟรี",
+  "reanalyzing": "กำลังวิเคราะห์...",
+  "reanalyzeSuccess": "อัพเดทผลวิเคราะห์แล้ว!",
+  "savedAsNewMeal": "บันทึกเป็นเมนูใหม่: {name}",
+  "@savedAsNewMeal": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "keepOrReanalyzeTitle": "เก็บวัตถุดิบไหนไว้?",
+  "keepOrReanalyzeDesc": "รายการที่เลือกจะเก็บไว้ ที่ไม่เลือกจะวิเคราะห์ใหม่",
+  "dailyCapReached": "ถึงขีดจำกัดการวิเคราะห์วันนี้แล้ว ({count}/{max}) ลองใหม่พรุ่งนี้!",
+  "dailyCapPartial": "ถึงขีดจำกัดวันนี้แล้ว หลังวิเคราะห์ไป {done} รายการ รายการที่เหลือจะวิเคราะห์ได้พรุ่งนี้",
+
+  "arScanAngleTop": "บน",
+  "arScanAngleDiagonal": "เฉียง",
+  "arScanAngleSide": "ด้านข้าง",
+  "arScanAngleProgress": "{current}/{total}",
+  "arScanAngleCaptured": "ถ่ายมุม{zone}แล้ว ({current}/{total})",
+  "arScanTapToCapture": "แตะจอเพื่อถ่ายภาพ",
+  "arScanMoveToAngle": "เอียงไปมุมถัดไป"
 }

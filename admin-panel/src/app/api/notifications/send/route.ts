@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } else if (miroId) {
-      // Send to specific user by MiRO ID
+      // Send to specific user by ArCal ID
       const usersSnapshot = await db
         .collection('users')
         .where('miroId', '==', miroId)

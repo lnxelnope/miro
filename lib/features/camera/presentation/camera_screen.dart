@@ -31,9 +31,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle to properly manage camera
     if (state == AppLifecycleState.inactive) {
-      // Mark as not initialized BEFORE disposing to prevent buildPreview() on disposed controller
       if (mounted) {
         setState(() {
           _isInitialized = false;
@@ -87,45 +85,40 @@ class _CameraScreenState extends State<CameraScreen>
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return;
     }
-
     if (_isProcessing) return;
 
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
+
+    bool didPop = false;
 
     try {
       final XFile photo = await _cameraController!.takePicture();
 
-      // Copy to permanent location
       final Directory appDir = await getApplicationDocumentsDirectory();
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String filePath = '${appDir.path}/$fileName';
       await File(photo.path).copy(filePath);
 
       if (mounted) {
+        didPop = true;
         Navigator.of(context).pop(File(filePath));
       }
     } catch (e) {
       debugPrint('Error taking picture: $e');
-      if (mounted) {
+      if (!didPop && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(L10n.of(context)!.cameraFailedToCapture), duration: const Duration(seconds: 2)),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
+      if (!didPop && mounted) {
+        setState(() => _isProcessing = false);
       }
     }
   }
 
   Future<void> _pickFromGallery() async {
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
 
     try {
       final File? image = await ImagePickerService.pickFromGallery();
@@ -133,9 +126,7 @@ class _CameraScreenState extends State<CameraScreen>
       if (image != null && mounted) {
         Navigator.of(context).pop(image);
       } else if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
+        setState(() => _isProcessing = false);
       }
     } catch (e) {
       debugPrint('Error picking from gallery: $e');
@@ -143,9 +134,7 @@ class _CameraScreenState extends State<CameraScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(L10n.of(context)!.cameraFailedToPickFromGallery), duration: const Duration(seconds: 2)),
         );
-        setState(() {
-          _isProcessing = false;
-        });
+        setState(() => _isProcessing = false);
       }
     }
   }
@@ -162,7 +151,6 @@ class _CameraScreenState extends State<CameraScreen>
     }
   }
 
-  /// Build camera preview with correct aspect ratio (fill screen, crop excess)
   Widget _buildCameraPreview() {
     if (!_isInitialized ||
         _cameraController == null ||
@@ -184,8 +172,8 @@ class _CameraScreenState extends State<CameraScreen>
         fit: BoxFit.cover,
         clipBehavior: Clip.hardEdge,
         child: SizedBox(
-          width: previewSize.height, // portrait width
-          height: previewSize.width, // portrait height
+          width: previewSize.height,
+          height: previewSize.width,
           child: CameraPreview(_cameraController!),
         ),
       ),
@@ -199,10 +187,9 @@ class _CameraScreenState extends State<CameraScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Camera Preview — fill screen without stretching
           _buildCameraPreview(),
 
-          // ── Subtle vignette overlay for better UI contrast ──
+          // Vignette
           Positioned.fill(
             child: IgnorePointer(
               child: DecoratedBox(
@@ -223,7 +210,7 @@ class _CameraScreenState extends State<CameraScreen>
             ),
           ),
 
-          // ── Top Bar ──
+          // Top hint
           SafeArea(
             child: Padding(
               padding:
@@ -249,7 +236,45 @@ class _CameraScreenState extends State<CameraScreen>
             ),
           ),
 
-          // ── Bottom Controls ──
+          // AR tip: วางช้อนส้อมข้างจาน (แนะนำเท่านั้น ไม่ detect real-time)
+          Positioned(
+            bottom: 140,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  borderRadius: AppRadius.pill,
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.straighten_rounded,
+                      size: 16,
+                      color: Colors.white70,
+                    ),
+                    SizedBox(width: AppSpacing.sm),
+                    Text(
+                      'Place cutlery for scale reference',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Bottom Controls
           Positioned(
             bottom: 0,
             left: 0,
@@ -262,22 +287,15 @@ class _CameraScreenState extends State<CameraScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Flash Button
                     _buildBottomButton(
                       icon: _flashOn ? Icons.flash_on : Icons.flash_off,
                       onTap: _toggleFlash,
                     ),
-
-                    // Gallery Button
                     _buildGalleryButton(),
-
-                    // Capture Button
                     _buildCaptureButton(),
-
-                    // Close Button
                     _buildBottomButton(
                       icon: Icons.close,
-                      onTap: () => Navigator.of(context).pop(),
+                      onTap: _isProcessing ? () {} : () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),

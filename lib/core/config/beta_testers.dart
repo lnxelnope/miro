@@ -12,7 +12,7 @@ class BetaTesters {
   ///
   /// วิธีเพิ่มรายชื่อ (สำหรับอนาคต):
   /// 1. เข้า Google Play Console → Testing → Internal testing
-  /// 2. เลือก track "miro-tester" (หรือ track ที่คุณสร้างไว้)
+  /// 2. เลือก track "arcal-tester" (หรือ track ที่คุณสร้างไว้)
   /// 3. กด "Testers" tab → คัดลอก email addresses
   /// 4. Paste เข้ามาในนี้ (format: 'email@example.com',)
   ///

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../core/database/app_database.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -12,7 +13,6 @@ import '../../features/energy/providers/gamification_provider.dart';
 import '../../features/energy/presentation/energy_store_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/logger.dart';
-import '../constants/enums.dart';
 
 class GeminiService {
   // Backend URL (Firebase Cloud Function)
@@ -403,9 +403,184 @@ class GeminiService {
   /// Cuisine preference for biasing AI analysis toward user's typical cuisine
   static String _cuisinePreference = 'international';
 
+  /// User's preferred language code (e.g. 'th', 'en', 'ja', 'ko')
+  static String _userLang = 'en';
+
   /// Set cuisine preference (call when profile loads or user changes preference)
   static void setCuisinePreference(String cuisine) {
     _cuisinePreference = cuisine;
+  }
+
+  /// Set user language for localized AI responses
+  static void setUserLanguage(String langCode) {
+    _userLang = langCode.isNotEmpty ? langCode : 'en';
+  }
+
+  /// Full language name for prompt clarity
+  static String get _userLangName {
+    const langNames = {
+      'th': 'Thai', 'en': 'English', 'ja': 'Japanese', 'ko': 'Korean',
+      'zh': 'Chinese', 'vi': 'Vietnamese', 'id': 'Indonesian', 'hi': 'Hindi',
+      'es': 'Spanish', 'fr': 'French', 'de': 'German', 'pt': 'Portuguese',
+    };
+    return langNames[_userLang] ?? _userLang;
+  }
+
+  /// Strong language enforcement block — appended to every prompt to prevent
+  /// Gemini from drifting into the cuisine's native language.
+  static String get _languageEnforcementBlock => '''
+
+═══════════════════════════════════════════════════════════════════
+LANGUAGE ENFORCEMENT (HIGHEST PRIORITY — OVERRIDES ALL OTHER RULES):
+═══════════════════════════════════════════════════════════════════
+The user's display language is: "$_userLang" ($_userLangName).
+ALL user-facing text MUST be written in $_userLangName language ONLY.
+This includes: food_name, notes, ingredient "name", and any descriptive text.
+
+⚠️ CRITICAL: The cuisine preference ($_cuisinePreference) is ONLY for food IDENTIFICATION and nutrition estimation.
+It does NOT determine the response language. Even if the cuisine is Korean/Japanese/Chinese/etc.,
+you MUST write all text in $_userLangName — NOT in the cuisine's native language.
+
+Example: If cuisine=korean but language=th → food_name must be "ข้าวผัดกิมจิ" (Thai), NOT "김치볶음밥" (Korean).
+Example: If cuisine=japanese but language=en → food_name must be "Miso Soup" (English), NOT "味噌汁" (Japanese).
+Example: If cuisine=thai but language=ko → food_name must be "팟타이" (Korean), NOT "ผัดไทย" (Thai).
+
+- food_name: MUST be in $_userLangName
+- food_name_en: MUST ALWAYS be in English (for database)
+- notes: MUST be in $_userLangName
+- ingredient "name": MUST be in $_userLangName
+- ingredient "name_en": MUST ALWAYS be in English (for database)
+═══════════════════════════════════════════════════════════════════
+''';
+
+  /// Regional seasoning hints per cuisine for more accurate hidden ingredient detection.
+  /// Native-language terms are included as REFERENCE ONLY for ingredient identification accuracy.
+  static String _getRegionalSeasoningHint() {
+    switch (_cuisinePreference) {
+      case 'thai':
+        return '''
+REGIONAL SEASONING REFERENCE for Thai cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- High-sodium: fish sauce (น้ำปลา ~1,400mg Na/tbsp), light soy sauce (ซีอิ๊วขาว), shrimp paste (กะปิ), fermented fish (ปลาร้า)
+- Hidden sugar: palm sugar (น้ำตาลปี๊บ) in curries, som tum, pad thai — often 1-3 tbsp per dish
+- Coconut: coconut milk/cream (กะทิ) adds 150-250 kcal per cup — common in curries, desserts
+- Cooking oil: Thai stir-fries typically use 2-4 tbsp vegetable oil
+''';
+      case 'japanese':
+        return '''
+REGIONAL SEASONING REFERENCE for Japanese cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- High-sodium: soy sauce (醤油/shoyu ~900mg Na/tbsp), mirin (みりん — contains sugar+alcohol), miso paste (味噌 ~600mg Na/tbsp)
+- Hidden sugar: Mirin, teriyaki glaze, tonkatsu sauce, yakitori tare
+- Dashi: bonito dashi (かつお出汁) is low-cal but adds umami — distinguish from oil-based broths
+- Rice vinegar in sushi rice adds ~20 kcal per serving
+''';
+      case 'korean':
+        return '''
+REGIONAL SEASONING REFERENCE for Korean cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- High-sodium: soy sauce (간장/ganjang ~900mg Na/tbsp), soybean paste (된장/doenjang ~800mg Na/tbsp), red pepper paste (고추장/gochujang — also high sugar)
+- Hidden sugar: Gochujang contains corn syrup, bulgogi marinades use pear juice + sugar
+- Sesame oil (참기름/chamgireum) is a finishing oil (~120 kcal/tbsp) — used in almost every Korean dish
+- Kimchi: 100g ≈ 20 kcal but ~600mg sodium
+''';
+      case 'chinese':
+        return '''
+REGIONAL SEASONING REFERENCE for Chinese cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- High-sodium: soy sauce (酱油), oyster sauce (蚝油 — also contains sugar), doubanjiang (豆瓣酱)
+- Hidden sugar: Oyster sauce, hoisin sauce, sweet and sour sauces — often 1-2 tbsp sugar per dish
+- Cooking oil: Chinese stir-fry (爆炒) typically uses 3-5 tbsp oil at high heat — significant oil absorption
+- Cornstarch thickening (勾芡): Adds 30-60 kcal per dish in sauces
+''';
+      case 'indian':
+        return '''
+REGIONAL SEASONING REFERENCE for Indian cuisine (your response MUST be in $_userLangName):
+- Ghee/Oil: Many curries use 3-6 tbsp ghee or oil — major hidden calorie source (120 kcal/tbsp)
+- Cream/Yogurt: Butter chicken, korma use heavy cream (200+ kcal/serving)
+- Hidden carbs: Naan/roti are calorie-dense (250-350 kcal each), rice portions are often 200-300g cooked
+- Spice pastes: Ginger-garlic paste, curry paste bases add minimal calories but significant sodium
+''';
+      case 'american':
+        return '''
+REGIONAL SEASONING REFERENCE for American cuisine (your response MUST be in $_userLangName):
+- Hidden fats: Burgers typically use 80/20 ground beef (20% fat), deep-frying in vegetable oil adds 50-100+ kcal
+- Cheese: American cheese slices ~70 kcal each, cheddar ~110 kcal/oz — often added generously
+- Sauces: Ketchup ~20 kcal/tbsp (high sugar), mayonnaise ~100 kcal/tbsp, ranch dressing ~73 kcal/tbsp
+- Portion sizes: American portions are typically 1.5-2x larger than other cuisines — account for this in estimation
+- BBQ sauce: Contains significant sugar (~30-50 kcal/tbsp)
+''';
+      case 'mexican':
+        return '''
+REGIONAL SEASONING REFERENCE for Mexican cuisine (your response MUST be in $_userLangName):
+- Hidden fats: Lard (manteca) used in refried beans and tamales (~120 kcal/tbsp), cheese (queso) adds 100+ kcal
+- Tortillas: Flour tortilla ~150 kcal each, corn tortilla ~70 kcal each — dishes often have 2-3
+- Sour cream (crema): ~60 kcal/tbsp, generously applied to tacos, burritos, enchiladas
+- Avocado/Guacamole: ~50 kcal per 1/4 avocado, guacamole ~25 kcal/tbsp — healthy fat but calorie-dense
+- Rice: Mexican rice is cooked with oil and tomato sauce, adds ~30-50 kcal more than plain rice
+''';
+      case 'italian':
+        return '''
+REGIONAL SEASONING REFERENCE for Italian cuisine (your response MUST be in $_userLangName):
+- Olive oil: Used generously in cooking and finishing — 2-4 tbsp per dish (~240-480 kcal)
+- Cheese: Parmesan ~110 kcal/oz, mozzarella ~85 kcal/oz — often used in large quantities
+- Pasta portions: Italian standard serving ~80-100g dry (280-350 kcal), restaurant portions often 150-200g dry
+- Cream sauces: Alfredo, carbonara use heavy cream + butter — can add 300-500 kcal to a dish
+- Cured meats: Prosciutto ~70 kcal/oz, pancetta used as flavor base adds hidden fat
+''';
+      case 'mediterranean':
+        return '''
+REGIONAL SEASONING REFERENCE for Mediterranean cuisine (your response MUST be in $_userLangName):
+- Olive oil: Primary cooking fat — drizzled generously, 3-5 tbsp per dish is common (~360-600 kcal)
+- Hummus: ~70 kcal per 2 tbsp, often consumed in large portions with pita bread
+- Feta cheese: ~75 kcal/oz, crumbled on salads and dishes
+- Pita/Flatbread: ~165 kcal per piece, often served as accompaniment
+- Nuts and seeds: Pine nuts, almonds, sesame (tahini ~90 kcal/tbsp) — calorie-dense garnishes
+''';
+      case 'middle_eastern':
+        return '''
+REGIONAL SEASONING REFERENCE for Middle Eastern cuisine (your response MUST be in $_userLangName):
+- Cooking fats: Ghee, butter, and vegetable oil used generously — 3-5 tbsp per dish
+- Tahini: Sesame paste ~90 kcal/tbsp — used in hummus, baba ganoush, dressings
+- Rice: Often cooked with butter/oil and spices (biryani, kabsa) — adds 50-100 kcal over plain rice
+- Yogurt: Used as sauce and side — full-fat yogurt ~60 kcal per 100g
+- Dried fruits and nuts: Commonly added to rice dishes — calorie-dense (dates ~66 kcal each, almonds ~7 kcal each)
+''';
+      case 'vietnamese':
+        return '''
+REGIONAL SEASONING REFERENCE for Vietnamese cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- Fish sauce (nước mắm): Primary seasoning ~10 kcal/tbsp but ~1,400mg sodium — used in almost every dish
+- Sugar: Vietnamese cuisine uses sugar in many savory dishes (caramelized pork, pho broth) — 1-3 tsp per dish
+- Cooking oil: Stir-fries use 2-3 tbsp, deep-fried spring rolls absorb significant oil
+- Hoisin sauce (tương đen): ~35 kcal/tbsp, high sugar — common condiment for pho and spring rolls
+- Fresh herbs: Cilantro, mint, basil, bean sprouts — minimal calories but important for identification
+''';
+      case 'indonesian':
+        return '''
+REGIONAL SEASONING REFERENCE for Indonesian cuisine (native terms shown for identification only — your response MUST be in $_userLangName):
+- Coconut milk (santan): Used extensively in curries, rendang, sayur — 150-250 kcal per cup
+- Sweet soy sauce (kecap manis): High sugar ~50 kcal/tbsp — used in nasi goreng, satay sauce, many dishes
+- Cooking oil: Deep-frying is common (gorengan), palm oil used generously — 3-5 tbsp per dish
+- Sambal: Chili paste with oil — 20-40 kcal/tbsp depending on type (sambal oelek, sambal matah)
+- Peanut sauce: For satay and gado-gado — ~90 kcal per 2 tbsp, high fat from ground peanuts
+''';
+      case 'filipino':
+        return '''
+REGIONAL SEASONING REFERENCE for Filipino cuisine (your response MUST be in $_userLangName):
+- Soy sauce and vinegar: Base of many dishes (adobo, sisig) — soy sauce ~900mg sodium/tbsp
+- Cooking oil: Deep-frying is popular (lechon kawali, lumpia) — significant oil absorption
+- Sugar: Many dishes use sugar (tocino, longganisa, banana ketchup ~20 kcal/tbsp)
+- Coconut milk: Used in ginataan dishes, laing, bicol express — 150-250 kcal per cup
+- Rice: Filipino meals typically include 1-2 cups cooked rice (200-400 kcal) — core part of every meal
+''';
+      case 'european':
+        return '''
+REGIONAL SEASONING REFERENCE for European cuisine (your response MUST be in $_userLangName):
+- Butter: Primary cooking fat in French, German, and Eastern European cuisines — 100 kcal/tbsp, used generously
+- Cream: Heavy cream in sauces, soups — 50 kcal/tbsp, often 3-5 tbsp per dish
+- Cheese: Wide variety — hard cheeses ~110 kcal/oz, soft cheeses ~85 kcal/oz, used in gratins, fondues
+- Bread: Accompaniment to most meals — 70-120 kcal per slice, often with butter
+- Wine/Alcohol in cooking: Adds flavor but also calories (~25 kcal per tbsp), not all alcohol evaporates
+''';
+      default:
+        return '';
+    }
   }
 
   /// Get EnergyService instance (for checking energy before API calls)
@@ -420,45 +595,45 @@ class GeminiService {
     return await service.hasEnergy();
   }
 
-  /// Compress image for API: resize to max 800px and encode as JPEG 70% quality
-  /// Reduces ~10MB photos to ~100-200KB — enough for Gemini food analysis
-  static Future<String> _compressImageToBase64(File imageFile) async {
+  /// Compress image for API: resize and encode as PNG
+  /// [maxWidth] — 800 for food photos (default), 1600 for nutrition labels/products
+  static Future<String> _compressImageToBase64(
+    File imageFile, {
+    int maxWidth = 800,
+  }) async {
     final bytes = await imageFile.readAsBytes();
     final originalSizeKB = bytes.length / 1024;
     AppLogger.info(
-        '📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB');
+        '📷 Original image: ${originalSizeKB.toStringAsFixed(0)} KB (target: ${maxWidth}px)');
 
     // Decode image
     final codec = await ui.instantiateImageCodec(
       bytes,
-      targetWidth: 800, // max width 800px (ย่อจากกล้อง ~4000px)
+      targetWidth: maxWidth,
     );
     final frame = await codec.getNextFrame();
     final image = frame.image;
 
-    // Encode as JPEG with 70% quality
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
 
     if (byteData == null) {
-      // Fallback: use original bytes if encoding fails
       AppLogger.warn('⚠️ Image encode failed, using original');
       return base64Encode(bytes);
     }
 
-    // Convert PNG to JPEG-like smaller size
-    // Since dart:ui doesn't support JPEG quality, we use PNG with resize
     final compressedBytes = byteData.buffer.asUint8List();
     final compressedSizeKB = compressedBytes.length / 1024;
     AppLogger.info(
         '📷 Compressed: ${compressedSizeKB.toStringAsFixed(0)} KB (was ${originalSizeKB.toStringAsFixed(0)} KB)');
 
-    // If compressed is still too large (>500KB) or larger than original, use original resized
-    if (compressedSizeKB > 500 && compressedSizeKB > originalSizeKB * 0.8) {
-      // Re-encode at smaller resolution
+    // Fallback: if still too large, reduce to 75% of maxWidth
+    final sizeLimit = maxWidth <= 800 ? 500.0 : 1200.0;
+    if (compressedSizeKB > sizeLimit && compressedSizeKB > originalSizeKB * 0.8) {
+      final fallbackWidth = (maxWidth * 0.75).toInt();
       final codec2 = await ui.instantiateImageCodec(
         bytes,
-        targetWidth: 600,
+        targetWidth: fallbackWidth,
       );
       final frame2 = await codec2.getNextFrame();
       final image2 = frame2.image;
@@ -468,7 +643,7 @@ class GeminiService {
       if (byteData2 != null) {
         final smallerBytes = byteData2.buffer.asUint8List();
         AppLogger.info(
-            '📷 Re-compressed: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
+            '📷 Re-compressed to ${fallbackWidth}px: ${(smallerBytes.length / 1024).toStringAsFixed(0)} KB');
         return base64Encode(smallerBytes);
       }
     }
@@ -549,6 +724,7 @@ class GeminiService {
     required String type,
     required String prompt,
     String? imageBase64,
+    List<String>? additionalImagesBase64,
     required String description,
     EnergyService? energyService,
     int? itemCount,
@@ -586,6 +762,8 @@ class GeminiService {
           'deviceId': deviceId,
           'timezoneOffset': timezoneOffset,
           if (imageBase64 != null) 'imageBase64': imageBase64,
+          if (additionalImagesBase64 != null && additionalImagesBase64.isNotEmpty)
+            'additionalImagesBase64': additionalImagesBase64,
           if (itemCount != null) 'itemCount': itemCount,
         }),
       );
@@ -767,23 +945,25 @@ class GeminiService {
   // Analyze food image (ใช้ Backend เท่านั้น)
   static Future<FoodAnalysisResult?> analyzeFoodImage(
     File imageFile, {
+    List<File>? supplementaryImages,
     EnergyService? energyService,
     String? foodName,
     double? quantity,
     String? unit,
     FoodSearchMode searchMode = FoodSearchMode.normal,
     List<Map<String, dynamic>>? userIngredients,
+    String? calibrationHint,
   }) async {
+    final totalImages = 1 + (supplementaryImages?.length ?? 0);
     AppLogger.info(
-        'Starting image analysis: ${imageFile.path} (mode: ${searchMode.name})');
+        'Starting image analysis: ${imageFile.path} '
+        '(mode: ${searchMode.name}, images: $totalImages)');
 
-    // Check if file exists
     if (!await imageFile.exists()) {
       AppLogger.error('File not found: ${imageFile.path}');
       throw Exception('Image file not found');
     }
 
-    // Use Backend (Energy System)
     final service = energyService ?? _staticEnergyService;
     if (service == null) {
       throw Exception('EnergyService not initialized. Please restart the app.');
@@ -791,14 +971,81 @@ class GeminiService {
 
     try {
       AppLogger.info('Using Backend (Energy System)');
-      final base64Image = await _compressImageToBase64(imageFile);
+      final isProductMode = searchMode == FoodSearchMode.product;
+      final maxW = isProductMode ? 1600 : 800;
+      final base64Image = await _compressImageToBase64(
+        imageFile,
+        maxWidth: maxW,
+      );
 
-      // Choose prompt based on search mode
-      String prompt = searchMode == FoodSearchMode.product
+      // Compress supplementary images (AR multi-angle)
+      List<String>? additionalBase64;
+      if (supplementaryImages != null && supplementaryImages.isNotEmpty) {
+        additionalBase64 = [];
+        for (final sup in supplementaryImages) {
+          if (await sup.exists()) {
+            additionalBase64.add(
+              await _compressImageToBase64(sup, maxWidth: maxW),
+            );
+          }
+        }
+        if (additionalBase64.isEmpty) additionalBase64 = null;
+      }
+
+      final hasMultiImages = additionalBase64 != null && additionalBase64.isNotEmpty;
+      final hasCalibration = calibrationHint != null && calibrationHint.isNotEmpty;
+      String prompt = isProductMode
           ? _getProductImageAnalysisPrompt()
-          : _getImageAnalysisPrompt(userIngredients: userIngredients);
+          : _getImageAnalysisPrompt(
+              userIngredients: userIngredients,
+              hasCalibration: hasCalibration,
+            );
 
-      // Add optional user-provided information to prompt
+      if (hasMultiImages) {
+        final totalImgs = 1 + additionalBase64.length;
+        prompt += '''
+
+═══════════════════════════════════════════════════════════════════
+MULTI-ANGLE CAPTURE ($totalImgs images of the SAME food):
+═══════════════════════════════════════════════════════════════════
+You are receiving $totalImgs photos of the EXACT SAME plate/dish taken from different angles.
+Images are always ordered: top-down first, then diagonal, then side.
+
+IMAGE ROLES — each angle has a specific purpose:
+
+  ★ Image 1 (TOP-DOWN, overhead ~0-30°):
+    THIS IS THE PRIMARY IMAGE FOR FOOD IDENTIFICATION.
+    Use this image to determine WHAT the food is — identify all food items,
+    ingredients, and components visible from above.
+    Also use for estimating WIDTH × LENGTH (surface area) of the food.
+
+  ◆ Image 2 (DIAGONAL, ~30-60° chest-level):
+    This is a CONTAINER & DEPTH reference image.
+    Use it to see the food vessel/plate/bowl shape and depth,
+    estimate how full the container is, and spot any REFERENCE OBJECTS
+    (coins, cards, spoons, etc.) that may appear in the frame for scale.
+
+  ◆ Image 3 (SIDE VIEW, ~60-90° eye-level):
+    This is a CONTAINER & HEIGHT reference image.
+    Use it to measure the HEIGHT and DEPTH of the food pile/layer,
+    see the container profile from the side, and detect any
+    REFERENCE OBJECTS visible at this angle for size calibration.
+
+CRITICAL INSTRUCTIONS:
+1. IDENTIFY the food using Image 1 (top-down) as the primary source.
+   Use Images 2 & 3 only to CONFIRM identification if top-down is ambiguous.
+2. ESTIMATE PORTION SIZE by combining dimensions from ALL angles:
+   - Width × Length from Image 1 (top-down)
+   - Height × Depth from Images 2 & 3 (diagonal + side)
+   - Container/plate size from calibration data (if provided below)
+3. If reference objects (coins, cards, phones, etc.) are visible in any image,
+   use their known real-world size to calibrate all measurements.
+4. If objects look different sizes across angles, trust the angle that gives
+   the clearest view of that dimension (top for area, side for height).
+5. Return a SINGLE combined analysis result — do NOT analyze each image separately.
+═══════════════════════════════════════════════════════════════════''';
+      }
+
       if (foodName != null && foodName.isNotEmpty) {
         prompt += searchMode == FoodSearchMode.product
             ? '\n\nThe user has indicated this product is: "$foodName".'
@@ -811,14 +1058,21 @@ class GeminiService {
         prompt += '\n\nThe user has specified the quantity as: $quantity.';
       }
 
+      if (calibrationHint != null && calibrationHint.isNotEmpty) {
+        prompt += '\n\n$calibrationHint';
+      }
+
       AppLogger.info(
           '[analyzeFoodImage] mode=${searchMode.name}, '
-          'foodName=$foodName, quantity=$quantity, unit=$unit');
+          'foodName=$foodName, quantity=$quantity, unit=$unit, '
+          'hasCalibration=${calibrationHint != null}, '
+          'supplementaryImages=${additionalBase64?.length ?? 0}');
 
       final result = await _callBackend(
         type: 'image',
         prompt: prompt,
         imageBase64: base64Image,
+        additionalImagesBase64: additionalBase64,
         description: 'Food image analysis',
         energyService: service,
       );
@@ -830,7 +1084,6 @@ class GeminiService {
         throw Exception('No result from AI analysis');
       }
 
-      // Post-process: enforce user-specified amounts (ถ้ามี)
       if (userIngredients != null && userIngredients.isNotEmpty) {
         finalResult = enforceUserIngredientAmounts(finalResult, userIngredients);
       }
@@ -893,16 +1146,24 @@ Step 4 — HIDDEN CALORIE SOURCES:
 - Note sugar content in sauces and marinades
 - Flag high-sodium seasonings
 
+LANGUAGE & NAMING REQUIREMENTS:
+The user's language is: "$_userLang" ($_userLangName).
+⚠️ The cuisine preference ($_cuisinePreference) does NOT affect the response language. ALL text must be in $_userLangName.
+- food_name: Use $_userLangName language for the product name. If the product packaging shows a different language, transliterate or translate to $_userLangName. Keep brand name in original form.
+- food_name_en: MUST ALWAYS be in English for database standardization
+- notes: Write in $_userLangName language
+
 CRITICAL RULES:
 - "ingredients_detail" array is MANDATORY
 - If nutrition label is visible, use label values as primary source
 - If ingredients list is visible, parse each one separately with specificity
 - If not visible, estimate main components based on product type
-- All ingredient names must be in English with descriptive detail
+- ingredient "name": Use $_userLangName language with descriptive detail
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 
 Respond in JSON format:
 {
-  "food_name": "Product name (original language from packaging)",
+  "food_name": "Product name in $_userLangName language",
   "food_name_en": "English product name",
   "confidence": 0.95,
   "serving_size": 1,
@@ -926,8 +1187,8 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Specific Ingredient Name",
-      "name_en": "Specific Ingredient Name in English",
+      "name": "Ingredient name in $_userLangName language",
+      "name_en": "Ingredient name in English",
       "detail": "Preparation state and composition details",
       "amount": 0,
       "unit": "g",
@@ -982,9 +1243,9 @@ Return ONLY valid JSON.''';
     }
 
     try {
-      final base64Image = await _compressImageToBase64(imageFile);
+      final base64Image = await _compressImageToBase64(imageFile, maxWidth: 1600);
 
-      const prompt = '''You are an AI expert in reading Nutrition Facts Labels.
+      final prompt = '''You are an AI expert in reading Nutrition Facts Labels.
 
 This is a photo of a nutrition label.
 
@@ -1032,7 +1293,7 @@ Respond in JSON format:
   },
   "ingredients_detail": [
     {
-      "name": "Ingredient from ingredients list",
+      "name": "Ingredient in $_userLangName language",
       "name_en": "Ingredient name in English",
       "amount": 0,
       "unit": "gram",
@@ -1228,7 +1489,7 @@ Return ONLY valid JSON.''';
   // PROMPT HELPERS (สำหรับ Backend)
   // ───────────────────────────────────────────────────────────
 
-  static String _getImageAnalysisPrompt({List<Map<String, dynamic>>? userIngredients}) {
+  static String _getImageAnalysisPrompt({List<Map<String, dynamic>>? userIngredients, bool hasCalibration = false}) {
     // Build ingredients hint if user provided ingredients
     String ingredientsHint = '';
     if (userIngredients != null && userIngredients.isNotEmpty) {
@@ -1250,42 +1511,56 @@ These amounts are MORE ACCURATE than visual estimation because the user measured
 
 $lines
 
-MANDATORY RULES for user-specified ingredients:
-1. You MUST use EXACTLY these amounts — do NOT change them
+MANDATORY RULES for user-specified ingredients (ANCHOR SYSTEM):
+Treat user-specified ingredients as ANCHORS — these are ground truth. Your job is to:
+1. KEEP these EXACT amounts unchanged — do NOT adjust, round, or override them
 2. Calculate nutrition values (calories, protein, carbs, fat) for these EXACT amounts
 3. Keep the ingredient names similar (you may add cooking state description)
-4. You MUST actively discover HIDDEN ingredients not listed above:
+4. ONLY ESTIMATE the remaining HIDDEN ingredients the user likely forgot:
+   - Cooking oils/fats (type & amount based on cooking method visible in image)
    - Seasonings (fish sauce, soy sauce, MSG, sugar, salt, pepper)
-   - Cooking oils/fats used in preparation
    - Marinades, pastes, or sauce bases
    - Small garnishes (cilantro, lime, chili flakes)
    - Binding agents (flour, starch, egg wash)
-5. Added hidden ingredients should have amounts proportional to the dish
-6. The total nutrition = sum of user's ingredients + discovered hidden ingredients
+5. Added hidden ingredients should have amounts proportional to the anchored ingredients
+6. The total nutrition = sum of ANCHORED user ingredients + discovered hidden ingredients
+7. Do NOT re-estimate or override any anchored ingredient — even if your visual estimation differs
 ═══════════════════════════════════════════════════════════════════
 ''';
     }
 
-    // Build cuisine bias instruction
+    // Build cuisine bias instruction with regional specificity
+    final regionalSeasonings = _getRegionalSeasoningHint();
     final cuisineBias = _cuisinePreference != 'international'
         ? '''
 
-CUISINE CONTEXT (CRITICAL for accurate identification):
+CUISINE CONTEXT (for food identification only — NOT for response language):
 The user's cuisine preference is: "${_cuisinePreference.toUpperCase()}".
-When the food in the image is visually ambiguous (e.g., curry, rice dish, noodles, soup, stew, grilled meat), 
+When the food in the image is visually ambiguous (e.g., curry, rice dish, noodles, soup, stew, grilled meat),
 you MUST bias your identification toward $_cuisinePreference cuisine FIRST.
 - Example: A curry dish → identify as $_cuisinePreference curry (with typical $_cuisinePreference ingredients, spices, and cooking methods)
 - Example: A rice dish → identify as $_cuisinePreference-style rice (with typical $_cuisinePreference seasonings and sides)
 - Example: A noodle soup → identify as $_cuisinePreference-style noodle soup
-- Use $_cuisinePreference ingredient names, cooking techniques, and typical portion sizes
+- Use $_cuisinePreference cooking techniques and typical portion sizes for estimation
 - Only override this bias if the food is CLEARLY from another cuisine (e.g., sushi is clearly Japanese even if user prefers Thai)
-'''
+⚠️ IMPORTANT: The cuisine preference affects WHAT food you identify, but ALL text output (food_name, notes, ingredient names) MUST be in the user's language ($_userLangName), NOT in the cuisine's native language.
+$regionalSeasonings'''
         : '';
 
     return '''You are a Food Scientist and Nutrition Expert specializing in deconstructing dishes into precise ingredients.
 Your job is to "dissect" every visible food item in the image with professional-level specificity.
 $cuisineBias$ingredientsHint
+CONFIDENCE CONTROL:
+- If you are less than 40% confident about a specific ingredient, include it but add "estimated" in its detail field and set a lower confidence score.
+- NEVER fabricate brand names or specific products unless clearly visible. Use generic descriptions instead (e.g., "dark soy-based sauce" instead of guessing a brand).
+- If the image is blurry, dark, or partially obscured, note this in "notes" and reduce overall confidence accordingly.
+
 STEP-BY-STEP ANALYSIS (you MUST follow this order):
+
+Step 0 — VISUAL DESCRIPTION (mandatory):
+Before any calculation, describe what you see in 1-2 sentences. Store this in the "visual_description" field.
+This forces you to observe the actual image before relying on parametric knowledge.
+Example: "A white plate with golden-brown fried rice topped with a sunny-side-up egg, green onion garnish, and a small bowl of clear soup on the side."
 
 Step 1 — IDENTIFY COOKING STATE:
 For each ingredient, determine its cooking method and state (e.g., Stir-fried in oil, Deep-fried, Grilled, Steamed, Boiled, Raw, Marinated, Braised). This affects calorie estimation significantly due to hidden oil/fat absorption.
@@ -1307,10 +1582,14 @@ Always account for hidden ingredients that add significant calories:
 Step 4 — CROSS-REFERENCE:
 If the food appears to be from a convenience store (7-Eleven, FamilyMart, Lawson) or chain restaurant, reference known product databases for more accurate nutrition data.
 
-NAMING REQUIREMENTS:
-- food_name: Detect language from image/context, keep ORIGINAL language
+LANGUAGE & NAMING REQUIREMENTS:
+The user's language is: "$_userLang" ($_userLangName).
+⚠️ The cuisine preference ($_cuisinePreference) does NOT affect the response language. ALL text must be in $_userLangName.
+- food_name: Use $_userLangName language. For example, Thai user → "ข้าวผัด", Japanese user → "チャーハン", English user → "Fried Rice". If the food is clearly foreign, keep its original name with a $_userLangName translation in parentheses.
 - food_name_en: MUST ALWAYS be in English for database standardization
-- ingredient names in ingredients_detail: MUST be in English with descriptive cooking state
+- notes: Write in $_userLangName language so the user can understand directly
+- ingredient "name" in ingredients_detail: Use $_userLangName language with descriptive cooking state. Example for Thai: "ข้าวสวยหอมมะลิ", for English: "Steamed Jasmine Rice"
+- ingredient "name_en" in ingredients_detail: MUST ALWAYS be in English for database standardization
 - serving_unit: "plate", "bowl", "cup", "piece", "glass", "egg", "ball", etc. Do NOT use "g" or "ml" as serving_unit for dishes.
 
 INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
@@ -1334,8 +1613,8 @@ INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
    - Multi-item foods → show per-unit breakdown as subs
 
 5. Each ingredient and sub_ingredient should include:
-   - "name": English name with cooking state
-   - "name_en": English name (same as name)
+   - "name": Name in the user's language ($_userLangName) with cooking state
+   - "name_en": ALWAYS in English for database standardization
    - "detail": Preparation/composition description (optional)
    - "amount", "unit": Quantity
    - "calories", "protein", "carbs", "fat": Macros
@@ -1357,7 +1636,7 @@ CORRECT (hierarchical):
   "nutrition": {"calories": 250, ...},
   "ingredients_detail": [
     {
-      "name": "Deep-fried Battered Chicken Breast Pieces",
+      "name": "Name in $_userLangName with cooking state",
       "name_en": "Deep-fried Battered Chicken Breast Pieces",
       "detail": "Bite-sized chicken coated in seasoned flour, deep-fried",
       "calories": 250,
@@ -1365,9 +1644,9 @@ CORRECT (hierarchical):
       "carbs": 12,
       "fat": 15,
       "sub_ingredients": [
-        {"name": "Chicken Breast Meat", "name_en": "Chicken Breast Meat", "detail": "Lean white meat", "amount": 80, "unit": "g", "calories": 132, "protein": 17, "carbs": 0, "fat": 3},
-        {"name": "Seasoned Flour Batter", "name_en": "Seasoned Flour Batter", "detail": "Contains wheat flour, corn starch, salt, spices", "amount": 25, "unit": "g", "calories": 48, "protein": 1, "carbs": 12, "fat": 0},
-        {"name": "Absorbed Frying Oil", "name_en": "Absorbed Frying Oil", "detail": "Oil absorbed during deep-frying", "amount": 8, "unit": "ml", "calories": 70, "protein": 0, "carbs": 0, "fat": 8}
+        {"name": "Name in $_userLangName", "name_en": "Chicken Breast Meat", "detail": "Lean white meat", "amount": 80, "unit": "g", "calories": 132, "protein": 17, "carbs": 0, "fat": 3},
+        {"name": "Name in $_userLangName", "name_en": "Seasoned Flour Batter", "detail": "Contains wheat flour, corn starch, salt, spices", "amount": 25, "unit": "g", "calories": 48, "protein": 1, "carbs": 12, "fat": 0},
+        {"name": "Name in $_userLangName", "name_en": "Absorbed Frying Oil", "detail": "Oil absorbed during deep-frying", "amount": 8, "unit": "ml", "calories": 70, "protein": 0, "carbs": 0, "fat": 8}
       ]
     }
   ]
@@ -1383,9 +1662,9 @@ CRITICAL RULES:
 - Include a "detail" field for each ingredient describing its preparation state
 - Estimate amounts in grams/ml
 
-Example for "Kimchi Fried Rice with Pork":
+Example for "Kimchi Fried Rice with Pork" (food_name MUST be in $_userLangName):
 {
-  "food_name": "김치볶음밥",
+  "food_name": "Kimchi Fried Rice with Pork in $_userLangName language (e.g. Thai: ข้าวผัดกิมจิหมู, EN: Kimchi Fried Rice with Pork, KO: 김치볶음밥)",
   "food_name_en": "Kimchi Fried Rice with Pork",
   "confidence": 0.88,
   "serving_size": 1,
@@ -1409,7 +1688,7 @@ Example for "Kimchi Fried Rice with Pork":
   },
   "ingredients_detail": [
     {
-      "name": "Steamed Jasmine Rice",
+      "name": "Name in $_userLangName (e.g. Thai: ข้าวสวยหอมมะลิ, EN: Steamed Jasmine Rice)",
       "name_en": "Steamed Jasmine Rice",
       "detail": "Day-old rice, stir-fried — absorbs oil during cooking",
       "amount": 200,
@@ -1420,7 +1699,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 1
     },
     {
-      "name": "Stir-fried Pork Belly Slices",
+      "name": "Name in $_userLangName (e.g. Thai: หมูสามชั้นผัด, EN: Stir-fried Pork Belly Slices)",
       "name_en": "Stir-fried Pork Belly Slices",
       "detail": "High-fat cut, rendered in own fat during stir-frying",
       "amount": 60,
@@ -1431,7 +1710,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 13
     },
     {
-      "name": "Fermented Napa Cabbage Kimchi",
+      "name": "Name in $_userLangName (e.g. Thai: กิมจิผักกาดขาว, EN: Fermented Napa Cabbage Kimchi)",
       "name_en": "Fermented Napa Cabbage Kimchi",
       "detail": "Contains gochugaru chili flakes, garlic, fish sauce, sugar",
       "amount": 50,
@@ -1442,7 +1721,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 0.5
     },
     {
-      "name": "Gochujang Chili Paste",
+      "name": "Name in $_userLangName (e.g. Thai: พริกแกงโกชูจัง, EN: Gochujang Chili Paste)",
       "name_en": "Gochujang Chili Paste",
       "detail": "Fermented red pepper paste — contains corn syrup and rice flour",
       "amount": 15,
@@ -1453,7 +1732,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 0.3
     },
     {
-      "name": "Vegetable Oil (cooking)",
+      "name": "Name in $_userLangName (e.g. Thai: น้ำมันพืช (ผัด), EN: Vegetable Oil (cooking))",
       "name_en": "Vegetable Oil for Stir-frying",
       "detail": "Absorbed during high-heat stir-frying of rice and pork",
       "amount": 12,
@@ -1464,7 +1743,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 12
     },
     {
-      "name": "Sesame Oil (finishing)",
+      "name": "Name in $_userLangName (e.g. Thai: น้ำมันงา, EN: Sesame Oil (finishing))",
       "name_en": "Sesame Oil Drizzle",
       "detail": "Added at the end for aroma",
       "amount": 3,
@@ -1475,7 +1754,7 @@ Example for "Kimchi Fried Rice with Pork":
       "fat": 3
     },
     {
-      "name": "Soy Sauce",
+      "name": "Name in $_userLangName (e.g. Thai: ซอสถั่วเหลือง, EN: Soy Sauce)",
       "name_en": "Light Soy Sauce",
       "detail": "Seasoning — high sodium",
       "amount": 8,
@@ -1491,10 +1770,80 @@ Example for "Kimchi Fried Rice with Pork":
   "notes": "High sodium from kimchi + soy sauce + gochujang. Oil absorbed during stir-frying adds ~130 hidden calories."
 }
 
+${hasCalibration ? '''Step 5 — CALIBRATION DATA PROVIDED:
+Local AI has already detected a reference object and calculated physical measurements.
+The calibration data is appended at the end of this prompt.
+DO NOT re-detect reference objects — use the provided calibration data directly to improve your portion size estimation.
+Skip the "reference_objects" field in your response.''' : '''Step 5 — SIZE ESTIMATION via REFERENCE OBJECTS (CRITICAL for portion accuracy):
+FIRST, scan the ENTIRE image for ANY object with a known real-world size. Use it to calibrate food portion estimation.
+
+Priority 1 — Standard reference objects:
+- Cutlery: Fork (~19.5cm), Spoon (~17cm), Knife (~22cm), Chopsticks (~23cm)
+- Cards: Credit card (8.56×5.4cm), ID card
+- Coins: visible coins of any denomination
+
+Priority 2 — Everyday objects with known dimensions:
+- Beverage cans: Standard 330ml can (height 11.5cm, diameter 6.6cm), 350ml/12oz can (height 12.2cm)
+- Bottles: 500ml PET bottle (height ~21cm), 600ml water bottle (~24cm)
+- Smartphone: Average phone (~15×7.2cm) — if visible and identifiable
+- Cigarette pack: Standard pack (~8.5×5.5cm)
+- Tissue box: Standard box (~23×12cm)
+
+ESTIMATION PROCESS:
+1. Identify ANY object with known dimensions in the image
+2. Calculate the pixel-to-cm ratio from that object
+3. Use the ratio to estimate plate/bowl diameter and food area
+4. Derive total food weight (serving_grams) from the measured area + estimated food depth
+
+If ANY reference object is found:
+- Report it in "reference_objects" array
+- Include "plate_measurement" with estimated dimensions
+
+If NO reference object is found, simply skip the "reference_objects" field and estimate portion from visual cues alone.
+
+Add to your JSON response (ONLY if reference objects are found):
+"reference_objects": [
+  {
+    "type": "dining_fork",
+    "confidence": 0.92,
+    "known_length_cm": 19.5
+  }
+],
+"plate_measurement": {
+  "estimated_diameter_cm": 22.5,
+  "estimated_area_cm2": 397.6,
+  "estimated_volume_ml": 450
+}'''}
+
 IMPORTANT: Add "food_type" field:
 - If you clearly see a packaged product with a nutrition label → set "food_type": "product"
 - Otherwise → set "food_type": "food"
 
+Step 6 — SCENE CONTEXT (food, beverage & dining items ONLY):
+Scan the ENTIRE image for any ADDITIONAL food/beverage items or dining context
+that are visible but NOT the main dish being analyzed.
+This helps with portion calibration (known product dimensions) and meal pairing analysis.
+
+Add "scene_context" to your JSON (skip if nothing extra is visible):
+"scene_context": {
+  "dining_setting": "restaurant" | "home" | "office" | "outdoor" | "cafe" | "street_food" | "convenience_store" | "food_court",
+  "restaurant_chain": "chain/restaurant name if logo or branding is visible, else null",
+  "other_food_items": ["any other food visible in image that is NOT the main dish"],
+  "beverages": [
+    {"name": "brand + product name", "size": "volume", "container": "can|bottle|glass|cup|carton"}
+  ],
+  "packaged_products": [
+    {"name": "brand + product name", "size": "package size", "container": "bag|box|wrapper|cup"}
+  ]
+}
+
+RULES for scene_context:
+- ONLY report food, beverages, packaged food/snack products, and dining environment
+- DO NOT report personal belongings, clothing, accessories, electronics, or people
+- DO NOT report any personally identifiable information (faces, ID cards, etc.)
+- IMPORTANT: If beverages/products with KNOWN SIZES are visible (e.g., Coke 330ml can, water bottle 600ml), use their known physical dimensions to cross-validate your portion size estimate from Step 5
+- If no additional items are visible, omit "scene_context" entirely
+$_languageEnforcementBlock
 Return ONLY valid JSON, no markdown or explanations.''';
   }
 
@@ -1502,7 +1851,7 @@ Return ONLY valid JSON, no markdown or explanations.''';
   /// Focuses on reading nutrition labels and using known product data
   static String _getProductImageAnalysisPrompt() {
     final cuisineHint = _cuisinePreference != 'international'
-        ? '\nThe user typically consumes $_cuisinePreference food products. If the product origin is ambiguous, prioritize $_cuisinePreference market products and brands.\n'
+        ? '\nThe user typically consumes $_cuisinePreference food products. If the product origin is ambiguous, prioritize $_cuisinePreference market products and brands. (Note: This is for product identification only — response language MUST be $_userLangName.)\n'
         : '';
 
     return '''You are a Nutrition Label Expert and Packaged Food Specialist.
@@ -1604,7 +1953,7 @@ CRITICAL RULES:
 
 Respond in JSON format:
 {
-  "food_name": "Product name (original language from packaging)",
+  "food_name": "Product name in $_userLangName language",
   "food_name_en": "English product name with brand",
   "confidence": 0.95,
   "serving_size": 1,
@@ -1642,7 +1991,7 @@ IMPORTANT RULES:
 2. calories, protein, carbs, and fat MUST NOT ALL be 0. Every food has nutrition.
    If you cannot read the label, ESTIMATE based on the product type and similar products.
 3. Determine quantity from the image: whole product = entire package; visible units = only those units.
-
+$_languageEnforcementBlock
 Return ONLY valid JSON, no markdown or explanations.''';
   }
 
@@ -1742,7 +2091,7 @@ Return ONLY valid JSON, no markdown or explanations.''';
     final servingUnitJson = hasUserServing ? servingUnit : 'serving';
 
     final cuisineBias = _cuisinePreference != 'international'
-        ? 'The user\'s cuisine preference is "$_cuisinePreference". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a $_cuisinePreference dish with typical $_cuisinePreference ingredients and cooking methods.\n'
+        ? 'The user\'s cuisine preference is "$_cuisinePreference". If the food name is ambiguous (e.g., "curry", "fried rice", "noodle soup"), interpret it as a $_cuisinePreference dish with typical $_cuisinePreference ingredients and cooking methods. (Note: cuisine preference is for food identification only — response language MUST be $_userLangName.)\n'
         : '';
 
     // Build user ingredients hint (with amounts if available, names-only as fallback)
@@ -1825,12 +2174,16 @@ Account for all hidden calorie sources typically used in this dish:
 Step 4 — CROSS-REFERENCE:
 If this is a well-known dish (e.g., Thai street food, convenience store meal, restaurant chain item), reference typical recipes and portion sizes for accurate estimation.
 
-FIELD REQUIREMENTS:
+LANGUAGE & FIELD REQUIREMENTS:
+The user's language is: "$_userLang" ($_userLangName).
+⚠️ The cuisine preference ($_cuisinePreference) does NOT affect the response language. ALL text must be in $_userLangName.
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
 ${_isWeightUnit(servingUnitJson) ? '- The user specified weight in grams/kg. Keep serving_unit as "$servingUnitJson" and serving_size as $servingSizeJson. Do NOT change to "plate" or "serving".' : '- Do NOT use "g" as serving_unit for dishes — use "plate", "bowl", "cup", "piece", "serving", etc.'}
-- food_name: Keep in ORIGINAL language as user entered
+- food_name: Use $_userLangName language. Keep the user's original name if already in $_userLangName, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
-- All ingredient names: MUST be in English with cooking state description
+- notes: Write in $_userLangName language
+- ingredient "name": Use $_userLangName language with cooking state description. Example for Thai: "กุ้งสดปอกเปลือก (ผัด)", for English: "Peeled Fresh Shrimp (stir-fried)"
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - Include "detail" field for each ingredient
 
 INGREDIENT HIERARCHY RULES (CRITICAL — prevents double counting):
@@ -1866,7 +2219,7 @@ CORRECT example (hierarchical):
 {
   "ingredients_detail": [
     {
-      "name": "Deep-fried Chicken Pieces",
+      "name": "Name in $_userLangName with cooking state",
       "name_en": "Deep-fried Chicken Pieces",
       "detail": "Coated in batter and deep-fried",
       "amount": 100,
@@ -1876,9 +2229,9 @@ CORRECT example (hierarchical):
       "carbs": 8,
       "fat": 8,
       "sub_ingredients": [
-        {"name": "Chicken Meat", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
-        {"name": "Flour Batter", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
-        {"name": "Absorbed Oil", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
+        {"name": "Name in $_userLangName", "name_en": "Chicken Meat", "amount": 70, "unit": "g", "calories": 100, "protein": 14, "carbs": 0, "fat": 5},
+        {"name": "Name in $_userLangName", "name_en": "Flour Batter", "amount": 20, "unit": "g", "calories": 30, "protein": 1, "carbs": 8, "fat": 0},
+        {"name": "Name in $_userLangName", "name_en": "Absorbed Oil", "amount": 5, "unit": "ml", "calories": 20, "protein": 0, "carbs": 0, "fat": 3}
       ]
     }
   ]
@@ -1889,7 +2242,7 @@ Do NOT copy example numbers. Calculate from nutrition databases (e.g., USDA) for
 
 Respond in JSON only:
 {
-  "food_name": "Original name as user entered (any language)",
+  "food_name": "Name in $_userLangName language",
   "food_name_en": "ALWAYS English translation",
   "confidence": 0.7,
   "serving_size": $servingSizeJson,
@@ -1914,8 +2267,8 @@ Respond in JSON only:
   "ingredients": ["ingredient1", "ingredient2"],
   "ingredients_detail": [
     {
-      "name": "Specific Ingredient with Cooking State",
-      "name_en": "Specific Ingredient with Cooking State",
+      "name": "Ingredient name in $_userLangName with cooking state",
+      "name_en": "Ingredient name in English with cooking state",
       "detail": "Preparation method, composition, hidden calories note",
       "amount": 100,
       "unit": "g",
@@ -1929,7 +2282,8 @@ Respond in JSON only:
   "food_type": "food"
 }
 
-IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant dishes.''';
+IMPORTANT: Add "food_type" field. Set to "food" for home-cooked or restaurant dishes.
+$_languageEnforcementBlock''';
   }
 
   /// Prompt for analyzing PACKAGED PRODUCTS by name (text only)
@@ -2023,10 +2377,15 @@ SIZE/VARIANT AWARENESS:
 - If user specifies size, use that exact size
 - If not specified, use the most common single-serving size for that product
 
-FIELD REQUIREMENTS:
+LANGUAGE & FIELD REQUIREMENTS:
+The user's language is: "$_userLang" ($_userLangName).
+⚠️ The cuisine preference ($_cuisinePreference) does NOT affect the response language. ALL text must be in $_userLangName.
 - serving_size: $servingSizeJson, serving_unit: "$servingUnitJson"
-- food_name: Keep original name as user entered
+- food_name: Use $_userLangName language. Keep brand name in original form, translate generic descriptors.
 - food_name_en: MUST ALWAYS be in English (include brand name)
+- notes: Write in $_userLangName language
+- ingredient "name": Use $_userLangName language. Keep brand names in original form.
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - "ingredients_detail" array is MANDATORY (for multi-piece items, list EACH piece separately)
 
 Respond in JSON only:
@@ -2064,6 +2423,7 @@ Respond in JSON only:
   "notes": "Source: official nutrition facts for $productName. Portion: $servingDesc. Full container: [size if applicable]."
 }
 
+$_languageEnforcementBlock
 Return ONLY valid JSON.''';
   }
 
@@ -2072,7 +2432,7 @@ Return ONLY valid JSON.''';
     List<({String name, double? servingSize, String? servingUnit, FoodSearchMode searchMode, List<String>? ingredientNames, List<Map<String, dynamic>>? userIngredients})> items,
   ) {
     final cuisineBias = _cuisinePreference != 'international'
-        ? 'The user\'s cuisine preference is "$_cuisinePreference". If a food name is ambiguous, interpret it as a $_cuisinePreference dish.\n'
+        ? 'The user\'s cuisine preference is "$_cuisinePreference". If a food name is ambiguous, interpret it as a $_cuisinePreference dish. (Note: cuisine preference is for food identification only — response language MUST be $_userLangName.)\n'
         : '';
 
     final itemsListStr = StringBuffer();
@@ -2127,10 +2487,14 @@ INGREDIENT HIERARCHY RULES (CRITICAL):
 - sum(ROOT.calories) MUST equal nutrition.calories
 - NEVER put both a composite AND its raw materials at ROOT level
 
-NAMING & UNIT RULES:
-- food_name: Keep in ORIGINAL language as provided
+LANGUAGE, NAMING & UNIT RULES:
+The user's language is: "$_userLang" ($_userLangName).
+⚠️ The cuisine preference ($_cuisinePreference) does NOT affect the response language. ALL text must be in $_userLangName.
+- food_name: Use $_userLangName language. Keep user's original name if already in $_userLangName, otherwise translate.
 - food_name_en: MUST ALWAYS be in English
-- ingredient names: MUST be in English with cooking state
+- notes: Write in $_userLangName language
+- ingredient "name": Use $_userLangName language with cooking state description
+- ingredient "name_en": MUST ALWAYS be in English for database standardization
 - serving_unit: Use "plate", "bowl", "cup", "piece", "serving", etc. NOT "g" or "ml" for dishes
 - Valid serving_unit values: g, kg, mg, oz, lbs, ml, l, fl oz, cup, tbsp, tsp, serving, piece, slice, plate, bowl, cup_c, glass, egg, ball, fruit, skewer, whole, sheet, pair, bunch, leaf, stick, scoop, handful, pack, bag, wrap, box, can, bottle, bar
 - Items marked [PRODUCT] are packaged products — reference nutrition labels and known databases
@@ -2150,7 +2514,7 @@ Return ONLY valid JSON:
 {
   "items": [
     {
-      "food_name": "Original name (any language)",
+      "food_name": "Name in $_userLangName language",
       "food_name_en": "English name",
       "food_type": "food",
       "confidence": 0.85,
@@ -2168,8 +2532,8 @@ Return ONLY valid JSON:
       },
       "ingredients_detail": [
         {
-          "name": "Ingredient with Cooking State",
-          "name_en": "Ingredient with Cooking State",
+          "name": "Ingredient name in $_userLangName language with cooking state",
+          "name_en": "Ingredient name in English with cooking state",
           "detail": "Preparation notes",
           "amount": 100,
           "unit": "g",
@@ -2183,6 +2547,7 @@ Return ONLY valid JSON:
   ]
 }
 
+$_languageEnforcementBlock
 Return ONLY valid JSON, no markdown.''';
   }
 
@@ -2301,6 +2666,19 @@ Return ONLY valid JSON, no markdown.''';
       ingredients: result.ingredients,
       ingredientsDetail: adjustedIngredients,
       notes: result.notes,
+      visualDescription: result.visualDescription,
+      referenceObjectUsed: result.referenceObjectUsed,
+      referenceConfidence: result.referenceConfidence,
+      plateDiameterCm: result.plateDiameterCm,
+      estimatedVolumeMl: result.estimatedVolumeMl,
+      isCalibrated: result.isCalibrated,
+      brandName: result.brandName,
+      brandNameEn: result.brandNameEn,
+      productCategory: result.productCategory,
+      packageSize: result.packageSize,
+      chainName: result.chainName,
+      nutritionSource: result.nutritionSource,
+      sceneContext: result.sceneContext,
     );
   }
 }
@@ -2322,6 +2700,27 @@ class FoodAnalysisResult {
   final List<IngredientDetail>? ingredientsDetail;
   final String? notes;
 
+  /// AI's visual description of the food (Chain-of-Thought reasoning)
+  final String? visualDescription;
+
+  // AR Scale Ruler fields
+  final String? referenceObjectUsed;
+  final double? referenceConfidence;
+  final double? plateDiameterCm;
+  final double? estimatedVolumeMl;
+  final bool isCalibrated;
+
+  // Brand / Product metadata (parsed from AI response)
+  final String? brandName;
+  final String? brandNameEn;
+  final String? productCategory;
+  final String? packageSize;
+  final String? chainName;
+  final String? nutritionSource;
+
+  // Scene context (food/beverage/dining items around the main dish)
+  final Map<String, dynamic>? sceneContext;
+
   FoodAnalysisResult({
     required this.foodName,
     this.foodNameEn,
@@ -2334,6 +2733,19 @@ class FoodAnalysisResult {
     this.ingredients,
     this.ingredientsDetail,
     this.notes,
+    this.visualDescription,
+    this.referenceObjectUsed,
+    this.referenceConfidence,
+    this.plateDiameterCm,
+    this.estimatedVolumeMl,
+    this.isCalibrated = false,
+    this.brandName,
+    this.brandNameEn,
+    this.productCategory,
+    this.packageSize,
+    this.chainName,
+    this.nutritionSource,
+    this.sceneContext,
   });
 
   factory FoodAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -2349,6 +2761,17 @@ class FoodAnalysisResult {
       rawUnit = 'serving';
       rawSize = 1.0;
     }
+
+    // Parse AR Scale reference objects (if present in response)
+    final refObjects = json['reference_objects'] as List?;
+    String? refUsed;
+    double? refConf;
+    if (refObjects != null && refObjects.isNotEmpty) {
+      final best = refObjects[0] as Map<String, dynamic>;
+      refUsed = best['type'] as String?;
+      refConf = (best['confidence'] as num?)?.toDouble();
+    }
+    final plateMeasure = json['plate_measurement'] as Map<String, dynamic>?;
 
     return FoodAnalysisResult(
       foodName: json['food_name'] ?? 'Unknown',
@@ -2368,6 +2791,20 @@ class FoodAnalysisResult {
               .toList()
           : null,
       notes: json['notes'],
+      visualDescription: json['visual_description'],
+      referenceObjectUsed: refUsed,
+      referenceConfidence: refConf,
+      plateDiameterCm: plateMeasure?['estimated_diameter_cm']?.toDouble(),
+      estimatedVolumeMl: plateMeasure?['estimated_volume_ml']?.toDouble(),
+      isCalibrated: refUsed != null && (refConf ?? 0) >= 0.65,
+      // Brand / Product metadata
+      brandName: json['brand_name'] ?? json['brand'],
+      brandNameEn: json['brand_name_en'] ?? json['brand_en'],
+      productCategory: json['product_category'] ?? json['category'],
+      packageSize: json['package_size'],
+      chainName: json['chain_name'] ?? json['restaurant_chain'],
+      nutritionSource: json['nutrition_source'],
+      sceneContext: json['scene_context'] as Map<String, dynamic>?,
     );
   }
 }

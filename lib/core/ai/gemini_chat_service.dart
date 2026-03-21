@@ -1,11 +1,10 @@
 import 'dart:convert';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:http/http.dart' as http;
 import '../config/firebase_config.dart';
 import '../services/device_id_service.dart';
 import '../services/energy_service.dart';
-import '../../features/profile/models/user_profile.dart';
-
-/// Service for Chat with Miro AI (Gemini Backend)
+/// Service for Chat with ArCal AI (Gemini Backend)
 class GeminiChatService {
   static const String _functionUrl = FirebaseConfig.analyzeFoodUrl;
 
@@ -133,6 +132,7 @@ class GeminiChatService {
         'text': message,
         'deviceId': deviceId,
         'timezoneOffset': timezoneOffset,
+        'freeChat': true,
       };
 
       // Add profile context if available
@@ -190,7 +190,7 @@ class GeminiChatService {
     }
   }
 
-  /// Get menu suggestions from Miro AI (costs 1 Energy)
+  /// Get menu suggestions from ArCal AI (costs 1 Energy)
   /// Accepts UserProfile for personalized menu recommendations
   static Future<Map<String, dynamic>> getMenuSuggestions({
     required String recentFoodContext,
@@ -210,7 +210,8 @@ class GeminiChatService {
         'type': 'menu_suggestion',
         'text': recentFoodContext,
         'deviceId': deviceId,
-        'timezoneOffset': timezoneOffset, // ← ใหม่!
+        'timezoneOffset': timezoneOffset,
+        'freeChat': true,
       };
 
       // Add profile context if available

@@ -1,15 +1,25 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/search_mode_selector.dart';
+import '../../../core/widgets/food_entry_image.dart';
+import '../../../core/ai/gemini_service.dart';
+import '../../../core/services/usage_limiter.dart';
+import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../health/models/food_entry.dart';
-import '../../health/providers/health_provider.dart';
+import '../../../core/ar_scale/models/detected_object_label.dart';
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
+import '../../../core/utils/unit_converter.dart';
+import '../../../core/utils/batch_analysis_helper.dart';
+import '../../health/providers/health_provider.dart';
+import '../../health/providers/my_meal_provider.dart';
+import '../../health/providers/analysis_provider.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -28,7 +38,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late FoodSearchMode _searchMode;
   bool _isEditingName = false;
   bool _hasChanges = false;
+  bool _isReanalyzing = false;
   List<Map<String, dynamic>> _ingredients = [];
+  final bool _isAddingIngredient = false;
 
   // Local nutrition state (recalculated when ingredients change)
   late double _calories;
@@ -40,9 +52,13 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late double _originalServingSize;
   List<Map<String, dynamic>> _baseIngredients = [];
 
-  static const _unitOptions = [
-    'serving', 'piece', 'g', 'ml', 'cup', 'tbsp', 'plate', 'bowl',
-  ];
+  // Multi-image page tracking
+  int _imagePage = 0;
+
+  /// กันโหลดซ้ำ — fallback เหมือน FoodDetailBottomSheet เมื่อไม่มี ingredientsJson
+  bool _loadedFromMeal = false;
+
+  // Unit options ใช้จาก UnitConverter (single source of truth)
 
   @override
   void initState() {
@@ -53,12 +69,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
           ? widget.entry.servingSize.toString()
           : '1',
     );
-    _selectedUnit = widget.entry.servingUnit.isNotEmpty
-        ? widget.entry.servingUnit
-        : 'serving';
-    if (!_unitOptions.contains(_selectedUnit)) {
-      _selectedUnit = 'serving';
-    }
+    _selectedUnit = UnitConverter.ensureValid(
+      widget.entry.servingUnit.isNotEmpty ? widget.entry.servingUnit : 'serving',
+    );
     _searchMode = widget.entry.searchMode;
     _calories = widget.entry.calories;
     _protein = widget.entry.protein;
@@ -126,7 +139,29 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
         // Fix: ถ้าผลรวม ingredients ไม่ตรงกับ entry → recalculate
         _fixCaloriesIfMismatch();
+        return;
       } catch (_) {}
+    }
+    if (widget.entry.myMealId != null && !_loadedFromMeal) {
+      _loadedFromMeal = true;
+      _loadIngredientsFromMyMeal(widget.entry.myMealId!);
+    }
+  }
+
+  Future<void> _loadIngredientsFromMyMeal(int mealId) async {
+    try {
+      final tree = await ref.read(mealIngredientTreeProvider(mealId).future);
+      if (!mounted || tree.isEmpty) return;
+      final maps = ingredientTreeToJsonMaps(tree);
+      setState(() {
+        _ingredients =
+            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+        _baseIngredients =
+            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+      });
+      _fixCaloriesIfMismatch();
+    } catch (e) {
+      AppLogger.warn('SimpleFoodDetail: load ingredients from meal failed', e);
     }
   }
 
@@ -271,9 +306,275 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     _fat = f;
   }
 
-  Future<void> _save() async {
+  /// Show dialog to add a new ingredient with DB autocomplete + free AI lookup
+  Future<void> _showAddIngredientDialog() async {
+    final nameController = TextEditingController();
+    final amountController = TextEditingController(text: '100');
+    String unit = 'g';
+    bool isSearching = false;
+    List<Ingredient> dbResults = [];
+
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(builder: (ctx, setDialogState) {
+          Future<void> searchDb(String query) async {
+            if (query.length < 2) {
+              setDialogState(() => dbResults = []);
+              return;
+            }
+            final results = await (DatabaseService.db.select(DatabaseService.db.ingredients)
+                ..where((tbl) => tbl.name.lower().like('%${query.toLowerCase()}%') | tbl.nameEn.lower().like('%${query.toLowerCase()}%'))
+                ..orderBy([(tbl) => OrderingTerm.desc(tbl.usageCount)])
+                ..limit(5))
+                .get();
+            if (ctx.mounted) setDialogState(() => dbResults = results);
+          }
+
+          void selectFromDb(Ingredient ing) {
+            final amount = double.tryParse(amountController.text) ?? 100;
+            final newIng = <String, dynamic>{
+              'name': ing.name,
+              'name_en': ing.nameEn ?? ing.name,
+              'amount': amount,
+              'unit': ing.baseUnit,
+              'calories': ing.calcCalories(amount),
+              'protein': ing.calcProtein(amount),
+              'carbs': ing.calcCarbs(amount),
+              'fat': ing.calcFat(amount),
+              'source': 'user_db',
+            };
+            IngredientActions.incrementUsage(ing.id);
+            setState(() {
+              _ingredients.insert(0, newIng);
+              _recalculateNutrition();
+              _hasChanges = true;
+            });
+            Navigator.pop(ctx);
+          }
+
+          Future<void> searchAi() async {
+            final name = nameController.text.trim();
+            if (name.isEmpty) return;
+
+            final hasEnergy = await GeminiService.hasEnergy();
+            if (!hasEnergy) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(L10n.of(context)!.notEnoughEnergy),
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+              return;
+            }
+
+            final amount = double.tryParse(amountController.text) ?? 100;
+            setDialogState(() => isSearching = true);
+
+            try {
+              final result = await GeminiService.analyzeFoodByName(
+                name,
+                servingSize: amount,
+                servingUnit: unit,
+              );
+
+              if (result != null) {
+                await UsageLimiter.recordAiUsage();
+
+                final newIng = <String, dynamic>{
+                  'name': result.foodName,
+                  'name_en': result.foodNameEn ?? result.foodName,
+                  'amount': amount,
+                  'unit': unit,
+                  'calories': result.nutrition.calories,
+                  'protein': result.nutrition.protein,
+                  'carbs': result.nutrition.carbs,
+                  'fat': result.nutrition.fat,
+                  'source': 'user_ai',
+                };
+
+                // Save to ingredient DB for future autocomplete
+                _saveToIngredientDb(result, amount, unit);
+
+                setState(() {
+                  _ingredients.insert(0, newIng);
+                  _recalculateNutrition();
+                  _hasChanges = true;
+                });
+
+                if (ctx.mounted) Navigator.pop(ctx);
+              } else {
+                if (ctx.mounted) {
+                  setDialogState(() => isSearching = false);
+                }
+              }
+            } catch (_) {
+              if (ctx.mounted) setDialogState(() => isSearching = false);
+            }
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.lg),
+            title: Row(
+              children: [
+                const Icon(Icons.restaurant_outlined, size: 20, color: AppColors.success),
+                const SizedBox(width: 8),
+                Text(L10n.of(context)!.addIngredient,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Name field
+                  TextField(
+                    controller: nameController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: L10n.of(context)!.ingredientNameHint,
+                      hintText: L10n.of(context)!.ingredientSearchHintExample,
+                      border: OutlineInputBorder(borderRadius: AppRadius.md),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                      suffixIcon: isSearching
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: SizedBox(width: 18, height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2)),
+                            )
+                          : IconButton(
+                              icon: const Icon(Icons.search_rounded,
+                                  size: 20, color: AppColors.premium),
+                              tooltip: 'AI Lookup (1⚡)',
+                              onPressed: searchAi,
+                            ),
+                    ),
+                    onChanged: searchDb,
+                    onSubmitted: (_) => searchAi(),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+
+                  // Amount + Unit row
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: TextField(
+                          controller: amountController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            labelText: L10n.of(context)!.quantity,
+                            border: OutlineInputBorder(borderRadius: AppRadius.md),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 2,
+                        child: DropdownButtonFormField<String>(
+                          initialValue: unit,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: L10n.of(context)!.servingUnit,
+                            border: OutlineInputBorder(borderRadius: AppRadius.md),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                          ),
+                          items: UnitConverter.compactDropdownItems,
+                          onChanged: (v) {
+                            if (v != null) setDialogState(() => unit = v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // DB search results
+                  if (dbResults.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 150),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: dbResults.length,
+                        itemBuilder: (_, i) {
+                          final ing = dbResults[i];
+                          return ListTile(
+                            dense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            leading: Container(
+                              width: 28, height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: AppRadius.sm,
+                              ),
+                              child: const Icon(Icons.restaurant, size: 14, color: AppColors.primary),
+                            ),
+                            title: Text(ing.name,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                            subtitle: Text(
+                              '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toInt()} ${ing.baseUnit}',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            onTap: () => selectFromDb(ing),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(L10n.of(context)!.cancel),
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
+  /// Save AI result to ingredient DB for future autocomplete
+  Future<void> _saveToIngredientDb(FoodAnalysisResult result, double amount, String unit) async {
+    try {
+      await IngredientActions.upsert(
+        name: result.foodName,
+        nameEn: result.foodNameEn,
+        baseAmount: amount,
+        baseUnit: unit,
+        calories: result.nutrition.calories,
+        protein: result.nutrition.protein,
+        carbs: result.nutrition.carbs,
+        fat: result.nutrition.fat,
+      );
+    } catch (_) {}
+  }
+
+  /// Save entry changes to DB (without popping the sheet)
+  Future<void> _saveEntry() async {
     final entry = widget.entry;
     bool changed = false;
+
+    final snapName = entry.foodName;
+    final snapNameEn = entry.foodNameEn;
+    final snapCalories = entry.calories;
+    final snapProtein = entry.protein;
+    final snapCarbs = entry.carbs;
+    final snapFat = entry.fat;
+    final snapIngredientsJson = entry.ingredientsJson;
 
     if (_nameController.text.trim() != entry.foodName) {
       entry.foodName = _nameController.text.trim();
@@ -311,25 +612,383 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     }
 
     if (changed) {
-      entry.updatedAt = DateTime.now();
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.foodEntries.put(entry);
-      });
+      if (entry.originalFoodName == null &&
+          entry.source == DataSource.aiAnalyzed) {
+        entry.originalFoodName = snapName;
+        entry.originalFoodNameEn = snapNameEn;
+        entry.originalCalories = snapCalories;
+        entry.originalProtein = snapProtein;
+        entry.originalCarbs = snapCarbs;
+        entry.originalFat = snapFat;
+        entry.originalIngredientsJson = snapIngredientsJson;
+      }
+      entry.editCount += 1;
+      entry.isUserCorrected = true;
+
+      await ref
+          .read(foodEntriesNotifierProvider.notifier)
+          .updateFoodEntry(entry);
       refreshFoodProviders(ref, entry.timestamp);
+    }
+  }
+
+  Future<void> _save() async {
+    await _saveEntry();
+    if (mounted) Navigator.pop(context);
+  }
+
+  /// Save entry + create a new MyMeal (because ingredients changed)
+  Future<void> _saveAndCreateMeal() async {
+    final originalName = widget.entry.foodName;
+    await _saveEntry();
+
+    if (_ingredients.isNotEmpty) {
+      try {
+        final currentName = _nameController.text.trim();
+
+        final mealName = (currentName == originalName)
+            ? await _getNextMealName(currentName)
+            : currentName;
+
+        final inputs = _ingredients.map((ing) => MealIngredientInput(
+              name: (ing['name'] as String?) ?? '',
+              amount: (ing['amount'] as num?)?.toDouble() ?? 0,
+              unit: (ing['unit'] as String?) ?? 'g',
+              calories: (ing['calories'] as num?)?.toDouble() ?? 0,
+              protein: (ing['protein'] as num?)?.toDouble() ?? 0,
+              carbs: (ing['carbs'] as num?)?.toDouble() ?? 0,
+              fat: (ing['fat'] as num?)?.toDouble() ?? 0,
+            )).toList();
+
+        final serving = '${_quantityController.text.trim()} $_selectedUnit';
+
+        await ref.read(myMealNotifierProvider.notifier).createMeal(
+              name: mealName,
+              baseServingDescription: serving,
+              ingredients: inputs,
+              source: 'manual',
+            );
+        ref.invalidate(allMyMealsProvider);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(L10n.of(context)!.savedAsNewMeal(mealName)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } catch (e) {
+        AppLogger.error('Failed to create new meal from detail sheet', e);
+      }
     }
 
     if (mounted) Navigator.pop(context);
   }
 
+  /// Find next available name (e.g. "ข้าวผัด 2", "ข้าวผัด 3")
+  Future<String> _getNextMealName(String baseName) async {
+    final allMeals =
+        await DatabaseService.db.select(DatabaseService.db.myMeals).get();
+    final existingNames =
+        allMeals.map((m) => m.name.toLowerCase()).toSet();
+    int suffix = 2;
+    String candidate = '$baseName $suffix';
+    while (existingNames.contains(candidate.toLowerCase())) {
+      suffix++;
+      candidate = '$baseName $suffix';
+    }
+    return candidate;
+  }
+
+  Future<void> _reanalyze() async {
+    if (_isReanalyzing) return;
+    
+    final entry = widget.entry;
+    final l10n = L10n.of(context)!;
+    final newName = _nameController.text.trim();
+    
+    // Check if name changed and has ingredients
+    final nameChanged = newName != entry.foodName;
+    final hasIngredients = _ingredients.isNotEmpty;
+    
+    List<Map<String, dynamic>>? keptIngredients;
+    
+    // If name changed AND has ingredients → show checkbox dialog
+    if (nameChanged && hasIngredients) {
+      final checkedFlags = List<bool>.filled(_ingredients.length, true);
+      
+      final shouldProceed = await showDialog<List<bool>>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: AppColors.premium, size: 28),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(l10n.keepOrReanalyzeTitle, style: const TextStyle(fontSize: 17)),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.keepOrReanalyzeDesc, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: AppSpacing.md),
+                    const Divider(height: 1),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _ingredients.length,
+                        itemBuilder: (_, i) {
+                          final ing = _ingredients[i];
+                          final name = ing['name'] ?? '—';
+                          final amount = ing['amount'] ?? 0;
+                          final unit = ing['unit'] ?? '';
+                          final cal = ing['calories'] ?? 0;
+                          return CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: checkedFlags[i],
+                            onChanged: (v) => setDialogState(() => checkedFlags[i] = v ?? true),
+                            title: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 14,
+                                decoration: checkedFlags[i] ? TextDecoration.lineThrough : null,
+                                color: checkedFlags[i] ? Colors.grey : null,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '$amount $unit  •  ${cal.round()} kcal',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: checkedFlags[i] ? Colors.grey.shade400 : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, null),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Store kept ingredients indices (unchecked)
+                    Navigator.pop(ctx, checkedFlags);
+                  },
+                  icon: const Icon(Icons.auto_fix_high, size: 18),
+                  label: Text(l10n.reanalyze),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.premium,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      
+      if (shouldProceed == null || !mounted) return;
+      
+      // Build kept ingredients (unchecked)
+      keptIngredients = [];
+      for (int i = 0; i < _ingredients.length; i++) {
+        if (!shouldProceed[i]) {
+          keptIngredients.add(_ingredients[i]);
+        }
+      }
+    }
+    
+    // Snapshot original before re-analysis
+    final snapName = entry.foodName;
+    final snapNameEn = entry.foodNameEn;
+    final snapCalories = entry.calories;
+    final snapProtein = entry.protein;
+    final snapCarbs = entry.carbs;
+    final snapFat = entry.fat;
+    final snapIngredientsJson = entry.ingredientsJson;
+    
+    // Set reanalyzing state
+    setState(() => _isReanalyzing = true);
+    
+    try {
+      // Check free edit lookup first (free for user corrections)
+      final hasEnergy = await GeminiService.hasEnergy();
+      if (!hasEnergy) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.notEnoughEnergy)),
+          );
+        }
+        setState(() => _isReanalyzing = false);
+        return;
+      }
+      
+      // Prepare user ingredients for kept items
+      final userIngredients = keptIngredients?.map((ing) => <String, dynamic>{
+        'name': ing['name'],
+        'amount': ing['amount'],
+        'unit': ing['unit'],
+      }).toList();
+      
+      // Call Gemini
+      FoodAnalysisResult? result;
+      if (entry.hasAnyImage && entry.imagePath != null) {
+        result = await GeminiService.analyzeFoodImage(
+          File(entry.imagePath!),
+          foodName: newName,
+          searchMode: _searchMode,
+          userIngredients: userIngredients,
+        );
+      } else {
+        result = await GeminiService.analyzeFoodByName(
+          newName,
+          searchMode: _searchMode,
+          userIngredients: userIngredients,
+        );
+      }
+      
+      if (result == null || !mounted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.reanalyzeSuccess)),
+          );
+        }
+        setState(() => _isReanalyzing = false);
+        return;
+      }
+      
+      await UsageLimiter.recordAiUsage();
+      
+      // Apply result
+      BatchAnalysisHelper.applyResultToEntry(entry, result);
+      
+      // Save correction history
+      final correctionHistory = _buildCorrectionHistory(
+        snapName, snapNameEn, snapCalories, snapProtein, snapCarbs, snapFat, snapIngredientsJson,
+        entry, result,
+      );
+      entry.correctionHistoryJson = correctionHistory;
+      
+      // Mark as user corrected
+      if (entry.originalFoodName == null && entry.source == DataSource.aiAnalyzed) {
+        entry.originalFoodName = snapName;
+        entry.originalFoodNameEn = snapNameEn;
+        entry.originalCalories = snapCalories;
+        entry.originalProtein = snapProtein;
+        entry.originalCarbs = snapCarbs;
+        entry.originalFat = snapFat;
+        entry.originalIngredientsJson = snapIngredientsJson;
+      }
+      entry.editCount += 1;
+      entry.isUserCorrected = true;
+      
+      // Save to database
+      await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
+      refreshFoodProviders(ref, entry.timestamp);
+      
+      // Update UI inline
+      setState(() {
+        _nameController.text = entry.foodName;
+        _calories = entry.calories;
+        _protein = entry.protein;
+        _carbs = entry.carbs;
+        _fat = entry.fat;
+        _loadIngredients();
+        _hasChanges = false;
+        _isReanalyzing = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.reanalyzeSuccess)),
+        );
+      }
+    } catch (e) {
+      AppLogger.error('Re-analysis failed', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.analysisFailed)),
+        );
+      }
+      setState(() => _isReanalyzing = false);
+    }
+  }
+  
+  String? _buildCorrectionHistory(
+    String snapName, String? snapNameEn, double snapCalories, double snapProtein, double snapCarbs, double snapFat, String? snapIngredientsJson,
+    FoodEntry entry, FoodAnalysisResult result,
+  ) {
+    final history = <Map<String, dynamic>>[];
+    
+    // Try to parse existing history
+    if (entry.correctionHistoryJson != null) {
+      try {
+        final existing = jsonDecode(entry.correctionHistoryJson!) as List;
+        history.addAll(existing.cast<Map<String, dynamic>>());
+      } catch (_) {}
+    }
+    
+    // Add new correction
+    history.add({
+      'timestamp': DateTime.now().toIso8601String(),
+      'action': 'reanalyze',
+      'before': {
+        'foodName': snapName,
+        'foodNameEn': snapNameEn,
+        'calories': snapCalories,
+        'protein': snapProtein,
+        'carbs': snapCarbs,
+        'fat': snapFat,
+        'ingredientsJson': snapIngredientsJson,
+      },
+      'after': {
+        'foodName': entry.foodName,
+        'foodNameEn': entry.foodNameEn,
+        'calories': entry.calories,
+        'protein': entry.protein,
+        'carbs': entry.carbs,
+        'fat': entry.fat,
+        'ingredientsJson': entry.ingredientsJson,
+      },
+      'aiResult': {
+        'foodName': result.foodName,
+        'foodNameEn': result.foodNameEn,
+        'calories': result.nutrition.calories,
+        'protein': result.nutrition.protein,
+        'carbs': result.nutrition.carbs,
+        'fat': result.nutrition.fat,
+        'confidence': result.confidence,
+      },
+    });
+    
+    return jsonEncode(history);
+  }
+
+  bool get _isNameChanged =>
+      _nameController.text.trim() != widget.entry.foodName;
+
   bool get _isDirty {
     if (_hasChanges) return true;
-    if (_nameController.text.trim() != widget.entry.foodName) return true;
+    if (_isNameChanged) return true;
     final qty =
         double.tryParse(_quantityController.text) ?? widget.entry.servingSize;
     if (qty != widget.entry.servingSize) return true;
-    final originalUnit = widget.entry.servingUnit.isNotEmpty
-        ? widget.entry.servingUnit
-        : 'serving';
+    final originalUnit = UnitConverter.ensureValid(widget.entry.servingUnit);
     if (_selectedUnit != originalUnit) return true;
     if (_searchMode != widget.entry.searchMode) return true;
     return false;
@@ -337,12 +996,205 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
   bool get _hasNutrition => _calories > 0 || _protein > 0 || _carbs > 0 || _fat > 0;
 
-  void _showFullScreenImage(BuildContext context, String imagePath) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => _FullScreenImageView(imagePath: imagePath),
-        fullscreenDialog: true,
+  /// เริ่มวิเคราะห์เฉพาะรายการนี้ (ใช้เมื่อรายการยังไม่มี nutrition)
+  Future<void> _startAnalyzeThisEntry() async {
+    final entry = widget.entry;
+    final l10n = L10n.of(context)!;
+    if (await UsageLimiter.hasReachedDailyCap()) {
+      if (!mounted) return;
+      final remaining = await UsageLimiter.remainingAnalysesToday();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.dailyCapReached(
+            UsageLimiter.maxAnalysesPerDay - remaining,
+            UsageLimiter.maxAnalysesPerDay,
+          )),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+    final selectedDate = dateOnly(entry.timestamp);
+    ref.read(analysisProvider.notifier).enqueue(
+          entries: [entry],
+          selectedDate: selectedDate,
+        );
+    if (mounted) Navigator.pop(context);
+  }
+
+  Widget _buildImageSection(FoodEntry entry) {
+    final paths = entry.allImagePaths;
+
+    if (paths.length <= 1) {
+      return GestureDetector(
+        onTap: () => showFoodEntryImage(context, entry),
+        child: FoodEntryImageWithOverlay(
+          entry: entry,
+          width: double.infinity,
+          height: 200,
+          borderRadius: AppRadius.lg,
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 200,
+      child: Stack(
+        children: [
+          PageView.builder(
+            itemCount: paths.length,
+            onPageChanged: (i) => setState(() => _imagePage = i),
+            itemBuilder: (_, i) {
+              final file = File(paths[i]);
+              final labels = ArImageDetectionData.labelsForImage(
+                  entry.arLabelsJson, i);
+              final imgSize = ArImageDetectionData.imageSizeForImage(
+                  entry.arLabelsJson, i);
+              final imgW = imgSize?.width ?? entry.arImageWidth;
+              final imgH = imgSize?.height ?? entry.arImageHeight;
+              final hasOverlay =
+                  labels.isNotEmpty && imgW != null && imgH != null;
+
+              return GestureDetector(
+                onTap: () => _showFullScreenImage(file, imageIndex: i),
+                child: ClipRRect(
+                  borderRadius: AppRadius.lg,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 200,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.file(
+                          file,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: AppColors.surfaceVariant,
+                            child: const Icon(Icons.broken_image, size: 40),
+                          ),
+                        ),
+                        if (hasOverlay)
+                          CustomPaint(
+                            painter: BoundingBoxPainter(
+                              labels: labels,
+                              imageWidth: imgW,
+                              imageHeight: imgH,
+                              boxFit: BoxFit.cover,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(paths.length, (i) {
+                final active = i == _imagePage;
+                return Container(
+                  width: active ? 20 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: active
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.4),
+                  ),
+                );
+              }),
+            ),
+          ),
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${_imagePage + 1}/${paths.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenImage(File file, {int imageIndex = 0}) {
+    final entry = widget.entry;
+    final labels =
+        ArImageDetectionData.labelsForImage(entry.arLabelsJson, imageIndex);
+    final imgSize =
+        ArImageDetectionData.imageSizeForImage(entry.arLabelsJson, imageIndex);
+    final imgW = imgSize?.width ?? entry.arImageWidth;
+    final imgH = imgSize?.height ?? entry.arImageHeight;
+    final hasOverlay = labels.isNotEmpty && imgW != null && imgH != null;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(16)),
+              child: SizedBox(
+                width: MediaQuery.of(ctx).size.width - 32,
+                height: MediaQuery.of(ctx).size.height * 0.75,
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: hasOverlay
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(file, fit: BoxFit.contain),
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: BoundingBoxPainter(
+                                  labels: labels,
+                                  imageWidth: imgW,
+                                  imageHeight: imgH,
+                                  boxFit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Image.file(file, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -352,8 +1204,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     final entry = widget.entry;
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final hasImage =
-        entry.imagePath != null && File(entry.imagePath!).existsSync();
+    final hasImage = entry.hasAnyImage;
 
     return Container(
       constraints: BoxConstraints(
@@ -389,21 +1240,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Image (tap to view full screen, tap again to close)
+                  // 1. Image(s) — PageView if multi-angle AR, single otherwise
                   if (hasImage) ...[
-                    GestureDetector(
-                      onTap: () => _showFullScreenImage(context, entry.imagePath!),
-                      child: ClipRRect(
-                        borderRadius: AppRadius.lg,
-                        child: Image.file(
-                          File(entry.imagePath!),
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                        ),
-                      ),
-                    ),
+                    _buildImageSection(entry),
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
@@ -499,7 +1338,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedUnit,
+                          initialValue: _selectedUnit,
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: _ingredients.isNotEmpty
@@ -514,14 +1353,13 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                               vertical: AppSpacing.sm,
                             ),
                           ),
-                          items: _unitOptions
-                              .map((u) => DropdownMenuItem(
-                                  value: u, child: Text(u)))
-                              .toList(),
+                          items: UnitConverter.allDropdownItems,
                           onChanged: _ingredients.isNotEmpty
                               ? null
                               : (v) {
-                                  if (v != null) setState(() => _selectedUnit = v);
+                                  if (v != null && v.isNotEmpty) {
+                                    setState(() => _selectedUnit = v);
+                                  }
                                 },
                         ),
                       ),
@@ -573,29 +1411,114 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             _macroChip('F', _fat, AppColors.fat),
                           ],
                         ),
+                        if (entry.aiConfidence != null && _hasNutrition) ...[
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                entry.aiConfidence! >= 0.85
+                                    ? Icons.verified_rounded
+                                    : Icons.auto_awesome_rounded,
+                                size: 13,
+                                color: _confidenceColor(entry.aiConfidence!),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'AI ${(entry.aiConfidence! * 100).toInt()}%',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: _confidenceColor(entry.aiConfidence!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
 
-                  // 4. Ingredients (ถ้ามี)
-                  if (_ingredients.isNotEmpty) ...[
-                    Text(
-                      l10n.ingredients,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white70 : AppColors.textPrimary,
+                  // 4. Ingredients (view/add/edit/remove)
+                  Row(
+                    children: [
+                      Text(
+                        l10n.ingredients,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white70 : AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
+                      if (_ingredients.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_ingredients.length}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: _isAddingIngredient ? null : _showAddIngredientDialog,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.1),
+                            borderRadius: AppRadius.sm,
+                            border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add_rounded, size: 14, color: AppColors.success),
+                              const SizedBox(width: 2),
+                              Text(
+                                l10n.addIngredient,
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.success),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (_ingredients.isNotEmpty)
                     ..._ingredients.asMap().entries.map((e) {
                       final i = e.key;
                       final ing = e.value;
-                      return _buildIngredientRow(i, ing, isDark);
+                      final ingName = ing['name'] as String? ?? '';
+                      final ingAmt = (ing['amount'] as num?)?.toDouble() ?? 0;
+                      return KeyedSubtree(
+                        key: ValueKey('ing_${i}_${ingName}_$ingAmt'),
+                        child: _buildIngredientRow(i, ing, isDark),
+                      );
                     }),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
+                  if (_ingredients.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        L10n.of(context)!.noIngredientsHint,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white38 : AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
+
+                  // 4.5 Detected Objects (simple chips)
+                  _buildDetectedObjectsChips(entry, isDark),
 
                   // 5. Info text
                   Container(
@@ -629,36 +1552,134 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // 6. OK / Save button
-                  SizedBox(
-                    width: double.infinity,
-                    height: AppSizes.buttonMedium,
-                    child: ElevatedButton(
-                      onPressed: _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isDirty
-                            ? AppColors.primary
-                            : isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.surfaceVariant,
-                        foregroundColor: _isDirty
-                            ? Colors.white
-                            : isDark
-                                ? Colors.white70
-                                : AppColors.textPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.md,
+                  // 6. Re-analyze / Save / OK button
+                  if (_isNameChanged) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: AppSizes.buttonMedium,
+                            child: ElevatedButton(
+                              onPressed: _isReanalyzing ? null : _saveAndCreateMeal,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
+                                ),
+                              ),
+                              child: Text(
+                                l10n.saveChanges,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _isDirty ? l10n.saveChanges : l10n.ok,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: SizedBox(
+                            height: AppSizes.buttonMedium,
+                            child: ElevatedButton(
+                              onPressed: _isReanalyzing ? null : _reanalyze,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.premium,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
+                                ),
+                              ),
+                              child: _isReanalyzing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.auto_awesome, size: 16),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            l10n.reanalyze,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 4, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.2),
+                                            borderRadius: AppRadius.sm,
+                                          ),
+                                          child: const Text(
+                                            '1⚡',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: AppSizes.buttonMedium,
+                      child: ElevatedButton(
+                        onPressed: _isReanalyzing
+                            ? null
+                            : _isDirty
+                                ? (_hasChanges ? _saveAndCreateMeal : _save)
+                                : !_hasNutrition
+                                    ? _startAnalyzeThisEntry
+                                    : () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isDirty || !_hasNutrition
+                              ? AppColors.primary
+                              : isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.surfaceVariant,
+                          foregroundColor: _isDirty || !_hasNutrition
+                              ? Colors.white
+                              : isDark
+                                  ? Colors.white70
+                                  : AppColors.textPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.md,
+                          ),
+                        ),
+                        child: Text(
+                          _isDirty
+                              ? l10n.saveChanges
+                              : !_hasNutrition
+                                  ? l10n.analyzeSelected
+                                  : l10n.ok,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
 
                   const SizedBox(height: AppSpacing.sm),
                 ],
@@ -725,14 +1746,14 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                               children: [
                                 Text(
                                   '$amountStr $unit',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primary,
                                   ),
                                 ),
                                 const SizedBox(width: 3),
-                                Icon(Icons.edit_rounded, size: 10, color: AppColors.primary),
+                                const Icon(Icons.edit_rounded, size: 10, color: AppColors.primary),
                               ],
                             ),
                           ),
@@ -775,6 +1796,74 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     );
   }
 
+  Widget _buildDetectedObjectsChips(FoodEntry entry, bool isDark) {
+    final labels = DetectedObjectLabel.decode(entry.arLabelsJson);
+    if (labels.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.visibility_rounded,
+                size: 14,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Detected ${labels.length} object${labels.length > 1 ? 's' : ''}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white38 : AppColors.textTertiary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: labels.map((obj) {
+              final confPct = (obj.confidence * 100).toStringAsFixed(0);
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.grey.shade300,
+                  ),
+                ),
+                child: Text(
+                  '${obj.label} $confPct%',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white70 : AppColors.textSecondary,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _confidenceColor(double confidence) {
+    if (confidence >= 0.85) return AppColors.success;
+    if (confidence >= 0.70) return AppColors.warning;
+    return AppColors.error;
+  }
+
   Widget _macroChip(String prefix, double value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -794,34 +1883,4 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   }
 }
 
-/// Full-screen image viewer. Tap anywhere to close.
-class _FullScreenImageView extends StatelessWidget {
-  final String imagePath;
-
-  const _FullScreenImageView({required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        color: Colors.black,
-        child: Center(
-          child: InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            child: Image.file(
-              File(imagePath),
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => const Icon(
-                Icons.broken_image_rounded,
-                size: 64,
-                color: Colors.white54,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Full-screen viewer now uses shared FoodEntryFullScreenImage from food_entry_image.dart

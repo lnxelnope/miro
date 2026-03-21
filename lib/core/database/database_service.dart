@@ -1,61 +1,58 @@
-import 'package:isar/isar.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:drift/drift.dart' show Value;
 
-// Health Models (Food only for v1.0)
-import '../../features/health/models/food_entry.dart';
-import '../../features/health/models/ingredient.dart';
-import '../../features/health/models/my_meal.dart';
-import '../../features/health/models/my_meal_ingredient.dart';
-
-// Chat Models
-import '../../features/chat/models/chat_message.dart';
-
-// Profile Models
-import '../../features/profile/models/user_profile.dart';
-
-// Energy Models
-import '../../core/models/energy_transaction.dart';
+import 'app_database.dart';
 
 class DatabaseService {
-  static late Isar isar;
+  static late AppDatabase _db;
 
   static Future<void> initialize() async {
-    final dir = await getApplicationDocumentsDirectory();
-
-    isar = await Isar.open(
-      [
-        // Health (Food only)
-        FoodEntrySchema,
-        IngredientSchema,
-        MyMealSchema,
-        MyMealIngredientSchema,
-
-        // Chat
-        ChatMessageSchema,
-        ChatSessionSchema,
-
-        // Profile
-        UserProfileSchema,
-
-        // Energy
-        EnergyTransactionSchema,
-      ],
-      directory: dir.path,
-      name: 'miro_db',
-    );
+    await AppDatabase.initialize();
+    _db = AppDatabase.instance;
   }
 
-  // Health Queries (Food only)
-  static IsarCollection<FoodEntry> get foodEntries => isar.foodEntrys;
-  static IsarCollection<Ingredient> get ingredients => isar.ingredients;
-  static IsarCollection<MyMeal> get myMeals => isar.myMeals;
-  static IsarCollection<MyMealIngredient> get myMealIngredients =>
-      isar.myMealIngredients;
+  // Database instance
+  static AppDatabase get db => _db;
 
-  // Chat Queries
-  static IsarCollection<ChatMessage> get chatMessages => isar.chatMessages;
-  static IsarCollection<ChatSession> get chatSessions => isar.chatSessions;
+  // Table accessors
+  static $FoodEntriesTable get foodEntries => _db.foodEntries;
+  static $IngredientsTable get ingredients => _db.ingredients;
+  static $MyMealsTable get myMeals => _db.myMeals;
+  static $MyMealIngredientsTable get myMealIngredients => _db.myMealIngredients;
+  static $ChatMessagesTable get chatMessages => _db.chatMessages;
+  static $ChatSessionsTable get chatSessions => _db.chatSessions;
+  static $UserProfilesTable get userProfiles => _db.userProfiles;
+  static $DailySummariesTable get dailySummaries => _db.dailySummaries;
+  static $EnergyTransactionsTable get energyTransactions =>
+      _db.energyTransactions;
 
-  // Profile Queries
-  static IsarCollection<UserProfile> get userProfiles => isar.userProfiles;
+  // Transaction wrapper (for backward compatibility)
+  static Future<T> writeTxn<T>(Future<T> Function() callback) async {
+    return await _db.transaction(() async {
+      return await callback();
+    });
+  }
+
+  /// Convenience helper for inserting a generic FoodEntry.
+  static Future<FoodEntryData> insertFoodEntry(
+    FoodEntriesCompanion entry,
+  ) {
+    return _db.into(_db.foodEntries).insertReturning(entry);
+  }
+
+  /// Insert a FoodEntry that originates from ARscan.
+  ///
+  /// - Ensures `source` is set to `DataSource.arScan` by default.
+  /// - Leaves `imagePath` and any supplementary image paths to the caller.
+  static Future<FoodEntryData> insertArScanEntry(
+    FoodEntriesCompanion entry,
+  ) {
+    final effective = entry.copyWith(
+      source: entry.source.present
+          ? entry.source
+          : const Value(DataSource.arScan),
+    );
+
+    return _db.into(_db.foodEntries).insertReturning(effective);
+  }
 }
+

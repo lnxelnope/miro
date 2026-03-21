@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,13 +7,14 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
+import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
-import '../models/food_entry.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
-import 'package:isar/isar.dart';
-import '../../../core/database/database_service.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
 import 'ghost_meal_suggestion.dart';
@@ -231,6 +231,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(L10n.of(context)!.allSelectedAlreadyAnalyzed),
+          backgroundColor: AppColors.info,
           duration: const Duration(seconds: 2),
         ),
       );
@@ -262,6 +263,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(L10n.of(context)!.entryDeletedSuccess),
+        backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
         duration: const Duration(seconds: 3),
@@ -471,17 +473,28 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
     final analysisState = ref.watch(analysisProvider);
     if (analysisState.isAnalyzing) {
-      return Column(
+      final progress = analysisState.total > 0
+          ? analysisState.current / analysisState.total
+          : 0.0;
+      return Row(
         children: [
-          Row(
-            children: [
-              const SizedBox(
-                width: 18, height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 2.5,
+              strokeCap: StrokeCap.round,
+              backgroundColor: isDark ? Colors.white12 : AppColors.divider,
+              valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   L10n.of(context)!.analyzeProgressSelected(
                       analysisState.current,
                       analysisState.total,
@@ -489,28 +502,24 @@ class _MealSectionState extends ConsumerState<MealSection> {
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              TextButton(
-                onPressed: () => ref.read(analysisProvider.notifier).cancel(),
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  foregroundColor: AppColors.error,
+                Text(
+                  '${analysisState.current}/${analysisState.total}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
                 ),
-                child: Text(L10n.of(context)!.cancel, style: const TextStyle(fontSize: 12)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: analysisState.total > 0
-                  ? analysisState.current / analysisState.total
-                  : 0,
-              minHeight: 4,
-              backgroundColor: isDark ? Colors.white12 : AppColors.divider,
+              ],
             ),
+          ),
+          TextButton(
+            onPressed: () => ref.read(analysisProvider.notifier).cancel(),
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              foregroundColor: AppColors.error,
+            ),
+            child: Text(L10n.of(context)!.cancel, style: const TextStyle(fontSize: 12)),
           ),
         ],
       );
@@ -709,8 +718,13 @@ class _MealSectionState extends ConsumerState<MealSection> {
     bool isDark,
     bool isSelected,
   ) {
+    final analysisState = ref.watch(analysisProvider);
+    final isThisAnalyzing = analysisState.isItemAnalyzing(food.id);
+    final isThisPending = analysisState.isItemPending(food.id);
+
     return GestureDetector(
       onTap: () {
+        if (isThisAnalyzing || isThisPending) return;
         if (_isSelectMode) {
           _toggleSelect(food.id);
         } else {
@@ -718,6 +732,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
         }
       },
       onLongPress: () {
+        if (isThisAnalyzing || isThisPending) return;
         if (!_isSelectMode) {
           HapticFeedback.mediumImpact();
           setState(() {
@@ -726,26 +741,33 @@ class _MealSectionState extends ConsumerState<MealSection> {
           });
         }
       },
-      child: AnimatedContainer(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: isThisPending ? 0.4 : 1.0,
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.error.withValues(alpha: 0.08)
-              : Theme.of(context).cardColor,
+          color: isThisAnalyzing
+              ? AppColors.primary.withValues(alpha: 0.06)
+              : isSelected
+                  ? AppColors.error.withValues(alpha: 0.08)
+                  : Theme.of(context).cardColor,
           borderRadius: AppRadius.md,
           border: Border.all(
-            color: isSelected
-                ? AppColors.error.withValues(alpha: 0.4)
-                : Theme.of(context).dividerColor.withValues(alpha: 0.2),
-            width: isSelected ? 1.5 : 1,
+            color: isThisAnalyzing
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : isSelected
+                    ? AppColors.error.withValues(alpha: 0.4)
+                    : Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            width: isThisAnalyzing || isSelected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
             // Checkbox (in select mode) or Image/icon
-            if (_isSelectMode) ...[
+            if (_isSelectMode && !isThisAnalyzing && !isThisPending) ...[
               SizedBox(
                 width: 40,
                 height: 40,
@@ -776,27 +798,32 @@ class _MealSectionState extends ConsumerState<MealSection> {
             ] else ...[
               Stack(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _getSourceBgColor(food),
-                      borderRadius: AppRadius.sm,
-                    ),
-                    child: food.imagePath != null &&
-                            File(food.imagePath!).existsSync()
-                        ? ClipRRect(
-                            borderRadius: AppRadius.sm,
-                            child: Image.file(
-                              File(food.imagePath!),
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildSourceIcon(food),
+                  food.hasAnyImage
+                      ? FoodEntryImage(
+                          entry: food,
+                          width: 40,
+                          height: 40,
+                          borderRadius: AppRadius.sm,
+                          placeholder: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: _getSourceBgColor(food),
+                              borderRadius: AppRadius.sm,
                             ),
-                          )
-                        : _buildSourceIcon(food),
-                  ),
-                  // Status badge overlay (only if has image)
-                  if (food.imagePath != null && File(food.imagePath!).existsSync())
+                            child: _buildSourceIcon(food),
+                          ),
+                        )
+                      : Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _getSourceBgColor(food),
+                            borderRadius: AppRadius.sm,
+                          ),
+                          child: _buildSourceIcon(food),
+                        ),
+                  if (food.hasAnyImage && !isThisAnalyzing)
                     Positioned(
                       bottom: 2,
                       right: 2,
@@ -810,6 +837,43 @@ class _MealSectionState extends ConsumerState<MealSection> {
                           _getSourceIconData(food),
                           size: 10,
                           color: _getSourceIconColor(food),
+                        ),
+                      ),
+                    ),
+                  // iOS-style analyzing overlay on the item icon
+                  if (isThisAnalyzing)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: AppRadius.sm,
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Pending indicator
+                  if (isThisPending)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          borderRadius: AppRadius.sm,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.hourglass_top_rounded,
+                            size: 18,
+                            color: Colors.white70,
+                          ),
                         ),
                       ),
                     ),
@@ -962,6 +1026,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -989,13 +1054,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
     }
 
     try {
-      final entry = await DatabaseService.foodEntries.get(food.id);
+      final entry = await (DatabaseService.db.select(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(food.id))).getSingleOrNull();
       if (entry != null) {
         entry.foodName = newName;
         entry.updatedAt = DateTime.now();
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.put(entry);
-        });
+        await DatabaseService.db.into(DatabaseService.db.foodEntries).insertOnConflictUpdate(entry);
 
         final today = dateOnly(DateTime.now());
         ref.invalidate(healthTimelineProvider(today));

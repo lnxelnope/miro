@@ -19,6 +19,10 @@ android {
     compileSdk = 36  // Android 16 (required for sqflite_android 2.4.2+)
     ndkVersion = flutter.ndkVersion
 
+    aaptOptions {
+        noCompress += "tflite"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -32,8 +36,8 @@ android {
         applicationId = "com.tanabun.miro"
         minSdk = 26  // Android 8.0+ (required by health plugin)
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
-        versionCode = 50
-        versionName = "1.2.2"
+        versionCode = 67
+        versionName = "1.2.6"
     }
 
     signingConfigs {
@@ -44,6 +48,12 @@ android {
                 storeFile = keystoreProperties["storeFile"]?.let { file(it) }
                 storePassword = keystoreProperties["storePassword"] as String?
             }
+        }
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 
@@ -58,7 +68,6 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
-                // Fallback to debug signing if key.properties doesn't exist
                 signingConfig = signingConfigs.getByName("debug")
             }
         }

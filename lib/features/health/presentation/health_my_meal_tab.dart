@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
-import '../../../core/database/database_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
-import '../models/my_meal.dart';
-import '../models/my_meal_ingredient.dart';
-import '../models/ingredient.dart';
-import '../models/food_entry.dart';
 import '../widgets/my_meal_card.dart';
 import '../widgets/ingredient_card.dart';
 import '../widgets/create_meal_sheet.dart';
@@ -485,7 +483,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
       backgroundColor: Colors.transparent,
       builder: (context) => LogFromMealSheet(
         meal: meal,
-        onConfirm: (entry) async {
+        onConfirm: (FoodEntry entry) async {
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);
 
@@ -698,26 +696,35 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                               double.tryParse(amountController.text) ?? 0;
                           if (amt <= 0) return;
 
-                          final entry = FoodEntry()
-                            ..foodName = ingredient.name
-                            ..mealType = selectedMealType
-                            ..timestamp = DateTime.now()
-                            ..servingSize = amt
-                            ..servingUnit = ingredient.baseUnit
-                            ..calories = ingredient.calcCalories(amt)
-                            ..protein = ingredient.calcProtein(amt)
-                            ..carbs = ingredient.calcCarbs(amt)
-                            ..fat = ingredient.calcFat(amt)
-                            ..baseCalories = ingredient.caloriesPerBase /
-                                ingredient.baseAmount
-                            ..baseProtein = ingredient.proteinPerBase /
-                                ingredient.baseAmount
-                            ..baseCarbs =
-                                ingredient.carbsPerBase / ingredient.baseAmount
-                            ..baseFat =
-                                ingredient.fatPerBase / ingredient.baseAmount
-                            ..ingredientId = ingredient.id
-                            ..source = DataSource.manual;
+                          final now = DateTime.now();
+                          final entry = FoodEntry(
+                            id: 0,
+                            foodName: ingredient.name,
+                            mealType: selectedMealType,
+                            timestamp: now,
+                            servingSize: amt,
+                            servingUnit: ingredient.baseUnit,
+                            calories: ingredient.calcCalories(amt),
+                            protein: ingredient.calcProtein(amt),
+                            carbs: ingredient.calcCarbs(amt),
+                            fat: ingredient.calcFat(amt),
+                            baseCalories: ingredient.caloriesPerBase / ingredient.baseAmount,
+                            baseProtein: ingredient.proteinPerBase / ingredient.baseAmount,
+                            baseCarbs: ingredient.carbsPerBase / ingredient.baseAmount,
+                            baseFat: ingredient.fatPerBase / ingredient.baseAmount,
+                            ingredientId: ingredient.id,
+                            source: DataSource.manual,
+                            searchMode: FoodSearchMode.normal,
+                            isVerified: false,
+                            isDeleted: false,
+                            isGroupOriginal: false,
+                            editCount: 0,
+                            isUserCorrected: false,
+                            isCalibrated: false,
+                            isSynced: false,
+                            createdAt: now,
+                            updatedAt: now,
+                          );
 
                           final notifier =
                               ref.read(foodEntriesNotifierProvider.notifier);
@@ -788,7 +795,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   Future<void> _editMeal(MyMeal meal) async {
     // โหลด meal ล่าสุดจาก database
-    final freshMeal = await DatabaseService.myMeals.get(meal.id);
+    final freshMeal = await (DatabaseService.db.select(DatabaseService.db.myMeals)..where((tbl) => tbl.id.equals(meal.id))).getSingleOrNull();
     if (freshMeal == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -801,11 +808,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     }
 
     // โหลด ALL ingredients ของ meal (ทั้ง root + sub) แล้วแยกเป็น tree
-    final allIngredients = await DatabaseService.myMealIngredients
-        .filter()
-        .myMealIdEqualTo(freshMeal.id)
-        .sortBySortOrder()
-        .findAll();
+    final allIngredients = await (DatabaseService.db.select(DatabaseService.db.myMealIngredients)
+        ..where((tbl) => tbl.myMealId.equals(freshMeal.id))
+        ..orderBy([(tbl) => OrderingTerm.asc(tbl.sortOrder)]))
+        .get();
 
     // แยก root vs sub แล้ว set isComposite ให้ root ที่มี children
     final childParentIds = <int>{};
@@ -936,15 +942,20 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   void _addIngredient() {
     // Create a blank ingredient for create mode
-    final blankIngredient = Ingredient()
-      ..name = ''
-      ..baseAmount = 100
-      ..baseUnit = 'g'
-      ..caloriesPerBase = 0
-      ..proteinPerBase = 0
-      ..carbsPerBase = 0
-      ..fatPerBase = 0
-      ..source = 'manual';
+    final blankIngredient = Ingredient(
+      id: 0,
+      name: '',
+      baseAmount: 100,
+      baseUnit: 'g',
+      caloriesPerBase: 0,
+      proteinPerBase: 0,
+      carbsPerBase: 0,
+      fatPerBase: 0,
+      source: 'manual',
+      usageCount: 0,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
 
     showModalBottomSheet(
       context: context,
@@ -976,7 +987,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
 
   Future<void> _editIngredient(Ingredient ingredient) async {
     // โหลด ingredient ล่าสุดจาก database ก่อนเปิด sheet
-    final freshIngredient = await DatabaseService.ingredients.get(ingredient.id);
+    final freshIngredient = await (DatabaseService.db.select(DatabaseService.db.ingredients)..where((tbl) => tbl.id.equals(ingredient.id))).getSingleOrNull();
     if (freshIngredient == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

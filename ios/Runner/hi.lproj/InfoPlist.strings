@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "ArCal को बारकोड स्कैन करने और भोजन विश्लेषण के लिए कैमरा एक्सेस की आवश्यकता है।";
+NSHealthShareUsageDescription = "ArCal को आपके दैनिक कैलोरी लक्ष्य में जोड़ने के लिए आपके सक्रिय ऊर्जा डेटा को पढ़ने की आवश्यकता है।";
+NSHealthUpdateUsageDescription = "ArCal आपके लॉग किए गए भोजन के पोषण डेटा को Apple Health में सहेजता है।";
+NSPhotoLibraryAddUsageDescription = "ArCal विश्लेषित भोजन फोटो सहेजता है।";
+NSPhotoLibraryUsageDescription = "ArCal को भोजन फोटो से पोषण विश्लेषण के लिए फोटो लाइब्रेरी एक्सेस की आवश्यकता है।";

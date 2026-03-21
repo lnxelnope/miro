@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_icons.dart';
 import '../theme/app_colors.dart';
 import 'dart:math';
+import '../../features/subscription/models/freepass_data.dart';
 
 /// Tier Celebration data for a specific tier
 class TierCelebrationData {
@@ -181,6 +182,9 @@ class GamificationState {
   // Seasonal Quests (limited-time events)
   final List<SeasonalQuestData> seasonalQuests;
 
+  // Freepass (energy → days conversion, auto-activate after subscription expires)
+  final FreepassData freepass;
+
   const GamificationState({
     required this.miroId,
     required this.currentStreak,
@@ -201,6 +205,7 @@ class GamificationState {
     this.subscriptionExpiryDate,
     this.tierCelebrations = const {},
     this.seasonalQuests = const [],
+    this.freepass = const FreepassData(),
   });
 
   factory GamificationState.empty() {
@@ -221,6 +226,7 @@ class GamificationState {
       bonusRate: 0.0,
       tierCelebrations: {},
       seasonalQuests: [],
+      freepass: FreepassData(),
     );
   }
 
@@ -316,6 +322,9 @@ class GamificationState {
     }
   }
 
+  /// Whether user has active unlimited AI (subscriber or active freepass)
+  bool get hasUnlimitedAI => isSubscriber || freepass.isActive;
+
   GamificationState copyWith({
     String? miroId,
     int? currentStreak,
@@ -336,6 +345,7 @@ class GamificationState {
     DateTime? subscriptionExpiryDate,
     Map<String, TierCelebrationData>? tierCelebrations,
     List<SeasonalQuestData>? seasonalQuests,
+    FreepassData? freepass,
   }) {
     return GamificationState(
       miroId: miroId ?? this.miroId,
@@ -357,6 +367,7 @@ class GamificationState {
       subscriptionExpiryDate: subscriptionExpiryDate ?? this.subscriptionExpiryDate,
       tierCelebrations: tierCelebrations ?? this.tierCelebrations,
       seasonalQuests: seasonalQuests ?? this.seasonalQuests,
+      freepass: freepass ?? this.freepass,
     );
   }
   

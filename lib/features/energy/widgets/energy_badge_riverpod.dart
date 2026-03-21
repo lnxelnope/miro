@@ -7,9 +7,11 @@ import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 
-/// Energy Badge — Clean minimal pill design with tier & subscriber indicator
+/// Energy Badge — Clean minimal pill design with tier, subscriber & freepass indicator
 class EnergyBadgeRiverpod extends ConsumerWidget {
   const EnergyBadgeRiverpod({super.key});
+
+  static const _freepassColor = Color(0xFF2196F3);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,6 +33,9 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
     bool isError = false,
   }) {
     final isSubscriber = gamification.isSubscriber;
+    final isFreepassActive = gamification.freepass.isActive;
+    final freepassDays = gamification.freepass.totalDays;
+    final hasFreepassDays = freepassDays > 0;
     final hasTier = gamification.tier != 'none';
 
     Color accentColor;
@@ -38,6 +43,8 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
       accentColor = AppColors.textSecondary;
     } else if (isSubscriber) {
       accentColor = AppColors.premium;
+    } else if (isFreepassActive) {
+      accentColor = _freepassColor;
     } else if (balance < 10) {
       accentColor = AppColors.error;
     } else if (balance < 30) {
@@ -48,14 +55,6 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
       accentColor = AppColors.energyHigh;
     }
 
-    final displayText = isError
-        ? '–'
-        : isSubscriber
-            ? '∞'
-            : balance >= 1000
-                ? '${(balance / 1000).toStringAsFixed(1)}K'
-                : balance.toString();
-
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
@@ -63,12 +62,12 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         constraints: const BoxConstraints(minWidth: 50),
         decoration: BoxDecoration(
           color: accentColor.withValues(alpha: 0.1),
           borderRadius: AppRadius.lg,
-          border: isSubscriber
+          border: (isSubscriber || isFreepassActive)
               ? Border.all(color: accentColor.withValues(alpha: 0.3), width: 1)
               : null,
         ),
@@ -76,35 +75,113 @@ class EnergyBadgeRiverpod extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Tier icon always shown when user has a tier (non-starter)
             if (hasTier) ...[
               Icon(gamification.tierIcon, size: 14,
                   color: gamification.tierColor),
               const SizedBox(width: 2),
             ],
-            Icon(
-              isSubscriber ? Icons.diamond_rounded : Icons.bolt_rounded,
-              size: 18,
-              color: accentColor,
-            ),
-            const SizedBox(width: 3),
-            Flexible(
-              child: Text(
-                displayText,
+
+            // --- Subscriber: diamond + ∞ ---
+            if (isSubscriber) ...[
+              Icon(Icons.diamond_rounded, size: 18, color: accentColor),
+              const SizedBox(width: 3),
+              Text(
+                '∞',
                 style: TextStyle(
-                  fontSize: isSubscriber ? 14 : 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: accentColor,
                   letterSpacing: -0.3,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
+            ]
+
+            // --- Freepass active: ⚡balance | 🎫 Nd ---
+            else if (isFreepassActive) ...[
+              Icon(Icons.bolt_rounded, size: 16, color: accentColor),
+              const SizedBox(width: 2),
+              Text(
+                _formatBalance(balance),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: accentColor,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Container(
+                  width: 1,
+                  height: 14,
+                  color: accentColor.withValues(alpha: 0.3),
+                ),
+              ),
+              const Icon(Icons.card_membership_rounded, size: 13, color: _freepassColor),
+              const SizedBox(width: 2),
+              Text(
+                '${freepassDays}d',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: _freepassColor,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ]
+
+            // --- Normal: ⚡balance (+ freepass dot if banked) ---
+            else ...[
+              Icon(Icons.bolt_rounded, size: 18, color: accentColor),
+              const SizedBox(width: 3),
+              Text(
+                isError ? '–' : _formatBalance(balance),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: accentColor,
+                  letterSpacing: -0.3,
+                ),
+              ),
+              // Freepass indicator — only when user has banked days
+              if (hasFreepassDays && !isError) ...[
+                const SizedBox(width: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: _freepassColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.card_membership_rounded,
+                          size: 10, color: _freepassColor),
+                      const SizedBox(width: 2),
+                      Text(
+                        '$freepassDays',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: _freepassColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
           ],
         ),
       ),
     );
+  }
+
+  static String _formatBalance(int balance) {
+    if (balance >= 1000) {
+      return '${(balance / 1000).toStringAsFixed(1)}K';
+    }
+    return balance.toString();
   }
 
   Widget _buildShimmer(BuildContext context) {

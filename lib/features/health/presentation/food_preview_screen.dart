@@ -8,7 +8,10 @@ import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../l10n/app_localizations.dart';
-import '../models/food_entry.dart';
+import '../../../core/ai/gemini_service.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
+import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 
@@ -27,9 +30,9 @@ class FoodPreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
-  bool _isAnalyzing = false;
+  final bool _isAnalyzing = false;
   bool _isCancelled = false;
-  bool _hasAnalyzed = false;
+  final bool _hasAnalyzed = false;
   bool _hasGeminiKey = false;
   FoodAnalysisResult? _analysisResult;
   String? _error;
@@ -47,11 +50,11 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
   MealType _selectedMealType = MealType.lunch;
 
   // ค่าฐาน (ต่อ 1 หน่วย) สำหรับ recalculate เมื่อเปลี่ยนปริมาณ
-  double _baseCalories = 0;
-  double _baseProtein = 0;
-  double _baseCarbs = 0;
-  double _baseFat = 0;
-  bool _hasBaseValues = false;
+  final double _baseCalories = 0;
+  final double _baseProtein = 0;
+  final double _baseCarbs = 0;
+  final double _baseFat = 0;
+  final bool _hasBaseValues = false;
 
   @override
   void initState() {
@@ -71,6 +74,10 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
 
     // Check if API key exists and start analysis
     _checkAndAnalyze();
+  }
+
+  Future<bool> _onWillPop() async {
+    return true;
   }
 
   MealType _detectMealType() {
@@ -704,17 +711,37 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final foodName = _nameController.text.trim();
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
-    final entry = FoodEntry()
-      ..foodName = foodName.isNotEmpty
+    final analyzeNow = DateTime.now();
+    final entry = FoodEntry(
+      id: 0,
+      foodName: foodName.isNotEmpty
           ? foodName
-          : L10n.of(context)!.foodPendingAnalysis
-      ..mealType = _selectedMealType
-      ..servingSize = servingSize
-      ..servingUnit = _servingUnit
-      ..imagePath = widget.imageFile.path
-      ..timestamp = DateTime.now()
-      ..searchMode = _searchMode
-      ..source = DataSource.galleryScanned;
+          : L10n.of(context)!.foodPendingAnalysis,
+      mealType: _selectedMealType,
+      servingSize: servingSize,
+      servingUnit: _servingUnit,
+      imagePath: widget.imageFile.path,
+      timestamp: analyzeNow,
+      searchMode: _searchMode,
+      source: DataSource.galleryScanned,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      baseCalories: 0,
+      baseProtein: 0,
+      baseCarbs: 0,
+      baseFat: 0,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: analyzeNow,
+      updatedAt: analyzeNow,
+    );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);
@@ -748,37 +775,49 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final fat = double.tryParse(_fatController.text) ?? 0;
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
-    final entry = FoodEntry()
-      ..foodName = _nameController.text.trim().isEmpty
-          ? L10n.of(context)!.foodPendingAnalysis
-          : _nameController.text.trim()
-      ..foodNameEn = _analysisResult?.foodNameEn
-      ..calories = calories
-      ..protein = protein
-      ..carbs = carbs
-      ..fat = fat
-      // เก็บ base values สำหรับ recalculate
-      ..baseCalories = servingSize > 0 ? calories / servingSize : calories
-      ..baseProtein = servingSize > 0 ? protein / servingSize : protein
-      ..baseCarbs = servingSize > 0 ? carbs / servingSize : carbs
-      ..baseFat = servingSize > 0 ? fat / servingSize : fat
-      ..mealType = _selectedMealType
-      ..servingSize = servingSize
-      ..servingUnit = _servingUnit
-      ..imagePath = widget.imageFile.path
-      ..timestamp = DateTime.now()
-      ..source = _hasAnalyzed ? DataSource.aiAnalyzed : DataSource.manual
-      ..aiConfidence = _analysisResult?.confidence
-      ..isVerified = _hasAnalyzed;
-
-    // บันทึกวัตถุดิบ (ถ้ามี) จาก AI analysis
+    final saveNow = DateTime.now();
+    String? ingredientsJsonStr;
     if (_hasAnalyzed &&
         _analysisResult?.ingredientsDetail != null &&
         _analysisResult!.ingredientsDetail!.isNotEmpty) {
-      entry.ingredientsJson = jsonEncode(_analysisResult!.ingredientsDetail);
+      ingredientsJsonStr = jsonEncode(_analysisResult!.ingredientsDetail);
       AppLogger.info(
           'Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
     }
+
+    final entry = FoodEntry(
+      id: 0,
+      foodName: _nameController.text.trim().isEmpty
+          ? L10n.of(context)!.foodPendingAnalysis
+          : _nameController.text.trim(),
+      foodNameEn: _analysisResult?.foodNameEn,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      baseCalories: servingSize > 0 ? calories / servingSize : calories,
+      baseProtein: servingSize > 0 ? protein / servingSize : protein,
+      baseCarbs: servingSize > 0 ? carbs / servingSize : carbs,
+      baseFat: servingSize > 0 ? fat / servingSize : fat,
+      mealType: _selectedMealType,
+      servingSize: servingSize,
+      servingUnit: _servingUnit,
+      imagePath: widget.imageFile.path,
+      timestamp: saveNow,
+      source: _hasAnalyzed ? DataSource.aiAnalyzed : DataSource.manual,
+      aiConfidence: _analysisResult?.confidence,
+      isVerified: _hasAnalyzed,
+      ingredientsJson: ingredientsJsonStr,
+      searchMode: _searchMode,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: saveNow,
+      updatedAt: saveNow,
+    );
 
     // Save
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);

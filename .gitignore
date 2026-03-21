@@ -59,6 +59,10 @@ app.*.map.json
 
 # Android signing keys
 android/key.properties
+
+# App Store Connect API key (do not commit)
+AuthKey_*.p8
+*.p8
 *.jks
 *.keystore
 android/miro-release-key.jks

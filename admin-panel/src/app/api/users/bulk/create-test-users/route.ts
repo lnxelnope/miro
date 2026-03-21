@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       const userRef = db.collection('users').doc(deviceId);
       
       const userData = {
-        miroId: `MIRO-TEST${1000 + i}`,
+        miroId: `ARCAL-TEST${1000 + i}`,
         balance,
         tier,
         bonusRate: TIER_BONUS_RATES[tier as keyof typeof TIER_BONUS_RATES],

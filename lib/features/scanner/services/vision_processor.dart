@@ -1,19 +1,14 @@
 import 'dart:io';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:miro_hybrid/core/utils/logger.dart';
 
 class VisionProcessor {
   final _imageLabeler =
       ImageLabeler(options: ImageLabelerOptions(confidenceThreshold: 0.7));
-  final _textRecognizer = TextRecognizer();
-  final _barcodeScanner = BarcodeScanner();
 
   Future<Map<String, dynamic>?> processImage(File file) async {
     AppLogger.info('Starting image processing: ${file.path}');
 
-    // Check if running on unsupported platform (Windows for ML Kit)
     if (Platform.isWindows) {
       AppLogger.warn('ML Kit Vision not supported on Windows. Skipping scan.');
       return null;
@@ -22,25 +17,7 @@ class VisionProcessor {
     final inputImage = InputImage.fromFile(file);
     AppLogger.info('InputImage created successfully');
 
-    // 1. Check for QR Code (Finance Priority)
-    AppLogger.info('Checking QR Code/Barcode...');
-    final barcodes = await _barcodeScanner.processImage(inputImage);
-    if (barcodes.isNotEmpty) {
-      AppLogger.info('Found QR/Barcode: ${barcodes.length} items');
-      // It's likely a Bill/Slip
-      AppLogger.info('Reading text from receipt...');
-      final text = await _textRecognizer.processImage(inputImage);
-      AppLogger.info(
-          'Type: Finance (receipt/bill) - Text read: ${text.text.substring(0, text.text.length > 50 ? 50 : text.text.length)}...');
-      return {
-        'type': 'finance',
-        'raw_text': text.text,
-        'has_qr': true,
-      };
-    }
-    AppLogger.info('No QR/Barcode found');
-
-    // 2. Check Labels (Food Priority)
+    // Check Labels (Food)
     AppLogger.info('Checking Labels (food)...');
     final labels = await _imageLabeler.processImage(inputImage);
     AppLogger.info('Found Labels: ${labels.length} items');
@@ -140,15 +117,11 @@ class VisionProcessor {
       };
     }
 
-    // 3. If nothing matches -> Return null (Ignore)
-    AppLogger.info(
-        'No relevant data found (food/receipt) - skipping this image');
+    AppLogger.info('No food-related labels found - skipping this image');
     return null;
   }
 
   void dispose() {
     _imageLabeler.close();
-    _textRecognizer.close();
-    _barcodeScanner.close();
   }
 }

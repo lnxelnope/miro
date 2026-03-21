@@ -87,6 +87,143 @@ class UsageLimiter {
     return (freeAiCallsPerDay - count).clamp(0, freeAiCallsPerDay);
   }
 
+  // ============ Daily Analysis Safety Cap ============
+  // Hard cap to prevent abuse (applies to ALL users including Pro/Energy Pass)
+  static const int maxAnalysesPerDay = 100;
+  static const String _keyAnalysisDate = 'analysis_cap_date';
+  static const String _keyAnalysisCount = 'analysis_cap_count';
+
+  /// Check if user has reached daily analysis cap
+  static Future<bool> hasReachedDailyCap() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) return false;
+
+    final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+    return count >= maxAnalysesPerDay;
+  }
+
+  /// Record an analysis usage (for daily cap)
+  static Future<void> recordAnalysisForCap() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyAnalysisDate, today);
+      await prefs.setInt(_keyAnalysisCount, 1);
+    } else {
+      final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+      await prefs.setInt(_keyAnalysisCount, count + 1);
+    }
+  }
+
+  /// Remaining analyses today
+  static Future<int> remainingAnalysesToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyAnalysisDate) ?? '';
+
+    if (savedDate != today) return maxAnalysesPerDay;
+
+    final count = prefs.getInt(_keyAnalysisCount) ?? 0;
+    return (maxAnalysesPerDay - count).clamp(0, maxAnalysesPerDay);
+  }
+
+  // ============ Free Ingredient Edit Lookups ============
+  // Ingredient lookups from edit screen are free (limited per day)
+  // because user correction data is extremely valuable.
+
+  static const int freeEditLookupsPerDay = 10;
+  static const String _keyEditLookupDate = 'edit_lookup_date';
+  static const String _keyEditLookupCount = 'edit_lookup_count';
+
+  /// Check if user has free ingredient lookups remaining (edit screen only)
+  static Future<bool> canUseFreeEditLookup() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) return true;
+
+    final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+    return count < freeEditLookupsPerDay;
+  }
+
+  /// Record a free ingredient lookup usage
+  static Future<void> recordFreeEditLookup() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyEditLookupDate, today);
+      await prefs.setInt(_keyEditLookupCount, 1);
+    } else {
+      final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+      await prefs.setInt(_keyEditLookupCount, count + 1);
+    }
+  }
+
+  /// Remaining free edit lookups today
+  static Future<int> remainingFreeEditLookups() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyEditLookupDate) ?? '';
+
+    if (savedDate != today) return freeEditLookupsPerDay;
+
+    final count = prefs.getInt(_keyEditLookupCount) ?? 0;
+    return (freeEditLookupsPerDay - count).clamp(0, freeEditLookupsPerDay);
+  }
+
+  // ============ Daily Free Chat Limit ============
+  // Chat and menu suggestion are free but limited per day
+  static const int freeChatPerDay = 10;
+  static const String _keyChatDate = 'chat_limit_date';
+  static const String _keyChatCount = 'chat_limit_count';
+
+  /// Check if user has free chat remaining today
+  static Future<bool> canUseFreeChat() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) return true;
+
+    final count = prefs.getInt(_keyChatCount) ?? 0;
+    return count < freeChatPerDay;
+  }
+
+  /// Record a free chat usage
+  static Future<void> recordFreeChatUsage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) {
+      await prefs.setString(_keyChatDate, today);
+      await prefs.setInt(_keyChatCount, 1);
+    } else {
+      final count = prefs.getInt(_keyChatCount) ?? 0;
+      await prefs.setInt(_keyChatCount, count + 1);
+    }
+  }
+
+  /// Remaining free chats today
+  static Future<int> remainingFreeChatToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayString();
+    final savedDate = prefs.getString(_keyChatDate) ?? '';
+
+    if (savedDate != today) return freeChatPerDay;
+
+    final count = prefs.getInt(_keyChatCount) ?? 0;
+    return (freeChatPerDay - count).clamp(0, freeChatPerDay);
+  }
+
   // ============ Helper ============
 
   /// วันที่ปัจจุบัน format "2026-02-11"

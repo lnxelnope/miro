@@ -1,10 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/constants/fda_daily_values.dart';
 import '../models/micronutrient_stats.dart';
-import '../models/food_entry.dart';
-
 /// Provider for micronutrient statistics
 final micronutrientStatsProvider =
     FutureProvider.autoDispose<MicronutrientStatistics>((ref) async {
@@ -76,12 +75,10 @@ final micronutrientStatsProvider =
 Future<List<FoodEntry>> _getFoodEntriesForPeriod(int days) async {
   final now = DateTime.now();
   final startDate = now.subtract(Duration(days: days));
-  return await DatabaseService.foodEntries
-      .filter()
-      .timestampBetween(startDate, now)
-      .isDeletedEqualTo(false)
-      .sortByTimestampDesc()
-      .findAll();
+  return await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+      ..where((tbl) => tbl.timestamp.isBiggerOrEqualValue(startDate) & tbl.timestamp.isSmallerOrEqualValue(now) & tbl.isDeleted.equals(false))
+      ..orderBy([(tbl) => OrderingTerm.desc(tbl.timestamp)]))
+      .get();
 }
 
 MicronutrientStats? _calculateStats({

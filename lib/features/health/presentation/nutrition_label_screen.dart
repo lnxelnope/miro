@@ -4,12 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../core/utils/logger.dart';
-import '../../../core/constants/enums.dart';
-import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
-import '../models/food_entry.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 import 'image_analysis_preview_screen.dart';
 
 /// หน้าสแกนฉลากโภชนาการ
@@ -24,7 +22,7 @@ class NutritionLabelScreen extends ConsumerStatefulWidget {
 
 class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
   File? _capturedImage;
-  bool _isAnalyzing = false;
+  final bool _isAnalyzing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -222,13 +220,35 @@ class _NutritionLabelScreenState extends ConsumerState<NutritionLabelScreen> {
   Future<void> _analyzeLabel() async {
     if (_capturedImage == null) return;
 
-    final entry = FoodEntry()
-      ..foodName = 'Nutrition Label'
-      ..mealType = _guessMealType()
-      ..timestamp = DateTime.now()
-      ..imagePath = _capturedImage!.path
-      ..searchMode = FoodSearchMode.product
-      ..source = DataSource.galleryScanned;
+    final labelNow = DateTime.now();
+    final entry = FoodEntry(
+      id: 0,
+      foodName: 'Nutrition Label',
+      mealType: _guessMealType(),
+      timestamp: labelNow,
+      imagePath: _capturedImage!.path,
+      searchMode: FoodSearchMode.product,
+      source: DataSource.galleryScanned,
+      servingSize: 1,
+      servingUnit: 'serving',
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      baseCalories: 0,
+      baseProtein: 0,
+      baseCarbs: 0,
+      baseFat: 0,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: labelNow,
+      updatedAt: labelNow,
+    );
 
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     await notifier.addFoodEntry(entry);

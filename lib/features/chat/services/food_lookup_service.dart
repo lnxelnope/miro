@@ -1,11 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:isar/isar.dart';
 import '../../../core/database/database_service.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/logger.dart';
-import '../../health/models/my_meal.dart';
-import '../../health/models/my_meal_ingredient.dart';
-import '../../health/models/ingredient.dart';
-
 /// ผลลัพธ์การค้นหาอาหาร
 class FoodLookupResult {
   /// ประเภทผลลัพธ์
@@ -81,10 +77,7 @@ class FoodLookupService {
           'Found in MyMeal: "${mealResult.name}" (id=${mealResult.id})');
 
       // ดึง ingredients ของ meal
-      final mealIngredients = await DatabaseService.myMealIngredients
-          .filter()
-          .myMealIdEqualTo(mealResult.id)
-          .findAll();
+      final mealIngredients = await (DatabaseService.db.select(DatabaseService.db.myMealIngredients)..where((tbl) => tbl.myMealId.equals(mealResult.id))).get();
 
       // คำนวณ nutrition (หลัง exclude)
       double totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
@@ -126,9 +119,9 @@ class FoodLookupService {
 
       // เพิ่ม usage count
       mealResult.usageCount++;
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.myMeals.put(mealResult);
-      });
+      await DatabaseService.db
+          .into(DatabaseService.db.myMeals)
+          .insertOnConflictUpdate(mealResult);
 
       return FoodLookupResult(
         type: FoodLookupType.fromMeal,
@@ -159,9 +152,9 @@ class FoodLookupService {
 
       // เพิ่ม usage count
       ingredientResult.usageCount++;
-      await DatabaseService.isar.writeTxn(() async {
-        await DatabaseService.ingredients.put(ingredientResult);
-      });
+      await DatabaseService.db
+          .into(DatabaseService.db.ingredients)
+          .insertOnConflictUpdate(ingredientResult);
 
       return FoodLookupResult(
         type: FoodLookupType.fromIngredient,
@@ -197,7 +190,7 @@ class FoodLookupService {
 
   /// ค้นหา MyMeal ด้วย fuzzy matching
   static Future<MyMeal?> _searchMyMeal(String query) async {
-    final all = await DatabaseService.myMeals.where().findAll();
+    final all = await DatabaseService.db.select(DatabaseService.db.myMeals).get();
     if (all.isEmpty) return null;
 
     final lowerQuery = query.toLowerCase().trim();
@@ -234,7 +227,7 @@ class FoodLookupService {
   /// ค้นหา Ingredient ด้วย fuzzy matching
   /// ปรับให้ไม่ match substring เพื่อป้องกัน "beef" match กับ "beef burger"
   static Future<Ingredient?> _searchIngredient(String query) async {
-    final all = await DatabaseService.ingredients.where().findAll();
+    final all = await DatabaseService.db.select(DatabaseService.db.ingredients).get();
     if (all.isEmpty) return null;
 
     final lowerQuery = query.toLowerCase().trim();

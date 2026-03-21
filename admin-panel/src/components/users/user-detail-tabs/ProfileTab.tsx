@@ -240,6 +240,38 @@ export function ProfileTab({ user, deviceId, onRefresh }: ProfileTabProps) {
         </div>
       </div>
 
+      {/* Freepass Status */}
+      <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-lg p-6 border border-sky-200">
+        <h3 className="text-lg font-semibold mb-4">🎫 Freepass</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg p-4 border shadow-sm">
+            <p className="text-sm text-gray-600">Total Days</p>
+            <p className="text-3xl font-bold text-sky-600">{user?.freepass?.totalDays ?? 0}</p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border shadow-sm">
+            <p className="text-sm text-gray-600">Status</p>
+            <p className={`text-xl font-bold ${user?.freepass?.isActive ? 'text-green-600' : 'text-gray-400'}`}>
+              {user?.freepass?.isActive ? '✅ Active' : '⏸️ Inactive'}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border shadow-sm">
+            <p className="text-sm text-gray-600">Activated At</p>
+            <p className="text-sm font-medium">
+              {user?.freepass?.activatedAt
+                ? new Date(user.freepass.activatedAt._seconds ? user.freepass.activatedAt._seconds * 1000 : user.freepass.activatedAt).toLocaleDateString()
+                : '—'}
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-4 border shadow-sm">
+            <p className="text-sm text-gray-600">Last Deducted</p>
+            <p className="text-sm font-medium">{user?.freepass?.lastDeductedDate || '—'}</p>
+          </div>
+        </div>
+        {!user?.freepass && (
+          <p className="text-sm text-gray-500 mt-3 italic">No freepass data yet (user has never converted energy to freepass)</p>
+        )}
+      </div>
+
       {/* Quick Actions */}
       <div className="bg-white rounded-lg p-6 border">
         <h3 className="text-lg font-semibold mb-4">⚡ Quick Actions (Testing)</h3>

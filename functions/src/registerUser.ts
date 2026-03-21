@@ -2,7 +2,7 @@
  * registerUser Cloud Function
  *
  * เรียกตอน: App เปิดครั้งแรก (ยังไม่มี user document)
- * สิ่งที่ทำ: สร้าง user document + MiRO ID + Welcome Gift
+ * สิ่งที่ทำ: สร้าง user document + ArCal ID + Welcome Gift
  *
  * Input:  { deviceId: string }
  * Output: { success, miroId, balance, isNew }
@@ -24,7 +24,7 @@ const CHARSET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const WELCOME_GIFT = 10;
 
 /**
- * สร้าง MiRO ID: MIRO-XXXX-XXXX-XXXX
+ * สร้าง ArCal ID: ARCAL-XXXX-XXXX-XXXX
  */
 function generateMiroId(): string {
   const segments: string[] = [];
@@ -38,11 +38,11 @@ function generateMiroId(): string {
     segments.push(segment);
   }
 
-  return `MIRO-${segments.join("-")}`;
+  return `ARCAL-${segments.join("-")}`;
 }
 
 /**
- * สร้าง MiRO ID ที่ unique
+ * สร้าง ArCal ID ที่ unique
  */
 async function generateUniqueMiroId(): Promise<string> {
   let miroId = generateMiroId();
@@ -61,7 +61,7 @@ async function generateUniqueMiroId(): Promise<string> {
     attempts++;
   }
 
-  throw new Error("Failed to generate unique MiRO ID");
+  throw new Error("Failed to generate unique ArCal ID");
 }
 
 /**
@@ -158,6 +158,7 @@ export const registerUser = onRequest(
           subscription: data.subscription ?? {},
           tierCelebration: finalTierCelebration,
           seasonalQuests: seasonalQuests,
+          freepass: data.freepass ?? {},
         });
         return;
       }
@@ -166,13 +167,8 @@ export const registerUser = onRequest(
       const miroId = await generateUniqueMiroId();
       const now = admin.firestore.FieldValue.serverTimestamp();
 
-      // เช็คว่ามีใน energy_balances เก่าหรือไม่ (migration support)
-      const oldDoc = await db.collection("energy_balances").doc(deviceId).get();
-      const existingBalance = oldDoc.exists ? (oldDoc.data()?.balance ?? 0) : 0;
-      const hasOldData = oldDoc.exists && existingBalance > 0;
-
-      // ถ้ามี balance เดิม → ใช้ balance เดิม, ถ้าไม่ → ให้ Welcome Gift
-      const balance = hasOldData ? existingBalance : WELCOME_GIFT;
+      // ✅ ให้ Welcome Gift ตามปกติ (ลบ energy_balances migration แล้ว — เคย migrate ซ้ำทำให้ได้ 1000E+)
+      const balance = WELCOME_GIFT;
 
       // สร้าง user document
       await db.collection("users").doc(deviceId).set({
@@ -210,12 +206,10 @@ export const registerUser = onRequest(
       await db.collection("transactions").add({
         deviceId,
         miroId,
-        type: hasOldData ? "transfer_in" : "welcome_gift",
+        type: "welcome_gift",
         amount: balance,
         balanceAfter: balance,
-        description: hasOldData ?
-          `Migrated from energy_balances: ${existingBalance} Energy` :
-          `Welcome to MIRO! ${WELCOME_GIFT} Energy gift`,
+        description: `Welcome to ArCal! ${WELCOME_GIFT} Energy gift`,
         metadata: {},
         createdAt: now,
       });

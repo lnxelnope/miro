@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../models/my_meal_ingredient.dart';
-
 /// Expandable card สำหรับแสดง ingredient พร้อม sub-ingredients
 class ExpandableIngredientCard extends StatefulWidget {
   final MyMealIngredient ingredient;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,39 +9,37 @@ import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
-import '../../profile/models/user_profile.dart';
 import 'deficit_gauge.dart';
 
-class DailySummaryCard extends ConsumerWidget {
+class DailySummaryCard extends ConsumerStatefulWidget {
   final DateTime? selectedDate;
   final ValueChanged<DateTime>? onDateChanged;
 
   const DailySummaryCard({super.key, this.selectedDate, this.onDateChanged});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final date = selectedDate ?? dateOnly(DateTime.now());
+  ConsumerState<DailySummaryCard> createState() => _DailySummaryCardState();
+}
+
+class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
+  /// false = Active Burn ring (default), true = Net Energy gauge
+  bool _showNetEnergy = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final date = widget.selectedDate ?? dateOnly(DateTime.now());
     final isToday = _isToday(date);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final foodsAsync = ref.watch(foodEntriesByDateProvider(date));
     final profileAsync = ref.watch(profileNotifierProvider);
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const TodaySummaryDashboardScreen(),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-        decoration: BoxDecoration(
+    return Container(
+      margin: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -98,19 +97,24 @@ class DailySummaryCard extends ConsumerWidget {
                 (rawActive.isNaN || rawActive.isInfinite) ? 0.0 : rawActive;
 
             final baseGoal = profile.calorieGoal;
+            final bmr = profile.safeBmr;
             final tdee = profile.tdee > 0 ? profile.tdee : baseGoal.toDouble();
 
-            // Left ring: Intake vs Goal
             final intakePercent =
                 baseGoal > 0 ? (calories / baseGoal).clamp(0.0, 1.5) : 0.0;
             final intakeColor = intakePercent > 1.0
                 ? AppColors.error
                 : AppColors.health;
 
-            // Net Energy = Intake - TDEE - Active Burn
             final netEnergy = calories - tdee - activeEnergy;
 
             final showHealthSection = isHealthOn && isToday && tdee > 0;
+
+            // Active Burn ring data
+            final activityBudget = (tdee - bmr).clamp(200.0, double.infinity);
+            final activityPercent =
+                (activeEnergy / activityBudget).clamp(0.0, 1.0);
+            const activeGreen = Color(0xFF4CAF50);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,18 +122,18 @@ class DailySummaryCard extends ConsumerWidget {
                 // ── Date navigation ──
                 Row(
                   children: [
-                    if (onDateChanged != null)
+                    if (widget.onDateChanged != null)
                       _navArrow(
                         icon: Icons.chevron_left_rounded,
-                        onTap: () => onDateChanged!(
+                        onTap: () => widget.onDateChanged!(
                             date.subtract(const Duration(days: 1))),
                         isDark: isDark,
                       ),
-                    if (onDateChanged != null)
+                    if (widget.onDateChanged != null)
                       const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: GestureDetector(
-                        onTap: onDateChanged != null
+                        onTap: widget.onDateChanged != null
                             ? () => _pickDate(context, date)
                             : null,
                         child: Column(
@@ -162,12 +166,12 @@ class DailySummaryCard extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    if (onDateChanged != null)
+                    if (widget.onDateChanged != null)
                       _navArrow(
                         icon: Icons.chevron_right_rounded,
                         onTap: isToday
                             ? null
-                            : () => onDateChanged!(
+                            : () => widget.onDateChanged!(
                                 date.add(const Duration(days: 1))),
                         isDark: isDark,
                         disabled: isToday,
@@ -176,11 +180,10 @@ class DailySummaryCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // ── Macros + Ring + Gauge ──
+                // ── Macros + Ring + Gauge/Active Burn ──
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Left: Macro bars + Health Sync toggle
                     Expanded(
                       child: Column(
                         children: [
@@ -218,44 +221,84 @@ class DailySummaryCard extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    // Right: Intake Ring + Gauge side by side
+                    // Right: Intake Ring (tap → summary) + Gauge/Ring toggle
                     if (showHealthSection) ...[
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildRing(
-                            size: 68,
-                            strokeWidth: 5,
-                            percent: intakePercent.clamp(0.0, 1.0),
-                            color: intakeColor,
-                            centerValue: '${calories.toInt()}',
-                            subText: '/${baseGoal.toInt()}',
-                            label: l10n.intakeGoalLabel,
-                            isDark: isDark,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const TodaySummaryDashboardScreen(),
+                                ),
+                              );
+                            },
+                            child: _buildRing(
+                              size: 68,
+                              strokeWidth: 5,
+                              percent: intakePercent.clamp(0.0, 1.0),
+                              color: intakeColor,
+                              centerValue: '${calories.toInt()}',
+                              subText: '/${baseGoal.toInt()}',
+                              label: l10n.intakeGoalLabel,
+                              isDark: isDark,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(width: 4),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          DeficitGauge(
-                            netEnergy: netEnergy,
-                            isDark: isDark,
-                            width: 96,
-                          ),
-                        ],
+                      // Toggleable: Active Burn ring ↔ Net Energy gauge
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => _showNetEnergy = !_showNetEnergy),
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: _showNetEnergy
+                              ? DeficitGauge(
+                                  key: const ValueKey('gauge'),
+                                  netEnergy: netEnergy,
+                                  bmr: bmr,
+                                  tdee: tdee,
+                                  isDark: isDark,
+                                  width: 96,
+                                )
+                              : _buildRing(
+                                  key: const ValueKey('activeBurn'),
+                                  size: 68,
+                                  strokeWidth: 5,
+                                  percent: activityPercent,
+                                  color: activeGreen,
+                                  centerValue: '${activeEnergy.toInt()}',
+                                  subText: '/${activityBudget.toInt()}',
+                                  label: l10n.activeBurnLabel,
+                                  isDark: isDark,
+                                ),
+                        ),
                       ),
                     ] else
-                      _buildRing(
-                        size: 90,
-                        strokeWidth: 6,
-                        percent: intakePercent.clamp(0.0, 1.0),
-                        color: intakeColor,
-                        centerValue: '${calories.toInt()}',
-                        subText: '/${baseGoal.toInt()}',
-                        label: 'kcal',
-                        isDark: isDark,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const TodaySummaryDashboardScreen(),
+                            ),
+                          );
+                        },
+                        child: _buildRing(
+                          size: 90,
+                          strokeWidth: 6,
+                          percent: intakePercent.clamp(0.0, 1.0),
+                          color: intakeColor,
+                          centerValue: '${calories.toInt()}',
+                          subText: '/${baseGoal.toInt()}',
+                          label: 'kcal',
+                          isDark: isDark,
+                        ),
                       ),
                   ],
                 ),
@@ -277,7 +320,6 @@ class DailySummaryCard extends ConsumerWidget {
           },
         ),
       ),
-    ),
     );
   }
 
@@ -306,6 +348,7 @@ class DailySummaryCard extends ConsumerWidget {
   }
 
   Widget _buildRing({
+    Key? key,
     required double size,
     required double strokeWidth,
     required double percent,
@@ -316,6 +359,7 @@ class DailySummaryCard extends ConsumerWidget {
     required bool isDark,
   }) {
     return SizedBox(
+      key: key,
       width: size,
       height: size + 14,
       child: Column(
@@ -426,7 +470,7 @@ class DailySummaryCard extends ConsumerWidget {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
-      onDateChanged?.call(picked);
+      widget.onDateChanged?.call(picked);
     }
   }
 
@@ -520,6 +564,8 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
       await ref
           .read(profileNotifierProvider.notifier)
           .updateProfile(widget.profile);
+      ref.invalidate(activeEnergyProvider);
+      ref.invalidate(effectiveCalorieGoalProvider);
       return;
     }
 
@@ -552,6 +598,8 @@ class _ActiveEnergyRowState extends ConsumerState<_ActiveEnergyRow> {
     await ref
         .read(profileNotifierProvider.notifier)
         .updateProfile(widget.profile);
+    ref.invalidate(activeEnergyProvider);
+    ref.invalidate(effectiveCalorieGoalProvider);
     if (mounted) setState(() => _isLoading = false);
   }
 

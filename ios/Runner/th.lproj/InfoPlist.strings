@@ -1,0 +1,5 @@
+NSCameraUsageDescription = "ArCal ต้องการเข้าถึงกล้องเพื่อสแกนบาร์โค้ดและวิเคราะห์อาหาร";
+NSHealthShareUsageDescription = "ArCal ต้องการอ่านข้อมูลพลังงานที่เผาผลาญ เพื่อนำมาบวกเพิ่มในเป้าแคลอรี่ของคุณ";
+NSHealthUpdateUsageDescription = "ArCal ต้องการบันทึกข้อมูลโภชนาการจากมื้ออาหารที่คุณบันทึก ไปยัง Apple Health";
+NSPhotoLibraryAddUsageDescription = "ArCal ต้องการบันทึกรูปภาพอาหารที่วิเคราะห์แล้ว";
+NSPhotoLibraryUsageDescription = "ArCal ต้องการเข้าถึงรูปภาพเพื่อวิเคราะห์โภชนาการจากภาพอาหาร";

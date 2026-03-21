@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,6 @@ import '../../../core/constants/fda_daily_values.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../profile/models/user_profile.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../models/micronutrient_stats.dart';
 import '../providers/health_provider.dart';
@@ -134,6 +134,8 @@ class _TodaySummaryDashboardScreenState
           ref.invalidate(foodEntriesByDateProvider);
           ref.invalidate(micronutrientStatsProvider);
           ref.invalidate(_calorieTrendProvider);
+          ref.invalidate(activeEnergyProvider);
+          ref.invalidate(effectiveCalorieGoalProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -150,27 +152,27 @@ class _TodaySummaryDashboardScreenState
                 },
               ),
 
-              SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.sm),
 
               _buildPeriodSelector(isDark),
 
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
               _buildMacroDistribution(isDark, profileAsync),
 
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
               _buildCalorieTrend(isDark),
 
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
               _buildMicronutrientTracker(isDark),
 
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
 
               _buildFatBreakdown(isDark),
 
-              SizedBox(height: AppSpacing.xxxl),
+              const SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
@@ -270,7 +272,7 @@ class _TodaySummaryDashboardScreenState
                         color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
 
                     // Donut chart — smaller radius to avoid overflow
                     SizedBox(
@@ -306,7 +308,7 @@ class _TodaySummaryDashboardScreenState
                       ),
                     ),
 
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
 
                     // Calorie summary
                     Center(
@@ -320,13 +322,13 @@ class _TodaySummaryDashboardScreenState
                       ),
                     ),
 
-                    SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
 
                     // Macro bars
                     _buildMacroBar(l10n.protein, protein, profile.proteinGoal.toDouble(), AppColors.protein, isDark),
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     _buildMacroBar(l10n.carbs, carbs, profile.carbGoal.toDouble(), AppColors.carbs, isDark),
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     _buildMacroBar(l10n.fat, fat, profile.fatGoal.toDouble(), AppColors.fat, isDark),
                   ],
                 ),
@@ -368,7 +370,7 @@ class _TodaySummaryDashboardScreenState
             ),
           ),
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         Text(
           '${actual.toStringAsFixed(0)}/${goal.toStringAsFixed(0)}g',
           style: TextStyle(
@@ -419,7 +421,7 @@ class _TodaySummaryDashboardScreenState
                     color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 SizedBox(
                   height: 200,
                   child: LineChart(
@@ -510,12 +512,12 @@ class _TodaySummaryDashboardScreenState
                     ),
                   ),
                 ),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _legendDot(AppColors.info, l10n.intakeLabel),
-                    SizedBox(width: AppSpacing.lg),
+                    const SizedBox(width: AppSpacing.lg),
                     _legendDot(AppColors.error, l10n.goal),
                   ],
                 ),
@@ -534,8 +536,8 @@ class _TodaySummaryDashboardScreenState
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        SizedBox(width: AppSpacing.xs),
-        Text(label, style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        const SizedBox(width: AppSpacing.xs),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
       ],
     );
   }
@@ -576,7 +578,7 @@ class _TodaySummaryDashboardScreenState
                     color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
                   ),
                 ),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -650,7 +652,7 @@ class _TodaySummaryDashboardScreenState
           Row(
             children: [
               Icon(_getMicronutrientIcon(stats.key), size: 16, color: statusColor),
-              SizedBox(width: AppSpacing.xs),
+              const SizedBox(width: AppSpacing.xs),
               Expanded(
                 child: Text(
                   stats.name,
@@ -711,13 +713,13 @@ class _TodaySummaryDashboardScreenState
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
                     color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
                 ),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 _buildFatBar(l10n.saturated, saturated, maxFat, AppColors.warning, isDark),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 _buildFatBar(l10n.mono, mono, maxFat, AppColors.info, isDark),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 _buildFatBar(l10n.poly, poly, maxFat, AppColors.primary, isDark),
-                SizedBox(height: AppSpacing.sm),
+                const SizedBox(height: AppSpacing.sm),
                 _buildFatBar(l10n.trans, trans, maxFat, AppColors.error, isDark),
               ],
             ),
@@ -749,7 +751,7 @@ class _TodaySummaryDashboardScreenState
             ),
           ),
         ),
-        SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: AppSpacing.sm),
         SizedBox(
           width: 42,
           child: Text('${value.toStringAsFixed(1)}g',

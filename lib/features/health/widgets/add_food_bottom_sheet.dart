@@ -8,15 +8,14 @@ import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../../core/database/database_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
-import '../models/food_entry.dart';
-import '../models/ingredient.dart';
+import '../../../core/database/app_database.dart';
+import '../../../core/database/model_extensions.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -185,7 +184,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   FoodSearchMode _searchMode = FoodSearchMode.normal;
   bool _filledFromDb = false;
   int? _selectedMyMealId;
-  bool _isAnalyzing = false;
+  final bool _isAnalyzing = false;
   bool _nutritionExpanded = false;
   bool _showDetails = false;
   bool _quickCalMode = false;
@@ -574,25 +573,19 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         ref.invalidate(energyBalanceProvider);
         ref.invalidate(currentEnergyProvider);
 
-        // Save to Ingredient DB immediately
-        final savedIngredient = Ingredient()
-          ..name = name
-          ..nameEn = result.foodNameEn
-          ..baseAmount = queryAmount
-          ..baseUnit = row.unit
-          ..caloriesPerBase = result.nutrition.calories
-          ..proteinPerBase = result.nutrition.protein
-          ..carbsPerBase = result.nutrition.carbs
-          ..fatPerBase = result.nutrition.fat
-          ..source = 'gemini'
-          ..usageCount = 1;
-
+        // Save to Ingredient DB (upsert: check duplicate + count usageCount)
         try {
-          await DatabaseService.isar.writeTxn(() async {
-            await DatabaseService.ingredients.put(savedIngredient);
-          });
+          await IngredientActions.upsert(
+            name: name,
+            nameEn: result.foodNameEn,
+            baseAmount: queryAmount,
+            baseUnit: row.unit,
+            calories: result.nutrition.calories,
+            protein: result.nutrition.protein,
+            carbs: result.nutrition.carbs,
+            fat: result.nutrition.fat,
+          );
           ref.invalidate(allIngredientsProvider);
-          AppLogger.info('Saved AI result to Ingredient DB: $name');
         } catch (e) {
           AppLogger.warn('Failed to save ingredient to DB', e);
         }
@@ -722,6 +715,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
 
       if (dbMatch.isNotEmpty) {
         final ing = dbMatch.first;
+        IngredientActions.incrementUsage(ing.id);
         final amount = double.tryParse(sub.amountController.text) ?? 1;
         final ratio = amount / ing.baseAmount;
         setState(() {
@@ -776,23 +770,18 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
         ref.invalidate(energyBalanceProvider);
         ref.invalidate(currentEnergyProvider);
 
-        // Save to Ingredient DB immediately
-        final savedIngredient = Ingredient()
-          ..name = subName
-          ..nameEn = result.foodNameEn
-          ..baseAmount = amount
-          ..baseUnit = sub.unit
-          ..caloriesPerBase = result.nutrition.calories
-          ..proteinPerBase = result.nutrition.protein
-          ..carbsPerBase = result.nutrition.carbs
-          ..fatPerBase = result.nutrition.fat
-          ..source = 'gemini'
-          ..usageCount = 1;
-
+        // Save to Ingredient DB (upsert: check duplicate + count usageCount)
         try {
-          await DatabaseService.isar.writeTxn(() async {
-            await DatabaseService.ingredients.put(savedIngredient);
-          });
+          await IngredientActions.upsert(
+            name: subName,
+            nameEn: result.foodNameEn,
+            baseAmount: amount,
+            baseUnit: sub.unit,
+            calories: result.nutrition.calories,
+            protein: result.nutrition.protein,
+            carbs: result.nutrition.carbs,
+            fat: result.nutrition.fat,
+          );
           ref.invalidate(allIngredientsProvider);
         } catch (e) {
           AppLogger.warn('Failed to save sub-ingredient to DB', e);
@@ -931,7 +920,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.bolt_rounded,
+                            const Icon(Icons.bolt_rounded,
                                 size: 16, color: AppColors.warning),
                             const SizedBox(width: 2),
                             Text(
@@ -967,7 +956,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.bolt_rounded, color: AppColors.warning, size: 20),
+                        const Icon(Icons.bolt_rounded, color: AppColors.warning, size: 20),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
                           L10n.of(context)!.quickCalTitle,
@@ -1684,6 +1673,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     final amt = double.tryParse(row.amountController.text) ??
                         selection.baseAmount;
                     final ratio = amt / selection.baseAmount;
+                    IngredientActions.incrementUsage(selection.id);
                     setState(() {
                       row.nameController.text = selection.name;
                       row.nameEn = selection.nameEn;
@@ -2020,6 +2010,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                         double.tryParse(sub.amountController.text) ??
                             selection.baseAmount;
                     final ratio = amt / selection.baseAmount;
+                    IngredientActions.incrementUsage(selection.id);
                     setState(() {
                       sub.nameController.text = selection.name;
                       sub.nameEn = selection.nameEn;
@@ -2265,17 +2256,36 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       ingredientsJsonStr = jsonEncode(_ingredients.map((e) => e.toMap()).toList());
     }
 
-    final entry = FoodEntry()
-      ..foodName = foodName
-      ..mealType = _selectedMealType
-      ..timestamp = timestamp
-      ..servingSize = servingSize
-      ..servingUnit = _servingUnit
-      ..ingredientsJson = ingredientsJsonStr
-      ..searchMode = _searchMode
-      ..source = DataSource.manual;
+    final entry = FoodEntry(
+      id: 0,
+      foodName: foodName,
+      mealType: _selectedMealType,
+      timestamp: timestamp,
+      servingSize: servingSize,
+      servingUnit: _servingUnit,
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      baseCalories: 0,
+      baseProtein: 0,
+      baseCarbs: 0,
+      baseFat: 0,
+      ingredientsJson: ingredientsJsonStr,
+      searchMode: _searchMode,
+      source: DataSource.manual,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: now,
+      updatedAt: now,
+    );
 
-    widget.onSave(entry);
+    await widget.onSave(entry);
 
     if (!mounted) return;
 
@@ -2367,26 +2377,38 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       } catch (_) {}
     }
 
-    final entry = FoodEntry()
-      ..foodName = finalName
-      ..mealType = _selectedMealType
-      ..timestamp = timestamp
-      ..servingSize = servingSize
-      ..servingUnit = _servingUnit
-      ..calories = calories
-      ..protein = protein
-      ..carbs = carbs
-      ..fat = fat
-      ..baseCalories = servingSize > 0 ? calories / servingSize : calories
-      ..baseProtein = servingSize > 0 ? protein / servingSize : protein
-      ..baseCarbs = servingSize > 0 ? carbs / servingSize : carbs
-      ..baseFat = servingSize > 0 ? fat / servingSize : fat
-      ..myMealId = _selectedMyMealId
-      ..ingredientsJson = ingredientsJsonStr
-      ..searchMode = _searchMode
-      ..source = _filledFromDb ? DataSource.database : DataSource.manual;
+    final entryNow = DateTime.now();
+    final entry = FoodEntry(
+      id: 0,
+      foodName: finalName,
+      mealType: _selectedMealType,
+      timestamp: timestamp,
+      servingSize: servingSize,
+      servingUnit: _servingUnit,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      baseCalories: servingSize > 0 ? calories / servingSize : calories,
+      baseProtein: servingSize > 0 ? protein / servingSize : protein,
+      baseCarbs: servingSize > 0 ? carbs / servingSize : carbs,
+      baseFat: servingSize > 0 ? fat / servingSize : fat,
+      myMealId: _selectedMyMealId,
+      ingredientsJson: ingredientsJsonStr,
+      searchMode: _searchMode,
+      source: _filledFromDb ? DataSource.database : DataSource.manual,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: false,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: entryNow,
+      updatedAt: entryNow,
+    );
 
-    widget.onSave(entry);
+    await widget.onSave(entry);
 
     // Auto-save to MyMeal + Ingredient DB if has new ingredients AND has nutrition
     // Don't save if waiting for AI analysis (no nutrition yet)

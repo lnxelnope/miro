@@ -19,8 +19,8 @@ const RATE_LIMIT_PER_HOUR = 5;
 // ============================================================
 
 /**
- * สร้าง Transfer Key รูปแบบ: MIRO-XXXX-XXXX-XXXX
- * ตัวอย่าง: MIRO-A3F9-K7X2-P8M1
+ * สร้าง Transfer Key รูปแบบ: ARCAL-XXXX-XXXX-XXXX
+ * ตัวอย่าง: ARCAL-A3F9-K7X2-P8M1
  */
 function generateTransferKeyString(): string {
   const segments: string[] = [];
@@ -35,7 +35,7 @@ function generateTransferKeyString(): string {
     segments.push(segment);
   }
 
-  return `MIRO-${segments.join("-")}`;
+  return `ARCAL-${segments.join("-")}`;
 }
 
 /**
@@ -201,7 +201,7 @@ export const redeemTransferKey = onCall(
     }
 
     // 2. Validate Transfer Key Format (ป้องกัน brute force)
-    const keyPattern = /^MIRO-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
+    const keyPattern = /^(MIRO|ARCAL)-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/;
     if (!keyPattern.test(transferKey)) {
       throw new HttpsError(
         "invalid-argument",
@@ -267,7 +267,7 @@ export const redeemTransferKey = onCall(
         );
       }
 
-      // 6. ดึง Energy Balance และ MiRO ID จาก users collection
+      // 6. ดึง Energy Balance และ ArCal ID จาก users collection
       const sourceUserDoc = await admin
         .firestore()
         .collection("users")
@@ -296,9 +296,9 @@ export const redeemTransferKey = onCall(
         newUserDoc.data()?.balance || 0 :
         0;
 
-      // 8. Atomic Transaction: โอน Energy + MiRO ID
+      // 8. Atomic Transaction: โอน Energy + ArCal ID
       await admin.firestore().runTransaction(async (transaction) => {
-        // a. SET energy ของเครื่องเก่า = 0 และ unlink MiRO ID
+        // a. SET energy ของเครื่องเก่า = 0 และ unlink ArCal ID
         const sourceUserRef = admin.firestore().collection("users").doc(sourceDeviceId);
         transaction.update(sourceUserRef, {
           balance: 0,

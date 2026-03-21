@@ -132,7 +132,7 @@ async function markOfferClaimed(
   }
 }
 
-// ✅ Package name ของ MIRO app
+// ✅ Package name ของ ArCal app
 const PACKAGE_NAME = "com.tanabun.miro";
 
 interface VerifyPurchaseRequest {

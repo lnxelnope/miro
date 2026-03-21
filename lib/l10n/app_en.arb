@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
 
-  "appName": "MiRO",
+  "appName": "ArCal",
   
   "save": "Save",
   "cancel": "Cancel",
@@ -94,7 +94,7 @@
   "deleteKey": "Delete API Key",
   "openAiStudio": "Open Google AI Studio",
 
-  "chatHint": "Tell Miro e.g. \"Log fried rice\"...",
+  "chatHint": "Tell ArCal e.g. \"Log fried rice\"...",
   "chatFoodSaved": "Food logged!",
   "chatFoodSavedDetail": "{name} {serving} {unit}\n{cal} kcal",
   "@chatFoodSavedDetail": {
@@ -132,7 +132,7 @@
   "language": "Language",
 
   "upgradePro": "Upgrade to Pro",
-  "proUnlocked": "MiRO Pro",
+  "proUnlocked": "ArCal Pro",
   "proDescription": "Unlimited AI food analysis",
   "aiRemaining": "AI analysis: {remaining}/{total} remaining today",
   "@aiRemaining": {
@@ -147,6 +147,11 @@
   },
   "aiLimitReached": "AI limit reached for today (3/3)",
   "restorePurchase": "Restore purchase",
+  "restorePurchaseSubtitle": "Restore your Energy Pass subscription",
+  "restorePurchaseRestoring": "Restoring purchases…",
+  "restorePurchaseSuccess": "Purchase restored successfully!",
+  "restorePurchaseNotFound": "No previous purchases found for this Apple ID",
+  "restorePurchaseFailed": "Failed to restore purchase. Please try again.",
 
   "myMeals": "My Meals",
   "createMeal": "Create meal",
@@ -161,7 +166,7 @@
   "diet": "Diet",
   "quickAdd": "Quick Add",
 
-  "welcomeTitle": "MiRO",
+  "welcomeTitle": "ArCal",
   "welcomeSubtitle": "Easy food logging with AI",
   "onboardingFeature1": "Snap a photo",
   "onboardingFeature1Desc": "AI calculates calories automatically",
@@ -244,10 +249,10 @@
   "appBarMyMeals": "My Meals",
   "appBarCamera": "Camera",
   "appBarAiChat": "AI Chat",
-  "appBarMiro": "MIRO",
+  "appBarMiro": "ArCal",
   
   "permissionRequired": "Permission Required",
-  "permissionRequiredDesc": "MIRO needs access to the following:",
+  "permissionRequiredDesc": "ArCal needs access to the following:",
   "permissionPhotos": "Photos — to scan food",
   "permissionCamera": "Camera — to photograph food",
   "permissionSkip": "Skip",
@@ -825,6 +830,7 @@
     }
   },
   "intakeGoalLabel": "Intake Goal",
+  "activeBurnLabel": "Active Burn",
   "netEnergyLabel": "Net Energy Balance",
   "underEatingWarning": "Under-eating",
   "surplusWarning": "Surplus",
@@ -940,14 +946,13 @@
     }
   },
   "cancelDateChange": "Cancel Date Change",
-  "confirm": "Confirm",
   "undo": "Undo",
 
   "chatHistory": "Chat History",
   "newChat": "New chat",
   "quickActions": "Quick Actions",
   "clear": "Clear",
-  "helloImMiro": "Hello! I'm Miro",
+  "helloImMiro": "Hello! I'm ArCal",
   "tellMeWhatYouAteToday": "Tell me what you ate today!",
   "tellMeWhatYouAte": "Tell me what you ate...",
   "clearHistoryTitle": "Clear history?",
@@ -1120,7 +1125,7 @@
   "localAiHelpTitle": "🤖 Local AI Help",
   "localAiHelpFormat": "Format: [food] [amount] [unit]",
   "localAiHelpExamples": "Examples:\n• chicken 100g and rice 200g\n• pizza 2 slices\n• apple 1 piece, banana 1 piece",
-  "localAiHelpNote": "Note: English only, basic parsing\nSwitch to Miro AI for better results!",
+  "localAiHelpNote": "Note: English only, basic parsing\nSwitch to ArCal AI for better results!",
   "hiNoFoodLogged": "🤖 Hi! No food logged yet today.\n   Target: {target} kcal — Ready to start logging? 🍽️",
   "@hiNoFoodLogged": {
     "placeholders": {
@@ -1256,7 +1261,7 @@
   "referralCopy": "Copy",
   "referralShareCodeDescription": "Share this code with friends! When they use AI 3 times, you both get rewards!",
   "referralEnterReferralCode": "Enter Referral Code",
-  "referralCodeHint": "MIRO-XXXX-XXXX-XXXX",
+  "referralCodeHint": "ARCAL-XXXX-XXXX-XXXX",
   "referralSubmitCode": "Submit Code",
   "referralPleaseEnterCode": "Please enter a referral code",
   "referralCodeAccepted": "Referral code accepted!",
@@ -1271,7 +1276,7 @@
   },
   "referralHowItWorks": "How It Works",
   "referralStep1Title": "Share your referral code",
-  "referralStep1Description": "Copy and share your MiRO ID with friends",
+  "referralStep1Description": "Copy and share your ArCal ID with friends",
   "referralStep2Title": "Friend enters your code",
   "referralStep2Description": "They get +20 Energy immediately",
   "referralStep3Title": "Friend uses AI 3 times",
@@ -1328,6 +1333,7 @@
   "subscriptionSubscribe": "Subscribe",
   "subscriptionCancelAnytime": "Cancel anytime",
   "subscriptionAutoRenewTerms": "Your subscription will renew automatically. You can cancel anytime from Google Play.",
+  "subscriptionAutoRenewTermsIos": "Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.",
   "subscriptionRenewsDate": "Renews: {date}",
   "@subscriptionRenewsDate": {
     "placeholders": {
@@ -1366,7 +1372,7 @@
   "disclaimerIUnderstand": "I Understand",
 
   "privacyPolicyTitle": "Privacy Policy",
-  "privacyPolicySubtitle": "MiRO — My Intake Record Oracle",
+  "privacyPolicySubtitle": "ArCal — AI Calorie Counter",
   "privacyPolicyHeaderNote": "Your food data stays on your device. Energy balance synced securely via Firebase.",
   "privacyPolicySectionInformationWeCollect": "Information We Collect",
   "privacyPolicySectionDataStorage": "Data Storage",
@@ -1383,7 +1389,7 @@
   "privacyPolicyEffectiveDate": "Effective Date: February 18, 2026\nLast Updated: February 26, 2026",
 
   "termsOfServiceTitle": "Terms of Service",
-  "termsSubtitle": "MiRO — My Intake Record Oracle",
+  "termsSubtitle": "ArCal — AI Calorie Counter",
   "termsSectionAcceptanceOfTerms": "Acceptance of Terms",
   "termsSectionServiceDescription": "Service Description",
   "termsSectionDisclaimerOfWarranties": "Disclaimer of Warranties",
@@ -1398,7 +1404,7 @@
   "termsSectionChangesToTerms": "Changes to Terms",
   "termsSectionGoverningLaw": "Governing Law",
   "termsSectionContactUs": "Contact Us",
-  "termsAcknowledgment": "By using MiRO, you acknowledge that you have read, understood, and agree to these Terms of Service.",
+  "termsAcknowledgment": "By using ArCal, you acknowledge that you have read, understood, and agree to these Terms of Service.",
   "termsLastUpdated": "Last updated: February 26, 2026",
 
   "profileAndSettings": "Profile & Settings",
@@ -1414,7 +1420,7 @@
   "dailyGoals": "Daily Goals",
   "chatAiModeSection": "Chat AI Mode",
   "selectAiPowersChat": "Select which AI powers your chat",
-  "miroAi": "Miro AI",
+  "miroAi": "ArCal AI",
   "miroAiSubtitle": "Powered by Gemini • Multi-language • High accuracy",
   "localAi": "Local AI",
   "localAiSubtitle": "On-device • English only • Basic accuracy",
@@ -1462,8 +1468,8 @@
     }
   },
   "accountSection": "Account",
-  "miroId": "MiRO ID",
-  "miroIdCopied": "MiRO ID copied!",
+  "miroId": "ArCal ID",
+  "miroIdCopied": "ArCal ID copied!",
   "inviteFriends": "Invite Friends",
   "inviteFriendsSubtitle": "Share your referral code and earn rewards!",
   "unlimitedAiDoubleRewards": "Unlimited AI + Double rewards",
@@ -1483,18 +1489,29 @@
   "restoreFromBackupSubtitle": "Import data from backup file",
   "clearAllDataTitle": "Clear all data?",
   "clearAllDataContent": "All data will be deleted:\n• Food entries\n• My Meals\n• Ingredients\n• Goals\n• Personal info\n\nThis cannot be undone!",
+  "clearAllDataStorageDetails": "Including: Isar DB, SharedPreferences, SecureStorage",
+  "clearAllDataFactoryResetHint": "(Like a fresh install — use together with Factory Reset in Admin Panel)",
   "deleteAll": "Delete All",
   "allDataClearedSuccess": "All data cleared successfully",
+  "deleteAccount": "Delete Account",
+  "deleteAccountSubtitle": "Delete all data from device and cloud",
+  "deleteAccountTitle": "Delete Account?",
+  "deleteAccountContent": "This will permanently delete:\n• All local data (food entries, meals, goals)\n• Cloud-synced data (energy balance, backups)\n• Subscription data\n\nThis action cannot be undone.",
+  "deleteAccountConfirm": "Delete Account",
+  "deleteAccountSuccess": "Account deleted successfully",
+  "deleteAccountFailed": "Failed to delete account. Please try again.",
+  "deleteAccountDeleting": "Deleting account…",
   "aboutSection": "About",
   "version": "Version",
   "privacyPolicy": "Privacy Policy",
   "termsOfService": "Terms of Service",
+  "eula": "EULA",
   "healthDisclaimer": "Health Disclaimer",
   "importantLegalInformation": "Important legal information",
   "showTutorialAgain": "Show Tutorial Again",
   "viewFeatureTour": "View feature tour",
   "showTutorialDialogTitle": "Show Tutorial",
-  "showTutorialDialogContent": "This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with Miro AI\n\nYou will return to the Home screen.",
+  "showTutorialDialogContent": "This will show the feature tour that highlights:\n\n• Energy System\n• Pull-to-Refresh Photo Scan\n• Chat with ArCal AI\n\nYou will return to the Home screen.",
   "showTutorialButton": "Show Tutorial",
   "tutorialResetMessage": "Tutorial reset! Go to Home screen to view it.",
   "foodAnalysisTutorial": "Food Analysis Tutorial",
@@ -1534,14 +1551,16 @@
   "appWillRefresh": "Your app will refresh to show the restored data.",
   "backupFailed": "Backup Failed",
   "invalidBackupFile": "Invalid Backup File",
+  "restoreSelectDataFile": "This file only contains Energy. To restore food entries, select the data file (arcal_data_*.json) instead.",
+  "restoreZeroEntriesHint": "No food entries were imported. Make sure you selected the data file (arcal_data_*.json), not the energy file.",
   "restoreFailed": "Restore Failed",
   "analyticsDataCollection": "Analytics Data Collection",
-  "analyticsEnabled": "Analytics enabled - ขอบคุณที่ช่วยปรับปรุงแอป",
-  "analyticsDisabled": "Analytics disabled - ไม่เก็บข้อมูลการใช้งาน",
+  "analyticsEnabled": "Analytics enabled - Thanks for helping improve the app",
+  "analyticsDisabled": "Analytics disabled - No usage data collected",
   "enabled": "Enabled",
-  "enabledSubtitle": "Enabled - ช่วยปรับปรุงประสบการณ์ใช้งาน",
+  "enabledSubtitle": "Enabled - Helps improve user experience",
   "disabled": "Disabled",
-  "disabledSubtitle": "Disabled - ไม่เก็บข้อมูลการใช้งาน",
+  "disabledSubtitle": "Disabled - No usage data collected",
   "imagesPerDay": "Images per day",
   "scanUpToImagesPerDay": "Scan up to {limit} images per day",
   "@scanUpToImagesPerDay": {
@@ -1679,7 +1698,7 @@
   "questBarClaimed": "Claimed!",
   "questBarHideOffer": "Hide",
   "questBarViewDetails": "View",
-  "questBarShareText": "Try MiRO! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}",
+  "questBarShareText": "Try ArCal! AI-powered food analysis 🍔\nUse this link — you get +5 Energy, friend gets +20 Energy free!\n\n{link}",
   "@questBarShareText": {
     "placeholders": {
       "link": {
@@ -1687,7 +1706,7 @@
       }
     }
   },
-  "questBarShareSubject": "Try MiRO",
+  "questBarShareSubject": "Try ArCal",
 
   "claimButtonTitle": "Claim Daily Energy",
   "claimButtonReceived": "Received +{energy}E!",
@@ -1860,15 +1879,15 @@
   "pleaseAddAtLeastOneIngredient": "Please add at least 1 ingredient",
   "hiddenIngredientsDiscovered": "Hidden ingredients discovered by AI",
   "retroScanTitle": "Scan Recent Photos?",
-  "retroScanDescription": "We can scan your photos from the last 7 days to automatically find food photos and add them to your diary.",
+  "retroScanDescription": "We can scan your photos from the last 1 day to automatically find food photos and add them to your diary.",
   "retroScanNote": "Only food photos are detected — other photos are ignored. No photos leave your device.",
   "retroScanStart": "Scan My Photos",
   "retroScanSkip": "Skip for now",
   "retroScanInProgress": "Scanning...",
-  "retroScanTagline": "MiRO is transforming your\nfood photos into health data.",
+  "retroScanTagline": "ArCal is transforming your\nfood photos into health data.",
   "retroScanFetchingPhotos": "Fetching recent photos...",
   "retroScanAnalyzing": "Detecting food photos...",
-  "retroScanPhotosFound": "{count} photos found in last 7 days",
+  "retroScanPhotosFound": "{count} photos found in last 1 day",
   "@retroScanPhotosFound": {
     "placeholders": {
       "count": {
@@ -1886,11 +1905,11 @@
     }
   },
   "retroScanNoResultsTitle": "No Food Photos Found",
-  "retroScanNoResultsDesc": "No food photos detected in the last 7 days. Try taking a photo of your next meal!",
+  "retroScanNoResultsDesc": "No food photos detected in the last 1 day. Try taking a photo of your next meal!",
   "retroScanAnalyzeHint": "Tap \"Analyze All\" on your timeline to get AI nutrition analysis for these entries.",
   "retroScanDone": "Got it!",
-  "welcomeEndTitle": "Welcome to MiRO!",
-  "welcomeEndMessage": "MiRO is at your service.",
+  "welcomeEndTitle": "Welcome to ArCal!",
+  "welcomeEndMessage": "ArCal is at your service.",
   "welcomeEndJourney": "Have a nice journey together!!",
   "welcomeEndStart": "Let's Start!",
   "greetingCalorieSummary": "Hi! How can I help you today? You still have {remaining} kcal left. So far: Protein {protein}g, Carbs {carbs}g, Fat {fat}g. Tell me what you ate — list everything by meal and I'll log them all for you. More Detail more precise!!",
@@ -1914,8 +1933,8 @@
       "balance": { "type": "int" }
     }
   },
-  "greetingRenamePhotoTip": "Tip: You can rename food photos to help MiRO analyze more accurately!",
-  "greetingAddIngredientsTip": "Tip: You can add ingredients you're sure about before sending to MiRO for analysis. I'll figure out all the boring little details for you!",
+  "greetingRenamePhotoTip": "Tip: You can rename food photos to help ArCal analyze more accurately!",
+  "greetingAddIngredientsTip": "Tip: You can add ingredients you're sure about before sending to ArCal for analysis. I'll figure out all the boring little details for you!",
   "greetingBackupReminder": "Hey boss! You haven't backed up your data for {days} days. I recommend backing up in Settings — your data is stored locally and I can't recover it if something happens!",
   "@greetingBackupReminder": {
     "placeholders": {
@@ -1931,6 +1950,32 @@
   "waitButton": "Wait",
   "exitButton": "Exit",
   "foodNameHint": "e.g. Fried Rice with Shrimp",
+  "imageFoodNameHint": "Anything special? e.g. has hidden meat inside",
+  "reanalyze": "Re-analyze",
+  "reanalyzeFree": "Free",
+  "reanalyzing": "Analyzing...",
+  "reanalyzeSuccess": "Analysis updated!",
+  "savedAsNewMeal": "Saved as new meal: {name}",
+  "@savedAsNewMeal": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "keepOrReanalyzeTitle": "Which ingredients to keep?",
+  "keepOrReanalyzeDesc": "Checked items will be kept, unchecked will be re-analyzed",
+  "dailyCapReached": "Daily analysis limit reached ({count}/{max}). Try again tomorrow!",
+  "@dailyCapReached": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "dailyCapPartial": "Daily limit reached after analyzing {done} items. Remaining items will be available tomorrow.",
+  "@dailyCapPartial": {
+    "placeholders": {
+      "done": {"type": "int"}
+    }
+  },
   "amountAutoAdjust": "Change → calories adjust automatically",
   "processingImageData": "PROCESSING IMAGE DATA...",
   "unableToAnalyzeTitle": "Unable to analyze",
@@ -2146,7 +2191,7 @@
   "bmrSettingTitle": "BMR (Basal Metabolic Rate)",
   "bmrSettingSubtitle": "Used to estimate active energy from total burned",
   "bmrDialogTitle": "Set your BMR",
-  "bmrDialogDescription": "MiRO uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.",
+  "bmrDialogDescription": "ArCal uses BMR to subtract resting energy from total calories burned, showing only your active energy. Default is 1500 kcal/day. You can find your BMR from fitness apps or online calculators.",
   "healthSyncEnabledBmrHint": "Health sync enabled. BMR default: 1500 kcal/day — adjust in Settings if needed.",
   "privacyPolicySectionHealthData": "Health Data Integration",
   "termsSectionHealthDataSync": "Health Data Synchronization",
@@ -2196,5 +2241,234 @@
   "subscriptionAutoRenewOff": "Off — expires at end of period",
   "subscriptionManagedByAppStore": "Subscription is managed through the App Store",
   "subscriptionManagedByPlayStore": "Subscription is managed through Google Play",
-  "subscriptionCannotLoadPrices": "Unable to load prices from the Store right now"
+  "subscriptionCannotLoadPrices": "Unable to load prices from the Store right now",
+
+  "cloudSync": "Cloud Sync",
+  "cloudSyncSynced": "Data synced",
+  "cloudSyncPending": "{count} entries pending sync",
+  "@cloudSyncPending": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "cloudSyncLastDate": "Last sync: {date}",
+  "@cloudSyncLastDate": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "cloudSyncNever": "Never synced",
+  "cloudSyncAutoDescription": "Auto-syncs when app opens for the first time each day",
+  "cloudSyncNow": "Sync now",
+  "cloudSyncSuccess": "Data synced successfully",
+  "cloudSyncFailed": "Sync failed: {error}",
+  "@cloudSyncFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "backupExportSubtitle": "Export file for device transfer",
+
+  "foodResearch": "Food Research",
+  "foodResearchSubtitleOn": "Helping improve food AI analysis",
+  "foodResearchSubtitleOff": "Help food research with your food photos",
+  "foodResearchDialogTitle": "Food Environment Research",
+  "foodResearchDialogDescription": "Help us improve food AI analysis by sharing your food photo data",
+  "foodResearchWhatWeAnalyze": "What we analyze:",
+  "foodResearchAnalyze1": "Food, beverages, snacks in photos",
+  "foodResearchAnalyze2": "Food brand + size (helps calibrate portion)",
+  "foodResearchAnalyze3": "Restaurant (if logo is visible)",
+  "foodResearchAnalyze4": "Utensils, plates, bowls",
+  "foodResearchWhatWeSkip": "What we do NOT collect:",
+  "foodResearchSkip1": "Faces, personal info",
+  "foodResearchSkip2": "Personal belongings, clothing, bags",
+  "foodResearchSkip3": "Credit cards, documents",
+  "foodResearchPrivacyNote": "Data is anonymized and used in aggregate only. You can turn this off anytime.",
+  "foodResearchDecline": "Decline",
+  "foodResearchAccept": "I'd like to help",
+  "foodResearchThanks": "Thank you for supporting food research!",
+  "foodResearchDisabled": "Food research sharing disabled",
+  "noIngredientsHint": "No ingredients yet. Tap add to record.",
+
+  "consentDialogTitle": "Data & Research",
+  "consentAnalyticsSection": "App Usage Analytics",
+  "consentAnalyticsDescription": "We use Firebase Analytics to improve your app experience",
+  "consentAnalyticsCollect": "What we collect: Feature usage, screens viewed",
+  "consentAnalyticsNotCollect": "Not collected: Food data, photos, health info",
+  "consentAnalyticsAnonymous": "Data is aggregated and anonymous",
+  "consentFoodResearchSection": "Food Research (Optional)",
+  "consentChangeAnytime": "You can change these anytime in Profile → Settings",
+
+  "ingredientSearchHintExample": "e.g. egg, vegetable oil, ground pork",
+  "freeIngredientSearch": "Free ingredient search — no Energy cost!",
+
+  "recoveryKeyRestoreTitle": "Restore with Recovery Key",
+  "recoveryKeyRestoreSubtitle": "Use Key from your old device, no file needed",
+  "recoveryKeyRegenerateConfirm": "Generate new Key?",
+  "recoveryKeyRegenerateWarning": "The old Key will no longer work.\n\nIf you wrote it down, you'll need to note the new one instead.",
+  "recoveryKeyRegenerate": "Generate new",
+  "recoveryKeyRegenerated": "New Recovery Key generated",
+  "recoveryKeyDescription": "Recover your account when switching devices",
+  "recoveryKeyRegenerateTooltip": "Generate new Key",
+  "recoveryKeyLoading": "Loading...",
+  "recoveryKeyHide": "Hide",
+  "recoveryKeyShow": "Show",
+  "recoveryKeyCopied": "Recovery Key copied",
+  "recoveryKeyCopyTooltip": "Copy",
+  "recoveryKeyWarning": "⚠️ Keep this safe. Do not share with others.",
+
+  "restoreAccountTitle": "Restore Account",
+  "restoreFromRecoveryKey": "Restore from Recovery Key",
+  "restoreEnterKey": "Enter the Recovery Key from your old device\nto recover your food history and Energy",
+  "restoreButton": "Restore Account",
+  "restoreKeyLocation": "Recovery Key is in Settings > Account on your old device",
+  "restoreSuccess": "Restore successful!",
+  "restoreFoodEntries": "{count} food entries",
+  "@restoreFoodEntries": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreProfileRecovered": "Profile & goals recovered",
+  "restoreStartUsing": "Start using",
+  "restoreEmptyKey": "Please enter a Recovery Key",
+  "restoreFailedGeneric": "Unable to restore. Please check your Key.",
+  "restoreInvalidKey": "Invalid Recovery Key. Please check again.",
+  "restoreExpiredKey": "Recovery Key has expired. Please generate a new one from the original device.",
+  "restoreSameDevice": "Cannot restore on the same device",
+  "restoreNoInternet": "No internet connection. Please try again.",
+  "restoreErrorGeneric": "Error: {error}",
+  "@restoreErrorGeneric": {
+    "placeholders": {
+      "error": {"type": "String"}
+    }
+  },
+
+  "nameChangeReAnalyzeTitle": "Food Name Changed",
+  "nameChangeReAnalyzeMessage": "You changed the name to \"{newName}\"\nIngredients with ✓ will be re-analyzed\nUncheck to keep as-is",
+  "@nameChangeReAnalyzeMessage": {
+    "placeholders": {
+      "newName": {"type": "String"}
+    }
+  },
+  "nameChangeReAnalyzeConfirm": "Re-analyze",
+  "nameChangeSaveAsIs": "Save as-is",
+  "nameChangeAnalyzing": "Re-analyzing ingredients...",
+  "nameChangeAnalysisFailed": "Re-analysis failed. Saved as-is.",
+  "nameChangeNoIngredientToAnalyze": "No ingredients to re-analyze",
+
+  "freepassTitle": "Freepass",
+  "freepassActive": "ACTIVE",
+  "freepassUnlimitedAI": "Unlimited AI Analysis",
+  "freepassDaysRemaining": "{days} days remaining",
+  "@freepassDaysRemaining": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassDaysTitle": "Freepass Days",
+  "freepassDaysUnit": "days",
+  "freepassDaysSaved": "You have {days} days saved",
+  "@freepassDaysSaved": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassDaysBadge": "{days}d",
+  "@freepassDaysBadge": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertTitle": "Convert Energy to Freepass",
+  "freepassConvertRate": "{energy} Energy = 1 Day of Unlimited AI",
+  "@freepassConvertRate": {
+    "placeholders": {
+      "energy": {"type": "int"}
+    }
+  },
+  "freepassConvertDescription": "Freepass days never expire. They auto-activate when your Energy Pass subscription ends.",
+  "freepassConvertButton": "Convert (up to {days} days)",
+  "@freepassConvertButton": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertMinimum": "Need {energy} Energy minimum",
+  "@freepassConvertMinimum": {
+    "placeholders": {
+      "energy": {"type": "int"}
+    }
+  },
+  "freepassConvertConverting": "Converting...",
+  "freepassConvertDialogTitle": "Convert to Freepass",
+  "freepassConvertDialogQuestion": "How many days?",
+  "freepassConvertDialogDay": "day",
+  "freepassConvertDialogDays": "days",
+  "freepassConvertDialogEnergyCost": "Energy Cost",
+  "freepassConvertDialogRemainingBalance": "Remaining Balance",
+  "freepassConvertDialogConfirm": "Convert",
+  "freepassConvertSuccess": "Converted {energy} Energy → {days} Freepass days!",
+  "@freepassConvertSuccess": {
+    "placeholders": {
+      "energy": {"type": "int"},
+      "days": {"type": "int"}
+    }
+  },
+  "freepassConvertFailed": "Conversion failed",
+  "freepassConvertError": "Error occurred during conversion",
+  "freepassConvertServiceUnavailable": "Service temporarily unavailable. Please try again later.",
+
+  "subscriptionChangePlan": "Change Plan",
+  "subscriptionChangePlanDescAndroid": "You can change your plan through Google Play subscription management. The new plan will apply at the next billing cycle.",
+  "subscriptionChangePlanDescIos": "You can upgrade or downgrade your plan through App Store subscription management.",
+  "subscriptionCurrentPlan": "CURRENT",
+  "subscriptionChangePlanButton": "Change",
+
+  "unifiedPermissionsScrollHint": "Please scroll down to read all permissions, then tap Allow.",
+  "unifiedPermissionsScrollToEnable": "Scroll down to enable",
+  "unifiedPermissionsHealthTitle": "Health App",
+  "unifiedPermissionsHealthDesc": "Enable in Settings to sync calories with Apple Health / Health Connect",
+
+  "privacyConsentTitle": "Your Privacy Matters",
+  "privacyConsentSubtitle": "Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.",
+  "privacyConsentNotifTitle": "Push Notifications",
+  "privacyConsentNotifDesc": "Get helpful reminders and updates about your nutrition tracking.",
+  "privacyConsentNotifBullet1": "Daily meal tracking reminders",
+  "privacyConsentNotifBullet2": "Streak and achievement alerts",
+  "privacyConsentNotifBullet3": "You can turn off anytime in Settings",
+  "privacyConsentResearchDesc": "Help improve food databases and nutritional accuracy for the community.",
+  "privacyConsentResearchBullet1": "Anonymized food photos help train AI models",
+  "privacyConsentResearchBullet2": "No personal data is ever shared",
+  "privacyConsentAdsTitle": "Advertising",
+  "privacyConsentAdsDesc": "Personalized ads help keep ArCal free. You can opt out anytime.",
+  "privacyConsentAdsBullet1": "Ads are never based on your food or health data",
+  "privacyConsentAdsBullet2": "Opt out to see generic, non-personalized ads",
+  "privacyConsentHealthNote": "Health app integration (Apple Health / Health Connect) is separate and can be enabled later in Settings.",
+  "privacyConsentReadPolicy": "Read full Privacy Policy",
+  "privacyConsentAccept": "Continue",
+  "privacyConsentOptional": "Optional",
+
+  "arScan": "AR Scan",
+  "arScanPositionFood": "Position food in the frame",
+  "arScanStartCapture": "Start Scanning",
+  "arScanContinueAnalysis": "Continue to Analysis",
+  "takePhoto": "Take Photo",
+  "pickFromGallery": "Pick from Gallery",
+  "arScanFoodNotDetected": "Food not detect",
+
+  "arScanAngleTop": "Top",
+  "arScanAngleDiagonal": "Diagonal",
+  "arScanAngleSide": "Side",
+  "arScanAngleProgress": "{current}/{total}",
+  "@arScanAngleProgress": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "arScanAngleCaptured": "{zone} angle captured ({current}/{total})",
+  "@arScanAngleCaptured": {
+    "placeholders": {
+      "zone": {"type": "String"},
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "arScanTapToCapture": "Tap anywhere to capture",
+  "arScanMoveToAngle": "Tilt to next angle"
 }

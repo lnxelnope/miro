@@ -6,25 +6,25 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/services/consent_service.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/constants/cuisine_options.dart';
-import 'package:isar/isar.dart';
+import 'package:drift/drift.dart' hide JsonKey, Column;
+import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
-import '../../../core/constants/enums.dart';
+import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
-import '../../health/models/food_entry.dart';
 import '../../scanner/services/gallery_service.dart';
 import '../providers/profile_provider.dart';
 import '../providers/locale_provider.dart';
 import '../../onboarding/presentation/onboarding_screen.dart';
 import '../../onboarding/presentation/tutorial_food_analysis_screen.dart';
 import '../../legal/presentation/disclaimer_screen.dart';
-import '../../chat/models/chat_ai_mode.dart';
-import '../../chat/providers/chat_provider.dart';
 import 'health_goals_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 import '../../home/widgets/feature_tour.dart';
 import '../../../core/services/backup_service.dart';
+import '../../../core/services/data_sync_service.dart';
+import '../../chat/services/greeting_service.dart';
 import '../../../features/energy/providers/gamification_provider.dart';
 import '../../subscription/presentation/subscription_screen.dart';
 import '../../subscription/providers/subscription_provider.dart';
@@ -36,7 +36,10 @@ import '../../../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/health_sync_service.dart';
-import '../models/user_profile.dart';
+import '../../../core/services/recovery_key_service.dart';
+import '../../../core/services/device_id_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'restore_account_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -49,7 +52,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // Collapsible sections state (default all collapsed except healthGoals)
   bool _healthGoalsExpanded = true;
   bool _languageExpanded = false;
-  bool _aiChatExpanded = false;
   bool _cuisineExpanded = false;
   bool _photoScanExpanded = false;
   bool _accountExpanded = false;
@@ -115,19 +117,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onToggle: () =>
                         setState(() => _languageExpanded = !_languageExpanded),
                     child: _buildLanguageCard(context),
-                  ),
-
-                  // ──────────────────────────────────────────────
-                  // AI Chat Mode (collapsed by default)
-                  // ──────────────────────────────────────────────
-                  _buildCollapsibleSection(
-                    title: L10n.of(context)!.chatAiModeSection,
-                    icon: Icons.auto_awesome_rounded,
-                    iconColor: AppColors.ai,
-                    isExpanded: _aiChatExpanded,
-                    onToggle: () =>
-                        setState(() => _aiChatExpanded = !_aiChatExpanded),
-                    child: _buildAiModeSettingCard(context),
                   ),
 
                   // ──────────────────────────────────────────────
@@ -209,6 +198,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             );
                           },
                         ),
+                        _RecoveryKeyCard(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.inviteFriends,
@@ -277,17 +267,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         setState(() => _dataExpanded = !_dataExpanded),
                     child: Column(
                       children: [
+                        const _AutoSyncStatusCard(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.backupData,
-                          subtitle: L10n.of(context)!.backupDataSubtitle,
+                          subtitle: L10n.of(context)!.backupExportSubtitle,
                           leading: Container(
                             padding: AppSpacing.paddingSm,
                             decoration: BoxDecoration(
                               color: AppColors.info.withValues(alpha: 0.1),
                               borderRadius: AppRadius.md,
                             ),
-                            child: const Icon(Icons.backup,
+                            child: const Icon(Icons.ios_share_rounded,
                                 color: AppColors.info, size: 20),
                           ),
                           onTap: () => _handleBackup(context),
@@ -307,7 +298,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                           onTap: () => _handleRestore(context),
                         ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.recoveryKeyRestoreTitle,
+                          subtitle: L10n.of(context)!.recoveryKeyRestoreSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.key_rounded,
+                                color: AppColors.warning, size: 20),
+                          ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RestoreAccountScreen(),
+                            ),
+                          ),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.restorePurchase,
+                          subtitle: L10n.of(context)!.restorePurchaseSubtitle,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.shopping_bag_outlined,
+                                color: AppColors.primary, size: 20),
+                          ),
+                          onTap: () => _handleRestorePurchase(context),
+                        ),
                         const _AnalyticsConsentToggle(),
+                        const _FoodResearchConsentToggle(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.clearAllData,
@@ -322,6 +349,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 color: AppColors.error, size: 20),
                           ),
                           onTap: () => _confirmClearAllData(context),
+                        ),
+                        _buildModernSettingCard(
+                          context: context,
+                          title: L10n.of(context)!.deleteAccount,
+                          subtitle: L10n.of(context)!.deleteAccountSubtitle,
+                          textColor: AppColors.error,
+                          leading: Container(
+                            padding: AppSpacing.paddingSm,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: AppRadius.md,
+                            ),
+                            child: const Icon(Icons.person_off_rounded,
+                                color: AppColors.error, size: 20),
+                          ),
+                          onTap: () => _confirmDeleteAccount(context),
                         ),
                       ],
                     ),
@@ -344,7 +387,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.2.2',
+                          subtitle: '1.2.6',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -1082,71 +1125,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildAiModeSettingCard(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentMode = ref.watch(chatAiModeProvider);
-    final isMiroAi = currentMode == ChatAiMode.miroAi;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      color: isDark ? AppColors.surfaceDark : null,
-      child: Padding(
-        padding: AppSpacing.paddingLg,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              L10n.of(context)!.selectAiPowersChat,
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark
-                    ? AppColors.textSecondaryDark
-                    : AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            // Miro AI option
-            _buildAiModeOption(
-              context: context,
-              icon: Icons.auto_awesome,
-              color: AppColors.ai,
-              title: L10n.of(context)!.miroAi,
-              subtitle: L10n.of(context)!.miroAiSubtitle,
-              cost: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('2 + ', style: TextStyle(fontSize: 12)),
-                  Icon(AppIcons.energy, size: 12, color: AppIcons.energyColor),
-                  Text('/item', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-              isSelected: isMiroAi,
-              onTap: () {
-                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.miroAi;
-              },
-            ),
-            const SizedBox(height: 8),
-            // Local AI option
-            _buildAiModeOption(
-              context: context,
-              icon: Icons.psychology,
-              color: AppColors.success,
-              title: L10n.of(context)!.localAi,
-              subtitle: L10n.of(context)!.localAiSubtitle,
-              cost: Text(L10n.of(context)!.free,
-                  style: const TextStyle(fontSize: 12)),
-              isSelected: !isMiroAi,
-              onTap: () {
-                ref.read(chatAiModeProvider.notifier).state = ChatAiMode.local;
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCuisinePreferenceCard(BuildContext context, profile) {
     return _buildSettingCard(
       context: context,
@@ -1342,6 +1320,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   isSelected: currentLocale == null,
                   onTap: () {
                     ref.read(localeProvider.notifier).state = null;
+                    GeminiService.setUserLanguage('en');
+                    _saveLocaleToProfile(null);
                     Navigator.pop(ctx);
                     _showLanguageChangedSnackbar(
                         L10n.of(context)!.systemDefault);
@@ -1361,6 +1341,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       isSelected: currentLocale?.languageCode == code,
                       onTap: () {
                         ref.read(localeProvider.notifier).state = Locale(code);
+                        GeminiService.setUserLanguage(code);
+                        _saveLocaleToProfile(code);
                         Navigator.pop(ctx);
                         _showLanguageChangedSnackbar(
                             _getLanguageLabel(context, code));
@@ -1473,127 +1455,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _saveLocaleToProfile(String? localeCode) {
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    if (profile != null) {
+      profile.locale = localeCode;
+      ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+    }
+  }
+
   void _showLanguageChangedSnackbar(String language) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(L10n.of(context)!.languageChangedTo(language)),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  Widget _buildAiModeOption({
-    required BuildContext context,
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String subtitle,
-    required Widget cost,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppRadius.md,
-      child: Container(
-        padding: AppSpacing.paddingMd,
-        decoration: BoxDecoration(
-          color:
-              isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: AppRadius.md,
-          border: Border.all(
-            color: isSelected
-                ? color.withValues(alpha: 0.4)
-                : isDark
-                    ? AppColors.dividerDark.withValues(alpha: 0.4)
-                    : AppColors.divider.withValues(alpha: 0.2),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // Radio indicator
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected
-                      ? color
-                      : (isDark ? Colors.white38 : AppColors.textTertiary),
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: color,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            // Icon
-            Icon(icon, color: color, size: 24),
-            const SizedBox(width: 12),
-            // Text
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? color : null,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm - 2,
-                            vertical: AppSpacing.xxs),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withValues(alpha: 0.1),
-                          borderRadius: AppRadius.md,
-                        ),
-                        child: DefaultTextStyle(
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.warning,
-                          ),
-                          child: cost,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppColors.textSecondaryDark
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1737,11 +1612,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Text(L10n.of(context)!.clearAllDataTitle),
           ],
         ),
-        content: Text(
-          '${L10n.of(context)!.clearAllDataContent}\n\n'
-          'รวมถึง: Isar DB, SharedPreferences, SecureStorage\n'
-          '(เหมือน install ใหม่ — ใช้คู่กับ Factory Reset ใน Admin Panel)',
-        ),
+        content: Text(L10n.of(context)!.clearAllDataContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1759,14 +1630,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (confirmed == true) {
       try {
-        // 1. Clear Isar DB
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.clear();
-          await DatabaseService.myMeals.clear();
-          await DatabaseService.ingredients.clear();
-          await DatabaseService.userProfiles.clear();
-          await DatabaseService.chatMessages.clear();
-          await DatabaseService.chatSessions.clear();
+        // 1. Clear Drift DB
+        await DatabaseService.db.transaction(() async {
+          await DatabaseService.db.delete(DatabaseService.db.foodEntries).go();
+          await DatabaseService.db.delete(DatabaseService.db.myMeals).go();
+          await DatabaseService.db.delete(DatabaseService.db.ingredients).go();
+          await DatabaseService.db.delete(DatabaseService.db.userProfiles).go();
+          await DatabaseService.db.delete(DatabaseService.db.chatMessages).go();
+          await DatabaseService.db.delete(DatabaseService.db.chatSessions).go();
         });
 
         // 2. Clear SharedPreferences (dismissed_offers, welcome_claimed, balance cache, etc.)
@@ -1871,6 +1742,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           backupFiles.dataFile,
           backupFiles.energyFile,
         );
+        // Track last backup date for greeting reminders
+        await GreetingService.setLastBackupDate(DateTime.now());
       }
     } catch (e) {
       // ปิด Loading (ถ้ายังอยู่)
@@ -1991,6 +1864,160 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  /// Handle Delete Account (local + cloud)
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.warning, color: AppColors.error),
+            const SizedBox(width: 8),
+            Text(L10n.of(context)!.deleteAccountTitle),
+          ],
+        ),
+        content: Text(L10n.of(context)!.deleteAccountContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: Text(L10n.of(context)!.deleteAccountConfirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(L10n.of(context)!.deleteAccountDeleting)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final deviceId = await DeviceIdService.getDeviceId();
+
+      // 1. Delete cloud data
+      final userDoc = FirebaseFirestore.instance.collection('users').doc(deviceId);
+      final energyDoc = FirebaseFirestore.instance.collection('energy').doc(deviceId);
+
+      await Future.wait([
+        userDoc.delete(),
+        energyDoc.delete(),
+      ]);
+
+      // 2. Clear local data (same as clearAllData)
+      await DatabaseService.db.transaction(() async {
+        await DatabaseService.db.delete(DatabaseService.db.foodEntries).go();
+        await DatabaseService.db.delete(DatabaseService.db.myMeals).go();
+        await DatabaseService.db.delete(DatabaseService.db.ingredients).go();
+        await DatabaseService.db.delete(DatabaseService.db.userProfiles).go();
+        await DatabaseService.db.delete(DatabaseService.db.chatMessages).go();
+        await DatabaseService.db.delete(DatabaseService.db.chatSessions).go();
+      });
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      const secureStorage = FlutterSecureStorage();
+      await secureStorage.deleteAll();
+
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.deleteAccountSuccess),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.deleteAccountFailed),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle Restore Purchase (IAP)
+  Future<void> _handleRestorePurchase(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text(L10n.of(context)!.restorePurchaseRestoring)),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final service = ref.read(subscriptionServiceProvider);
+      await service.restorePurchases();
+
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!context.mounted) return;
+      Navigator.pop(context);
+
+      final subState = ref.read(subscriptionProvider);
+      if (subState.subscription.isActive) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseSuccess),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseNotFound),
+            backgroundColor: AppColors.warning,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.restorePurchaseFailed),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
   /// Handle Restore Flow
   Future<void> _handleRestore(BuildContext context) async {
     try {
@@ -2018,6 +2045,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
 
       if (info == null) return;
+
+      // 2b. ถ้าเป็น energy file — แจ้งให้เลือก data file แทน
+      if (info.fileType == BackupFileType.energy) {
+        if (context.mounted) {
+          _showErrorDialog(
+            context,
+            L10n.of(context)!.invalidBackupFile,
+            L10n.of(context)!.restoreSelectDataFile,
+          );
+        }
+        return;
+      }
 
       // 3. แสดง Preview + Confirmation
       if (context.mounted) {
@@ -2203,6 +2242,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 '${result.foodEntriesImported}'),
             _buildInfoRow(
                 '${L10n.of(context)!.myMeals} ', '${result.myMealsImported}'),
+            if (result.foodEntriesImported == 0 && result.fileType == BackupFileType.data) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: AppSpacing.paddingSm,
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
+                ),
+                child: Text(
+                  L10n.of(context)!.restoreZeroEntriesHint,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
@@ -2416,24 +2469,22 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
     if (confirm == true) {
       try {
         // ลบ food entries ที่มาจาก gallery scan (hard delete)
-        final scanEntries = await DatabaseService.foodEntries
-            .filter()
-            .sourceEqualTo(DataSource.galleryScanned)
-            .findAll();
+        final scanEntries = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.source.equalsValue(DataSource.galleryScanned)))
+            .get();
 
         // ลบ entries ที่ถูก analyze แล้ว (source เปลี่ยนเป็น aiAnalyzed) แต่มี imagePath (มาจาก gallery)
-        final analyzedFromGallery = await DatabaseService.foodEntries
-            .filter()
-            .sourceEqualTo(DataSource.aiAnalyzed)
-            .imagePathIsNotNull()
-            .imagePathIsNotEmpty()
-            .findAll();
+        final analyzedFromGallery = await (DatabaseService.db.select(DatabaseService.db.foodEntries)
+            ..where((tbl) => tbl.source.equalsValue(DataSource.aiAnalyzed) & tbl.imagePath.isNotNull() & tbl.imagePath.length.isBiggerThanValue(0)))
+            .get();
 
         final allEntries = [...scanEntries, ...analyzedFromGallery];
         final ids = allEntries.map((e) => e.id).toSet().toList();
 
-        await DatabaseService.isar.writeTxn(() async {
-          await DatabaseService.foodEntries.deleteAll(ids);
+        await DatabaseService.db.transaction(() async {
+          for (final id in ids) {
+            await (DatabaseService.db.delete(DatabaseService.db.foodEntries)..where((tbl) => tbl.id.equals(id))).go();
+          }
         });
 
         // Reset retro scan flag เพื่อให้สแกนรูปเก่าได้อีกครั้ง
@@ -2459,6 +2510,167 @@ class _ScanSettingsCardState extends State<_ScanSettingsCard> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+/// Auto Sync Status Card
+/// Shows last cloud sync date and unsynced entry count.
+class _AutoSyncStatusCard extends ConsumerStatefulWidget {
+  const _AutoSyncStatusCard();
+
+  @override
+  ConsumerState<_AutoSyncStatusCard> createState() =>
+      _AutoSyncStatusCardState();
+}
+
+class _AutoSyncStatusCardState extends ConsumerState<_AutoSyncStatusCard> {
+  String? _lastSyncDate;
+  int _unsyncedCount = 0;
+  bool _isSyncing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSyncStatus();
+  }
+
+  Future<void> _loadSyncStatus() async {
+    final lastSync = await DataSyncService.getLastAutoSyncDate();
+    final unsynced = await DataSyncService.getUnsyncedCount();
+    if (mounted) {
+      setState(() {
+        _lastSyncDate = lastSync;
+        _unsyncedCount = unsynced;
+      });
+    }
+  }
+
+  Future<void> _syncNow() async {
+    if (_isSyncing) return;
+    setState(() => _isSyncing = true);
+    try {
+      await DataSyncService.syncNow();
+      await GreetingService.setLastBackupDate(DateTime.now());
+      await _loadSyncStatus();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cloudSyncSuccess),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(L10n.of(context)!.cloudSyncFailed(e.toString())),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final synced = _unsyncedCount == 0;
+    final statusColor = synced ? AppColors.success : AppColors.warning;
+    final statusText = synced
+        ? l10n.cloudSyncSynced
+        : l10n.cloudSyncPending(_unsyncedCount);
+    final dateText = _lastSyncDate != null
+        ? l10n.cloudSyncLastDate(_lastSyncDate!)
+        : l10n.cloudSyncNever;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : Colors.white,
+        borderRadius: AppRadius.lg,
+        border: Border.all(
+          color: statusColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: AppSpacing.paddingSm,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: AppRadius.md,
+            ),
+            child: Icon(
+              synced ? Icons.cloud_done_rounded : Icons.cloud_upload_rounded,
+              color: statusColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.cloudSync,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '$statusText • $dateText',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white54 : AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.cloudSyncAutoDescription,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!synced)
+            GestureDetector(
+              onTap: _isSyncing ? null : _syncNow,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: AppRadius.sm,
+                ),
+                child: _isSyncing
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        l10n.cloudSyncNow,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -2749,6 +2961,424 @@ class _HealthSyncToggleState extends ConsumerState<_HealthSyncToggle> {
           _isEnabled
               ? L10n.of(context)!.healthSyncSubtitleOn
               : L10n.of(context)!.healthSyncSubtitleOff,
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
+          ),
+        ),
+        trailing: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Switch(
+                value: _isEnabled,
+                onChanged: _toggle,
+              ),
+      ),
+    );
+  }
+}
+
+/// Recovery Key card — shows/hides the key for account recovery on new devices.
+class _RecoveryKeyCard extends StatefulWidget {
+  @override
+  State<_RecoveryKeyCard> createState() => _RecoveryKeyCardState();
+}
+
+class _RecoveryKeyCardState extends State<_RecoveryKeyCard> {
+  String? _recoveryKey;
+  bool _isRevealed = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadKey();
+  }
+
+  Future<void> _loadKey() async {
+    final key = await RecoveryKeyService.getRecoveryKey();
+    if (key == null || key.isEmpty) {
+      final generated = await RecoveryKeyService.generateRecoveryKey();
+      if (mounted) setState(() { _recoveryKey = generated; _isLoading = false; });
+    } else {
+      if (mounted) setState(() { _recoveryKey = key; _isLoading = false; });
+    }
+  }
+
+  Future<void> _regenerate() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+            const SizedBox(width: 12),
+            Flexible(child: Text(L10n.of(context)!.recoveryKeyRegenerateConfirm)),
+          ],
+        ),
+        content: Text(
+          L10n.of(context)!.recoveryKeyRegenerateWarning,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(L10n.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(L10n.of(context)!.recoveryKeyRegenerate),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoading = true);
+    final newKey = await RecoveryKeyService.regenerateRecoveryKey();
+    if (mounted) {
+      setState(() {
+        _recoveryKey = newKey;
+        _isRevealed = true;
+        _isLoading = false;
+      });
+      if (newKey != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(L10n.of(context)!.recoveryKeyRegenerated)),
+        );
+      }
+    }
+  }
+
+  String get _maskedKey {
+    if (_recoveryKey == null) return '●●●●-●●●●-●●●●';
+    return 'ARCAL-●●●●-●●●●';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.key_rounded,
+                      color: AppColors.warning, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Recovery Key',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        L10n.of(context)!.recoveryKeyDescription,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Regenerate button
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded, size: 20),
+                  tooltip: L10n.of(context)!.recoveryKeyRegenerateTooltip,
+                  onPressed: _isLoading ? null : _regenerate,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Key display
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.grey.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _isLoading
+                        ? Text(L10n.of(context)!.recoveryKeyLoading,
+                            style: const TextStyle(color: Colors.grey))
+                        : Text(
+                            _isRevealed ? (_recoveryKey ?? '-') : _maskedKey,
+                            style: TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              color: _isRevealed
+                                  ? AppColors.warning
+                                  : (isDark ? Colors.white54 : Colors.black38),
+                            ),
+                          ),
+                  ),
+                  // Reveal / Hide toggle
+                  IconButton(
+                    icon: Icon(
+                      _isRevealed
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                      size: 20,
+                    ),
+                    onPressed: _isLoading
+                        ? null
+                        : () => setState(() => _isRevealed = !_isRevealed),
+                    tooltip: _isRevealed ? L10n.of(context)!.recoveryKeyHide : L10n.of(context)!.recoveryKeyShow,
+                  ),
+                  // Copy button
+                  if (_isRevealed && _recoveryKey != null)
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      onPressed: () {
+                        Clipboard.setData(
+                            ClipboardData(text: _recoveryKey!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(L10n.of(context)!.recoveryKeyCopied),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      tooltip: L10n.of(context)!.recoveryKeyCopyTooltip,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              L10n.of(context)!.recoveryKeyWarning,
+              style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white38 : Colors.black45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Food Research Consent Toggle
+/// Users opt-in to allow food photos to be analyzed for food environment research.
+/// Photos with consent are flagged as "researchable" and may include
+/// bounding box labels for food, beverages, and dining context.
+class _FoodResearchConsentToggle extends ConsumerStatefulWidget {
+  const _FoodResearchConsentToggle();
+
+  @override
+  ConsumerState<_FoodResearchConsentToggle> createState() =>
+      _FoodResearchConsentToggleState();
+}
+
+class _FoodResearchConsentToggleState
+    extends ConsumerState<_FoodResearchConsentToggle> {
+  bool _isLoading = true;
+  bool _isEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStatus();
+  }
+
+  Future<void> _loadStatus() async {
+    try {
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+          ..where((tbl) => tbl.id.equals(1)))
+          .getSingleOrNull();
+      if (mounted) {
+        setState(() {
+          _isEnabled = profile?.foodResearchConsent ?? false;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _toggle(bool value) async {
+    if (value) {
+      final confirmed = await _showConsentDialog();
+      if (confirmed != true) return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final profile = await (DatabaseService.db.select(DatabaseService.db.userProfiles)
+          ..where((tbl) => tbl.id.equals(1)))
+          .getSingleOrNull();
+      if (profile != null) {
+        profile.foodResearchConsent = value;
+        profile.foodResearchConsentAt = value ? DateTime.now() : null;
+        profile.updatedAt = DateTime.now();
+        await DatabaseService.db.into(DatabaseService.db.userProfiles).insertOnConflictUpdate(profile);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isEnabled = value;
+          _isLoading = false;
+        });
+
+        final l10n = L10n.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(value
+                ? l10n.foodResearchThanks
+                : l10n.foodResearchDisabled),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<bool?> _showConsentDialog() {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final l10n = L10n.of(ctx)!;
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.science_outlined, color: AppColors.premium),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(l10n.foodResearchDialogTitle,
+                    style: const TextStyle(fontSize: 17)),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.foodResearchDialogDescription,
+                  style: const TextStyle(fontSize: 15)),
+              const SizedBox(height: 16),
+              Text(l10n.foodResearchWhatWeAnalyze,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 6),
+              Text('✅ ${l10n.foodResearchAnalyze1}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze2}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze3}', style: const TextStyle(fontSize: 13)),
+              Text('✅ ${l10n.foodResearchAnalyze4}', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Text(l10n.foodResearchWhatWeSkip,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              const SizedBox(height: 6),
+              Text('❌ ${l10n.foodResearchSkip1}', style: const TextStyle(fontSize: 13)),
+              Text('❌ ${l10n.foodResearchSkip2}', style: const TextStyle(fontSize: 13)),
+              Text('❌ ${l10n.foodResearchSkip3}', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Text(l10n.foodResearchPrivacyNote,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.foodResearchDecline),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.premium,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(l10n.foodResearchAccept),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+        borderRadius: AppRadius.md,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.xs),
+        leading: Container(
+          padding: AppSpacing.paddingSm,
+          decoration: BoxDecoration(
+            color: isDark
+                ? AppColors.premium.withValues(alpha: 0.2)
+                : AppColors.premium.withValues(alpha: 0.1),
+            borderRadius: AppRadius.md,
+          ),
+          child: Icon(
+            Icons.science_outlined,
+            color: isDark
+                ? AppColors.premium.withValues(alpha: 0.7)
+                : AppColors.premium,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          L10n.of(context)!.foodResearch,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          _isEnabled
+              ? L10n.of(context)!.foodResearchSubtitleOn
+              : L10n.of(context)!.foodResearchSubtitleOff,
           style: TextStyle(
             fontSize: 13,
             color: isDark ? AppColors.textTertiary : AppColors.textSecondary,
