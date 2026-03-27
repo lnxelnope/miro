@@ -729,6 +729,19 @@ class L10nTh extends L10n {
   }
 
   @override
+  String get logThisMealButton => 'บันทึกมื้อนี้';
+
+  @override
+  String logFromMealBaseLine(String baseDescription, String calories) {
+    return 'ฐาน: $baseDescription · $calories kcal';
+  }
+
+  @override
+  String logFromMealOriginalServingHint(String amount) {
+    return 'ปริมาณต้นฉบับ: $amount';
+  }
+
+  @override
   String ingredientAmount(String unit) {
     return 'ปริมาณ ($unit)';
   }

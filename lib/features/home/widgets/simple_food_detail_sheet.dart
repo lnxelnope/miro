@@ -170,6 +170,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   }
 
   /// ถ้าผลรวม ingredients ไม่ตรงกับ entry.calories → แก้ไขค่าแสดงผลและ update DB
+  ///
+  /// รายการจาก MyMeal เก็บผลรวมโภชนาการ **เต็ม 1 เมนูฐาน** ใน JSON แต่ entry.calories
+  /// อาจเป็น **เท่าส่วน** (เช่น 0.5 จาน) — ต้องเทียบกับค่าที่สเกลแล้ว ไม่ใช่ sum เต็ม
   void _fixCaloriesIfMismatch() {
     if (_ingredients.isEmpty) return;
 
@@ -182,25 +185,46 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     }
     if (sumCal <= 0) return;
 
-    final diff = (_calories - sumCal).abs();
+    final entry = widget.entry;
+    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
+
+    double expectedCal;
+    double expectedP;
+    double expectedC;
+    double expectedF;
+
+    if (entry.baseCalories > 0) {
+      final refServing = sumCal / entry.baseCalories;
+      if (refServing <= 0) return;
+      final scale = serving / refServing;
+      expectedCal = sumCal * scale;
+      expectedP = sumP * scale;
+      expectedC = sumC * scale;
+      expectedF = sumF * scale;
+    } else {
+      expectedCal = sumCal;
+      expectedP = sumP;
+      expectedC = sumC;
+      expectedF = sumF;
+    }
+
+    final diff = (_calories - expectedCal).abs();
     if (diff < 1) return;
 
-    _calories = sumCal;
-    _protein = sumP;
-    _carbs = sumC;
-    _fat = sumF;
+    _calories = expectedCal;
+    _protein = expectedP;
+    _carbs = expectedC;
+    _fat = expectedF;
 
-    final entry = widget.entry;
-    entry.calories = sumCal;
-    entry.protein = sumP;
-    entry.carbs = sumC;
-    entry.fat = sumF;
+    entry.calories = expectedCal;
+    entry.protein = expectedP;
+    entry.carbs = expectedC;
+    entry.fat = expectedF;
 
-    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
-    entry.baseCalories = sumCal / serving;
-    entry.baseProtein = sumP / serving;
-    entry.baseCarbs = sumC / serving;
-    entry.baseFat = sumF / serving;
+    entry.baseCalories = expectedCal / serving;
+    entry.baseProtein = expectedP / serving;
+    entry.baseCarbs = expectedC / serving;
+    entry.baseFat = expectedF / serving;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;

@@ -1462,6 +1462,24 @@ abstract class L10n {
   /// **'Logged \"{name}\"'**
   String mealLogged(String name);
 
+  /// No description provided for @logThisMealButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Log this meal'**
+  String get logThisMealButton;
+
+  /// No description provided for @logFromMealBaseLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Base: {baseDescription} · {calories} kcal'**
+  String logFromMealBaseLine(String baseDescription, String calories);
+
+  /// No description provided for @logFromMealOriginalServingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Original serving: {amount}'**
+  String logFromMealOriginalServingHint(String amount);
+
   /// No description provided for @ingredientAmount.
   ///
   /// In en, this message translates to:

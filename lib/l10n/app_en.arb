@@ -384,6 +384,26 @@
       }
     }
   },
+  "logThisMealButton": "Log this meal",
+  "logFromMealBaseLine": "Base: {baseDescription} · {calories} kcal",
+  "@logFromMealBaseLine": {
+    "placeholders": {
+      "baseDescription": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "logFromMealOriginalServingHint": "Original serving: {amount}",
+  "@logFromMealOriginalServingHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientAmount": "Amount ({unit})",
   "@ingredientAmount": {
     "placeholders": {

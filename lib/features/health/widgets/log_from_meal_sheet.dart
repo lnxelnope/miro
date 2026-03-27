@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../providers/my_meal_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// Bottom sheet สำหรับบันทึกอาหารจาก MyMeal
 /// ผู้ใช้ระบุ multiplier (ปริมาณ) แล้ว nutrition คำนวณอัตโนมัติ
@@ -138,7 +139,10 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
             Builder(builder: (context) {
               final isDark = Theme.of(context).brightness == Brightness.dark;
               return Text(
-                'Base: ${widget.meal.baseServingDescription} · ${widget.meal.totalCalories.round()} kcal',
+                L10n.of(context)!.logFromMealBaseLine(
+                  widget.meal.baseServingDescription,
+                  widget.meal.totalCalories.round().toString(),
+                ),
                 style: TextStyle(
                   color: isDark
                       ? AppColors.textSecondaryDark
@@ -170,10 +174,14 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                           const TextInputType.numberWithOptions(decimal: true),
                       style: TextStyle(color: textColor, fontSize: 16),
                       decoration: InputDecoration(
-                        labelText: 'Amount',
+                        labelText: L10n.of(context)!.amountLabel,
                         labelStyle: TextStyle(color: textColor),
-                        helperText:
-                            'Original ${widget.meal.parsedServingSize == widget.meal.parsedServingSize.roundToDouble() ? widget.meal.parsedServingSize.round() : widget.meal.parsedServingSize}',
+                        helperText: L10n.of(context)!.logFromMealOriginalServingHint(
+                          widget.meal.parsedServingSize ==
+                                  widget.meal.parsedServingSize.roundToDouble()
+                              ? widget.meal.parsedServingSize.round().toString()
+                              : widget.meal.parsedServingSize.toStringAsFixed(1),
+                        ),
                         helperStyle: TextStyle(
                             fontSize: 11,
                             color: AppColors.premium.withValues(alpha: 0.5)),
@@ -247,7 +255,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
                         child: Text(
-                          'kcal',
+                          L10n.of(context)!.kcal,
                           style: TextStyle(
                             fontSize: 16,
                             color: Theme.of(context).brightness == Brightness.dark
@@ -263,13 +271,14 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                   Builder(builder: (context) {
                     final isDark =
                         Theme.of(context).brightness == Brightness.dark;
+                    final l10n = L10n.of(context)!;
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _macroItem(
-                            'Protein', _protein, AppColors.protein, isDark),
-                        _macroItem('Carbs', _carbs, AppColors.carbs, isDark),
-                        _macroItem('Fat', _fat, AppColors.fat, isDark),
+                            l10n.protein, _protein, AppColors.protein, isDark),
+                        _macroItem(l10n.carbs, _carbs, AppColors.carbs, isDark),
+                        _macroItem(l10n.fat, _fat, AppColors.fat, isDark),
                       ],
                     );
                   }),
@@ -288,7 +297,7 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Meal Type',
+                    L10n.of(context)!.mealTypeLabel,
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       color: labelColor,
@@ -353,8 +362,8 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Save',
-                        style: TextStyle(
+                    : Text(L10n.of(context)!.saveButton,
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
             ),

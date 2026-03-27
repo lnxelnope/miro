@@ -486,16 +486,15 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       final action = await showDialog<String>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Amount not specified'),
-          content: Text(
-              'Please specify amount for "$name" before AI search\nOr use default 100 g?'),
+          title: Text(L10n.of(ctx)!.amountNotSpecified),
+          content: Text(L10n.of(ctx)!.amountNotSpecifiedMessage(name)),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, 'cancel'),
-                child: const Text('Cancel')),
+                child: Text(L10n.of(ctx)!.cancelButton)),
             TextButton(
-              onPressed: () => Navigator.pop(ctx, 'default'),
-              child: const Text('Use 100 g'),
+                onPressed: () => Navigator.pop(ctx, 'default'),
+                child: Text(L10n.of(ctx)!.useDefault100g),
             ),
           ],
         ),

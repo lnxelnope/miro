@@ -745,6 +745,19 @@ class L10nFr extends L10n {
   }
 
   @override
+  String get logThisMealButton => 'Log this meal';
+
+  @override
+  String logFromMealBaseLine(String baseDescription, String calories) {
+    return 'Base: $baseDescription · $calories kcal';
+  }
+
+  @override
+  String logFromMealOriginalServingHint(String amount) {
+    return 'Original serving: $amount';
+  }
+
+  @override
   String ingredientAmount(String unit) {
     return 'Montant ($unit)';
   }

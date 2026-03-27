@@ -385,6 +385,26 @@
       }
     }
   },
+  "logThisMealButton": "บันทึกมื้อนี้",
+  "logFromMealBaseLine": "ฐาน: {baseDescription} · {calories} kcal",
+  "@logFromMealBaseLine": {
+    "placeholders": {
+      "baseDescription": {
+        "type": "String"
+      },
+      "calories": {
+        "type": "String"
+      }
+    }
+  },
+  "logFromMealOriginalServingHint": "ปริมาณต้นฉบับ: {amount}",
+  "@logFromMealOriginalServingHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "ingredientAmount": "ปริมาณ ({unit})",
   "@ingredientAmount": {
     "placeholders": {

@@ -77,6 +77,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   }
 
   /// ถ้าผลรวม ingredients ไม่ตรงกับ entry.calories → แก้ไข entry ให้ตรง
+  /// (ผลรวมจากเมนู = เต็ม 1 ฐาน — เทียบกับ entry ที่อาจเป็นส่วน เช่น 0.5 จาน)
   void _fixCaloriesIfMismatch(FoodEntry entry, List<IngredientDetail> ingredients) {
     if (ingredients.isEmpty) return;
 
@@ -90,22 +91,43 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
 
     if (sumCal <= 0) return;
 
-    final diff = (entry.calories - sumCal).abs();
+    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
+
+    double expectedCal;
+    double expectedP;
+    double expectedC;
+    double expectedF;
+
+    if (entry.baseCalories > 0) {
+      final refServing = sumCal / entry.baseCalories;
+      if (refServing <= 0) return;
+      final scale = serving / refServing;
+      expectedCal = sumCal * scale;
+      expectedP = sumP * scale;
+      expectedC = sumC * scale;
+      expectedF = sumF * scale;
+    } else {
+      expectedCal = sumCal;
+      expectedP = sumP;
+      expectedC = sumC;
+      expectedF = sumF;
+    }
+
+    final diff = (entry.calories - expectedCal).abs();
     if (diff < 1) return;
 
     AppLogger.info(
-        '[DetailSheet] Fixing calories mismatch: entry=${entry.calories.toInt()} vs sum=${sumCal.toInt()} (diff=${diff.toInt()})');
+        '[DetailSheet] Fixing calories mismatch: entry=${entry.calories.toInt()} vs expected=${expectedCal.toInt()} (fullMealSum=${sumCal.toInt()})');
 
-    entry.calories = sumCal;
-    entry.protein = sumP;
-    entry.carbs = sumC;
-    entry.fat = sumF;
+    entry.calories = expectedCal;
+    entry.protein = expectedP;
+    entry.carbs = expectedC;
+    entry.fat = expectedF;
 
-    final serving = entry.servingSize > 0 ? entry.servingSize : 1.0;
-    entry.baseCalories = sumCal / serving;
-    entry.baseProtein = sumP / serving;
-    entry.baseCarbs = sumC / serving;
-    entry.baseFat = sumF / serving;
+    entry.baseCalories = expectedCal / serving;
+    entry.baseProtein = expectedP / serving;
+    entry.baseCarbs = expectedC / serving;
+    entry.baseFat = expectedF / serving;
 
     // fire-and-forget: update in DB
     WidgetsBinding.instance.addPostFrameCallback((_) {

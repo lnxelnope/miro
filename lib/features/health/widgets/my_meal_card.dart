@@ -3,6 +3,7 @@ import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../l10n/app_localizations.dart';
 class MyMealCard extends StatelessWidget {
   final MyMeal meal;
   final VoidCallback onUse;
@@ -155,15 +156,15 @@ class MyMealCard extends StatelessWidget {
                             color: AppColors.health.withValues(alpha: 0.1),
                             borderRadius: AppRadius.md,
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_rounded,
+                              const Icon(Icons.add_rounded,
                                   size: 18, color: AppColors.health),
-                              SizedBox(width: 6),
+                              const SizedBox(width: 6),
                               Text(
-                                'Log This Meal',
-                                style: TextStyle(
+                                L10n.of(context)!.logThisMealButton,
+                                style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.health,
