@@ -368,6 +368,7 @@
   "createMeal": "สร้างเมนู",
   "noIngredientsYet": "ยังไม่มีวัตถุดิบ",
   "noIngredientsYetDesc": "เมื่อคุณวิเคราะห์อาหารด้วย AI\nวัตถุดิบจะถูกบันทึกอัตโนมัติ",
+  "parentIngredientDrivenBySubs": "ปริมาณและหน่วยคำนวณจากวัตถุดิบย่อย (ล็อกไว้)",
   "mealCreated": "สร้าง \"{name}\" แล้ว",
   "@mealCreated": {
     "placeholders": {

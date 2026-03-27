@@ -121,23 +121,45 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         parentRow.subIngredients = subRows;
         parentRow.snapshotBaseWithoutSubs();
       });
+      if (!mounted) return;
+      _recalculateIngredientRow(parentRow);
+      _recalculateTotal();
     }
   }
   
-  /// เพิ่ม sub-ingredient ว่างๆ ให้ parent ingredient
+  /// สำเนาข้อมูลแถวหลักเป็น sub แถบแรก — รักษาโภชนาการเดิมก่อนแตกรายการย่อย
+  _IngredientRow _cloneIngredientRowSnapshot(_IngredientRow row) {
+    final copy = _IngredientRow();
+    copy.nameController.text = row.nameController.text;
+    copy.amountController.text = row.amountController.text;
+    copy.unit = UnitConverter.ensureValid(row.unit);
+    copy.calController.text = row.calController.text;
+    copy.proteinController.text = row.proteinController.text;
+    copy.carbsController.text = row.carbsController.text;
+    copy.fatController.text = row.fatController.text;
+    copy.detail = row.detail;
+    copy.saveBaseValues();
+    return copy;
+  }
+
+  /// เพิ่ม sub-ingredient ให้ parent — ครั้งแรกจะ copy แถวหลักเป็น baseline 1 รายการก่อน แล้วค่อยใส่แถวว่าง
   void _addSubIngredient(_IngredientRow parentRow) {
     final newSub = _IngredientRow();
     newSub.nameController.text = '';
     newSub.amountController.text = '';
     newSub.unit = 'g';
-    
+
     setState(() {
-      if (parentRow.subIngredients == null) {
-        parentRow.subIngredients = [newSub];
+      if (parentRow.subIngredients == null || parentRow.subIngredients!.isEmpty) {
+        final baseline = _cloneIngredientRowSnapshot(parentRow);
+        parentRow.subIngredients = [baseline, newSub];
       } else {
         parentRow.subIngredients!.insert(0, newSub);
       }
+      parentRow.snapshotBaseWithoutSubs();
     });
+    _recalculateIngredientRow(parentRow);
+    _recalculateTotal();
   }
 
   /// When serving size changes, scale all ingredients proportionally
@@ -155,15 +177,110 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
     // Scale all ingredients
     for (final row in _ingredients) {
-      if (row.hasBaseValues) {
-        // Use base values to recalculate
+      if (row.hasSubIngredients) {
+        for (final sub in row.subIngredients!) {
+          if (sub.baseAmount > 0) {
+            final newAmount = sub.baseAmount * ratio;
+            sub.suppressAmountListener = true;
+            sub.amountController.text = newAmount.toStringAsFixed(1);
+            sub.suppressAmountListener = false;
+            if (sub.hasBaseValues) {
+              sub.recalculate();
+            } else {
+              final r = newAmount / sub.baseAmount;
+              sub.calController.text = (sub.baseCal * r).round().toString();
+              sub.proteinController.text =
+                  (sub.baseProtein * r).round().toString();
+              sub.carbsController.text =
+                  (sub.baseCarbs * r).round().toString();
+              sub.fatController.text = (sub.baseFat * r).round().toString();
+            }
+          }
+        }
+        _recalculateIngredientRow(row);
+      } else if (row.hasBaseValues) {
         final newAmount = row.baseAmount * ratio;
+        row.suppressAmountListener = true;
         row.amountController.text = newAmount.toStringAsFixed(1);
+        row.suppressAmountListener = false;
         row.recalculate();
       }
     }
 
     setState(() {});
+  }
+
+  /// รวมปริมาณจากวัตถุดิบย่อยเมื่อหน่วยเข้ากันได้ (หน่วยเดียวกัน หรือกลุ่มน้ำหนัก/ปริมาตร)
+  ({double total, String unit})? _aggregateCompatibleSubAmounts(
+      List<_IngredientRow> subs) {
+    if (subs.isEmpty) return null;
+    final ensured =
+        subs.map((s) => UnitConverter.ensureValid(s.unit)).toList();
+    if (ensured.toSet().length == 1) {
+      final u = ensured.first;
+      var sum = 0.0;
+      for (final s in subs) {
+        sum += double.tryParse(s.amountController.text) ?? 0;
+      }
+      return (total: sum, unit: u);
+    }
+    final first = UnitConverter.find(ensured[0]);
+    if (first?.category == UnitCategory.weight) {
+      var ok = true;
+      var sumG = 0.0;
+      for (final s in subs) {
+        final su = UnitConverter.find(UnitConverter.ensureValid(s.unit));
+        if (su?.category != UnitCategory.weight) {
+          ok = false;
+          break;
+        }
+        final amt = double.tryParse(s.amountController.text) ?? 0;
+        final g = UnitConverter.convert(amt, from: su!.key, to: 'g');
+        if (g == null) {
+          ok = false;
+          break;
+        }
+        sumG += g;
+      }
+      if (ok) return (total: sumG, unit: 'g');
+    }
+    if (first?.category == UnitCategory.volume) {
+      var ok = true;
+      var sumMl = 0.0;
+      for (final s in subs) {
+        final su = UnitConverter.find(UnitConverter.ensureValid(s.unit));
+        if (su?.category != UnitCategory.volume) {
+          ok = false;
+          break;
+        }
+        final amt = double.tryParse(s.amountController.text) ?? 0;
+        final ml = UnitConverter.convert(amt, from: su!.key, to: 'ml');
+        if (ml == null) {
+          ok = false;
+          break;
+        }
+        sumMl += ml;
+      }
+      if (ok) return (total: sumMl, unit: 'ml');
+    }
+    return null;
+  }
+
+  MealIngredientInput _ingredientRowToInput(_IngredientRow row) {
+    final subs = row.subIngredients;
+    return MealIngredientInput(
+      name: row.nameController.text.trim(),
+      detail: row.detail,
+      amount: double.tryParse(row.amountController.text) ?? 0,
+      unit: row.unit.trim().isEmpty ? 'g' : row.unit.trim(),
+      calories: double.tryParse(row.calController.text) ?? 0,
+      protein: double.tryParse(row.proteinController.text) ?? 0,
+      carbs: double.tryParse(row.carbsController.text) ?? 0,
+      fat: double.tryParse(row.fatController.text) ?? 0,
+      subIngredients: (subs == null || subs.isEmpty)
+          ? null
+          : subs.map(_ingredientRowToInput).toList(),
+    );
   }
 
   /// Parse "1 plate" → (size: 1.0, unit: "plate")
@@ -427,6 +544,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
   Widget _buildIngredientRow(_IngredientRow row, int index) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasSubs = row.hasSubIngredients;
     return Container(
       key: row.key,
       margin: const EdgeInsets.only(bottom: AppSpacing.md - 2),
@@ -454,7 +572,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 )
               else
                 IconButton(
-                  onPressed: () => _lookupIngredientNutrition(row),
+                  onPressed: hasSubs
+                      ? null
+                      : () => _lookupIngredientNutrition(row),
                   icon: const Icon(Icons.auto_awesome, size: 18),
                   color: AppColors.primary,
                   tooltip: L10n.of(context)!.searchNutritionWithAi,
@@ -483,6 +603,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 flex: 2,
                 child: TextField(
                   controller: row.amountController,
+                  readOnly: hasSubs,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
@@ -492,14 +613,17 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                         horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
-                    helperText:
-                        row.hasBaseValues ? L10n.of(context)!.kcalAutoCalculated : null,
+                    helperText: hasSubs
+                        ? L10n.of(context)!.parentIngredientDrivenBySubs
+                        : (row.hasBaseValues
+                            ? L10n.of(context)!.kcalAutoCalculated
+                            : null),
                     helperStyle:
                         TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
                   ),
                   style: const TextStyle(fontSize: 14),
                   onChanged: (_) {
-                    // recalculate kcal/macro if has base values
+                    if (row.suppressAmountListener) return;
                     row.recalculate();
                     setState(() {});
                   },
@@ -509,15 +633,20 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               Expanded(
                 flex: 2,
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey('unit_${row.key}_${row.unit}'),
                   initialValue: _getValidUnit(row.unit),
                   items: UnitConverter.compactDropdownItems,
-                  onChanged: (newUnit) {
-                    if (newUnit != null) {
-                      setState(() => row.unit = newUnit);
-                    }
-                  },
+                  onChanged: hasSubs
+                      ? null
+                      : (newUnit) {
+                          if (newUnit != null) {
+                            setState(() => row.unit = newUnit);
+                          }
+                        },
                   decoration: InputDecoration(
-                    labelText: L10n.of(context)!.unitLabel,
+                    labelText: hasSubs
+                        ? '${L10n.of(context)!.unitLabel} 🔒'
+                        : L10n.of(context)!.unitLabel,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
@@ -540,7 +669,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 child: TextField(
                   controller: row.calController,
                   keyboardType: TextInputType.number,
-                  readOnly: row.hasBaseValues,
+                  readOnly: row.hasBaseValues || hasSubs,
                   decoration: InputDecoration(
                     labelText: 'kcal',
                     isDense: true,
@@ -548,8 +677,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
-                    filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
+                    filled: row.hasBaseValues || hasSubs,
+                    fillColor: (row.hasBaseValues || hasSubs)
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -560,7 +691,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 child: TextField(
                   controller: row.proteinController,
                   keyboardType: TextInputType.number,
-                  readOnly: row.hasBaseValues,
+                  readOnly: row.hasBaseValues || hasSubs,
                   decoration: InputDecoration(
                     labelText: 'P(g)',
                     isDense: true,
@@ -568,8 +699,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
-                    filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
+                    filled: row.hasBaseValues || hasSubs,
+                    fillColor: (row.hasBaseValues || hasSubs)
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -580,7 +713,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 child: TextField(
                   controller: row.carbsController,
                   keyboardType: TextInputType.number,
-                  readOnly: row.hasBaseValues,
+                  readOnly: row.hasBaseValues || hasSubs,
                   decoration: InputDecoration(
                     labelText: 'C(g)',
                     isDense: true,
@@ -588,8 +721,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
-                    filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
+                    filled: row.hasBaseValues || hasSubs,
+                    fillColor: (row.hasBaseValues || hasSubs)
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -600,7 +735,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 child: TextField(
                   controller: row.fatController,
                   keyboardType: TextInputType.number,
-                  readOnly: row.hasBaseValues,
+                  readOnly: row.hasBaseValues || hasSubs,
                   decoration: InputDecoration(
                     labelText: 'F(g)',
                     isDense: true,
@@ -608,8 +743,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md - 2),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
-                    filled: row.hasBaseValues,
-                    fillColor: row.hasBaseValues ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant) : null,
+                    filled: row.hasBaseValues || hasSubs,
+                    fillColor: (row.hasBaseValues || hasSubs)
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                   ),
                   style: const TextStyle(fontSize: 13),
                   onChanged: (_) => setState(() {}),
@@ -618,7 +755,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             ],
           ),
           // แสดง base info ถ้ามี
-          if (row.hasBaseValues)
+          if (row.hasBaseValues && !hasSubs)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
@@ -1189,7 +1326,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               final subRow = _IngredientRow();
               subRow.nameController.text = sub.name;
               subRow.amountController.text = sub.amount.toStringAsFixed(0);
-              subRow.unit = sub.unit;
+              subRow.unit = UnitConverter.ensureValid(sub.unit);
               subRow.calController.text = sub.calories.toStringAsFixed(0);
               subRow.proteinController.text = sub.protein.toStringAsFixed(0);
               subRow.carbsController.text = sub.carbs.toStringAsFixed(0);
@@ -1201,6 +1338,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           
           row.snapshotBaseWithoutSubs();
         });
+
+        if (mounted) {
+          _recalculateIngredientRow(row);
+          _recalculateTotal();
+        }
 
         // ===== บันทึกลง Ingredient DB ทันที =====
         await _saveIngredientToDb(
@@ -1503,7 +1645,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               final subRow = _IngredientRow();
               subRow.nameController.text = sub.name;
               subRow.amountController.text = sub.amount.toStringAsFixed(0);
-              subRow.unit = sub.unit;
+              subRow.unit = UnitConverter.ensureValid(sub.unit);
               subRow.calController.text = sub.calories.toStringAsFixed(0);
               subRow.proteinController.text = sub.protein.toStringAsFixed(0);
               subRow.carbsController.text = sub.carbs.toStringAsFixed(0);
@@ -1515,6 +1657,11 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           
           row.snapshotBaseWithoutSubs();
         });
+
+        if (mounted) {
+          _recalculateIngredientRow(row);
+          _recalculateTotal();
+        }
 
         // ===== บันทึกลง Ingredient DB ทันที =====
         await _saveIngredientToDb(
@@ -1691,34 +1838,59 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     }
   }
 
+  bool _subRowHasAnyData(_IngredientRow s) {
+    final name = s.nameController.text.trim();
+    final amt = double.tryParse(s.amountController.text.trim()) ?? 0;
+    final cal = double.tryParse(s.calController.text.trim()) ?? 0;
+    return name.isNotEmpty || amt > 0 || cal > 0;
+  }
+
   /// Recalculate parent ingredient's nutrition from its sub-ingredients
   /// Parent nutrition = base nutrition (without subs) + sum(sub-ingredients)
+  /// Parent ปริมาณ+หน่วย = ผลรวมจาก sub เมื่อหน่วยเข้ากันได้ (สอดคล้องกับโภชนาการรวม)
   void _recalculateIngredientRow(_IngredientRow row) {
-    if (row.subIngredients == null || row.subIngredients!.isEmpty) {
-      // No sub-ingredients: restore base nutrition
+    final subs = row.subIngredients;
+    if (subs == null || subs.isEmpty) {
       setState(() {
         row.calController.text = row.baseCalWithoutSubs.round().toString();
-        row.proteinController.text = row.baseProteinWithoutSubs.round().toString();
+        row.proteinController.text =
+            row.baseProteinWithoutSubs.round().toString();
         row.carbsController.text = row.baseCarbsWithoutSubs.round().toString();
         row.fatController.text = row.baseFatWithoutSubs.round().toString();
       });
       return;
     }
-    
-    double subCal = 0, subP = 0, subC = 0, subF = 0;
-    for (final sub in row.subIngredients!) {
+
+    if (!subs.any(_subRowHasAnyData)) {
+      return;
+    }
+
+    var subCal = 0.0, subP = 0.0, subC = 0.0, subF = 0.0;
+    for (final sub in subs) {
       subCal += double.tryParse(sub.calController.text) ?? 0;
       subP += double.tryParse(sub.proteinController.text) ?? 0;
       subC += double.tryParse(sub.carbsController.text) ?? 0;
       subF += double.tryParse(sub.fatController.text) ?? 0;
     }
-    
-    // Parent = base (without subs) + sum(subs)
+
     setState(() {
-      row.calController.text = (row.baseCalWithoutSubs + subCal).round().toString();
-      row.proteinController.text = (row.baseProteinWithoutSubs + subP).round().toString();
-      row.carbsController.text = (row.baseCarbsWithoutSubs + subC).round().toString();
+      row.calController.text =
+          (row.baseCalWithoutSubs + subCal).round().toString();
+      row.proteinController.text =
+          (row.baseProteinWithoutSubs + subP).round().toString();
+      row.carbsController.text =
+          (row.baseCarbsWithoutSubs + subC).round().toString();
       row.fatController.text = (row.baseFatWithoutSubs + subF).round().toString();
+
+      final agg = _aggregateCompatibleSubAmounts(subs);
+      row.suppressAmountListener = true;
+      if (agg != null && agg.total > 0) {
+        final d = agg.total == agg.total.roundToDouble() ? 0 : 1;
+        row.amountController.text = agg.total.toStringAsFixed(d);
+        row.unit = UnitConverter.ensureValid(agg.unit);
+      }
+      row.suppressAmountListener = false;
+      row.saveBaseValues();
     });
   }
   
@@ -1761,15 +1933,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
 
       final ingredients = _ingredients
           .where((row) => row.nameController.text.trim().isNotEmpty)
-          .map((row) => MealIngredientInput(
-                name: row.nameController.text.trim(),
-                amount: double.tryParse(row.amountController.text) ?? 0,
-                unit: row.unit.trim().isEmpty ? 'g' : row.unit.trim(),
-                calories: double.tryParse(row.calController.text) ?? 0,
-                protein: double.tryParse(row.proteinController.text) ?? 0,
-                carbs: double.tryParse(row.carbsController.text) ?? 0,
-                fat: double.tryParse(row.fatController.text) ?? 0,
-              ))
+          .map(_ingredientRowToInput)
           .toList();
 
       // Build baseServingDescription from size + unit
@@ -1854,6 +2018,21 @@ class _IngredientRow {
   /// Has base values or not (if yes = can recalculate)
   bool get hasBaseValues => baseAmount > 0 && baseCal > 0;
 
+  /// มีวัตถุดิบย่อยที่กรอกแล้วอย่างน้อย 1 รายการ — ใช้ล็อกแถวหลัก
+  bool get hasSubIngredients {
+    if (subIngredients == null || subIngredients!.isEmpty) return false;
+    for (final s in subIngredients!) {
+      final name = s.nameController.text.trim();
+      final amt = double.tryParse(s.amountController.text.trim()) ?? 0;
+      final cal = double.tryParse(s.calController.text.trim()) ?? 0;
+      if (name.isNotEmpty || amt > 0 || cal > 0) return true;
+    }
+    return false;
+  }
+
+  /// กัน onChanged ตอน sync ปริมาณจาก sub-ingredients
+  bool suppressAmountListener = false;
+
   /// Snapshot current nutrition as base (without sub-ingredients)
   void snapshotBaseWithoutSubs() {
     final cal = double.tryParse(calController.text) ?? 0;
@@ -1889,6 +2068,9 @@ class _IngredientRow {
 
   /// Recalculate kcal/macro from base values when amount changes
   void recalculate() {
+    if (hasSubIngredients) {
+      return;
+    }
     if (!hasBaseValues) return;
     final newAmount = double.tryParse(amountController.text) ?? 0;
     if (newAmount <= 0) return;
@@ -1898,24 +2080,7 @@ class _IngredientRow {
     proteinController.text = (baseProtein * ratio).round().toString();
     carbsController.text = (baseCarbs * ratio).round().toString();
     fatController.text = (baseFat * ratio).round().toString();
-    
-    // Scale sub-ingredients ตามสัดส่วน parent
-    if (subIngredients != null && subIngredients!.isNotEmpty) {
-      for (final sub in subIngredients!) {
-        if (sub.baseAmount > 0) {
-          sub.amountController.text =
-              (sub.baseAmount * ratio).toStringAsFixed(0);
-          sub.calController.text = (sub.baseCal * ratio).round().toString();
-          sub.proteinController.text =
-              (sub.baseProtein * ratio).round().toString();
-          sub.carbsController.text =
-              (sub.baseCarbs * ratio).round().toString();
-          sub.fatController.text = (sub.baseFat * ratio).round().toString();
-        }
-      }
-    }
-    
-    // Update base nutrition without sub-ingredients
+
     snapshotBaseWithoutSubs();
   }
 

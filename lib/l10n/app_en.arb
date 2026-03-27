@@ -2092,6 +2092,7 @@
   },
   "subIngredientNameHintCreate": "Sub-ingredient name",
   "editSubIngredientHint": "Edit sub-ingredient amounts to adjust nutrition",
+  "parentIngredientDrivenBySubs": "Amount and unit are calculated from sub-ingredients (locked)",
   "pleaseEnterSubFirst": "Please enter sub-ingredient name first",
   "aiAnalyzedEnergy": "AI analyzed \"{name}\" (-1 Energy)",
   "@aiAnalyzedEnergy": {

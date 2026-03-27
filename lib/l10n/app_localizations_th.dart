@@ -3091,6 +3091,10 @@ class L10nTh extends L10n {
       'Edit sub-ingredient amounts to adjust nutrition';
 
   @override
+  String get parentIngredientDrivenBySubs =>
+      'ปริมาณและหน่วยคำนวณจากวัตถุดิบย่อย (ล็อกไว้)';
+
+  @override
   String get pleaseEnterSubFirst => 'Please enter sub-ingredient name first';
 
   @override

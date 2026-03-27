@@ -3083,6 +3083,10 @@ class L10nKo extends L10n {
       'Edit sub-ingredient amounts to adjust nutrition';
 
   @override
+  String get parentIngredientDrivenBySubs =>
+      'Amount and unit are calculated from sub-ingredients (locked)';
+
+  @override
   String get pleaseEnterSubFirst => 'Please enter sub-ingredient name first';
 
   @override

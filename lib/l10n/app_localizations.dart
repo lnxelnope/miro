@@ -5533,6 +5533,12 @@ abstract class L10n {
   /// **'Edit sub-ingredient amounts to adjust nutrition'**
   String get editSubIngredientHint;
 
+  /// No description provided for @parentIngredientDrivenBySubs.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount and unit are calculated from sub-ingredients (locked)'**
+  String get parentIngredientDrivenBySubs;
+
   /// No description provided for @pleaseEnterSubFirst.
   ///
   /// In en, this message translates to:
