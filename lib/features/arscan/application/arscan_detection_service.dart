@@ -55,6 +55,10 @@ class ArScanDetectionService {
   bool _isDisposed = false;
   bool _isInitializing = false;
 
+  /// Lock ป้องกัน processImage() ถูกเรียกซ้อนกัน
+  /// ML Kit ObjectDetector บน Android ไม่ thread-safe — concurrent calls = native crash
+  bool _isProcessing = false;
+
   Future<void> _initDetector() async {
     if (_isDisposed || _isInitializing) return;
     if (_objectDetector != null) return;
@@ -96,6 +100,12 @@ class ArScanDetectionService {
       return const [];
     }
 
+    // Lock: ML Kit ObjectDetector บน Android ไม่ thread-safe
+    // ถ้า frame ก่อนหน้ายังประมวลผลอยู่ → skip frame นี้ (คืน cache เก่า)
+    if (_isProcessing) {
+      return _lastDetections;
+    }
+
     final now = DateTime.now();
     if (_lastDetectionTime != null &&
         now.difference(_lastDetectionTime!) < _throttleInterval) {
@@ -109,6 +119,7 @@ class ArScanDetectionService {
       }
     }
 
+    _isProcessing = true;
     try {
       final inputImage = _buildInputImage(image, rotation);
       final rawObjects = await _objectDetector!.processImage(inputImage);
@@ -184,6 +195,8 @@ class ArScanDetectionService {
         stack,
       );
       return const [];
+    } finally {
+      _isProcessing = false;
     }
   }
 

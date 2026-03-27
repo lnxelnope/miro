@@ -1853,5 +1853,81 @@
   "subscriptionChangePlanDescAndroid": "Sie können Ihren Plan über die Google Play-Abonnementverwaltung ändern. Der neue Plan gilt ab dem nächsten Abrechnungszeitraum.",
   "subscriptionChangePlanDescIos": "Sie können Ihren Plan über die App Store-Abonnementverwaltung hoch- oder herabstufen.",
   "subscriptionCurrentPlan": "AKTUELL",
-  "subscriptionChangePlanButton": "Ändern"
+  "subscriptionChangePlanButton": "Ändern",
+  "energyStoreTitle": "Energy Store",
+  "energyPackages": "Energiepakete",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "BESTER WERT",
+  "energyBadgePopular": "BELIEBT",
+  "energyBadgeBonus10": "+10% Bonus",
+  "energyPassUnlimitedAI": "Unbegrenzte KI-Analyse",
+  "energyPassUnlimitedFromPrice": "Unbegrenzte KI-Analyse • ab {price}/Monat",
+  "energyPassActive": "AKTIV",
+  "subscriptionDeal": "Abo-Angebot",
+  "subscriptionViewDeal": "Angebot anzeigen",
+  "subscriptionSubscribe": "Abonnieren",
+  "subscriptionAutoRenewTermsIos": "Die Zahlung wird bei Kaufbestätigung Ihrem Apple-ID-Konto belastet. Das Abo verlängert sich automatisch, es sei denn, es wird mindestens 24 Stunden vor Ende des aktuellen Zeitraums gekündigt. Sie können Ihre Abos in den App-Store-Kontoeinstellungen verwalten.",
+  "subscriptionBestValue": "BESTER WERT",
+  "subscriptionAutoRenew": "Auto-Verlängerung",
+  "subscriptionAutoRenewOn": "Ein",
+  "subscriptionAutoRenewOff": "Aus — läuft am Ende des Zeitraums ab",
+  "subscriptionManagedByAppStore": "Abo wird über den App Store verwaltet",
+  "subscriptionManagedByPlayStore": "Abo wird über Google Play verwaltet",
+  "subscriptionCannotLoadPrices": "Preise können derzeit nicht aus dem Store geladen werden",
+  "subscriptionPlanWeeklyName": "Energy Pass Wöchentlich",
+  "subscriptionPlanMonthlyName": "Energy Pass Monatlich",
+  "subscriptionPlanYearlyName": "Energy Pass Jährlich",
+  "subscriptionPlanWeeklyDesc": "Wöchentliches Abonnement",
+  "subscriptionPlanMonthlyDesc": "Unbegrenzte KI-Analyse",
+  "subscriptionPlanYearlyDesc": "Bester Wert — 81% sparen",
+  "subscriptionPeriodWeek": "Woche",
+  "subscriptionPeriodMonth": "Monat",
+  "subscriptionPeriodYear": "Jahr",
+  "subscriptionBenefitUnlimitedAI": "Unbegrenzte KI-Analyse",
+  "subscriptionBenefitExclusiveBadge": "Exklusives Abzeichen",
+  "subscriptionBenefitPrioritySupport": "Vorrangiger Support",
+  "subscriptionSavePercent": "81% sparen — {price}/Monat",
+  "subscriptionYearlySavingsVsMonthly": "{percent}% sparen — {price}/Monat",
+  "subscriptionStatusActive": "Aktiv",
+  "subscriptionStatusCancelled": "Gekündigt",
+  "subscriptionStatusExpired": "Abgelaufen",
+  "subscriptionStatusGracePeriod": "Kulanzfrist",
+  "subscriptionStatusNone": "Nicht abonniert",
+  "energyYourBalance": "Ihr Energieguthaben",
+  "energyLimitedTime": "ZEITLICH BEGRENZT",
+  "energyAmountLabel": "{amount} Energie",
+  "energyClaiming": "Wird eingelöst...",
+  "energyDaysFreeAI": "{days} Tage kostenlose KI",
+  "energyBonusOnPurchases": "+{percent}% Bonus auf alle Käufe!",
+  "energyBonusBreakdown": "{base} + {bonus} Bonus = {total} Energie",
+  "energyPromoBonusPercent": "Promo-Bonus: +{percent}%",
+  "energyTierBonusPercent": "{tierName}-Bonus: +{percent}%",
+  "energyAboutTitle": "Über Energie",
+  "energyInfoAnalysis": "1 Energie = 1 KI-Analyse",
+  "energyInfoNeverExpires": "Energie verfällt nie",
+  "energyInfoOneTime": "Einmalkauf, pro Gerät",
+  "energyInfoManualFree": "Manuelle Protokollierung ist immer kostenlos",
+  "shareCardDailySummaryTitle": "Tagesübersicht",
+  "shareCardFiber": "Ballaststoffe",
+  "shareCardSugar": "Zucker",
+  "shareCardSodium": "Natrium",
+  "shareCardDayStreak": "{days}-Tage-Serie",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} Tage",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

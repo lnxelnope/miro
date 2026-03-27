@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -32,6 +33,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   bool _isPurchasing = false;
   bool _isRestoring = false;
   Map<String, String> _basePlanPrices = {};
+  Map<String, SubscriptionBasePlanPricing> _basePlanPricing = {};
 
   @override
   void initState() {
@@ -42,18 +44,22 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   Future<void> _initScreen() async {
     final subscriptionState = ref.read(subscriptionProvider);
     if (subscriptionState.subscription.isActive) {
-      // Subscriber: no need to load products — show details immediately
       if (mounted) setState(() => _isLoadingProducts = false);
+      // Load products in background so _basePlanPrices is populated for
+      // upgrade options and price labels (no loading spinner shown).
+      _loadProducts(showLoading: false);
     } else {
       await _loadProducts();
     }
   }
 
-  Future<void> _loadProducts() async {
-    setState(() {
-      _isLoadingProducts = true;
-      _error = null;
-    });
+  Future<void> _loadProducts({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() {
+        _isLoadingProducts = true;
+        _error = null;
+      });
+    }
 
     try {
       final service = ref.read(subscriptionServiceProvider);
@@ -81,10 +87,15 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               : SubscriptionService.extractBasePlanPrices(products.first))
           : <String, String>{};
 
+      final pricing = products.isNotEmpty && Platform.isAndroid
+          ? SubscriptionService.extractBasePlanPricing(products.first)
+          : <String, SubscriptionBasePlanPricing>{};
+
       if (mounted) {
         setState(() {
           _products = products;
           _basePlanPrices = prices;
+          _basePlanPricing = pricing;
           _isLoadingProducts = false;
         });
       }
@@ -155,9 +166,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ),
         );
       } else {
+        final notFoundMessage = Platform.isIOS
+            ? L10n.of(context)!.restorePurchaseNotFound
+            : L10n.of(context)!.restorePurchaseFailed;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(L10n.of(context)!.restorePurchaseNotFound),
+            content: Text(notFoundMessage),
             backgroundColor: AppColors.warning,
             duration: const Duration(seconds: 3),
           ),
@@ -313,7 +327,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             icon: Icons.circle,
             iconSize: 14,
             title: L10n.of(context)!.subscriptionStatus,
-            value: subscription.status.displayText,
+            value: subscription.status.localizedText(context),
             valueColor: statusColor,
             isDark: isDark,
           ),
@@ -347,7 +361,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             title: L10n.of(context)!.subscriptionPrice,
             value: subscription.productId != null
                 ? _getSubscriptionPriceLabel(subscription.productId!)
-                : '\$4.99/month',
+                : _getSubscriptionPriceLabel(SubscriptionPlan.kMonthlyBasePlan),
             isDark: isDark,
           ),
 
@@ -362,7 +376,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                 ),
           ),
           const SizedBox(height: 16),
-          ...SubscriptionPlan.energyPassMonthly().benefits.map(
+          ...SubscriptionPlan.energyPassMonthly(context).benefits.map(
                 (benefit) => _buildBenefitItem(benefit, isDark),
               ),
 
@@ -478,11 +492,17 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
 
   List<Widget> _buildUpgradeOptions(SubscriptionData subscription, bool isDark) {
     final currentProductId = subscription.productId ?? '';
-    final plans = SubscriptionPlan.availablePlans();
+    final plans = SubscriptionPlan.availablePlans(context);
 
     return plans.map((plan) {
       final isCurrent = currentProductId == plan.basePlanId ||
           currentProductId == plan.iosProductId;
+
+      final priceKey = Platform.isIOS ? plan.iosProductId : plan.basePlanId;
+      final storePrice = _basePlanPrices[priceKey];
+      final priceLabel = storePrice != null
+          ? '$storePrice / ${plan.period}'
+          : plan.displayPrice;
 
       final borderColor = isCurrent
           ? AppColors.success
@@ -543,7 +563,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    plan.displayPrice,
+                    priceLabel,
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark
@@ -551,9 +571,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                           : AppColors.textSecondary,
                     ),
                   ),
-                  if (plan.savingsText != null)
+                  if (_savingsSubtitle(plan) != null)
                     Text(
-                      plan.savingsText!,
+                      _savingsSubtitle(plan)!,
                       style: const TextStyle(
                         fontSize: 11,
                         color: AppColors.success,
@@ -586,50 +606,53 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   // ─────────────────────────────────────────────────────────────
 
   Widget _buildSubscriptionPlans(bool isDark) {
-    final plans = SubscriptionPlan.availablePlans();
+    final plans = SubscriptionPlan.availablePlans(context);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.xxxl),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
-                  AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
+    return RefreshIndicator(
+      onRefresh: _loadProducts,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xxxl),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
+                    AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05),
+                  ],
+                ),
+                borderRadius: AppRadius.lg,
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.energy_savings_leaf, size: 80, color: AppColors.primary),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    L10n.of(context)!.subscriptionEnergyPass,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                        ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    L10n.of(context)!.energyPassUnlimitedAI,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
                 ],
               ),
-              borderRadius: AppRadius.lg,
             ),
-            child: Column(
-              children: [
-                const Icon(Icons.energy_savings_leaf, size: 80, color: AppColors.primary),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  L10n.of(context)!.subscriptionEnergyPass,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-                      ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  L10n.of(context)!.energyPassUnlimitedAI,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: AppSpacing.xxxl),
+            const SizedBox(height: AppSpacing.xxxl),
 
-          if (_products.isEmpty) ...[
+            if (_products.isEmpty) ...[
             Container(
               margin: const EdgeInsets.only(bottom: AppSpacing.lg),
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -727,8 +750,40 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
+  }
+
+  /// Yearly card: savings line from Play prices when available (Android).
+  String? _savingsSubtitle(SubscriptionPlan plan) {
+    if (!plan.isPopular) return null;
+    if (Platform.isAndroid) {
+      final monthly = _basePlanPricing[SubscriptionPlan.kMonthlyBasePlan];
+      final yearly = _basePlanPricing[SubscriptionPlan.kYearlyBasePlan];
+      if (monthly != null &&
+          yearly != null &&
+          monthly.priceAmountMicros > 0 &&
+          yearly.priceCurrencyCode == monthly.priceCurrencyCode) {
+        final monthlyAnnualMicros = monthly.priceAmountMicros * 12;
+        if (monthlyAnnualMicros > 0) {
+          final ratio = yearly.priceAmountMicros / monthlyAnnualMicros;
+          if (ratio < 1.0) {
+            final pct = ((1.0 - ratio) * 100).round().clamp(0, 99);
+            final perMonth = yearly.priceAmountMicros / 12.0 / 1000000.0;
+            final fmt = NumberFormat.currency(
+              locale: Localizations.localeOf(context).toString(),
+              name: yearly.priceCurrencyCode,
+            );
+            final priceStr = fmt.format(perMonth);
+            return L10n.of(context)!
+                .subscriptionYearlySavingsVsMonthly(pct, priceStr);
+          }
+        }
+      }
+      return plan.savingsText;
+    }
+    return plan.savingsText;
   }
 
   Widget _buildPlanCard(SubscriptionPlan plan, bool isDark) {
@@ -803,10 +858,10 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                   color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
                 ),
           ),
-          if (plan.savingsText != null) ...[
+          if (_savingsSubtitle(plan) != null) ...[
             const SizedBox(height: 4),
             Text(
-              plan.savingsText!,
+              _savingsSubtitle(plan)!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.success,
                     fontWeight: FontWeight.w600,
@@ -859,15 +914,21 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   // ─────────────────────────────────────────────────────────────
 
   String _getSubscriptionPriceLabel(String productId) {
-    final plans = SubscriptionPlan.availablePlans();
+    final plans = SubscriptionPlan.availablePlans(context);
     for (final plan in plans) {
       if (plan.basePlanId == productId ||
           plan.iosProductId == productId ||
           plan.productId == productId) {
+        final priceKey = Platform.isIOS ? plan.iosProductId : plan.basePlanId;
+        final storePrice = _basePlanPrices[priceKey];
+        if (storePrice != null) return '$storePrice / ${plan.period}';
         return plan.displayPrice;
       }
     }
-    return '\$4.99/month';
+    // Fallback: try matching base plan keys directly
+    final storePrice = _basePlanPrices[productId];
+    if (storePrice != null) return storePrice;
+    return '\$9.99/month';
   }
 
   Widget _buildInfoCard({

@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Google Playのサブスクリプション管理からプランを変更できます。新しいプランは次の請求サイクルから適用されます。",
   "subscriptionChangePlanDescIos": "App Storeのサブスクリプション管理からプランのアップグレードまたはダウングレードができます。",
   "subscriptionCurrentPlan": "現在のプラン",
-  "subscriptionChangePlanButton": "変更"
+  "subscriptionChangePlanButton": "変更",
+  "energyStoreTitle": "エネルギーストア",
+  "energyPackages": "エネルギーパッケージ",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "最もお得",
+  "energyBadgePopular": "人気",
+  "energyBadgeBonus10": "+10% ボーナス",
+  "energyPassUnlimitedAI": "AI分析が無制限",
+  "energyPassUnlimitedFromPrice": "AI分析が無制限 • {price}/月から",
+  "energyPassActive": "有効",
+  "subscriptionDeal": "サブスクリプション特典",
+  "subscriptionViewDeal": "特典を見る",
+  "subscriptionSubscribe": "登録する",
+  "subscriptionAutoRenewTermsIos": "購入確認時にApple IDアカウントに課金されます。現在の期間終了の24時間前までにキャンセルしない限り、サブスクリプションは自動更新されます。App Storeのアカウント設定でサブスクリプションを管理・キャンセルできます。",
+  "subscriptionBestValue": "最もお得",
+  "subscriptionAutoRenew": "自動更新",
+  "subscriptionAutoRenewOn": "オン",
+  "subscriptionAutoRenewOff": "オフ — 期間終了時に失効",
+  "subscriptionManagedByAppStore": "サブスクリプションはApp Storeで管理されています",
+  "subscriptionManagedByPlayStore": "サブスクリプションはGoogle Playで管理されています",
+  "subscriptionCannotLoadPrices": "現在ストアから価格を読み込めません",
+  "subscriptionPlanWeeklyName": "Energy Pass ウィークリー",
+  "subscriptionPlanMonthlyName": "Energy Pass マンスリー",
+  "subscriptionPlanYearlyName": "Energy Pass 年間",
+  "subscriptionPlanWeeklyDesc": "週間サブスクリプション",
+  "subscriptionPlanMonthlyDesc": "無制限AI分析",
+  "subscriptionPlanYearlyDesc": "最もお得 — 81%お得",
+  "subscriptionPeriodWeek": "週",
+  "subscriptionPeriodMonth": "月",
+  "subscriptionPeriodYear": "年",
+  "subscriptionBenefitUnlimitedAI": "AI分析が無制限",
+  "subscriptionBenefitExclusiveBadge": "限定バッジ",
+  "subscriptionBenefitPrioritySupport": "優先サポート",
+  "subscriptionSavePercent": "81%お得 — {price}/月",
+  "subscriptionYearlySavingsVsMonthly": "{percent}%お得 — {price}/月",
+  "subscriptionStatusActive": "有効",
+  "subscriptionStatusCancelled": "キャンセル済み",
+  "subscriptionStatusExpired": "期限切れ",
+  "subscriptionStatusGracePeriod": "猶予期間",
+  "subscriptionStatusNone": "未登録",
+  "energyYourBalance": "エネルギー残高",
+  "energyLimitedTime": "期間限定",
+  "energyAmountLabel": "{amount} エネルギー",
+  "energyClaiming": "取得中...",
+  "energyDaysFreeAI": "{days}日間AI無料",
+  "energyBonusOnPurchases": "+{percent}% 全購入ボーナス！",
+  "energyBonusBreakdown": "{base} + {bonus} ボーナス = {total} エネルギー",
+  "energyPromoBonusPercent": "プロモボーナス: +{percent}%",
+  "energyTierBonusPercent": "{tierName}ボーナス: +{percent}%",
+  "energyAboutTitle": "エネルギーについて",
+  "energyInfoAnalysis": "1エネルギー = 1回のAI分析",
+  "energyInfoNeverExpires": "エネルギーは期限切れになりません",
+  "energyInfoOneTime": "1回購入、デバイスごと",
+  "energyInfoManualFree": "手動記録は常に無料",
+  "shareCardDailySummaryTitle": "デイリーサマリー",
+  "shareCardFiber": "食物繊維",
+  "shareCardSugar": "糖質",
+  "shareCardSodium": "ナトリウム",
+  "shareCardDayStreak": "{days}日連続",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days}日",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

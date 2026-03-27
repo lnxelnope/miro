@@ -387,7 +387,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.version,
-                          subtitle: '1.2.6',
+                          subtitle: '1.2.7',
                           showArrow: false,
                         ),
                         _buildModernSettingCard(
@@ -1318,11 +1318,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   label: L10n.of(context)!.systemDefault,
                   sublabel: L10n.of(context)!.systemDefaultSublabel,
                   isSelected: currentLocale == null,
-                  onTap: () {
+                  onTap: () async {
                     ref.read(localeProvider.notifier).state = null;
                     GeminiService.setUserLanguage('en');
-                    _saveLocaleToProfile(null);
+                    await _saveLocaleToProfile(null);
+                    if (!mounted || !ctx.mounted) return;
                     Navigator.pop(ctx);
+                    if (!mounted) return;
                     _showLanguageChangedSnackbar(
                         L10n.of(context)!.systemDefault);
                   },
@@ -1339,11 +1341,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       label: _getLanguageLabel(context, code),
                       sublabel: _getLanguageSublabel(context, code),
                       isSelected: currentLocale?.languageCode == code,
-                      onTap: () {
+                      onTap: () async {
                         ref.read(localeProvider.notifier).state = Locale(code);
                         GeminiService.setUserLanguage(code);
-                        _saveLocaleToProfile(code);
+                        await _saveLocaleToProfile(code);
+                        if (!mounted || !ctx.mounted) return;
                         Navigator.pop(ctx);
+                        if (!mounted) return;
                         _showLanguageChangedSnackbar(
                             _getLanguageLabel(context, code));
                       },
@@ -1455,7 +1459,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  void _saveLocaleToProfile(String? localeCode) {
+  /// เก็บ locale ทั้งในโปรไฟล์และ SharedPreferences — ต้องตรงกับ [main.dart] `_initApp`
+  /// ที่โหลด `selected_locale` ตอนเปิดแอป มิฉะนั้นหลังรีสตาร์ทจะกลับไปภาษาตอนเลือกครั้งแรก
+  Future<void> _saveLocaleToProfile(String? localeCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (localeCode == null || localeCode.isEmpty) {
+      await prefs.remove('selected_locale');
+    } else {
+      await prefs.setString('selected_locale', localeCode);
+    }
+
     final profile = ref.read(profileNotifierProvider).valueOrNull;
     if (profile != null) {
       profile.locale = localeCode;

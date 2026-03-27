@@ -26,14 +26,14 @@ const db = admin.firestore();
 // ─── Challenge Configs ───
 
 const DAILY_CHALLENGES = {
-  dailyAi1:  {target: 1,  reward: 1, scaleWithTier: true},
-  dailyAi10: {target: 10, reward: 2, scaleWithTier: false},
+  dailyAi1:  {target: 1,  reward: 0, scaleWithTier: true},
+  dailyAi10: {target: 10, reward: 1, scaleWithTier: false},
 };
 
 const WEEKLY_CHALLENGES = {
-  weeklyAi20: {target: 20, reward: 3},
-  weeklyAi40: {target: 40, reward: 4},
-  weeklyAi60: {target: 60, reward: 5},
+  weeklyAi20: {target: 20, reward: 1},
+  weeklyAi40: {target: 40, reward: 1},
+  weeklyAi60: {target: 60, reward: 1},
 };
 
 // Tier bonus for dailyAi1 only

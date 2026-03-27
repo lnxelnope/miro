@@ -26,6 +26,11 @@ class ArScanCameraStreamController {
   /// แล้ว instance ใหม่พยายามเปิดกล้องซ้อน → Camera2 NPE crash
   static Future<void>? _pendingDispose;
 
+  /// Serialize concurrent initialize() calls — ป้องกัน iOS lifecycle
+  /// trigger ซ้อนตอน permission dialog (inactive → resumed) ทำให้สร้าง
+  /// CameraController 2 ตัวพร้อมกัน → AVCaptureSession conflict
+  Completer<void>? _initCompleter;
+
   final ArScanDetectionService _detectionService = ArScanDetectionService();
 
   ArScanDetectionService get detectionService => _detectionService;
@@ -92,8 +97,19 @@ class ArScanCameraStreamController {
   }
 
   /// เตรียมกล้องสำหรับใช้งาน — รอ dispose เก่าจบก่อนแล้วค่อยเปิดใหม่
+  ///
+  /// Serialized: ถ้ามี init อีกตัวกำลังทำงาน จะรอให้เสร็จแทนที่จะ init ซ้อน
+  /// (ป้องกัน iOS lifecycle trigger ซ้อน → AVCaptureSession conflict)
   Future<void> initialize() async {
     if (_isDisposed) return;
+
+    // ถ้ามี init กำลังทำงาน → รอให้เสร็จแล้ว return (ไม่ init ซ้อน)
+    final existing = _initCompleter;
+    if (existing != null) {
+      debugPrint('[ArScanCameraStreamController] waiting for existing init…');
+      await existing.future;
+      return;
+    }
 
     // รอ instance เก่า dispose ให้เสร็จก่อน (ป้องกัน Camera2 ซ้อน)
     final pending = _pendingDispose;
@@ -107,41 +123,51 @@ class ArScanCameraStreamController {
       return;
     }
 
-    const maxRetries = 2;
-    for (var attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        final cameras = await availableCameras();
-        if (cameras.isEmpty) {
-          debugPrint('[ArScanCameraStreamController] No cameras available');
+    final completer = Completer<void>();
+    _initCompleter = completer;
+
+    try {
+      const maxRetries = 2;
+      for (var attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          final cameras = await availableCameras();
+          if (cameras.isEmpty) {
+            debugPrint('[ArScanCameraStreamController] No cameras available');
+            return;
+          }
+
+          final controller = CameraController(
+            cameras.first,
+            resolutionPreset,
+            enableAudio: enableAudio,
+            imageFormatGroup: Platform.isAndroid
+                ? ImageFormatGroup.nv21
+                : ImageFormatGroup.bgra8888,
+          );
+
+          await controller.initialize();
+
+          if (_isDisposed) {
+            await controller.dispose();
+            return;
+          }
+
+          _cameraController = controller;
           return;
+        } catch (e) {
+          debugPrint(
+            '[ArScanCameraStreamController] initialize error (attempt $attempt): $e',
+          );
+          if (attempt < maxRetries) {
+            await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
+            if (_isDisposed) return;
+          }
         }
-
-        final controller = CameraController(
-          cameras.first,
-          resolutionPreset,
-          enableAudio: enableAudio,
-          imageFormatGroup: Platform.isAndroid
-              ? ImageFormatGroup.nv21
-              : ImageFormatGroup.bgra8888,
-        );
-
-        await controller.initialize();
-
-        if (_isDisposed) {
-          await controller.dispose();
-          return;
-        }
-
-        _cameraController = controller;
-        return;
-      } catch (e) {
-        debugPrint(
-          '[ArScanCameraStreamController] initialize error (attempt $attempt): $e',
-        );
-        if (attempt < maxRetries) {
-          await Future.delayed(Duration(milliseconds: 500 * (attempt + 1)));
-          if (_isDisposed) return;
-        }
+      }
+    } finally {
+      completer.complete();
+      if (identical(_initCompleter, completer)) {
+        _initCompleter = null;
       }
     }
   }
@@ -160,6 +186,7 @@ class ArScanCameraStreamController {
       await controller.startImageStream((image) async {
         if (_isDisposed || !_isStreaming) return;
         if (_frameStreamController.isClosed) return;
+
         _frameStreamController.add(image);
 
         try {
@@ -167,6 +194,9 @@ class ArScanCameraStreamController {
             controller.description.sensorOrientation,
           );
 
+          // detectFrame() มี _isProcessing lock ภายในแล้ว —
+          // ป้องกัน concurrent ML Kit processImage() บน Android
+          // โดยคืน cached results ถ้า frame ก่อนหน้ายังประมวลผลอยู่
           final detections =
               await _detectionService.detectFrame(image, rotation);
 

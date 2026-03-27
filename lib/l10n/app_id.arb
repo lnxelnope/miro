@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Anda dapat mengubah paket melalui manajemen langganan Google Play. Paket baru akan berlaku pada siklus tagihan berikutnya.",
   "subscriptionChangePlanDescIos": "Anda dapat meningkatkan atau menurunkan paket melalui manajemen langganan App Store.",
   "subscriptionCurrentPlan": "SAAT INI",
-  "subscriptionChangePlanButton": "Ubah"
+  "subscriptionChangePlanButton": "Ubah",
+  "energyStoreTitle": "Toko Energi",
+  "energyPackages": "Paket Energi",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "NILAI TERBAIK",
+  "energyBadgePopular": "POPULER",
+  "energyBadgeBonus10": "+10% bonus",
+  "energyPassUnlimitedAI": "Analisis AI tanpa batas",
+  "energyPassUnlimitedFromPrice": "Analisis AI tanpa batas • mulai {price}/bulan",
+  "energyPassActive": "AKTIF",
+  "subscriptionDeal": "Penawaran Langganan",
+  "subscriptionViewDeal": "Lihat Penawaran",
+  "subscriptionSubscribe": "Berlangganan",
+  "subscriptionAutoRenewTermsIos": "Pembayaran akan dibebankan ke akun Apple ID Anda saat konfirmasi pembelian. Langganan diperpanjang otomatis kecuali dibatalkan setidaknya 24 jam sebelum akhir periode saat ini. Anda dapat mengelola langganan di pengaturan akun App Store.",
+  "subscriptionBestValue": "NILAI TERBAIK",
+  "subscriptionAutoRenew": "Perpanjangan Otomatis",
+  "subscriptionAutoRenewOn": "Aktif",
+  "subscriptionAutoRenewOff": "Nonaktif — berakhir di akhir periode",
+  "subscriptionManagedByAppStore": "Langganan dikelola melalui App Store",
+  "subscriptionManagedByPlayStore": "Langganan dikelola melalui Google Play",
+  "subscriptionCannotLoadPrices": "Tidak dapat memuat harga dari Store saat ini",
+  "subscriptionPlanWeeklyName": "Energy Pass Mingguan",
+  "subscriptionPlanMonthlyName": "Energy Pass Bulanan",
+  "subscriptionPlanYearlyName": "Energy Pass Tahunan",
+  "subscriptionPlanWeeklyDesc": "Langganan mingguan",
+  "subscriptionPlanMonthlyDesc": "Analisis AI tanpa batas",
+  "subscriptionPlanYearlyDesc": "Nilai terbaik — hemat 81%",
+  "subscriptionPeriodWeek": "minggu",
+  "subscriptionPeriodMonth": "bulan",
+  "subscriptionPeriodYear": "tahun",
+  "subscriptionBenefitUnlimitedAI": "Analisis AI tanpa batas",
+  "subscriptionBenefitExclusiveBadge": "Lencana eksklusif",
+  "subscriptionBenefitPrioritySupport": "Dukungan prioritas",
+  "subscriptionSavePercent": "Hemat 81% — {price}/bulan",
+  "subscriptionYearlySavingsVsMonthly": "Hemat {percent}% — {price}/bulan",
+  "subscriptionStatusActive": "Aktif",
+  "subscriptionStatusCancelled": "Dibatalkan",
+  "subscriptionStatusExpired": "Kedaluwarsa",
+  "subscriptionStatusGracePeriod": "Masa tenggang",
+  "subscriptionStatusNone": "Tidak berlangganan",
+  "energyYourBalance": "Saldo Energi Anda",
+  "energyLimitedTime": "WAKTU TERBATAS",
+  "energyAmountLabel": "{amount} Energi",
+  "energyClaiming": "Mengklaim...",
+  "energyDaysFreeAI": "{days} hari AI gratis",
+  "energyBonusOnPurchases": "+{percent}% Bonus untuk semua pembelian!",
+  "energyBonusBreakdown": "{base} + {bonus} Bonus = {total} Energi",
+  "energyPromoBonusPercent": "Bonus promo: +{percent}%",
+  "energyTierBonusPercent": "Bonus {tierName}: +{percent}%",
+  "energyAboutTitle": "Tentang Energi",
+  "energyInfoAnalysis": "1 Energi = 1 analisis AI",
+  "energyInfoNeverExpires": "Energi tidak pernah kedaluwarsa",
+  "energyInfoOneTime": "Pembelian sekali, per perangkat",
+  "energyInfoManualFree": "Pencatatan manual selalu gratis",
+  "shareCardDailySummaryTitle": "Ringkasan Harian",
+  "shareCardFiber": "Serat",
+  "shareCardSugar": "Gula",
+  "shareCardSodium": "Natrium",
+  "shareCardDayStreak": "Streak {days} hari",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} hari",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

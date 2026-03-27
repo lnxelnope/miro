@@ -1654,6 +1654,10 @@ class L10nVi extends L10n {
   String get cameraFailedToInitialize => 'Không khởi tạo được máy ảnh';
 
   @override
+  String get cameraPermissionDeniedMessage =>
+      'Camera permission was denied. Please enable camera access in Settings to use AR Scan.';
+
+  @override
   String get cameraFailedToCapture => 'Không chụp được ảnh';
 
   @override
@@ -1861,7 +1865,7 @@ class L10nVi extends L10n {
   String get subscriptionSubscribeNow => 'Đăng ký ngay';
 
   @override
-  String get subscriptionSubscribe => 'Subscribe';
+  String get subscriptionSubscribe => 'Đăng ký';
 
   @override
   String get subscriptionCancelAnytime => 'Hủy bất cứ lúc nào';
@@ -1872,7 +1876,7 @@ class L10nVi extends L10n {
 
   @override
   String get subscriptionAutoRenewTermsIos =>
-      'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.';
+      'Thanh toán sẽ được tính vào tài khoản Apple ID của bạn khi xác nhận mua. Đăng ký tự động gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kết thúc kỳ hiện tại. Bạn có thể quản lý đăng ký trong cài đặt tài khoản App Store.';
 
   @override
   String subscriptionRenewsDate(String date) {
@@ -1880,13 +1884,13 @@ class L10nVi extends L10n {
   }
 
   @override
-  String get subscriptionBestValue => 'BEST VALUE';
+  String get subscriptionBestValue => 'GIÁ TRỊ TỐT NHẤT';
 
   @override
-  String get energyStoreTitle => 'Energy Store';
+  String get energyStoreTitle => 'Cửa hàng Năng lượng';
 
   @override
-  String get energyPackages => 'Energy Packages';
+  String get energyPackages => 'Gói Năng lượng';
 
   @override
   String get energyPackageStarterKick => 'Starter Kick';
@@ -1901,30 +1905,30 @@ class L10nVi extends L10n {
   String get energyPackageUltimateSaver => 'Ultimate Saver';
 
   @override
-  String get energyBadgeBestValue => 'BEST VALUE';
+  String get energyBadgeBestValue => 'GIÁ TRỊ TỐT NHẤT';
 
   @override
-  String get energyBadgePopular => 'POPULAR';
+  String get energyBadgePopular => 'PHỔ BIẾN';
 
   @override
-  String get energyBadgeBonus10 => '+10% bonus';
+  String get energyBadgeBonus10 => '+10% thưởng';
 
   @override
-  String get energyPassUnlimitedAI => 'Unlimited AI Analysis';
+  String get energyPassUnlimitedAI => 'Phân tích AI không giới hạn';
 
   @override
   String energyPassUnlimitedFromPrice(String price) {
-    return 'Unlimited AI Analysis • from $price/month';
+    return 'Phân tích AI không giới hạn • từ $price/tháng';
   }
 
   @override
-  String get energyPassActive => 'ACTIVE';
+  String get energyPassActive => 'ĐANG HOẠT ĐỘNG';
 
   @override
-  String get subscriptionDeal => 'Subscription Deal';
+  String get subscriptionDeal => 'Ưu đãi đăng ký';
 
   @override
-  String get subscriptionViewDeal => 'View Deal';
+  String get subscriptionViewDeal => 'Xem ưu đãi';
 
   @override
   String get disclaimerHealthDisclaimer =>
@@ -3478,25 +3482,25 @@ class L10nVi extends L10n {
   String get burnedLabel => 'Burned';
 
   @override
-  String get subscriptionAutoRenew => 'Auto-Renew';
+  String get subscriptionAutoRenew => 'Tự động gia hạn';
 
   @override
-  String get subscriptionAutoRenewOn => 'On';
+  String get subscriptionAutoRenewOn => 'Bật';
 
   @override
-  String get subscriptionAutoRenewOff => 'Off — expires at end of period';
+  String get subscriptionAutoRenewOff => 'Tắt — hết hạn khi hết kỳ';
 
   @override
   String get subscriptionManagedByAppStore =>
-      'Subscription is managed through the App Store';
+      'Đăng ký được quản lý qua App Store';
 
   @override
   String get subscriptionManagedByPlayStore =>
-      'Subscription is managed through Google Play';
+      'Đăng ký được quản lý qua Google Play';
 
   @override
   String get subscriptionCannotLoadPrices =>
-      'Unable to load prices from the Store right now';
+      'Không thể tải giá từ Store lúc này';
 
   @override
   String get cloudSync => 'Cloud Sync';
@@ -3883,7 +3887,7 @@ class L10nVi extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.';
+      'Please review how ArCal uses your data. Toggle each option, then tap Continue.';
 
   @override
   String get privacyConsentNotifTitle => 'Push Notifications';
@@ -3986,4 +3990,175 @@ class L10nVi extends L10n {
 
   @override
   String get arScanMoveToAngle => 'Tilt to next angle';
+
+  @override
+  String get subscriptionPlanWeeklyName => 'Energy Pass Hàng tuần';
+
+  @override
+  String get subscriptionPlanMonthlyName => 'Energy Pass Hàng tháng';
+
+  @override
+  String get subscriptionPlanYearlyName => 'Energy Pass Hàng năm';
+
+  @override
+  String get subscriptionPlanWeeklyDesc => 'Đăng ký hàng tuần';
+
+  @override
+  String get subscriptionPlanMonthlyDesc => 'Phân tích AI không giới hạn';
+
+  @override
+  String get subscriptionPlanYearlyDesc => 'Giá trị tốt nhất — tiết kiệm 81%';
+
+  @override
+  String get subscriptionPeriodWeek => 'tuần';
+
+  @override
+  String get subscriptionPeriodMonth => 'tháng';
+
+  @override
+  String get subscriptionPeriodYear => 'năm';
+
+  @override
+  String get subscriptionBenefitUnlimitedAI => 'Phân tích AI không giới hạn';
+
+  @override
+  String get subscriptionBenefitExclusiveBadge => 'Huy hiệu độc quyền';
+
+  @override
+  String get subscriptionBenefitPrioritySupport => 'Hỗ trợ ưu tiên';
+
+  @override
+  String subscriptionSavePercent(String price) {
+    return 'Tiết kiệm 81% — $price/tháng';
+  }
+
+  @override
+  String subscriptionYearlySavingsVsMonthly(int percent, String price) {
+    return 'Tiết kiệm $percent% — $price/tháng';
+  }
+
+  @override
+  String get subscriptionStatusActive => 'Đang hoạt động';
+
+  @override
+  String get subscriptionStatusCancelled => 'Đã hủy';
+
+  @override
+  String get subscriptionStatusExpired => 'Đã hết hạn';
+
+  @override
+  String get subscriptionStatusGracePeriod => 'Thời gian gia hạn';
+
+  @override
+  String get subscriptionStatusNone => 'Chưa đăng ký';
+
+  @override
+  String get energyYourBalance => 'Số dư năng lượng';
+
+  @override
+  String get energyLimitedTime => 'THỜI GIAN CÓ HẠN';
+
+  @override
+  String energyAmountLabel(int amount) {
+    return '$amount Năng lượng';
+  }
+
+  @override
+  String get energyClaiming => 'Đang nhận...';
+
+  @override
+  String energyDaysFreeAI(int days) {
+    return '$days ngày AI miễn phí';
+  }
+
+  @override
+  String energyBonusOnPurchases(int percent) {
+    return '+$percent% Thưởng cho mọi giao dịch!';
+  }
+
+  @override
+  String energyBonusBreakdown(int base, int bonus, int total) {
+    return '$base + $bonus Thưởng = $total Năng lượng';
+  }
+
+  @override
+  String energyPromoBonusPercent(int percent) {
+    return 'Thưởng khuyến mãi: +$percent%';
+  }
+
+  @override
+  String energyTierBonusPercent(String tierName, int percent) {
+    return 'Thưởng $tierName: +$percent%';
+  }
+
+  @override
+  String get energyAboutTitle => 'Về Năng lượng';
+
+  @override
+  String get energyInfoAnalysis => '1 Năng lượng = 1 phân tích AI';
+
+  @override
+  String get energyInfoNeverExpires => 'Năng lượng không bao giờ hết hạn';
+
+  @override
+  String get energyInfoOneTime => 'Mua một lần, theo thiết bị';
+
+  @override
+  String get energyInfoManualFree => 'Ghi chép thủ công luôn miễn phí';
+
+  @override
+  String get shareCard => 'Share Card';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get saveToGallery => 'Save';
+
+  @override
+  String get savedToGallery => 'Saved to gallery';
+
+  @override
+  String get saveFailed => 'Failed to save';
+
+  @override
+  String get macros => 'Macros';
+
+  @override
+  String get micronutrients => 'Micronutrients';
+
+  @override
+  String get shareNoImageSelected => 'No image selected yet';
+
+  @override
+  String get shareImageSelected => 'Image selected';
+
+  @override
+  String get shareSelectImageRequired =>
+      'Please select an image before sharing';
+
+  @override
+  String get shareCardDailySummaryTitle => 'Tổng kết hằng ngày';
+
+  @override
+  String get shareCardFiber => 'Chất xơ';
+
+  @override
+  String get shareCardSugar => 'Đường';
+
+  @override
+  String get shareCardSodium => 'Natri';
+
+  @override
+  String shareCardDayStreak(int days) {
+    return 'Chuỗi $days ngày';
+  }
+
+  @override
+  String shareCardDays(int days) {
+    return '$days ngày';
+  }
+
+  @override
+  String get shareCardShowBoundingBox => 'Show bounding box';
 }

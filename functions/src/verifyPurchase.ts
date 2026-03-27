@@ -32,8 +32,12 @@ const GOOGLE_SERVICE_ACCOUNT = defineSecret("GOOGLE_SERVICE_ACCOUNT_JSON");
 const APPLE_SHARED_SECRET = defineSecret("APPLE_SHARED_SECRET");
 
 // ─── Product ID → Energy Amount Mapping ───
-// ⚠️ ต้องตรงกับที่กำหนดใน Client!
+// ⚠️ ต้องตรงกับที่กำหนดใน Client! (PurchaseService.energyAmounts)
 const ENERGY_PRODUCTS: Record<string, number> = {
+  "energy_50": 50,
+  "energy_200": 200,
+  "energy_500": 500,
+  // Legacy (restore / older store products)
   "energy_100": 100,
   "energy_550": 550,
   "energy_1200": 1200,

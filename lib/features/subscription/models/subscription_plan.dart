@@ -1,9 +1,16 @@
+import 'package:flutter/widgets.dart';
+import '../../../l10n/app_localizations.dart';
+
 /// Subscription Plan Model
 ///
 /// Google Play structure:
 ///   Product ID: miro_normal_subscription
-///   Base Plans: energy-pass-weekly, energy-pass-monthly, energy-pass-yearly
+///   Base Plans: energy-pass-monthly, energy-pass-yearly
 ///   Offers: first-month-free, winback-3usd
+///
+/// Pricing strategy (Mar 2026):
+///   Monthly $9.99 — gateway plan
+///   Yearly  $22.99 — ★ Best Value (covers CAC, save 81%)
 class SubscriptionPlan {
   final String productId;
   final String basePlanId;
@@ -34,12 +41,10 @@ class SubscriptionPlan {
   static const String kProductId = 'miro_normal_subscription';
 
   /// Base Plan IDs (hyphens required by Google Play)
-  static const String kWeeklyBasePlan = 'energy-pass-weekly';
   static const String kMonthlyBasePlan = 'energy-pass-monthly';
   static const String kYearlyBasePlan = 'energy-pass-yearly';
 
-  /// iOS Product IDs (App Store: 3 separate products)
-  static const String kIosWeeklyProductId = 'miro_energy_pass_weekly';
+  /// iOS Product IDs (App Store: each plan = 1 product)
   static const String kIosMonthlyProductId = 'miro_energy_pass_monthly';
   static const String kIosYearlyProductId = 'miro_energy_pass_yearly';
 
@@ -47,65 +52,49 @@ class SubscriptionPlan {
   static const String kFreeTrialOffer = 'first-month-free';
   static const String kWinbackOffer = 'winback-3usd';
 
-  static SubscriptionPlan energyPassWeekly() {
-    return const SubscriptionPlan(
-      productId: kProductId,
-      basePlanId: kWeeklyBasePlan,
-      iosProductId: kIosWeeklyProductId,
-      name: 'Energy Pass Weekly',
-      description: 'Weekly subscription',
-      price: '\$1.99',
-      period: 'week',
-      benefits: [
-        'Unlimited AI Analysis',
-        'Exclusive Badge',
-        'Priority Support',
-      ],
-    );
-  }
-
-  static SubscriptionPlan energyPassMonthly() {
-    return const SubscriptionPlan(
+  static SubscriptionPlan energyPassMonthly([BuildContext? context]) {
+    final l10n = context != null ? L10n.of(context) : null;
+    return SubscriptionPlan(
       productId: kProductId,
       basePlanId: kMonthlyBasePlan,
       iosProductId: kIosMonthlyProductId,
-      name: 'Energy Pass',
-      description: 'Premium subscription with unlimited features',
-      price: '\$4.99',
-      period: 'month',
+      name: l10n?.subscriptionPlanMonthlyName ?? 'Energy Pass Monthly',
+      description: l10n?.subscriptionPlanMonthlyDesc ?? 'Unlimited AI analysis',
+      price: '\$9.99',
+      period: l10n?.subscriptionPeriodMonth ?? 'month',
       benefits: [
-        'Unlimited AI Analysis',
-        'Exclusive Badge',
-        'Priority Support',
+        l10n?.subscriptionBenefitUnlimitedAI ?? 'Unlimited AI Analysis',
+        l10n?.subscriptionBenefitExclusiveBadge ?? 'Exclusive Badge',
+        l10n?.subscriptionBenefitPrioritySupport ?? 'Priority Support',
       ],
-      isPopular: true,
     );
   }
 
-  static SubscriptionPlan energyPassYearly() {
-    return const SubscriptionPlan(
+  static SubscriptionPlan energyPassYearly([BuildContext? context]) {
+    final l10n = context != null ? L10n.of(context) : null;
+    return SubscriptionPlan(
       productId: kProductId,
       basePlanId: kYearlyBasePlan,
       iosProductId: kIosYearlyProductId,
-      name: 'Energy Pass Yearly',
-      description: 'Best value — save 62%',
-      price: '\$39.99',
-      period: 'year',
+      name: l10n?.subscriptionPlanYearlyName ?? 'Energy Pass Yearly',
+      description: l10n?.subscriptionPlanYearlyDesc ?? 'Best value — save 81%',
+      price: '\$22.99',
+      period: l10n?.subscriptionPeriodYear ?? 'year',
       benefits: [
-        'Unlimited AI Analysis',
-        'Exclusive Badge',
-        'Priority Support',
+        l10n?.subscriptionBenefitUnlimitedAI ?? 'Unlimited AI Analysis',
+        l10n?.subscriptionBenefitExclusiveBadge ?? 'Exclusive Badge',
+        l10n?.subscriptionBenefitPrioritySupport ?? 'Priority Support',
       ],
-      savingsText: 'Save 62% — \$3.33/month',
+      isPopular: true,
+      savingsText: l10n?.subscriptionSavePercent('\$1.92') ?? 'Save 81% — \$1.92/month',
     );
   }
 
-  /// Get all available plans
-  static List<SubscriptionPlan> availablePlans() {
+  /// Get all available plans (pass context for localized names)
+  static List<SubscriptionPlan> availablePlans([BuildContext? context]) {
     return [
-      energyPassWeekly(),
-      energyPassMonthly(),
-      energyPassYearly(),
+      energyPassMonthly(context),
+      energyPassYearly(context),
     ];
   }
 

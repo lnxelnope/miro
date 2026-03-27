@@ -39,6 +39,10 @@
 # Ignore missing Play Core classes (not using deferred components)
 -dontwarn com.google.android.play.core.**
 
+# Keep ML Kit (Object Detection, Image Labeling, etc.)
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_** { *; }
+
 # Ignore missing ML Kit language-specific classes
 -dontwarn com.google.mlkit.vision.text.chinese.**
 -dontwarn com.google.mlkit.vision.text.devanagari.**

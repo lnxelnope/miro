@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Bạn có thể đổi gói thông qua quản lý đăng ký Google Play. Gói mới sẽ được áp dụng vào chu kỳ thanh toán tiếp theo.",
   "subscriptionChangePlanDescIos": "Bạn có thể nâng cấp hoặc hạ cấp gói thông qua quản lý đăng ký App Store.",
   "subscriptionCurrentPlan": "HIỆN TẠI",
-  "subscriptionChangePlanButton": "Đổi"
+  "subscriptionChangePlanButton": "Đổi",
+  "energyStoreTitle": "Cửa hàng Năng lượng",
+  "energyPackages": "Gói Năng lượng",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "GIÁ TRỊ TỐT NHẤT",
+  "energyBadgePopular": "PHỔ BIẾN",
+  "energyBadgeBonus10": "+10% thưởng",
+  "energyPassUnlimitedAI": "Phân tích AI không giới hạn",
+  "energyPassUnlimitedFromPrice": "Phân tích AI không giới hạn • từ {price}/tháng",
+  "energyPassActive": "ĐANG HOẠT ĐỘNG",
+  "subscriptionDeal": "Ưu đãi đăng ký",
+  "subscriptionViewDeal": "Xem ưu đãi",
+  "subscriptionSubscribe": "Đăng ký",
+  "subscriptionAutoRenewTermsIos": "Thanh toán sẽ được tính vào tài khoản Apple ID của bạn khi xác nhận mua. Đăng ký tự động gia hạn trừ khi bị hủy ít nhất 24 giờ trước khi kết thúc kỳ hiện tại. Bạn có thể quản lý đăng ký trong cài đặt tài khoản App Store.",
+  "subscriptionBestValue": "GIÁ TRỊ TỐT NHẤT",
+  "subscriptionAutoRenew": "Tự động gia hạn",
+  "subscriptionAutoRenewOn": "Bật",
+  "subscriptionAutoRenewOff": "Tắt — hết hạn khi hết kỳ",
+  "subscriptionManagedByAppStore": "Đăng ký được quản lý qua App Store",
+  "subscriptionManagedByPlayStore": "Đăng ký được quản lý qua Google Play",
+  "subscriptionCannotLoadPrices": "Không thể tải giá từ Store lúc này",
+  "subscriptionPlanWeeklyName": "Energy Pass Hàng tuần",
+  "subscriptionPlanMonthlyName": "Energy Pass Hàng tháng",
+  "subscriptionPlanYearlyName": "Energy Pass Hàng năm",
+  "subscriptionPlanWeeklyDesc": "Đăng ký hàng tuần",
+  "subscriptionPlanMonthlyDesc": "Phân tích AI không giới hạn",
+  "subscriptionPlanYearlyDesc": "Giá trị tốt nhất — tiết kiệm 81%",
+  "subscriptionPeriodWeek": "tuần",
+  "subscriptionPeriodMonth": "tháng",
+  "subscriptionPeriodYear": "năm",
+  "subscriptionBenefitUnlimitedAI": "Phân tích AI không giới hạn",
+  "subscriptionBenefitExclusiveBadge": "Huy hiệu độc quyền",
+  "subscriptionBenefitPrioritySupport": "Hỗ trợ ưu tiên",
+  "subscriptionSavePercent": "Tiết kiệm 81% — {price}/tháng",
+  "subscriptionYearlySavingsVsMonthly": "Tiết kiệm {percent}% — {price}/tháng",
+  "subscriptionStatusActive": "Đang hoạt động",
+  "subscriptionStatusCancelled": "Đã hủy",
+  "subscriptionStatusExpired": "Đã hết hạn",
+  "subscriptionStatusGracePeriod": "Thời gian gia hạn",
+  "subscriptionStatusNone": "Chưa đăng ký",
+  "energyYourBalance": "Số dư năng lượng",
+  "energyLimitedTime": "THỜI GIAN CÓ HẠN",
+  "energyAmountLabel": "{amount} Năng lượng",
+  "energyClaiming": "Đang nhận...",
+  "energyDaysFreeAI": "{days} ngày AI miễn phí",
+  "energyBonusOnPurchases": "+{percent}% Thưởng cho mọi giao dịch!",
+  "energyBonusBreakdown": "{base} + {bonus} Thưởng = {total} Năng lượng",
+  "energyPromoBonusPercent": "Thưởng khuyến mãi: +{percent}%",
+  "energyTierBonusPercent": "Thưởng {tierName}: +{percent}%",
+  "energyAboutTitle": "Về Năng lượng",
+  "energyInfoAnalysis": "1 Năng lượng = 1 phân tích AI",
+  "energyInfoNeverExpires": "Năng lượng không bao giờ hết hạn",
+  "energyInfoOneTime": "Mua một lần, theo thiết bị",
+  "energyInfoManualFree": "Ghi chép thủ công luôn miễn phí",
+  "shareCardDailySummaryTitle": "Tổng kết hằng ngày",
+  "shareCardFiber": "Chất xơ",
+  "shareCardSugar": "Đường",
+  "shareCardSodium": "Natri",
+  "shareCardDayStreak": "Chuỗi {days} ngày",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} ngày",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

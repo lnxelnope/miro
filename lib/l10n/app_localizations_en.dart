@@ -1640,6 +1640,10 @@ class L10nEn extends L10n {
   String get cameraFailedToInitialize => 'Failed to initialize camera';
 
   @override
+  String get cameraPermissionDeniedMessage =>
+      'Camera permission was denied. Please enable camera access in Settings to use AR Scan.';
+
+  @override
   String get cameraFailedToCapture => 'Failed to capture photo';
 
   @override
@@ -1774,7 +1778,7 @@ class L10nEn extends L10n {
 
   @override
   String get tierBenefitsTip2 =>
-      'Diamond tier earns +4 Energy per day — that\'s 120/month!';
+      'Diamond tier earns +3 Energy per day — that\'s 90/month!';
 
   @override
   String get tierBenefitsTip3 =>
@@ -3854,7 +3858,7 @@ class L10nEn extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.';
+      'Please review how ArCal uses your data. Toggle each option, then tap Continue.';
 
   @override
   String get privacyConsentNotifTitle => 'Push Notifications';
@@ -3957,4 +3961,175 @@ class L10nEn extends L10n {
 
   @override
   String get arScanMoveToAngle => 'Tilt to next angle';
+
+  @override
+  String get subscriptionPlanWeeklyName => 'Energy Pass Weekly';
+
+  @override
+  String get subscriptionPlanMonthlyName => 'Energy Pass Monthly';
+
+  @override
+  String get subscriptionPlanYearlyName => 'Energy Pass Yearly';
+
+  @override
+  String get subscriptionPlanWeeklyDesc => 'Weekly subscription';
+
+  @override
+  String get subscriptionPlanMonthlyDesc => 'Unlimited AI analysis';
+
+  @override
+  String get subscriptionPlanYearlyDesc => 'Best value — save 81%';
+
+  @override
+  String get subscriptionPeriodWeek => 'week';
+
+  @override
+  String get subscriptionPeriodMonth => 'month';
+
+  @override
+  String get subscriptionPeriodYear => 'year';
+
+  @override
+  String get subscriptionBenefitUnlimitedAI => 'Unlimited AI Analysis';
+
+  @override
+  String get subscriptionBenefitExclusiveBadge => 'Exclusive Badge';
+
+  @override
+  String get subscriptionBenefitPrioritySupport => 'Priority Support';
+
+  @override
+  String subscriptionSavePercent(String price) {
+    return 'Save 81% — $price/month';
+  }
+
+  @override
+  String subscriptionYearlySavingsVsMonthly(int percent, String price) {
+    return 'Save $percent% — $price/month';
+  }
+
+  @override
+  String get subscriptionStatusActive => 'Active';
+
+  @override
+  String get subscriptionStatusCancelled => 'Cancelled';
+
+  @override
+  String get subscriptionStatusExpired => 'Expired';
+
+  @override
+  String get subscriptionStatusGracePeriod => 'Grace Period';
+
+  @override
+  String get subscriptionStatusNone => 'Not Subscribed';
+
+  @override
+  String get energyYourBalance => 'Your Energy Balance';
+
+  @override
+  String get energyLimitedTime => 'LIMITED TIME';
+
+  @override
+  String energyAmountLabel(int amount) {
+    return '$amount Energy';
+  }
+
+  @override
+  String get energyClaiming => 'Claiming...';
+
+  @override
+  String energyDaysFreeAI(int days) {
+    return '$days days free AI';
+  }
+
+  @override
+  String energyBonusOnPurchases(int percent) {
+    return '+$percent% Bonus on all purchases!';
+  }
+
+  @override
+  String energyBonusBreakdown(int base, int bonus, int total) {
+    return '$base + $bonus Bonus = $total Energy';
+  }
+
+  @override
+  String energyPromoBonusPercent(int percent) {
+    return 'Promo Bonus: +$percent%';
+  }
+
+  @override
+  String energyTierBonusPercent(String tierName, int percent) {
+    return '$tierName Bonus: +$percent%';
+  }
+
+  @override
+  String get energyAboutTitle => 'About Energy';
+
+  @override
+  String get energyInfoAnalysis => '1 Energy = 1 AI analysis';
+
+  @override
+  String get energyInfoNeverExpires => 'Energy never expires';
+
+  @override
+  String get energyInfoOneTime => 'One-time purchase, per device';
+
+  @override
+  String get energyInfoManualFree => 'Manual logging is always free';
+
+  @override
+  String get shareCard => 'Share Card';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get saveToGallery => 'Save';
+
+  @override
+  String get savedToGallery => 'Saved to gallery';
+
+  @override
+  String get saveFailed => 'Failed to save';
+
+  @override
+  String get macros => 'Macros';
+
+  @override
+  String get micronutrients => 'Micronutrients';
+
+  @override
+  String get shareNoImageSelected => 'No image selected yet';
+
+  @override
+  String get shareImageSelected => 'Image selected';
+
+  @override
+  String get shareSelectImageRequired =>
+      'Please select an image before sharing';
+
+  @override
+  String get shareCardDailySummaryTitle => 'Daily Summary';
+
+  @override
+  String get shareCardFiber => 'Fiber';
+
+  @override
+  String get shareCardSugar => 'Sugar';
+
+  @override
+  String get shareCardSodium => 'Sodium';
+
+  @override
+  String shareCardDayStreak(int days) {
+    return '$days day streak';
+  }
+
+  @override
+  String shareCardDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get shareCardShowBoundingBox => 'Show bounding box';
 }

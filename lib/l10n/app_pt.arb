@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Você pode alterar seu plano através do gerenciamento de assinaturas do Google Play. O novo plano será aplicado no próximo ciclo de cobrança.",
   "subscriptionChangePlanDescIos": "Você pode fazer upgrade ou downgrade do seu plano através do gerenciamento de assinaturas da App Store.",
   "subscriptionCurrentPlan": "ATUAL",
-  "subscriptionChangePlanButton": "Alterar"
+  "subscriptionChangePlanButton": "Alterar",
+  "energyStoreTitle": "Loja de Energia",
+  "energyPackages": "Pacotes de Energia",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "MELHOR VALOR",
+  "energyBadgePopular": "POPULAR",
+  "energyBadgeBonus10": "+10% bónus",
+  "energyPassUnlimitedAI": "Análise de IA ilimitada",
+  "energyPassUnlimitedFromPrice": "Análise de IA ilimitada • a partir de {price}/mês",
+  "energyPassActive": "ATIVO",
+  "subscriptionDeal": "Oferta de assinatura",
+  "subscriptionViewDeal": "Ver oferta",
+  "subscriptionSubscribe": "Assinar",
+  "subscriptionAutoRenewTermsIos": "O pagamento será cobrado na sua conta Apple ID na confirmação da compra. A assinatura é renovada automaticamente, a menos que seja cancelada pelo menos 24 horas antes do final do período atual. Pode gerir as suas assinaturas nas definições da conta App Store.",
+  "subscriptionBestValue": "MELHOR VALOR",
+  "subscriptionAutoRenew": "Renovação automática",
+  "subscriptionAutoRenewOn": "Ativada",
+  "subscriptionAutoRenewOff": "Desativada — expira no final do período",
+  "subscriptionManagedByAppStore": "Assinatura gerida através da App Store",
+  "subscriptionManagedByPlayStore": "Assinatura gerida através do Google Play",
+  "subscriptionCannotLoadPrices": "Não é possível carregar preços da loja neste momento",
+  "subscriptionPlanWeeklyName": "Energy Pass Semanal",
+  "subscriptionPlanMonthlyName": "Energy Pass Mensal",
+  "subscriptionPlanYearlyName": "Energy Pass Anual",
+  "subscriptionPlanWeeklyDesc": "Assinatura semanal",
+  "subscriptionPlanMonthlyDesc": "Análise de IA ilimitada",
+  "subscriptionPlanYearlyDesc": "Melhor valor — poupe 81%",
+  "subscriptionPeriodWeek": "semana",
+  "subscriptionPeriodMonth": "mês",
+  "subscriptionPeriodYear": "ano",
+  "subscriptionBenefitUnlimitedAI": "Análise de IA ilimitada",
+  "subscriptionBenefitExclusiveBadge": "Distintivo exclusivo",
+  "subscriptionBenefitPrioritySupport": "Suporte prioritário",
+  "subscriptionSavePercent": "Poupe 81% — {price}/mês",
+  "subscriptionYearlySavingsVsMonthly": "Poupe {percent}% — {price}/mês",
+  "subscriptionStatusActive": "Ativo",
+  "subscriptionStatusCancelled": "Cancelado",
+  "subscriptionStatusExpired": "Expirado",
+  "subscriptionStatusGracePeriod": "Período de carência",
+  "subscriptionStatusNone": "Não assinante",
+  "energyYourBalance": "Seu saldo de energia",
+  "energyLimitedTime": "TEMPO LIMITADO",
+  "energyAmountLabel": "{amount} Energia",
+  "energyClaiming": "Resgatando...",
+  "energyDaysFreeAI": "{days} dias de IA grátis",
+  "energyBonusOnPurchases": "+{percent}% Bónus em todas as compras!",
+  "energyBonusBreakdown": "{base} + {bonus} Bónus = {total} Energia",
+  "energyPromoBonusPercent": "Bónus promo: +{percent}%",
+  "energyTierBonusPercent": "Bónus {tierName}: +{percent}%",
+  "energyAboutTitle": "Sobre Energia",
+  "energyInfoAnalysis": "1 Energia = 1 análise de IA",
+  "energyInfoNeverExpires": "A energia nunca expira",
+  "energyInfoOneTime": "Compra única, por dispositivo",
+  "energyInfoManualFree": "O registo manual é sempre gratuito",
+  "shareCardDailySummaryTitle": "Resumo Diário",
+  "shareCardFiber": "Fibra",
+  "shareCardSugar": "Açúcar",
+  "shareCardSodium": "Sódio",
+  "shareCardDayStreak": "Sequência de {days} dias",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} dias",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

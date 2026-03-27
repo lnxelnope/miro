@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Settings,
 } from 'lucide-react';
+import { StoreOutboundLink } from '@/components/StoreOutboundLink';
+import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/storeUrls';
 
 export const metadata: Metadata = {
   title: 'Support — MiRO',
@@ -228,26 +230,24 @@ export default function SupportPage() {
       <section className="py-12">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="glass-card p-8 text-center">
-            <h2 className="mb-2 text-xl font-bold">MiRO — My Intake Record Oracle</h2>
+            <h2 className="mb-2 text-xl font-bold">ArCal — AI Calorie Counter</h2>
             <p className="text-sm text-gray-400">
               Available on{' '}
-              <a
-                href="https://play.google.com/store/apps/details?id=com.tanabun.miro"
+              <StoreOutboundLink
+                href={PLAY_STORE_URL}
+                store="google_play"
                 className="text-brand-400 underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Google Play
-              </a>{' '}
+              </StoreOutboundLink>{' '}
               and{' '}
-              <a
-                href="https://apps.apple.com/app/miro-my-intake-record-oracle/id6745498101"
+              <StoreOutboundLink
+                href={APP_STORE_URL}
+                store="apple_app_store"
                 className="text-brand-400 underline"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 App Store
-              </a>
+              </StoreOutboundLink>
             </p>
             <p className="mt-4 text-xs text-gray-500">
               Published by TNB Group &middot; lnxelnope@gmail.com

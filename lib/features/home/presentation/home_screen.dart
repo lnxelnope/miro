@@ -380,15 +380,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final permService = PermissionService();
     final hasPermission = await permService.hasCameraPermission();
     if (!hasPermission) {
-      final granted = await permService.requestCameraPermission();
-      if (!granted) {
+      final result = await permService.requestCameraPermissionDetailed();
+
+      if (!result.granted) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(L10n.of(context)!.cameraFailedToInitialize),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+
+        // iOS: permanentlyDenied → ต้องไปเปิดใน Settings เอง
+        if (result.permanentlyDenied) {
+          final l10n = L10n.of(context)!;
+          final goSettings = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(l10n.cameraFailedToInitialize),
+              content: Text(l10n.cameraPermissionDeniedMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(l10n.openSettings),
+                ),
+              ],
+            ),
+          );
+          if (goSettings == true) {
+            await permService.openSettings();
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(L10n.of(context)!.cameraFailedToInitialize),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
         return;
       }
     }

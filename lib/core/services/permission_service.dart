@@ -59,7 +59,21 @@ class PermissionService {
   /// return true = ได้รับอนุญาต, false = ไม่ได้รับอนุญาต
   Future<bool> requestCameraPermission() async {
     final status = await Permission.camera.request();
+    AppLogger.info('requestCameraPermission() status: ${status.name}');
     return status.isGranted;
+  }
+
+  /// ขอ permission กล้อง พร้อมบอกว่าถูก denied ถาวรหรือไม่
+  /// iOS: status return `denied` ก่อน request, แต่ request() return
+  /// `permanentlyDenied` ถ้า user เคยกด "Don't Allow" → ต้องเช็คหลัง request
+  Future<({bool granted, bool permanentlyDenied})>
+      requestCameraPermissionDetailed() async {
+    final status = await Permission.camera.request();
+    AppLogger.info('requestCameraPermissionDetailed() status: ${status.name}');
+    return (
+      granted: status.isGranted,
+      permanentlyDenied: status.isPermanentlyDenied || status.isRestricted,
+    );
   }
 
   /// ขอ permission เข้าถึง Calendar
@@ -121,6 +135,7 @@ class PermissionService {
   /// ตรวจสอบว่ามี Camera permission หรือยัง
   Future<bool> hasCameraPermission() async {
     final status = await Permission.camera.status;
+    AppLogger.info('hasCameraPermission() status: ${status.name}');
     return status.isGranted;
   }
 

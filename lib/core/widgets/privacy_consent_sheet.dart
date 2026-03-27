@@ -16,8 +16,6 @@ import 'package:miro_hybrid/l10n/app_localizations.dart';
 /// - Push Notifications
 /// - Analytics (Firebase)
 /// - Food Research (optional)
-///
-/// User must scroll to the bottom before the "Allow All" button is enabled.
 class PrivacyConsentSheet extends StatefulWidget {
   const PrivacyConsentSheet({super.key});
 
@@ -55,46 +53,10 @@ class PrivacyConsentSheet extends StatefulWidget {
   State<PrivacyConsentSheet> createState() => _PrivacyConsentSheetState();
 }
 
-class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
-    with SingleTickerProviderStateMixin {
-  final ScrollController _scrollController = ScrollController();
-  bool _hasScrolledToBottom = false;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
+class _PrivacyConsentSheetState extends State<PrivacyConsentSheet> {
   bool _notificationsEnabled = true;
   bool _analyticsEnabled = true;
   bool _foodResearchEnabled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_hasScrolledToBottom) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.position.pixels;
-    if (currentScroll >= maxScroll - 20) {
-      setState(() => _hasScrolledToBottom = true);
-      _pulseController.stop();
-    }
-  }
 
   Future<void> _openPrivacyPolicy() async {
     const url = 'https://lnxelnope.github.io/arcal/privacy-policy.html';
@@ -104,7 +66,7 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
     }
   }
 
-  Future<void> _handleAllowAll() async {
+  Future<void> _handleContinue() async {
     // 1. Notifications
     if (_notificationsEnabled) {
       try {
@@ -230,155 +192,140 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
 
           // Scrollable content
           Expanded(
-            child: Stack(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xxl,
+                vertical: AppSpacing.sm,
+              ),
               children: [
-                ListView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xxl,
-                    vertical: AppSpacing.sm,
-                  ),
-                  children: [
-                    // --- Notifications ---
-                    _buildSection(
-                      icon: Icons.notifications_outlined,
-                      iconColor: AppColors.warning,
-                      title: l10n.privacyConsentNotifTitle,
-                      description: l10n.privacyConsentNotifDesc,
-                      bullets: [
-                        l10n.privacyConsentNotifBullet1,
-                        l10n.privacyConsentNotifBullet2,
-                        l10n.privacyConsentNotifBullet3,
-                      ],
-                      value: _notificationsEnabled,
-                      onChanged: (v) =>
-                          setState(() => _notificationsEnabled = v),
-                      isDark: isDark,
-                    ),
-
-                    _buildDivider(isDark),
-
-                    // --- Analytics ---
-                    _buildSection(
-                      icon: Icons.analytics_outlined,
-                      iconColor: AppColors.success,
-                      title: l10n.consentAnalyticsSection,
-                      description: l10n.consentAnalyticsDescription,
-                      bullets: [
-                        l10n.consentAnalyticsCollect,
-                        l10n.consentAnalyticsNotCollect,
-                        l10n.consentAnalyticsAnonymous,
-                      ],
-                      value: _analyticsEnabled,
-                      onChanged: (v) =>
-                          setState(() => _analyticsEnabled = v),
-                      isDark: isDark,
-                    ),
-
-                    _buildDivider(isDark),
-
-                    // --- Food Research ---
-                    _buildSection(
-                      icon: Icons.science_outlined,
-                      iconColor: AppColors.premium,
-                      title: l10n.consentFoodResearchSection,
-                      description: l10n.privacyConsentResearchDesc,
-                      bullets: [
-                        l10n.privacyConsentResearchBullet1,
-                        l10n.privacyConsentResearchBullet2,
-                      ],
-                      value: _foodResearchEnabled,
-                      onChanged: (v) =>
-                          setState(() => _foodResearchEnabled = v),
-                      isDark: isDark,
-                      isOptional: true,
-                    ),
-
-                    const SizedBox(height: AppSpacing.lg),
-
-                    // --- Health info note ---
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : AppColors.primary.withValues(alpha: 0.05),
-                        borderRadius: AppRadius.md,
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white12
-                              : AppColors.primary.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.favorite_outline,
-                              size: 20,
-                              color: isDark
-                                  ? Colors.redAccent.shade100
-                                  : Colors.redAccent),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              l10n.privacyConsentHealthNote,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                color: isDark
-                                    ? Colors.white60
-                                    : AppColors.textSecondary,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: AppSpacing.md),
-
-                    // --- Privacy Policy link + change notice ---
-                    Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            l10n.consentChangeAnytime,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? Colors.white38
-                                  : AppColors.textTertiary,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xs),
-                          GestureDetector(
-                            onTap: _openPrivacyPolicy,
-                            child: Text(
-                              l10n.privacyConsentReadPolicy,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: theme.colorScheme.primary,
-                                decoration: TextDecoration.underline,
-                                decorationColor: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Extra padding at bottom for scroll detection
-                    const SizedBox(height: AppSpacing.xxxl),
+                // --- Notifications ---
+                _buildSection(
+                  icon: Icons.notifications_outlined,
+                  iconColor: AppColors.warning,
+                  title: l10n.privacyConsentNotifTitle,
+                  description: l10n.privacyConsentNotifDesc,
+                  bullets: [
+                    l10n.privacyConsentNotifBullet1,
+                    l10n.privacyConsentNotifBullet2,
+                    l10n.privacyConsentNotifBullet3,
                   ],
+                  value: _notificationsEnabled,
+                  onChanged: (v) =>
+                      setState(() => _notificationsEnabled = v),
+                  isDark: isDark,
                 ),
 
-                // Scroll-down indicator (fades out once scrolled)
-                if (!_hasScrolledToBottom)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildScrollIndicator(isDark, l10n),
+                _buildDivider(isDark),
+
+                // --- Analytics ---
+                _buildSection(
+                  icon: Icons.analytics_outlined,
+                  iconColor: AppColors.success,
+                  title: l10n.consentAnalyticsSection,
+                  description: l10n.consentAnalyticsDescription,
+                  bullets: [
+                    l10n.consentAnalyticsCollect,
+                    l10n.consentAnalyticsNotCollect,
+                    l10n.consentAnalyticsAnonymous,
+                  ],
+                  value: _analyticsEnabled,
+                  onChanged: (v) =>
+                      setState(() => _analyticsEnabled = v),
+                  isDark: isDark,
+                ),
+
+                _buildDivider(isDark),
+
+                // --- Food Research ---
+                _buildSection(
+                  icon: Icons.science_outlined,
+                  iconColor: AppColors.premium,
+                  title: l10n.consentFoodResearchSection,
+                  description: l10n.privacyConsentResearchDesc,
+                  bullets: [
+                    l10n.privacyConsentResearchBullet1,
+                    l10n.privacyConsentResearchBullet2,
+                  ],
+                  value: _foodResearchEnabled,
+                  onChanged: (v) =>
+                      setState(() => _foodResearchEnabled = v),
+                  isDark: isDark,
+                  isOptional: true,
+                ),
+
+                const SizedBox(height: AppSpacing.lg),
+
+                // --- Health info note ---
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : AppColors.primary.withValues(alpha: 0.05),
+                    borderRadius: AppRadius.md,
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white12
+                          : AppColors.primary.withValues(alpha: 0.15),
+                    ),
                   ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.favorite_outline,
+                          size: 20,
+                          color: isDark
+                              ? Colors.redAccent.shade100
+                              : Colors.redAccent),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          l10n.privacyConsentHealthNote,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: isDark
+                                ? Colors.white60
+                                : AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Privacy Policy link + change notice ---
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        l10n.consentChangeAnytime,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? Colors.white38
+                              : AppColors.textTertiary,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      GestureDetector(
+                        onTap: _openPrivacyPolicy,
+                        child: Text(
+                          l10n.privacyConsentReadPolicy,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: theme.colorScheme.primary,
+                            decoration: TextDecoration.underline,
+                            decorationColor: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),
@@ -404,27 +351,21 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
             child: SizedBox(
               width: double.infinity,
               height: AppSizes.buttonLarge,
-              child: AnimatedOpacity(
-                duration: AppDurations.normal,
-                opacity: _hasScrolledToBottom ? 1.0 : 0.4,
-                child: FilledButton(
-                  onPressed: _hasScrolledToBottom ? _handleAllowAll : null,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppRadius.md,
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                    ),
+              child: FilledButton(
+                onPressed: _handleContinue,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.md,
                   ),
-                  child: Text(_hasScrolledToBottom
-                      ? l10n.privacyConsentAccept
-                      : l10n.unifiedPermissionsScrollToEnable),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                  ),
                 ),
+                child: Text(l10n.privacyConsentAccept),
               ),
             ),
           ),
@@ -575,56 +516,6 @@ class _PrivacyConsentSheetState extends State<PrivacyConsentSheet>
       child: Divider(
         color: isDark ? Colors.white10 : Colors.grey.shade200,
         height: 1,
-      ),
-    );
-  }
-
-  Widget _buildScrollIndicator(bool isDark, L10n l10n) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            (isDark ? const Color(0xFF1C1C1E) : Colors.white)
-                .withValues(alpha: 0),
-            isDark ? const Color(0xFF1C1C1E) : Colors.white,
-          ],
-        ),
-      ),
-      padding: const EdgeInsets.only(
-        top: AppSpacing.xxxl,
-        bottom: AppSpacing.sm,
-      ),
-      child: Center(
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _pulseAnimation.value,
-              child: child,
-            );
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.keyboard_double_arrow_down_rounded,
-                size: 22,
-                color: isDark ? Colors.white38 : AppColors.textTertiary,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                l10n.unifiedPermissionsScrollHint,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  color: isDark ? Colors.white30 : AppColors.textTertiary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

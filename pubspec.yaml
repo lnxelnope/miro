@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "ArCal - AI Calorie Counter"
 publish_to: 'none'
-version: 1.2.6+68
+version: 1.2.7+74
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -97,6 +97,9 @@ dependencies:
   # Health Integration (Apple HealthKit + Google Health Connect)
   health: ^13.3.1
   firebase_storage: ^12.4.10
+
+  # Share Card (Viral Marketing)
+  qr_flutter: ^4.1.0
 
   path: any
 dev_dependencies:

@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "आप Google Play सब्सक्रिप्शन प्रबंधन से अपना प्लान बदल सकते हैं। नया प्लान अगले बिलिंग चक्र से लागू होगा।",
   "subscriptionChangePlanDescIos": "आप App Store सब्सक्रिप्शन प्रबंधन से अपने प्लान को अपग्रेड या डाउनग्रेड कर सकते हैं।",
   "subscriptionCurrentPlan": "वर्तमान",
-  "subscriptionChangePlanButton": "बदलें"
+  "subscriptionChangePlanButton": "बदलें",
+  "energyStoreTitle": "ऊर्जा स्टोर",
+  "energyPackages": "ऊर्जा पैकेज",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "सर्वोत्तम मूल्य",
+  "energyBadgePopular": "लोकप्रिय",
+  "energyBadgeBonus10": "+10% बोनस",
+  "energyPassUnlimitedAI": "असीमित AI विश्लेषण",
+  "energyPassUnlimitedFromPrice": "असीमित AI विश्लेषण • {price}/माह से",
+  "energyPassActive": "सक्रिय",
+  "subscriptionDeal": "सदस्यता ऑफ़र",
+  "subscriptionViewDeal": "ऑफ़र देखें",
+  "subscriptionSubscribe": "सदस्यता लें",
+  "subscriptionAutoRenewTermsIos": "खरीदारी की पुष्टि पर भुगतान आपके Apple ID खाते से लिया जाएगा। सदस्यता स्वचालित रूप से नवीनीकृत होती है जब तक कि वर्तमान अवधि समाप्त होने से कम से कम 24 घंटे पहले इसे रद्द नहीं किया जाता। आप अपने App Store खाता सेटिंग्स में अपनी सदस्यता प्रबंधित कर सकते हैं।",
+  "subscriptionBestValue": "सर्वोत्तम मूल्य",
+  "subscriptionAutoRenew": "ऑटो-नवीनीकरण",
+  "subscriptionAutoRenewOn": "चालू",
+  "subscriptionAutoRenewOff": "बंद — अवधि के अंत में समाप्त",
+  "subscriptionManagedByAppStore": "सदस्यता App Store के माध्यम से प्रबंधित है",
+  "subscriptionManagedByPlayStore": "सदस्यता Google Play के माध्यम से प्रबंधित है",
+  "subscriptionCannotLoadPrices": "अभी Store से कीमतें लोड नहीं हो पा रही हैं",
+  "subscriptionPlanWeeklyName": "Energy Pass साप्ताहिक",
+  "subscriptionPlanMonthlyName": "Energy Pass मासिक",
+  "subscriptionPlanYearlyName": "Energy Pass वार्षिक",
+  "subscriptionPlanWeeklyDesc": "साप्ताहिक सदस्यता",
+  "subscriptionPlanMonthlyDesc": "असीमित AI विश्लेषण",
+  "subscriptionPlanYearlyDesc": "सर्वोत्तम मूल्य — 81% बचत",
+  "subscriptionPeriodWeek": "सप्ताह",
+  "subscriptionPeriodMonth": "माह",
+  "subscriptionPeriodYear": "वर्ष",
+  "subscriptionBenefitUnlimitedAI": "असीमित AI विश्लेषण",
+  "subscriptionBenefitExclusiveBadge": "विशेष बैज",
+  "subscriptionBenefitPrioritySupport": "प्राथमिकता सहायता",
+  "subscriptionSavePercent": "81% बचत — {price}/माह",
+  "subscriptionYearlySavingsVsMonthly": "{percent}% बचत — {price}/माह",
+  "subscriptionStatusActive": "सक्रिय",
+  "subscriptionStatusCancelled": "रद्द",
+  "subscriptionStatusExpired": "समाप्त",
+  "subscriptionStatusGracePeriod": "अनुग्रह अवधि",
+  "subscriptionStatusNone": "सदस्यता नहीं",
+  "energyYourBalance": "आपका ऊर्जा शेष",
+  "energyLimitedTime": "सीमित समय",
+  "energyAmountLabel": "{amount} ऊर्जा",
+  "energyClaiming": "प्राप्त कर रहे हैं...",
+  "energyDaysFreeAI": "{days} दिन मुफ़्त AI",
+  "energyBonusOnPurchases": "+{percent}% सभी खरीदारी पर बोनस!",
+  "energyBonusBreakdown": "{base} + {bonus} बोनस = {total} ऊर्जा",
+  "energyPromoBonusPercent": "प्रोमो बोनस: +{percent}%",
+  "energyTierBonusPercent": "{tierName} बोनस: +{percent}%",
+  "energyAboutTitle": "ऊर्जा के बारे में",
+  "energyInfoAnalysis": "1 ऊर्जा = 1 AI विश्लेषण",
+  "energyInfoNeverExpires": "ऊर्जा कभी समाप्त नहीं होती",
+  "energyInfoOneTime": "एक बार खरीदें, प्रति उपकरण",
+  "energyInfoManualFree": "मैनुअल लॉगिंग हमेशा मुफ़्त है",
+  "shareCardDailySummaryTitle": "दैनिक सारांश",
+  "shareCardFiber": "फाइबर",
+  "shareCardSugar": "चीनी",
+  "shareCardSodium": "सोडियम",
+  "shareCardDayStreak": "{days} दिन की स्ट्रीक",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} दिन",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -1251,6 +1251,7 @@
 
   "cameraTakePhotoOfFood": "ถ่ายรูปอาหารของคุณ",
   "cameraFailedToInitialize": "ไม่สามารถเริ่มต้นกล้องได้",
+  "cameraPermissionDeniedMessage": "สิทธิ์ใช้งานกล้องถูกปฏิเสธ กรุณาเปิดสิทธิ์กล้องในการตั้งค่าเพื่อใช้ AR Scan",
   "cameraFailedToCapture": "ถ่ายรูปไม่สำเร็จ",
   "cameraFailedToPickFromGallery": "ไม่สามารถเลือกรูปจากแกลเลอรีได้",
   "cameraProcessing": "กำลังประมวลผล...",
@@ -1301,7 +1302,7 @@
   "tierBenefitsDailyCheckIn": "เช็คอินรายวัน",
   "tierBenefitsProTips": "เคล็ดลับ",
   "tierBenefitsTip1": "ใช้ AI ทุกวันเพื่อรับพลังงานฟรีและสร้าง streak",
-  "tierBenefitsTip2": "Tier Diamond ได้รับ +4 พลังงานต่อวัน — นั่นคือ 120/เดือน!",
+  "tierBenefitsTip2": "Tier Diamond ได้รับ +3 พลังงานต่อวัน — นั่นคือ 90/เดือน!",
   "tierBenefitsTip3": "โบนัสการซื้อใช้ได้กับแพ็คเกจพลังงานทั้งหมด!",
   "tierBenefitsTip4": "ช่วงเวลาพิเศษปกป้อง streak ของคุณหากพลาดวัน",
 
@@ -2189,7 +2190,7 @@
   "unifiedPermissionsHealthDesc": "เปิดใน Settings เพื่อซิงค์แคลอรี่กับ Apple Health / Health Connect",
 
   "privacyConsentTitle": "ความเป็นส่วนตัวของคุณสำคัญ",
-  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ",
+  "privacyConsentSubtitle": "กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือก แล้วกดดำเนินการต่อ",
   "privacyConsentNotifTitle": "การแจ้งเตือน",
   "privacyConsentNotifDesc": "รับการแจ้งเตือนและอัปเดตที่เป็นประโยชน์เกี่ยวกับการติดตามโภชนาการ",
   "privacyConsentNotifBullet1": "แจ้งเตือนบันทึกมื้ออาหารรายวัน",
@@ -2235,5 +2236,73 @@
   "arScanAngleProgress": "{current}/{total}",
   "arScanAngleCaptured": "ถ่ายมุม{zone}แล้ว ({current}/{total})",
   "arScanTapToCapture": "แตะจอเพื่อถ่ายภาพ",
-  "arScanMoveToAngle": "เอียงไปมุมถัดไป"
+  "arScanMoveToAngle": "เอียงไปมุมถัดไป",
+
+  "subscriptionPlanWeeklyName": "Energy Pass รายสัปดาห์",
+  "subscriptionPlanMonthlyName": "Energy Pass รายเดือน",
+  "subscriptionPlanYearlyName": "Energy Pass รายปี",
+  "subscriptionPlanWeeklyDesc": "สมัครรายสัปดาห์",
+  "subscriptionPlanMonthlyDesc": "วิเคราะห์อาหารด้วย AI ไม่จำกัด",
+  "subscriptionPlanYearlyDesc": "คุ้มที่สุด — ประหยัด 81%",
+  "subscriptionPeriodWeek": "สัปดาห์",
+  "subscriptionPeriodMonth": "เดือน",
+  "subscriptionPeriodYear": "ปี",
+  "subscriptionBenefitUnlimitedAI": "วิเคราะห์ AI ไม่จำกัด",
+  "subscriptionBenefitExclusiveBadge": "แบดจ์พิเศษ",
+  "subscriptionBenefitPrioritySupport": "สนับสนุนเร่งด่วน",
+  "subscriptionSavePercent": "ประหยัด 81% — {price}/เดือน",
+  "subscriptionYearlySavingsVsMonthly": "ประหยัด {percent}% — {price}/เดือน",
+
+  "subscriptionStatusActive": "ใช้งานอยู่",
+  "subscriptionStatusCancelled": "ยกเลิกแล้ว",
+  "subscriptionStatusExpired": "หมดอายุแล้ว",
+  "subscriptionStatusGracePeriod": "ช่วงผ่อนผัน",
+  "subscriptionStatusNone": "ไม่ได้สมัครสมาชิก",
+
+  "energyYourBalance": "พลังงานคงเหลือ",
+  "energyLimitedTime": "เวลาจำกัด",
+  "energyAmountLabel": "{amount} พลังงาน",
+  "energyClaiming": "กำลังรับ...",
+  "energyDaysFreeAI": "{days} วัน AI ฟรี",
+  "energyBonusOnPurchases": "+{percent}% โบนัสทุกการซื้อ!",
+  "energyBonusBreakdown": "{base} + {bonus} โบนัส = {total} พลังงาน",
+  "energyPromoBonusPercent": "โปรโมชันโบนัส: +{percent}%",
+  "energyTierBonusPercent": "โบนัส {tierName}: +{percent}%",
+  "energyAboutTitle": "เกี่ยวกับพลังงาน",
+  "energyInfoAnalysis": "1 พลังงาน = 1 การวิเคราะห์ AI",
+  "energyInfoNeverExpires": "พลังงานไม่มีวันหมดอายุ",
+  "energyInfoOneTime": "ซื้อครั้งเดียว ใช้ได้ต่ออุปกรณ์",
+  "energyInfoManualFree": "บันทึกด้วยตนเองฟรีเสมอ",
+
+  "shareCard": "แชร์การ์ด",
+  "share": "แชร์",
+  "saveToGallery": "บันทึก",
+  "savedToGallery": "บันทึกลง Gallery แล้ว",
+  "saveFailed": "บันทึกไม่สำเร็จ",
+  "macros": "สารอาหารหลัก",
+  "micronutrients": "สารอาหารรอง",
+  "shareNoImageSelected": "ยังไม่ได้เลือกรูป",
+  "shareImageSelected": "เลือกรูปแล้ว",
+  "shareSelectImageRequired": "กรุณาเลือกรูปก่อนแชร์",
+  "shareCardDailySummaryTitle": "สรุปรายวัน",
+  "shareCardFiber": "ไฟเบอร์",
+  "shareCardSugar": "น้ำตาล",
+  "shareCardSodium": "โซเดียม",
+  "shareCardDayStreak": "สตรีค {days} วัน",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} วัน",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardShowBoundingBox": "แสดงกรอบตรวจจับ"
 }

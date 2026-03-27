@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Puedes cambiar tu plan a través de la gestión de suscripciones de Google Play. El nuevo plan se aplicará en el próximo ciclo de facturación.",
   "subscriptionChangePlanDescIos": "Puedes mejorar o reducir tu plan a través de la gestión de suscripciones de App Store.",
   "subscriptionCurrentPlan": "ACTUAL",
-  "subscriptionChangePlanButton": "Cambiar"
+  "subscriptionChangePlanButton": "Cambiar",
+  "energyStoreTitle": "Tienda de Energía",
+  "energyPackages": "Paquetes de Energía",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "MEJOR VALOR",
+  "energyBadgePopular": "POPULAR",
+  "energyBadgeBonus10": "+10% bonus",
+  "energyPassUnlimitedAI": "Análisis de IA ilimitado",
+  "energyPassUnlimitedFromPrice": "Análisis de IA ilimitado • desde {price}/mes",
+  "energyPassActive": "ACTIVO",
+  "subscriptionDeal": "Oferta de suscripción",
+  "subscriptionViewDeal": "Ver oferta",
+  "subscriptionSubscribe": "Suscribirse",
+  "subscriptionAutoRenewTermsIos": "El pago se cargará a su cuenta de Apple ID al confirmar la compra. La suscripción se renueva automáticamente a menos que se cancele al menos 24 horas antes del final del período actual. Puede gestionar sus suscripciones en la configuración de su cuenta del App Store.",
+  "subscriptionBestValue": "MEJOR VALOR",
+  "subscriptionAutoRenew": "Renovación automática",
+  "subscriptionAutoRenewOn": "Activada",
+  "subscriptionAutoRenewOff": "Desactivada — expira al final del período",
+  "subscriptionManagedByAppStore": "Suscripción gestionada a través del App Store",
+  "subscriptionManagedByPlayStore": "Suscripción gestionada a través de Google Play",
+  "subscriptionCannotLoadPrices": "No se pueden cargar los precios de la tienda en este momento",
+  "subscriptionPlanWeeklyName": "Energy Pass Semanal",
+  "subscriptionPlanMonthlyName": "Energy Pass Mensual",
+  "subscriptionPlanYearlyName": "Energy Pass Anual",
+  "subscriptionPlanWeeklyDesc": "Suscripción semanal",
+  "subscriptionPlanMonthlyDesc": "Análisis de IA ilimitado",
+  "subscriptionPlanYearlyDesc": "Mejor valor — ahorra un 81%",
+  "subscriptionPeriodWeek": "semana",
+  "subscriptionPeriodMonth": "mes",
+  "subscriptionPeriodYear": "año",
+  "subscriptionBenefitUnlimitedAI": "Análisis de IA ilimitado",
+  "subscriptionBenefitExclusiveBadge": "Insignia exclusiva",
+  "subscriptionBenefitPrioritySupport": "Soporte prioritario",
+  "subscriptionSavePercent": "Ahorra 81% — {price}/mes",
+  "subscriptionYearlySavingsVsMonthly": "Ahorra {percent}% — {price}/mes",
+  "subscriptionStatusActive": "Activo",
+  "subscriptionStatusCancelled": "Cancelado",
+  "subscriptionStatusExpired": "Expirado",
+  "subscriptionStatusGracePeriod": "Período de gracia",
+  "subscriptionStatusNone": "No suscrito",
+  "energyYourBalance": "Tu saldo de energía",
+  "energyLimitedTime": "TIEMPO LIMITADO",
+  "energyAmountLabel": "{amount} Energía",
+  "energyClaiming": "Reclamando...",
+  "energyDaysFreeAI": "{days} días de IA gratis",
+  "energyBonusOnPurchases": "+{percent}% Bonus en todas las compras!",
+  "energyBonusBreakdown": "{base} + {bonus} Bonus = {total} Energía",
+  "energyPromoBonusPercent": "Bonus promo: +{percent}%",
+  "energyTierBonusPercent": "Bonus {tierName}: +{percent}%",
+  "energyAboutTitle": "Acerca de Energía",
+  "energyInfoAnalysis": "1 Energía = 1 análisis de IA",
+  "energyInfoNeverExpires": "La energía nunca expira",
+  "energyInfoOneTime": "Compra única, por dispositivo",
+  "energyInfoManualFree": "El registro manual siempre es gratis",
+  "shareCardDailySummaryTitle": "Resumen Diario",
+  "shareCardFiber": "Fibra",
+  "shareCardSugar": "Azúcar",
+  "shareCardSodium": "Sodio",
+  "shareCardDayStreak": "Racha de {days} días",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days} días",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

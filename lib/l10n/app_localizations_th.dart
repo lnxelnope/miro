@@ -1606,6 +1606,10 @@ class L10nTh extends L10n {
   String get cameraFailedToInitialize => 'ไม่สามารถเริ่มต้นกล้องได้';
 
   @override
+  String get cameraPermissionDeniedMessage =>
+      'สิทธิ์ใช้งานกล้องถูกปฏิเสธ กรุณาเปิดสิทธิ์กล้องในการตั้งค่าเพื่อใช้ AR Scan';
+
+  @override
   String get cameraFailedToCapture => 'ถ่ายรูปไม่สำเร็จ';
 
   @override
@@ -1740,7 +1744,7 @@ class L10nTh extends L10n {
 
   @override
   String get tierBenefitsTip2 =>
-      'Tier Diamond ได้รับ +4 พลังงานต่อวัน — นั่นคือ 120/เดือน!';
+      'Tier Diamond ได้รับ +3 พลังงานต่อวัน — นั่นคือ 90/เดือน!';
 
   @override
   String get tierBenefitsTip3 => 'โบนัสการซื้อใช้ได้กับแพ็คเกจพลังงานทั้งหมด!';
@@ -3795,7 +3799,7 @@ class L10nTh extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือกและเลื่อนลงจนสุดเพื่อดำเนินการต่อ';
+      'กรุณาตรวจสอบวิธีที่ ArCal ใช้ข้อมูลของคุณ เปิด-ปิดแต่ละตัวเลือก แล้วกดดำเนินการต่อ';
 
   @override
   String get privacyConsentNotifTitle => 'การแจ้งเตือน';
@@ -3895,4 +3899,174 @@ class L10nTh extends L10n {
 
   @override
   String get arScanMoveToAngle => 'เอียงไปมุมถัดไป';
+
+  @override
+  String get subscriptionPlanWeeklyName => 'Energy Pass รายสัปดาห์';
+
+  @override
+  String get subscriptionPlanMonthlyName => 'Energy Pass รายเดือน';
+
+  @override
+  String get subscriptionPlanYearlyName => 'Energy Pass รายปี';
+
+  @override
+  String get subscriptionPlanWeeklyDesc => 'สมัครรายสัปดาห์';
+
+  @override
+  String get subscriptionPlanMonthlyDesc => 'วิเคราะห์อาหารด้วย AI ไม่จำกัด';
+
+  @override
+  String get subscriptionPlanYearlyDesc => 'คุ้มที่สุด — ประหยัด 81%';
+
+  @override
+  String get subscriptionPeriodWeek => 'สัปดาห์';
+
+  @override
+  String get subscriptionPeriodMonth => 'เดือน';
+
+  @override
+  String get subscriptionPeriodYear => 'ปี';
+
+  @override
+  String get subscriptionBenefitUnlimitedAI => 'วิเคราะห์ AI ไม่จำกัด';
+
+  @override
+  String get subscriptionBenefitExclusiveBadge => 'แบดจ์พิเศษ';
+
+  @override
+  String get subscriptionBenefitPrioritySupport => 'สนับสนุนเร่งด่วน';
+
+  @override
+  String subscriptionSavePercent(String price) {
+    return 'ประหยัด 81% — $price/เดือน';
+  }
+
+  @override
+  String subscriptionYearlySavingsVsMonthly(int percent, String price) {
+    return 'ประหยัด $percent% — $price/เดือน';
+  }
+
+  @override
+  String get subscriptionStatusActive => 'ใช้งานอยู่';
+
+  @override
+  String get subscriptionStatusCancelled => 'ยกเลิกแล้ว';
+
+  @override
+  String get subscriptionStatusExpired => 'หมดอายุแล้ว';
+
+  @override
+  String get subscriptionStatusGracePeriod => 'ช่วงผ่อนผัน';
+
+  @override
+  String get subscriptionStatusNone => 'ไม่ได้สมัครสมาชิก';
+
+  @override
+  String get energyYourBalance => 'พลังงานคงเหลือ';
+
+  @override
+  String get energyLimitedTime => 'เวลาจำกัด';
+
+  @override
+  String energyAmountLabel(int amount) {
+    return '$amount พลังงาน';
+  }
+
+  @override
+  String get energyClaiming => 'กำลังรับ...';
+
+  @override
+  String energyDaysFreeAI(int days) {
+    return '$days วัน AI ฟรี';
+  }
+
+  @override
+  String energyBonusOnPurchases(int percent) {
+    return '+$percent% โบนัสทุกการซื้อ!';
+  }
+
+  @override
+  String energyBonusBreakdown(int base, int bonus, int total) {
+    return '$base + $bonus โบนัส = $total พลังงาน';
+  }
+
+  @override
+  String energyPromoBonusPercent(int percent) {
+    return 'โปรโมชันโบนัส: +$percent%';
+  }
+
+  @override
+  String energyTierBonusPercent(String tierName, int percent) {
+    return 'โบนัส $tierName: +$percent%';
+  }
+
+  @override
+  String get energyAboutTitle => 'เกี่ยวกับพลังงาน';
+
+  @override
+  String get energyInfoAnalysis => '1 พลังงาน = 1 การวิเคราะห์ AI';
+
+  @override
+  String get energyInfoNeverExpires => 'พลังงานไม่มีวันหมดอายุ';
+
+  @override
+  String get energyInfoOneTime => 'ซื้อครั้งเดียว ใช้ได้ต่ออุปกรณ์';
+
+  @override
+  String get energyInfoManualFree => 'บันทึกด้วยตนเองฟรีเสมอ';
+
+  @override
+  String get shareCard => 'แชร์การ์ด';
+
+  @override
+  String get share => 'แชร์';
+
+  @override
+  String get saveToGallery => 'บันทึก';
+
+  @override
+  String get savedToGallery => 'บันทึกลง Gallery แล้ว';
+
+  @override
+  String get saveFailed => 'บันทึกไม่สำเร็จ';
+
+  @override
+  String get macros => 'สารอาหารหลัก';
+
+  @override
+  String get micronutrients => 'สารอาหารรอง';
+
+  @override
+  String get shareNoImageSelected => 'ยังไม่ได้เลือกรูป';
+
+  @override
+  String get shareImageSelected => 'เลือกรูปแล้ว';
+
+  @override
+  String get shareSelectImageRequired => 'กรุณาเลือกรูปก่อนแชร์';
+
+  @override
+  String get shareCardDailySummaryTitle => 'สรุปรายวัน';
+
+  @override
+  String get shareCardFiber => 'ไฟเบอร์';
+
+  @override
+  String get shareCardSugar => 'น้ำตาล';
+
+  @override
+  String get shareCardSodium => 'โซเดียม';
+
+  @override
+  String shareCardDayStreak(int days) {
+    return 'สตรีค $days วัน';
+  }
+
+  @override
+  String shareCardDays(int days) {
+    return '$days วัน';
+  }
+
+  @override
+  String get shareCardShowBoundingBox => 'แสดงกรอบตรวจจับ';
 }

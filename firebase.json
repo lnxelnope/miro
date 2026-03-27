@@ -35,7 +35,7 @@
     "redirects": [
       {
         "source": "/",
-        "destination": "/arcal/",
+        "destination": "/miro/",
         "type": 302
       }
     ],

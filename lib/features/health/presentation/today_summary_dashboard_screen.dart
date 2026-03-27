@@ -8,6 +8,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../energy/providers/gamification_provider.dart';
+import '../../sharing/models/share_card_config.dart';
+import '../../sharing/presentation/share_card_creator_screen.dart';
 import '../models/micronutrient_stats.dart';
 import '../providers/health_provider.dart';
 import '../providers/micronutrient_stats_provider.dart';
@@ -115,6 +118,45 @@ class _TodaySummaryDashboardScreenState
   DateTime _selectedDate = DateTime.now();
   SummaryPeriod _selectedPeriod = SummaryPeriod.day;
 
+  Future<void> _openShareCard(dynamic profile) async {
+    final range = _computeRange(_selectedDate, _selectedPeriod);
+    final rangeKey = _RangeKey(_selectedDate, _selectedPeriod);
+    final data = await ref.read(_rangeDataProvider(rangeKey).future);
+    final gamification = ref.read(gamificationProvider);
+
+    final periodLabels = {
+      SummaryPeriod.day: 'Daily Summary',
+      SummaryPeriod.week: 'Weekly Summary',
+      SummaryPeriod.month: 'Monthly Summary',
+      SummaryPeriod.year: 'Yearly Summary',
+      SummaryPeriod.all: 'All Time Summary',
+    };
+
+    final days = range.end.difference(range.start).inDays + 1;
+
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ShareCardCreatorScreen(
+          initialConfig: ShareCardConfig(
+            type: ShareCardType.nutritionSummary,
+            periodLabel: periodLabels[_selectedPeriod],
+            dateRangeStart: range.start,
+            dateRangeEnd: range.end,
+            calorieGoal: profile != null ? profile.calorieGoal.toDouble() * days : null,
+            totalCalories: data['calories'],
+            totalProtein: data['protein'],
+            totalCarbs: data['carbs'],
+            totalFat: data['fat'],
+            streakDays: gamification.currentStreak,
+            daysTracked: days,
+            daysInPeriod: days,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -127,6 +169,12 @@ class _TodaySummaryDashboardScreenState
         foregroundColor:
             isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_rounded, size: 20),
+            onPressed: () => _openShareCard(profileAsync.valueOrNull),
+          ),
+        ],
       ),
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
       body: RefreshIndicator(

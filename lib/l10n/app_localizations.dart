@@ -2886,6 +2886,12 @@ abstract class L10n {
   /// **'Failed to initialize camera'**
   String get cameraFailedToInitialize;
 
+  /// No description provided for @cameraPermissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission was denied. Please enable camera access in Settings to use AR Scan.'**
+  String get cameraPermissionDeniedMessage;
+
   /// No description provided for @cameraFailedToCapture.
   ///
   /// In en, this message translates to:
@@ -3135,7 +3141,7 @@ abstract class L10n {
   /// No description provided for @tierBenefitsTip2.
   ///
   /// In en, this message translates to:
-  /// **'Diamond tier earns +4 Energy per day — that\'s 120/month!'**
+  /// **'Diamond tier earns +3 Energy per day — that\'s 90/month!'**
   String get tierBenefitsTip2;
 
   /// No description provided for @tierBenefitsTip3.
@@ -6797,7 +6803,7 @@ abstract class L10n {
   /// No description provided for @privacyConsentSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.'**
+  /// **'Please review how ArCal uses your data. Toggle each option, then tap Continue.'**
   String get privacyConsentSubtitle;
 
   /// No description provided for @privacyConsentNotifTitle.
@@ -6979,6 +6985,306 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Tilt to next angle'**
   String get arScanMoveToAngle;
+
+  /// No description provided for @subscriptionPlanWeeklyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Pass Weekly'**
+  String get subscriptionPlanWeeklyName;
+
+  /// No description provided for @subscriptionPlanMonthlyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Pass Monthly'**
+  String get subscriptionPlanMonthlyName;
+
+  /// No description provided for @subscriptionPlanYearlyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Pass Yearly'**
+  String get subscriptionPlanYearlyName;
+
+  /// No description provided for @subscriptionPlanWeeklyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly subscription'**
+  String get subscriptionPlanWeeklyDesc;
+
+  /// No description provided for @subscriptionPlanMonthlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI analysis'**
+  String get subscriptionPlanMonthlyDesc;
+
+  /// No description provided for @subscriptionPlanYearlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Best value — save 81%'**
+  String get subscriptionPlanYearlyDesc;
+
+  /// No description provided for @subscriptionPeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'week'**
+  String get subscriptionPeriodWeek;
+
+  /// No description provided for @subscriptionPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'month'**
+  String get subscriptionPeriodMonth;
+
+  /// No description provided for @subscriptionPeriodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'year'**
+  String get subscriptionPeriodYear;
+
+  /// No description provided for @subscriptionBenefitUnlimitedAI.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI Analysis'**
+  String get subscriptionBenefitUnlimitedAI;
+
+  /// No description provided for @subscriptionBenefitExclusiveBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusive Badge'**
+  String get subscriptionBenefitExclusiveBadge;
+
+  /// No description provided for @subscriptionBenefitPrioritySupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority Support'**
+  String get subscriptionBenefitPrioritySupport;
+
+  /// No description provided for @subscriptionSavePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Save 81% — {price}/month'**
+  String subscriptionSavePercent(String price);
+
+  /// No description provided for @subscriptionYearlySavingsVsMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {percent}% — {price}/month'**
+  String subscriptionYearlySavingsVsMonthly(int percent, String price);
+
+  /// No description provided for @subscriptionStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get subscriptionStatusActive;
+
+  /// No description provided for @subscriptionStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get subscriptionStatusCancelled;
+
+  /// No description provided for @subscriptionStatusExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get subscriptionStatusExpired;
+
+  /// No description provided for @subscriptionStatusGracePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Grace Period'**
+  String get subscriptionStatusGracePeriod;
+
+  /// No description provided for @subscriptionStatusNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Subscribed'**
+  String get subscriptionStatusNone;
+
+  /// No description provided for @energyYourBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Energy Balance'**
+  String get energyYourBalance;
+
+  /// No description provided for @energyLimitedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'LIMITED TIME'**
+  String get energyLimitedTime;
+
+  /// No description provided for @energyAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} Energy'**
+  String energyAmountLabel(int amount);
+
+  /// No description provided for @energyClaiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Claiming...'**
+  String get energyClaiming;
+
+  /// No description provided for @energyDaysFreeAI.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days free AI'**
+  String energyDaysFreeAI(int days);
+
+  /// No description provided for @energyBonusOnPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'+{percent}% Bonus on all purchases!'**
+  String energyBonusOnPurchases(int percent);
+
+  /// No description provided for @energyBonusBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'{base} + {bonus} Bonus = {total} Energy'**
+  String energyBonusBreakdown(int base, int bonus, int total);
+
+  /// No description provided for @energyPromoBonusPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Bonus: +{percent}%'**
+  String energyPromoBonusPercent(int percent);
+
+  /// No description provided for @energyTierBonusPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{tierName} Bonus: +{percent}%'**
+  String energyTierBonusPercent(String tierName, int percent);
+
+  /// No description provided for @energyAboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Energy'**
+  String get energyAboutTitle;
+
+  /// No description provided for @energyInfoAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Energy = 1 AI analysis'**
+  String get energyInfoAnalysis;
+
+  /// No description provided for @energyInfoNeverExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy never expires'**
+  String get energyInfoNeverExpires;
+
+  /// No description provided for @energyInfoOneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time purchase, per device'**
+  String get energyInfoOneTime;
+
+  /// No description provided for @energyInfoManualFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual logging is always free'**
+  String get energyInfoManualFree;
+
+  /// No description provided for @shareCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Card'**
+  String get shareCard;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @saveToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveToGallery;
+
+  /// No description provided for @savedToGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to gallery'**
+  String get savedToGallery;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save'**
+  String get saveFailed;
+
+  /// No description provided for @macros.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get macros;
+
+  /// No description provided for @micronutrients.
+  ///
+  /// In en, this message translates to:
+  /// **'Micronutrients'**
+  String get micronutrients;
+
+  /// No description provided for @shareNoImageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No image selected yet'**
+  String get shareNoImageSelected;
+
+  /// No description provided for @shareImageSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Image selected'**
+  String get shareImageSelected;
+
+  /// No description provided for @shareSelectImageRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select an image before sharing'**
+  String get shareSelectImageRequired;
+
+  /// No description provided for @shareCardDailySummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Summary'**
+  String get shareCardDailySummaryTitle;
+
+  /// No description provided for @shareCardFiber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fiber'**
+  String get shareCardFiber;
+
+  /// No description provided for @shareCardSugar.
+  ///
+  /// In en, this message translates to:
+  /// **'Sugar'**
+  String get shareCardSugar;
+
+  /// No description provided for @shareCardSodium.
+  ///
+  /// In en, this message translates to:
+  /// **'Sodium'**
+  String get shareCardSodium;
+
+  /// No description provided for @shareCardDayStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} day streak'**
+  String shareCardDayStreak(int days);
+
+  /// No description provided for @shareCardDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String shareCardDays(int days);
+
+  /// No description provided for @shareCardShowBoundingBox.
+  ///
+  /// In en, this message translates to:
+  /// **'Show bounding box'**
+  String get shareCardShowBoundingBox;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

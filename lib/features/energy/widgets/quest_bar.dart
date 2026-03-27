@@ -1158,11 +1158,18 @@ class _QuestBarState extends ConsumerState<QuestBar> {
     final claimed = gamification.dailyClaimedRewards;
     final tier = gamification.tier;
 
-    // dailyAi1: 1E + tier bonus
+    // Keep formula in sync with backend challenge.ts:
+    // dailyAi1 reward = base(0) + tier bonus
     final tierBonus = {
-      'starter': 0, 'bronze': 0, 'silver': 1, 'gold': 2, 'diamond': 3,
+      'none': 0,
+      'starter': 0,
+      'bronze': 0,
+      'silver': 1,
+      'gold': 2,
+      'diamond': 3,
     };
-    final ai1Reward = 1 + (tierBonus[tier] ?? 0);
+    final ai1BaseReward = 0;
+    final ai1Reward = ai1BaseReward + (tierBonus[tier] ?? 0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1812,8 +1819,16 @@ class _QuestBarState extends ConsumerState<QuestBar> {
     final dailyAi = gamification.dailyAiCount;
 
     if (dailyAi >= 1 && !dailyClaimed.contains('dailyAi1')) {
-      final tierBonus = {'starter': 0, 'bronze': 0, 'silver': 1, 'gold': 2, 'diamond': 3};
-      unclaimed += 1 + (tierBonus[gamification.tier] ?? 0);
+      final tierBonus = {
+        'none': 0,
+        'starter': 0,
+        'bronze': 0,
+        'silver': 1,
+        'gold': 2,
+        'diamond': 3,
+      };
+      const ai1BaseReward = 0;
+      unclaimed += ai1BaseReward + (tierBonus[gamification.tier] ?? 0);
     }
     if (dailyAi >= 10 && !dailyClaimed.contains('dailyAi10')) {
       unclaimed += 2;

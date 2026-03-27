@@ -22,23 +22,68 @@ class PurchaseService {
   // ENERGY PACKAGE CONSTANTS
   // ───────────────────────────────────────────────────────────
 
-  /// Regular energy packages
-  static const String energy100 = 'energy_100'; // $0.99
-  static const String energy550 = 'energy_550'; // $4.99
-  static const String energy1200 = 'energy_1200'; // $7.99
-  static const String energy2000 = 'energy_2000'; // $9.99
+  /// Energy packages (Mar 2026 pricing)
+  static const String energy50 = 'energy_50';    // $1.99
+  static const String energy200 = 'energy_200';  // $5.99
+  static const String energy500 = 'energy_500';  // $12.99
 
-  /// Map: Product ID → Energy amount (base; โบนัสจากเซิร์ฟเวอร์รวมใน verifyPurchase)
+  /// Legacy product IDs (kept for restore/receipt validation of past purchases)
+  static const String energy100 = 'energy_100';
+  static const String energy550 = 'energy_550';
+  static const String energy1200 = 'energy_1200';
+  static const String energy2000 = 'energy_2000';
+
+  /// Map: Product ID → Energy amount (base; bonus from server included in verifyPurchase)
   static const Map<String, int> energyAmounts = {
+    energy50: 50,
+    energy200: 200,
+    energy500: 500,
+    // Legacy (honor past purchases)
     energy100: 100,
     energy550: 550,
     energy1200: 1200,
     energy2000: 2000,
   };
 
+  /// Query localized prices + store listing titles for energy packs.
+  /// Titles match Google Play Console / App Store Connect product names.
+  /// Returns `(prices, titles)` — maps keyed by product id.
+  static Future<({Map<String, String> prices, Map<String, String> titles})>
+      getLocalizedEnergyStoreInfo() async {
+    try {
+      final response = await _iap.queryProductDetails({
+        energy50,
+        energy200,
+        energy500,
+      });
+
+      if (response.error != null) {
+        debugPrint(
+          '[PurchaseService] ⚠️ getLocalizedEnergyStoreInfo error: ${response.error}',
+        );
+        return (prices: <String, String>{}, titles: <String, String>{});
+      }
+
+      final prices = <String, String>{};
+      final titles = <String, String>{};
+      for (final product in response.productDetails) {
+        prices[product.id] = product.price;
+        titles[product.id] = product.title;
+      }
+      return (prices: prices, titles: titles);
+    } catch (e) {
+      debugPrint('[PurchaseService] ⚠️ getLocalizedEnergyStoreInfo exception: $e');
+      return (prices: <String, String>{}, titles: <String, String>{});
+    }
+  }
+
   /// Approximate THB prices for analytics (actual prices from Google Play)
   static double _getProductPrice(String productId) {
     const prices = {
+      'energy_50': 69.0,
+      'energy_200': 199.0,
+      'energy_500': 449.0,
+      // Legacy
       'energy_100': 35.0,
       'energy_550': 179.0,
       'energy_1200': 289.0,

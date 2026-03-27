@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "您可以通过Google Play订阅管理更换套餐。新套餐将在下一个计费周期生效。",
   "subscriptionChangePlanDescIos": "您可以通过App Store订阅管理升级或降级您的套餐。",
   "subscriptionCurrentPlan": "当前",
-  "subscriptionChangePlanButton": "更换"
+  "subscriptionChangePlanButton": "更换",
+  "energyStoreTitle": "能量商店",
+  "energyPackages": "能量套餐",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "超值",
+  "energyBadgePopular": "热门",
+  "energyBadgeBonus10": "+10% 奖励",
+  "energyPassUnlimitedAI": "无限AI分析",
+  "energyPassUnlimitedFromPrice": "无限AI分析 • 低至{price}/月",
+  "energyPassActive": "已激活",
+  "subscriptionDeal": "订阅优惠",
+  "subscriptionViewDeal": "查看优惠",
+  "subscriptionSubscribe": "订阅",
+  "subscriptionAutoRenewTermsIos": "购买确认后将向您的Apple ID账户收费。除非在当前周期结束前至少24小时取消，否则订阅将自动续订。您可以在App Store账户设置中管理和取消订阅。",
+  "subscriptionBestValue": "超值",
+  "subscriptionAutoRenew": "自动续订",
+  "subscriptionAutoRenewOn": "已开启",
+  "subscriptionAutoRenewOff": "已关闭 — 到期后失效",
+  "subscriptionManagedByAppStore": "订阅通过App Store管理",
+  "subscriptionManagedByPlayStore": "订阅通过Google Play管理",
+  "subscriptionCannotLoadPrices": "暂时无法从商店加载价格",
+  "subscriptionPlanWeeklyName": "Energy Pass 每周",
+  "subscriptionPlanMonthlyName": "Energy Pass 每月",
+  "subscriptionPlanYearlyName": "Energy Pass 年度",
+  "subscriptionPlanWeeklyDesc": "每周订阅",
+  "subscriptionPlanMonthlyDesc": "无限AI分析",
+  "subscriptionPlanYearlyDesc": "超值 — 节省81%",
+  "subscriptionPeriodWeek": "周",
+  "subscriptionPeriodMonth": "月",
+  "subscriptionPeriodYear": "年",
+  "subscriptionBenefitUnlimitedAI": "无限AI分析",
+  "subscriptionBenefitExclusiveBadge": "专属徽章",
+  "subscriptionBenefitPrioritySupport": "优先支持",
+  "subscriptionSavePercent": "节省81% — {price}/月",
+  "subscriptionYearlySavingsVsMonthly": "节省{percent}% — {price}/月",
+  "subscriptionStatusActive": "活跃",
+  "subscriptionStatusCancelled": "已取消",
+  "subscriptionStatusExpired": "已过期",
+  "subscriptionStatusGracePeriod": "宽限期",
+  "subscriptionStatusNone": "未订阅",
+  "energyYourBalance": "您的能量余额",
+  "energyLimitedTime": "限时",
+  "energyAmountLabel": "{amount} 能量",
+  "energyClaiming": "领取中...",
+  "energyDaysFreeAI": "{days}天免费AI",
+  "energyBonusOnPurchases": "+{percent}% 所有购买奖励！",
+  "energyBonusBreakdown": "{base} + {bonus} 奖励 = {total} 能量",
+  "energyPromoBonusPercent": "促销奖励: +{percent}%",
+  "energyTierBonusPercent": "{tierName}奖励: +{percent}%",
+  "energyAboutTitle": "关于能量",
+  "energyInfoAnalysis": "1能量 = 1次AI分析",
+  "energyInfoNeverExpires": "能量永不过期",
+  "energyInfoOneTime": "一次购买，按设备",
+  "energyInfoManualFree": "手动记录始终免费",
+  "shareCardDailySummaryTitle": "每日摘要",
+  "shareCardFiber": "纤维",
+  "shareCardSugar": "糖",
+  "shareCardSodium": "钠",
+  "shareCardDayStreak": "{days}天连续打卡",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days}天",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

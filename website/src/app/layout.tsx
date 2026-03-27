@@ -1,35 +1,38 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ConditionalChrome } from '@/components/ConditionalChrome';
+import { GoogleAnalytics } from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
-  title: 'MiRO — The Most Accurate AI Food Tracker',
+  title: 'ArCal — AI Calories Counter | Precise Calories, Zero Effort',
   description:
-    'Snap, type, or chat — MiRO deconstructs every meal into individual ingredients with AI precision. No login. No subscription trap. Your data stays on your device.',
+    'The easiest AI calorie counter. AR scan or snap a photo — get accurate calories in seconds. No login, no setup, free tokens to start. Available on Android & iOS.',
   keywords: [
-    'food tracker',
     'calorie counter',
-    'AI nutrition',
+    'AI calorie tracker',
+    'AR food scanner',
+    'food tracker',
     'macro tracker',
-    'meal logger',
-    'food diary',
     'calorie app',
-    'MiRO',
+    'ArCal',
+    'AI nutrition',
+    'calorie counter app',
+    'food diary',
   ],
   metadataBase: new URL('https://www.tnbgrp.com/miro'),
   openGraph: {
-    title: 'MiRO — The Most Accurate AI Food Tracker',
+    title: 'ArCal — AI Calories Counter',
     description:
-      'AI-powered food tracking with ingredient-level accuracy. No login required. Your data stays on your device.',
+      'Precise calories, zero effort. AR scan or snap a photo — AI counts your calories instantly. No login required. Free tokens to start.',
     url: 'https://www.tnbgrp.com/miro',
-    siteName: 'MiRO',
+    siteName: 'ArCal',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MiRO — The Most Accurate AI Food Tracker',
+    title: 'ArCal — AI Calories Counter',
     description:
-      'AI-powered food tracking with ingredient-level accuracy. No login required.',
+      'Precise calories, zero effort. The easiest AI calorie counter with AR scan.',
   },
 };
 
@@ -41,6 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
+        <GoogleAnalytics />
         <ConditionalChrome>{children}</ConditionalChrome>
       </body>
     </html>

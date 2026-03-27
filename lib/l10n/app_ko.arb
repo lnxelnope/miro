@@ -1861,5 +1861,81 @@
   "subscriptionChangePlanDescAndroid": "Google Play 구독 관리를 통해 플랜을 변경할 수 있습니다. 새 플랜은 다음 결제 주기부터 적용됩니다.",
   "subscriptionChangePlanDescIos": "App Store 구독 관리를 통해 플랜을 업그레이드하거나 다운그레이드할 수 있습니다.",
   "subscriptionCurrentPlan": "현재 플랜",
-  "subscriptionChangePlanButton": "변경"
+  "subscriptionChangePlanButton": "변경",
+  "energyStoreTitle": "에너지 스토어",
+  "energyPackages": "에너지 패키지",
+  "energyPackageStarterKick": "Starter Kick",
+  "energyPackageValuePack": "Value Pack",
+  "energyPackagePowerUser": "Power User",
+  "energyPackageUltimateSaver": "Ultimate Saver",
+  "energyBadgeBestValue": "최고 가성비",
+  "energyBadgePopular": "인기",
+  "energyBadgeBonus10": "+10% 보너스",
+  "energyPassUnlimitedAI": "무제한 AI 분석",
+  "energyPassUnlimitedFromPrice": "무제한 AI 분석 • {price}/월부터",
+  "energyPassActive": "활성",
+  "subscriptionDeal": "구독 혜택",
+  "subscriptionViewDeal": "혜택 보기",
+  "subscriptionSubscribe": "구독하기",
+  "subscriptionAutoRenewTermsIos": "구매 확인 시 Apple ID 계정에 결제됩니다. 구독은 현재 기간 종료 최소 24시간 전에 취소하지 않으면 자동으로 갱신됩니다. App Store 계정 설정에서 구독을 관리하고 취소할 수 있습니다.",
+  "subscriptionBestValue": "최고 가성비",
+  "subscriptionAutoRenew": "자동 갱신",
+  "subscriptionAutoRenewOn": "켜짐",
+  "subscriptionAutoRenewOff": "꺼짐 — 기간 종료 시 만료",
+  "subscriptionManagedByAppStore": "구독은 App Store를 통해 관리됩니다",
+  "subscriptionManagedByPlayStore": "구독은 Google Play를 통해 관리됩니다",
+  "subscriptionCannotLoadPrices": "현재 스토어에서 가격을 불러올 수 없습니다",
+  "subscriptionPlanWeeklyName": "Energy Pass 주간",
+  "subscriptionPlanMonthlyName": "Energy Pass 월간",
+  "subscriptionPlanYearlyName": "Energy Pass 연간",
+  "subscriptionPlanWeeklyDesc": "주간 구독",
+  "subscriptionPlanMonthlyDesc": "무제한 AI 분석",
+  "subscriptionPlanYearlyDesc": "최고 가성비 — 81% 할인",
+  "subscriptionPeriodWeek": "주",
+  "subscriptionPeriodMonth": "월",
+  "subscriptionPeriodYear": "년",
+  "subscriptionBenefitUnlimitedAI": "무제한 AI 분석",
+  "subscriptionBenefitExclusiveBadge": "독점 배지",
+  "subscriptionBenefitPrioritySupport": "우선 지원",
+  "subscriptionSavePercent": "81% 할인 — {price}/월",
+  "subscriptionYearlySavingsVsMonthly": "{percent}% 할인 — {price}/월",
+  "subscriptionStatusActive": "활성",
+  "subscriptionStatusCancelled": "취소됨",
+  "subscriptionStatusExpired": "만료됨",
+  "subscriptionStatusGracePeriod": "유예 기간",
+  "subscriptionStatusNone": "미구독",
+  "energyYourBalance": "에너지 잔액",
+  "energyLimitedTime": "한정 시간",
+  "energyAmountLabel": "{amount} 에너지",
+  "energyClaiming": "수령 중...",
+  "energyDaysFreeAI": "{days}일 무료 AI",
+  "energyBonusOnPurchases": "+{percent}% 모든 구매 보너스!",
+  "energyBonusBreakdown": "{base} + {bonus} 보너스 = {total} 에너지",
+  "energyPromoBonusPercent": "프로모 보너스: +{percent}%",
+  "energyTierBonusPercent": "{tierName} 보너스: +{percent}%",
+  "energyAboutTitle": "에너지 소개",
+  "energyInfoAnalysis": "1 에너지 = 1 AI 분석",
+  "energyInfoNeverExpires": "에너지는 만료되지 않습니다",
+  "energyInfoOneTime": "1회 구매, 기기당",
+  "energyInfoManualFree": "수동 기록은 항상 무료",
+  "shareCardDailySummaryTitle": "일일 요약",
+  "shareCardFiber": "식이섬유",
+  "shareCardSugar": "당류",
+  "shareCardSodium": "나트륨",
+  "shareCardDayStreak": "{days}일 연속",
+  "@shareCardDayStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCardDays": "{days}일",
+  "@shareCardDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  }
 }

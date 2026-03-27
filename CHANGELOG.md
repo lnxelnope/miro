@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.2.7+74] - 2026-03-27
+
+### ✨ Features
+- **Share card** — แชร์สรุปมื้อ / โภชนากันเป็นการ์ดภาพ (ร้านพลังงาน & ข้อมูลสุขภาพตามการตั้งค่า)
+
+### 📦 Build
+- Bump v1.2.6 → **1.2.7** (build 73→74) สำหรับส่ง Store
+
+---
+
+## [1.2.6+73] - 2026-03-27
+
+### 📦 Build
+- Bump build 72→73 — สำหรับอัปโหลดขึ้น App Store / Google Play (แทน 72)
+
+---
+
+## [1.2.6+72] - 2026-03-27
+
+### 📦 Build
+- Bump build 71→72 — สำหรับอัปโหลดขึ้น App Store / Google Play
+
+---
+
+## [1.2.6+71] - 2026-03-26
+
+### 📦 Build
+- Bump build 70→71 — store release: Android AR Scan stability (กันเรียก ML Kit `processImage` ซ้อน + ProGuard keep ML Kit), ซิงค์ภาษาหลังเปลี่ยนในโปรไฟล์กับ SharedPreferences
+
+---
+
+## [1.2.6+70] - 2026-03-22
+
+### 📦 Build
+- Bump build 69→70 — Privacy consent: ปุ่ม Continue ใช้ได้ทันที (แก้ iPad ไม่เลื่อนได้ / ปุ่มค้าง); ส่ง App Store อีกครั้ง
+
+---
+
+## [1.2.6+69] - 2026-03-21
+
+### 📦 Build
+- Bump build 68→69 — IAP / Subscription / Energy Store ใช้ L10n ครบทุกภาษา (สอดคล้อง App Store metadata)
+
+---
+
 ## [1.2.6+68] - 2026-03-21
 
 ### 📦 Build

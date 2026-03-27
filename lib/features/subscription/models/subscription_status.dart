@@ -1,3 +1,6 @@
+import 'package:flutter/widgets.dart';
+import '../../../l10n/app_localizations.dart';
+
 /// Subscription Status Model
 /// 
 /// Represents the current subscription state from Firestore
@@ -58,7 +61,7 @@ extension SubscriptionStatusExtension on SubscriptionStatus {
         this == SubscriptionStatus.gracePeriod;
   }
 
-  /// Get display text for UI
+  /// Fallback English text (for non-UI contexts)
   String get displayText {
     switch (this) {
       case SubscriptionStatus.active:
@@ -71,6 +74,23 @@ extension SubscriptionStatusExtension on SubscriptionStatus {
         return 'Grace Period';
       case SubscriptionStatus.none:
         return 'Not Subscribed';
+    }
+  }
+
+  /// Localized display text for UI
+  String localizedText(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    switch (this) {
+      case SubscriptionStatus.active:
+        return l10n.subscriptionStatusActive;
+      case SubscriptionStatus.cancelled:
+        return l10n.subscriptionStatusCancelled;
+      case SubscriptionStatus.expired:
+        return l10n.subscriptionStatusExpired;
+      case SubscriptionStatus.gracePeriod:
+        return l10n.subscriptionStatusGracePeriod;
+      case SubscriptionStatus.none:
+        return l10n.subscriptionStatusNone;
     }
   }
 

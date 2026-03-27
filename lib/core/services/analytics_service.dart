@@ -263,6 +263,15 @@ class AnalyticsService {
   static FirebaseAnalyticsObserver get observer =>
       FirebaseAnalyticsObserver(analytics: _analytics);
 
+  // ─── Share Card ───
+
+  static Future<void> logShareCard({
+    required String eventName,
+    Map<String, Object>? params,
+  }) async {
+    await _logEvent(eventName, params ?? {});
+  }
+
   // ─── Helpers ───
 
   static Future<void> _logEvent(

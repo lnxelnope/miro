@@ -181,7 +181,7 @@ class UsageLimiter {
 
   // ============ Daily Free Chat Limit ============
   // Chat and menu suggestion are free but limited per day
-  static const int freeChatPerDay = 10;
+  static const int freeChatPerDay = 5;
   static const String _keyChatDate = 'chat_limit_date';
   static const String _keyChatCount = 'chat_limit_count';
 

@@ -10,6 +10,9 @@ import '../providers/health_provider.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import 'deficit_gauge.dart';
+import '../../energy/providers/gamification_provider.dart';
+import '../../sharing/models/share_card_config.dart';
+import '../../sharing/presentation/share_card_creator_screen.dart';
 
 class DailySummaryCard extends ConsumerStatefulWidget {
   final DateTime? selectedDate;
@@ -176,6 +179,19 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
                         isDark: isDark,
                         disabled: isToday,
                       ),
+                    if (entries.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      _shareIconButton(
+                        date: date,
+                        entries: entries,
+                        profile: profile,
+                        calories: calories,
+                        protein: protein,
+                        carbs: carbs,
+                        fat: fat,
+                        isDark: isDark,
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -318,6 +334,69 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _shareIconButton({
+    required DateTime date,
+    required List<dynamic> entries,
+    required dynamic profile,
+    required double calories,
+    required double protein,
+    required double carbs,
+    required double fat,
+    required bool isDark,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        final gamification = ref.read(gamificationProvider);
+        final photos = <String>[];
+        for (final e in entries) {
+          if (e.imagePath != null && e.imagePath!.isNotEmpty) {
+            photos.add(e.imagePath!);
+          }
+        }
+
+        final fiber = entries.fold<double>(0, (sum, e) => sum + (e.fiber ?? 0));
+        final sugar = entries.fold<double>(0, (sum, e) => sum + (e.sugar ?? 0));
+        final sodium = entries.fold<double>(0, (sum, e) => sum + (e.sodium ?? 0));
+
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ShareCardCreatorScreen(
+              initialConfig: ShareCardConfig(
+                type: ShareCardType.dailySummary,
+                date: date,
+                heroImagePath: photos.isNotEmpty ? photos.first : null,
+                selectedFoodPhotos: photos,
+                calorieGoal: profile.calorieGoal.toDouble(),
+                totalCalories: calories,
+                totalProtein: protein,
+                totalCarbs: carbs,
+                totalFat: fat,
+                totalFiber: fiber > 0 ? fiber : null,
+                totalSugar: sugar > 0 ? sugar : null,
+                totalSodium: sodium > 0 ? sodium : null,
+                streakDays: gamification.currentStreak,
+              ),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : AppColors.health.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          Icons.share_rounded,
+          size: 16,
+          color: isDark ? Colors.white54 : AppColors.health,
         ),
       ),
     );

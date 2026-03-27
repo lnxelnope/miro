@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,14 +20,17 @@ class SubscriptionService {
   // Android: single product with multiple base plans
   static const String kSubscriptionProductId = 'miro_normal_subscription';
 
-  // iOS: 3 separate products (App Store structure)
-  static const String kIosWeeklyProductId = 'miro_energy_pass_weekly';
+  // Android base plan keys
+  static const String kSubscriptionMonthlyBasePlan = 'energy-pass-monthly';
+  static const String kSubscriptionYearlyBasePlan = 'energy-pass-yearly';
+
+  // iOS: each plan = 1 product (App Store structure)
   static const String kIosMonthlyProductId = 'miro_energy_pass_monthly';
   static const String kIosYearlyProductId = 'miro_energy_pass_yearly';
 
   static Set<String> get _subscriptionProductIds {
     if (Platform.isIOS) {
-      return {kIosWeeklyProductId, kIosMonthlyProductId, kIosYearlyProductId};
+      return {kIosMonthlyProductId, kIosYearlyProductId};
     }
     return {kSubscriptionProductId};
   }
@@ -60,6 +64,26 @@ class SubscriptionService {
         '✅ [SubscriptionService] Found ${response.productDetails.length} products');
     for (final p in response.productDetails) {
       debugPrint('   📦 ${p.id}: ${p.price} — ${p.title}');
+      if (Platform.isAndroid) {
+        try {
+          final android = p as GooglePlayProductDetails;
+          final offers = android.productDetails.subscriptionOfferDetails ?? [];
+          for (final o in offers) {
+            debugPrint(
+              '      └─ basePlan=${o.basePlanId} offerId=${o.offerId} '
+              'phases=${o.pricingPhases.length}',
+            );
+            for (var i = 0; i < o.pricingPhases.length; i++) {
+              final ph = o.pricingPhases[i];
+              debugPrint(
+                '         phase[$i] ${ph.formattedPrice} '
+                '(${ph.priceAmountMicros} micros / ${ph.priceCurrencyCode}) '
+                'recurrence=${ph.recurrenceMode} billing=${ph.billingPeriod}',
+              );
+            }
+          }
+        } catch (_) {}
+      }
     }
     return response.productDetails;
   }
@@ -87,12 +111,21 @@ class SubscriptionService {
           return false;
         }
 
-        final targetOffer = basePlanId != null
-            ? offerDetails.firstWhere(
-                (o) => o.basePlanId == basePlanId,
-                orElse: () => offerDetails.first,
-              )
-            : offerDetails.first;
+        SubscriptionOfferDetailsWrapper targetOffer;
+        if (basePlanId != null) {
+          final matchingOffers =
+              offerDetails.where((o) => o.basePlanId == basePlanId).toList();
+          if (matchingOffers.isEmpty) {
+            targetOffer = offerDetails.first;
+          } else {
+            // Prefer the standard offer (no offerId) to match displayed price
+            final standard =
+                matchingOffers.where((o) => o.offerId == null).toList();
+            targetOffer = standard.isNotEmpty ? standard.first : matchingOffers.first;
+          }
+        } else {
+          targetOffer = offerDetails.first;
+        }
 
         debugPrint(
           '💳 [SubscriptionService] Using offerIdToken for basePlan: ${targetOffer.basePlanId}',
@@ -118,26 +151,64 @@ class SubscriptionService {
     }
   }
 
-  /// ดึง offer details สำหรับ base plan ที่ระบุ (Android only)
-  static Map<String, String> extractBasePlanPrices(ProductDetails product) {
-    final prices = <String, String>{};
-    if (!Platform.isAndroid) return prices;
+  /// Per base plan: recurring price from Play (prefers offer without [offerId]).
+  static Map<String, SubscriptionBasePlanPricing> extractBasePlanPricing(
+    ProductDetails product,
+  ) {
+    final result = <String, SubscriptionBasePlanPricing>{};
+    if (!Platform.isAndroid) return result;
 
     try {
       final androidDetails = product as GooglePlayProductDetails;
-      final offerDetails = androidDetails.productDetails.subscriptionOfferDetails;
-      if (offerDetails == null) return prices;
+      final offers = androidDetails.productDetails.subscriptionOfferDetails;
+      if (offers == null || offers.isEmpty) return result;
 
-      for (final offer in offerDetails) {
-        if (offer.pricingPhases.isNotEmpty) {
-          final phase = offer.pricingPhases.last;
-          prices[offer.basePlanId] = phase.formattedPrice;
-        }
+      final byBase = <String, List<SubscriptionOfferDetailsWrapper>>{};
+      for (final o in offers) {
+        byBase.putIfAbsent(o.basePlanId, () => []).add(o);
+      }
+
+      for (final entry in byBase.entries) {
+        final list = entry.value;
+        final withoutOfferId =
+            list.where((o) => o.offerId == null).toList();
+        final chosen =
+            withoutOfferId.isNotEmpty ? withoutOfferId.first : list.first;
+
+        final phase = _selectRecurringPricingPhase(chosen.pricingPhases);
+        if (phase == null) continue;
+
+        result[entry.key] = SubscriptionBasePlanPricing(
+          formattedPrice: phase.formattedPrice,
+          priceAmountMicros: phase.priceAmountMicros,
+          priceCurrencyCode: phase.priceCurrencyCode,
+        );
       }
     } catch (e) {
-      debugPrint('⚠️ [SubscriptionService] extractBasePlanPrices error: $e');
+      debugPrint('⚠️ [SubscriptionService] extractBasePlanPricing error: $e');
     }
-    return prices;
+    return result;
+  }
+
+  static PricingPhaseWrapper? _selectRecurringPricingPhase(
+    List<PricingPhaseWrapper> phases,
+  ) {
+    if (phases.isEmpty) return null;
+    for (final p in phases) {
+      if (p.recurrenceMode == RecurrenceMode.infiniteRecurring &&
+          p.priceAmountMicros > 0) {
+        return p;
+      }
+    }
+    for (final p in phases.reversed) {
+      if (p.priceAmountMicros > 0) return p;
+    }
+    return phases.last;
+  }
+
+  static Map<String, String> extractBasePlanPrices(ProductDetails product) {
+    return extractBasePlanPricing(product)
+        .map((k, v) => MapEntry(k, v.formattedPrice));
   }
 
   /// ดึงราคาจาก products (iOS: แต่ละ product มี price ของตัวเอง)
@@ -211,7 +282,7 @@ class SubscriptionService {
 
   /// Get subscription benefits
   static List<String> getSubscriptionBenefits() {
-    return SubscriptionPlan.energyPassMonthly().benefits;
+    return SubscriptionPlan.energyPassMonthly().benefits;  // fallback English (no context in service)
   }
 
   /// Check if user has unlimited AI access
@@ -228,4 +299,17 @@ class SubscriptionService {
   static bool hasExclusiveBadge(SubscriptionData subscription) {
     return subscription.isActive;
   }
+}
+
+/// Recurring price for one Google Play base plan (from Billing Library).
+class SubscriptionBasePlanPricing {
+  const SubscriptionBasePlanPricing({
+    required this.formattedPrice,
+    required this.priceAmountMicros,
+    required this.priceCurrencyCode,
+  });
+
+  final String formattedPrice;
+  final int priceAmountMicros;
+  final String priceCurrencyCode;
 }

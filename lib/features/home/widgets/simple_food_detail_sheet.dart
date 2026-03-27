@@ -20,6 +20,10 @@ import '../../../core/utils/batch_analysis_helper.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/my_meal_provider.dart';
 import '../../health/providers/analysis_provider.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../sharing/models/share_card_config.dart';
+import '../../sharing/presentation/share_card_creator_screen.dart';
+import '../../sharing/widgets/budget_meter.dart';
 
 class SimpleFoodDetailSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -1022,6 +1026,78 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     if (mounted) Navigator.pop(context);
   }
 
+  Widget _buildBudgetMeter(FoodEntry entry) {
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    if (profile == null) return const SizedBox.shrink();
+
+    final todayEntries = ref.watch(foodEntriesByDateProvider(dateOnly(entry.timestamp)));
+    final dailyCal = todayEntries.valueOrNull?.fold<double>(0, (sum, e) => sum + e.calories) ?? 0;
+
+    final l10n = L10n.of(context)!;
+    double mealBudget;
+    String mealLabel;
+    switch (entry.mealType) {
+      case MealType.breakfast:
+        mealBudget = profile.breakfastBudget;
+        mealLabel = l10n.breakfastLabel;
+      case MealType.lunch:
+        mealBudget = profile.lunchBudget;
+        mealLabel = l10n.lunchLabel;
+      case MealType.dinner:
+        mealBudget = profile.dinnerBudget;
+        mealLabel = l10n.dinnerLabel;
+      case MealType.snack:
+        mealBudget = profile.snackBudget;
+        mealLabel = l10n.snackLabel;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: BudgetMeterSection(
+        mealCalories: _calories,
+        mealBudget: mealBudget,
+        dailyCalories: dailyCal,
+        dailyGoal: profile.calorieGoal,
+        protein: _protein,
+        proteinGoal: profile.proteinGoal,
+        carbs: _carbs,
+        carbGoal: profile.carbGoal,
+        fat: _fat,
+        fatGoal: profile.fatGoal,
+        mealLabel: mealLabel,
+      ),
+    );
+  }
+
+  void _openShareCard(FoodEntry entry) {
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    double? mealBudget;
+    if (profile != null) {
+      switch (entry.mealType) {
+        case MealType.breakfast:
+          mealBudget = profile.breakfastBudget;
+        case MealType.lunch:
+          mealBudget = profile.lunchBudget;
+        case MealType.dinner:
+          mealBudget = profile.dinnerBudget;
+        case MealType.snack:
+          mealBudget = profile.snackBudget;
+      }
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ShareCardCreatorScreen(
+          initialConfig: ShareCardConfig(
+            type: ShareCardType.foodItem,
+            foodEntry: entry,
+            mealBudget: mealBudget,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildImageSection(FoodEntry entry) {
     final paths = entry.allImagePaths;
 
@@ -1440,6 +1516,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
 
+                  // 3.5 Budget Meter (Goal Progress)
+                  if (_hasNutrition) _buildBudgetMeter(entry),
+
                   // 4. Ingredients (view/add/edit/remove)
                   Row(
                     children: [
@@ -1519,6 +1598,30 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
 
                   // 4.5 Detected Objects (simple chips)
                   _buildDetectedObjectsChips(entry, isDark),
+
+                  // 4.6 Share button
+                  if (_hasNutrition)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: AppSizes.buttonMedium,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openShareCard(entry),
+                          icon: const Icon(Icons.share_rounded, size: 18),
+                          label: Text(L10n.of(context)!.share),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.md,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
 
                   // 5. Info text
                   Container(

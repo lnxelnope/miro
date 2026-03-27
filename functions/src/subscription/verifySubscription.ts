@@ -25,7 +25,7 @@ const PACKAGE_NAME = "com.tanabun.miro";
 
 const ANDROID_PRODUCT_ID = "miro_normal_subscription";
 const IOS_PRODUCT_IDS = [
-  "miro_energy_pass_weekly",
+  "miro_energy_pass_weekly", // deprecated — kept for existing subscribers
   "miro_energy_pass_monthly",
   "miro_energy_pass_yearly",
 ];

@@ -1,190 +1,174 @@
 import {
   Camera,
-  MessageSquare,
   Utensils,
   Shield,
   Zap,
   BarChart3,
-  Sparkles,
   ChevronRight,
   Star,
   Activity,
   Globe,
   Smartphone,
-  Play,
+  Download,
+  ScanLine,
+  MessageSquare,
+  Clock,
+  Gift,
+  CheckCircle2,
+  XCircle,
+  ArrowDown,
 } from 'lucide-react';
 import Image from 'next/image';
-
-const PLAY_STORE_URL =
-  'https://play.google.com/store/apps/details?id=com.tanabun.miro';
-const APP_STORE_URL =
-  'https://apps.apple.com/app/miro-my-intake-record-oracle/id6745498101';
-const PREVIEW_VIDEO_URL = '/miro/miro-preview.mp4';
-
-function StoreButtons({ className = '' }: { className?: string }) {
-  return (
-    <div className={`flex flex-col items-center justify-center gap-4 sm:flex-row ${className}`}>
-      <a
-        href={PLAY_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex h-14 items-center gap-3 rounded-xl bg-white px-6 text-gray-900 transition-transform hover:scale-105"
-      >
-        <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor">
-          <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 0 1-.61-.92V2.734a1 1 0 0 1 .609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.199l2.302 2.302a1 1 0 0 1 0 1.38l-2.302 2.302L15.395 12l2.303-2.492zM5.864 3.458L16.8 9.79l-2.302 2.302L5.864 3.458z" />
-        </svg>
-        <div className="text-left">
-          <div className="text-[10px] font-medium uppercase leading-none tracking-wider text-gray-500">
-            Get it on
-          </div>
-          <div className="text-lg font-semibold leading-tight">Google Play</div>
-        </div>
-      </a>
-      <a
-        href={APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group flex h-14 items-center gap-3 rounded-xl bg-white px-6 text-gray-900 transition-transform hover:scale-105"
-      >
-        <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-        </svg>
-        <div className="text-left">
-          <div className="text-[10px] font-medium uppercase leading-none tracking-wider text-gray-500">
-            Download on the
-          </div>
-          <div className="text-lg font-semibold leading-tight">App Store</div>
-        </div>
-      </a>
-    </div>
-  );
-}
+import { publicAsset } from '@/lib/publicAsset';
+import { StoreButtons } from '@/components/StoreButtons';
 
 function HeroSection() {
   return (
-    <section className="hero-gradient relative overflow-hidden pt-32 pb-12 lg:pt-40 lg:pb-20">
+    <section className="hero-gradient relative overflow-hidden pt-28 pb-16 lg:pt-36 lg:pb-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="text-center lg:text-left">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-gray-300">
-              <Sparkles size={14} className="text-brand-400" />
-              Powered by Google Gemini AI
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-800">
+              <ScanLine size={14} className="text-brand-600" />
+              First AI calorie counter with AR scan
             </div>
 
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
-              Decode every bite.
+            <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-brand-950 sm:text-5xl lg:text-6xl">
+              Precise calories.
               <br />
-              <span className="gradient-text">Own every byte.</span>
+              <span className="gradient-text-hero">Zero effort.</span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-lg text-gray-400 sm:text-xl lg:mx-0">
-              The most accurate AI food tracker ever built. Snap a photo and
-              watch AI deconstruct every ingredient — including the hidden oil,
-              sugar in sauces, and seasonings you can&apos;t see.
+            <p className="mx-auto mt-6 max-w-xl text-lg text-gray-600 sm:text-xl lg:mx-0">
+              Open the app and start tracking. No login, no quiz, no setup.
+              AR scan or snap a photo — AI counts your calories in seconds.
             </p>
 
-            <StoreButtons className="mt-10" />
+            <div className="mx-auto mt-4 flex max-w-md flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-medium text-brand-700 lg:justify-start">
+              <span className="flex items-center gap-1.5">
+                <Gift size={15} className="text-brand-500" />
+                Free tokens included
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Shield size={15} className="text-brand-500" />
+                No login required
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock size={15} className="text-brand-500" />
+                10-second setup
+              </span>
+            </div>
 
-            <p className="mt-6 text-sm text-gray-500">
-              Free to start &middot; No login required &middot; 10 free AI
-              analyses
+            <StoreButtons className="mt-10" size="large" />
+
+            <p className="mt-5 text-sm text-gray-500">
+              Free to start &middot; No credit card &middot; Works offline
             </p>
           </div>
 
-          <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-brand-500/20 via-purple-500/10 to-cyan-500/20 blur-3xl" />
+          <div className="relative mx-auto w-full max-w-md lg:max-w-lg">
+            <div className="absolute -inset-8 rounded-3xl bg-gradient-to-br from-brand-300/30 via-brand-200/20 to-brand-400/20 blur-3xl" />
             <Image
-              src="/miro/feature-graphic.jpg"
-              alt="MiRO AI Food Tracker - Feature Overview"
+              src={publicAsset('/arcal/screens/hero-banner.png')}
+              alt="ArCal AI Calories Counter — Precise calories, zero effort"
               width={1024}
               height={500}
-              className="relative rounded-2xl shadow-2xl ring-1 ring-white/10"
+              className="relative rounded-2xl shadow-2xl"
               priority
             />
           </div>
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-gray-950" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white" />
     </section>
   );
 }
 
-function VideoPreviewSection() {
+function USPBanner() {
+  const items = [
+    'No Login Required',
+    'AR Scan',
+    '10-Second Setup',
+    'Free Tokens to Start',
+    '15 Cuisines',
+    'Ingredient-Level Accuracy',
+    '100% Private',
+    'Works Offline',
+    'Purchases Never Expire',
+  ];
+
   return (
-    <section id="preview" className="relative overflow-hidden py-16 lg:py-24">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            See MiRO <span className="gradient-text">in action</span>
-          </h2>
-          <p className="mt-4 text-lg text-gray-400">
-            From photo to full nutrition report in under 10 seconds.
-          </p>
-        </div>
-        <div className="mt-12">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-2xl ring-1 ring-white/5">
-            <video
-              className="w-full"
-              controls
-              playsInline
-              preload="metadata"
-            >
-              <source src={PREVIEW_VIDEO_URL} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+    <div className="overflow-hidden border-y border-brand-100 bg-brand-50/50 py-4">
+      <div className="flex animate-scroll items-center gap-8 whitespace-nowrap">
+        {[...items, ...items].map((item, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-3 text-sm font-medium text-brand-800"
+          >
+            <ChevronRight size={14} className="text-brand-500" />
+            {item}
           </div>
-        </div>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 
 const showcaseFeatures = [
   {
-    title: 'Track Your Day at a Glance',
-    subtitle: 'Your daily nutrition summary, always clear',
+    title: 'AR Scan — First of Its Kind',
+    subtitle: 'Point, scan, done',
     description:
-      'See your calories, protein, carbs, and fat at a glance. MiRO organizes every meal with photos and full macro breakdowns on one beautiful dashboard.',
-    image: '/miro/ss-dashboard.jpg',
-    imageAlt: 'MiRO Dashboard - Daily nutrition tracking',
+      'Use augmented reality to scan your meal. ArCal detects food on your plate, identifies every ingredient, and calculates accurate calories — all through your camera in real time.',
+    image: '/arcal/screens/ar-scan.png',
+    imageAlt: 'ArCal AR Scan — Augmented reality food scanning',
     reverse: false,
   },
   {
-    title: 'Snap. Analyze. Done.',
-    subtitle: 'AI identifies every dish in 10 seconds',
+    title: 'Track Your Day with 1 Button',
+    subtitle: 'Batch analysis — track everything at once',
     description:
-      'Point your camera at any meal — MiRO detects each dish, identifies every ingredient, and calculates accurate calories and macros instantly. Multiple dishes? No problem.',
-    image: '/miro/ss-scan.jpg',
-    imageAlt: 'MiRO AI Scan - Photo food analysis',
+      'Pull to refresh and batch-analyze your whole day in 2 clicks. Every meal organized with photos and full macro breakdowns on one beautiful dashboard.',
+    image: '/arcal/screens/dashboard.png',
+    imageAlt: 'ArCal Dashboard — Daily nutrition tracking',
     reverse: true,
   },
   {
-    title: 'Just Say What You Ate',
-    subtitle: 'Log your entire day in one sentence',
+    title: 'Zero Setup. Just Open and Go.',
+    subtitle: 'No login, no forced subscription, no annoying questions',
     description:
-      '"Breakfast: sticky rice + grilled pork. Lunch: chicken salad. Dinner: pork chop set." One message — every meal logged with full ingredient breakdown and calorie counts.',
-    image: '/miro/ss-chat.jpg',
-    imageAlt: 'MiRO Chat - Conversational food logging',
+      'Download ArCal and start tracking immediately. No account creation, no onboarding quiz, no paywall. Free tokens are waiting — start your first scan in 10 seconds.',
+    image: '/arcal/screens/zero-setup.png',
+    imageAlt: 'ArCal Zero Setup — No login required',
     reverse: false,
   },
   {
-    title: 'Ingredient-Level Precision',
-    subtitle: 'True accuracy down to every sub-ingredient',
+    title: 'Sub-Ingredient Precision',
+    subtitle: 'Edit, delete, customize — full control',
     description:
-      'Nam Prik Kapi? MiRO breaks it down: shrimp paste (25 kcal), Thai chilies (3 kcal), garlic (5 kcal), lime juice (3 kcal), palm sugar (95 kcal). No other app goes this deep.',
-    image: '/miro/ss-ingredients.jpg',
-    imageAlt: 'MiRO Ingredients - Sub-ingredient breakdown',
+      'Thai Red Curry? ArCal breaks it into: shrimp (70 kcal), curry paste (40 kcal), coconut milk (120 kcal). Don\'t eat something? Delete it. Add your own? AI helps.',
+    image: '/arcal/screens/ingredients.png',
+    imageAlt: 'ArCal Ingredients — Sub-ingredient level editing',
     reverse: true,
   },
   {
-    title: 'Your Privacy. Your Control.',
-    subtitle: 'No account needed. Data stays on your device.',
+    title: 'Smarter AI. 15 Cuisines.',
+    subtitle: 'Thai red curry, not "Japanese curry"',
     description:
-      'No login, no cloud, no tracking. Buy Energy tokens once — they never expire. Manual logging is always free. Your data belongs to you.',
-    image: '/miro/ss-privacy.jpg',
-    imageAlt: 'MiRO Privacy - Energy store and privacy features',
+      'ArCal understands food culture. Select your cuisine — the same dish gets identified with the right name, right recipe, and right calorie count for YOUR food.',
+    image: '/arcal/screens/cuisines.png',
+    imageAlt: 'ArCal Cuisines — 15 global cuisine support',
     reverse: false,
+  },
+  {
+    title: 'Your Data. Your Device. Forever.',
+    subtitle: '100% local — no cloud, no tracking',
+    description:
+      'All your nutrition data stays on your phone. No server uploads, no analytics tracking. Build your personal food database over time — it only gets smarter.',
+    image: '/arcal/screens/local-data.png',
+    imageAlt: 'ArCal Privacy — Local data storage',
+    reverse: true,
   },
 ];
 
@@ -193,13 +177,13 @@ function ShowcaseSection() {
     <section id="features" className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Accuracy that{' '}
-            <span className="gradient-text">no one else offers</span>
+          <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl lg:text-5xl">
+            Everything you need.{' '}
+            <span className="gradient-text">Nothing you don&apos;t.</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-400">
-            5 layers of precision stacked together. AI analysis + cultural
-            context + user correction = accuracy no single model achieves alone.
+          <p className="mt-4 text-lg text-gray-500">
+            AR scan, AI analysis, ingredient editing, cultural accuracy — all in
+            one app that respects your time and privacy.
           </p>
         </div>
 
@@ -216,30 +200,30 @@ function ShowcaseSection() {
                   <div
                     className={`absolute -inset-6 rounded-3xl blur-2xl ${
                       i % 3 === 0
-                        ? 'bg-brand-500/10'
+                        ? 'bg-brand-400/10'
                         : i % 3 === 1
-                        ? 'bg-purple-500/10'
-                        : 'bg-cyan-500/10'
+                        ? 'bg-brand-300/10'
+                        : 'bg-brand-500/10'
                     }`}
                   />
                   <Image
-                    src={feature.image}
+                    src={publicAsset(feature.image)}
                     alt={feature.imageAlt}
                     width={540}
                     height={1080}
-                    className="relative rounded-2xl shadow-2xl ring-1 ring-white/10"
+                    className="relative rounded-2xl shadow-xl"
                   />
                 </div>
               </div>
 
               <div className="w-full text-center lg:w-1/2 lg:text-left">
-                <div className="mb-3 text-sm font-semibold uppercase tracking-wider text-brand-400">
+                <div className="mb-3 text-sm font-semibold uppercase tracking-wider text-brand-600">
                   {feature.subtitle}
                 </div>
-                <h3 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
+                <h3 className="text-2xl font-bold tracking-tight text-brand-950 sm:text-3xl lg:text-4xl">
                   {feature.title}
                 </h3>
-                <p className="mt-4 text-lg leading-relaxed text-gray-400">
+                <p className="mt-4 text-lg leading-relaxed text-gray-500">
                   {feature.description}
                 </p>
               </div>
@@ -253,6 +237,12 @@ function ShowcaseSection() {
 
 const features = [
   {
+    icon: ScanLine,
+    title: 'AR Food Scanner',
+    description:
+      'Point your camera and scan meals in augmented reality — the first calorie counter to do this.',
+  },
+  {
     icon: Camera,
     title: 'AI Photo Analysis',
     description:
@@ -262,31 +252,25 @@ const features = [
     icon: Utensils,
     title: 'Sub-Ingredient Precision',
     description:
-      'Deep-fried chicken? MiRO sees the meat, flour batter, and absorbed oil separately.',
+      'See the meat, the batter, and the absorbed oil — each with its own calorie count.',
   },
   {
     icon: Globe,
-    title: 'Cuisine-Specific AI',
+    title: '15 Global Cuisines',
     description:
-      'Select from 15 cuisines. The same curry identified differently based on YOUR food culture.',
+      'Select your cuisine. Thai curry stays Thai curry, pho stays pho — never misidentified.',
   },
   {
     icon: MessageSquare,
     title: 'Chat-Based Logging',
     description:
-      'Describe your entire day in one message — every meal logged with full ingredient breakdown.',
+      'Describe your entire day in one message — every meal logged with full breakdown.',
   },
   {
     icon: Shield,
-    title: '100% Private & Offline',
+    title: '100% Private & Local',
     description:
-      'No login. No account. No cloud storage. All your data stays on your device.',
-  },
-  {
-    icon: Activity,
-    title: 'Health Sync',
-    description:
-      'Two-way sync with Apple Health and Google Health Connect. Active energy adjusts your goal.',
+      'No login. No cloud. All data stays on your device. Your nutrition diary belongs to you.',
   },
 ];
 
@@ -294,17 +278,27 @@ function FeaturesGrid() {
   return (
     <section className="section-gradient py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl">
+            Built different
+          </h2>
+          <p className="mt-3 text-lg text-gray-500">
+            Six features that set ArCal apart from every other calorie counter.
+          </p>
+        </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="glass-card group p-6 transition-colors hover:border-brand-500/30"
+              className="glass-card group p-6 transition-all hover:border-brand-300 hover:shadow-md"
             >
-              <div className="mb-4 inline-flex rounded-xl bg-brand-500/10 p-3 text-brand-400 transition-colors group-hover:bg-brand-500/20">
+              <div className="mb-4 inline-flex rounded-xl bg-brand-50 p-3 text-brand-600 transition-colors group-hover:bg-brand-100">
                 <feature.icon size={24} />
               </div>
-              <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-              <p className="text-sm leading-relaxed text-gray-400">
+              <h3 className="mb-2 text-lg font-semibold text-brand-950">
+                {feature.title}
+              </h3>
+              <p className="text-sm leading-relaxed text-gray-500">
                 {feature.description}
               </p>
             </div>
@@ -318,23 +312,23 @@ function FeaturesGrid() {
 const steps = [
   {
     step: '01',
-    title: 'Snap or Type',
+    title: 'Open & Scan',
     description:
-      'Take a photo of any meal, scan a product, or simply describe what you ate in natural language.',
-    icon: Camera,
+      'No login needed. Open ArCal, point your camera, and AR-scan your meal — or snap a photo, or just type what you ate.',
+    icon: ScanLine,
   },
   {
     step: '02',
-    title: 'AI Deconstructs',
+    title: 'AI Analyzes',
     description:
-      'In seconds, MiRO breaks your meal into every ingredient with accurate calorie and macro counts.',
+      'In under 10 seconds, AI identifies every ingredient with individual calorie and macro counts. Powered by Google Gemini.',
     icon: Zap,
   },
   {
     step: '03',
     title: 'Fine-Tune & Track',
     description:
-      'Edit ingredients, adjust portions, remove what you skipped. Your data, your accuracy, your control.',
+      'Edit ingredients, adjust portions, remove what you skipped. Your personal food database grows smarter every day.',
     icon: BarChart3,
   },
 ];
@@ -344,27 +338,36 @@ function HowItWorksSection() {
     <section id="how-it-works" className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl lg:text-5xl">
             How it <span className="gradient-text">works</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-400">
-            From photo to full nutrition report in under 10 seconds.
+          <p className="mt-4 text-lg text-gray-500">
+            From open to first scan in under 10 seconds. Really.
           </p>
         </div>
 
         <div className="mt-16 grid gap-8 lg:grid-cols-3">
           {steps.map((item) => (
             <div key={item.step} className="relative text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-purple-500">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 shadow-lg shadow-brand-500/25">
                 <item.icon size={28} className="text-white" />
               </div>
-              <div className="mb-2 text-sm font-bold text-brand-400">
+              <div className="mb-2 text-sm font-bold text-brand-600">
                 STEP {item.step}
               </div>
-              <h3 className="mb-3 text-xl font-bold">{item.title}</h3>
-              <p className="text-gray-400">{item.description}</p>
+              <h3 className="mb-3 text-xl font-bold text-brand-950">
+                {item.title}
+              </h3>
+              <p className="text-gray-500">{item.description}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <a href="#download" className="cta-button">
+            <Download size={20} />
+            Try It Free
+          </a>
         </div>
       </div>
     </section>
@@ -373,45 +376,41 @@ function HowItWorksSection() {
 
 function ComparisonSection() {
   const rows = [
-    { feature: 'AI Ingredient Decomposition', miro: true, others: false },
-    { feature: 'Sub-Ingredient Breakdown', miro: true, others: false },
-    { feature: 'Cuisine Preference (15 cuisines)', miro: true, others: false },
-    {
-      feature: 'Editable Ingredients Post-Analysis',
-      miro: true,
-      others: false,
-    },
-    { feature: 'No Login / No Account Required', miro: true, others: false },
-    { feature: 'Offline-First', miro: true, others: false },
-    { feature: 'Chat-Based Logging', miro: true, others: false },
-    { feature: 'Gallery Auto-Scan', miro: true, others: false },
-    { feature: 'Health Sync (ingredient-level)', miro: true, others: false },
-    { feature: 'Purchases Never Expire', miro: true, others: false },
+    { feature: 'AR Meal Scanner', arcal: true, others: false },
+    { feature: 'AI Ingredient Decomposition', arcal: true, others: false },
+    { feature: 'Sub-Ingredient Breakdown', arcal: true, others: false },
+    { feature: 'Cuisine Preference (15 cuisines)', arcal: true, others: false },
+    { feature: 'Editable Ingredients Post-Analysis', arcal: true, others: false },
+    { feature: 'No Login / No Account Required', arcal: true, others: false },
+    { feature: '100% Offline & Local Data', arcal: true, others: false },
+    { feature: 'Chat-Based Logging', arcal: true, others: false },
+    { feature: 'Gallery Batch Scan', arcal: true, others: false },
+    { feature: 'Purchases Never Expire', arcal: true, others: false },
   ];
 
   return (
-    <section className="py-20 lg:py-28">
+    <section className="section-gradient-reverse py-20 lg:py-28">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Why choose <span className="gradient-text">MiRO?</span>
+          <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl lg:text-5xl">
+            Why choose <span className="gradient-text">ArCal?</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-400">
-            Features no other food tracker offers.
+          <p className="mt-4 text-lg text-gray-500">
+            Features no other calorie counter offers.
           </p>
         </div>
 
-        <div className="glass-card mt-12 overflow-hidden">
+        <div className="mt-12 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-white/10">
-                <th className="px-6 py-4 font-semibold text-gray-300">
+              <tr className="border-b border-gray-100 bg-brand-50/50">
+                <th className="px-6 py-4 font-semibold text-gray-700">
                   Feature
                 </th>
-                <th className="px-6 py-4 text-center font-semibold text-brand-400">
-                  MiRO
+                <th className="px-6 py-4 text-center font-semibold text-brand-700">
+                  ArCal
                 </th>
-                <th className="px-6 py-4 text-center font-semibold text-gray-500">
+                <th className="px-6 py-4 text-center font-semibold text-gray-400">
                   Others
                 </th>
               </tr>
@@ -420,14 +419,14 @@ function ComparisonSection() {
               {rows.map((row, i) => (
                 <tr
                   key={row.feature}
-                  className={i % 2 === 0 ? 'bg-white/[0.02]' : ''}
+                  className={i % 2 === 0 ? 'bg-brand-50/30' : 'bg-white'}
                 >
-                  <td className="px-6 py-3.5 text-gray-300">{row.feature}</td>
-                  <td className="px-6 py-3.5 text-center text-green-400">
-                    ✓
+                  <td className="px-6 py-3.5 text-gray-700">{row.feature}</td>
+                  <td className="px-6 py-3.5 text-center">
+                    <CheckCircle2 size={18} className="mx-auto text-brand-500" />
                   </td>
-                  <td className="px-6 py-3.5 text-center text-gray-600">
-                    ✗
+                  <td className="px-6 py-3.5 text-center">
+                    <XCircle size={18} className="mx-auto text-gray-300" />
                   </td>
                 </tr>
               ))}
@@ -445,12 +444,14 @@ const energyPackages = [
     energy: 100,
     price: '$0.99',
     badge: null,
+    featured: false,
   },
   {
     name: 'Value Pack',
     energy: 550,
     price: '$4.99',
     badge: '+10%',
+    featured: false,
   },
   {
     name: 'Power User',
@@ -464,6 +465,7 @@ const energyPackages = [
     energy: '2,000',
     price: '$9.99',
     badge: 'BEST VALUE',
+    featured: false,
   },
 ];
 
@@ -472,11 +474,11 @@ function PricingSection() {
     <section id="pricing" className="section-gradient py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+          <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl lg:text-5xl">
             Pay for what you use.{' '}
             <span className="gradient-text">Keep it forever.</span>
           </h2>
-          <p className="mt-4 text-lg text-gray-400">
+          <p className="mt-4 text-lg text-gray-500">
             No monthly subscription trap. Buy Energy tokens once — they never
             expire. Manual logging is always free.
           </p>
@@ -486,40 +488,74 @@ function PricingSection() {
           {energyPackages.map((pkg) => (
             <div
               key={pkg.name}
-              className={`glass-card relative p-6 text-center transition-transform hover:scale-105 ${
-                pkg.featured ? 'glow border-brand-500/30' : ''
+              className={`relative rounded-2xl border p-6 text-center transition-all hover:scale-105 ${
+                pkg.featured
+                  ? 'border-brand-400 bg-white shadow-xl glow-green'
+                  : 'border-gray-200 bg-white shadow-md'
               }`}
             >
               {pkg.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-500 to-purple-500 px-3 py-1 text-xs font-bold">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-500 to-brand-700 px-3 py-1 text-xs font-bold text-white">
                   {pkg.badge}
                 </div>
               )}
-              <div className="mt-2 text-3xl font-extrabold">{pkg.energy}</div>
-              <div className="text-sm text-gray-400">Energy</div>
-              <div className="my-4 text-2xl font-bold">{pkg.price}</div>
-              <div className="text-xs text-gray-500">{pkg.name}</div>
+              <div className="mt-2 text-3xl font-extrabold text-brand-950">
+                {pkg.energy}
+              </div>
+              <div className="text-sm text-gray-500">Energy</div>
+              <div className="my-4 text-2xl font-bold text-brand-700">
+                {pkg.price}
+              </div>
+              <div className="text-xs text-gray-400">{pkg.name}</div>
             </div>
           ))}
         </div>
 
         <div className="mx-auto mt-12 max-w-2xl text-center">
-          <div className="glass-card inline-flex items-center gap-3 px-6 py-4">
-            <Star size={20} className="text-yellow-400" />
+          <div className="inline-flex items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50 px-6 py-4 shadow-sm">
+            <Star size={20} className="text-yellow-500" />
             <div className="text-left">
-              <div className="font-semibold">Energy Pass — $4.99/month</div>
-              <div className="text-sm text-gray-400">
+              <div className="font-semibold text-brand-900">
+                Energy Pass — $4.99/month
+              </div>
+              <div className="text-sm text-gray-500">
                 Unlimited AI analysis, double streak rewards, priority support
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 text-center text-sm text-gray-500">
+        <div className="mt-8 text-center text-sm text-gray-400">
           <p>
-            10 free Energy on sign up &middot; 1 free AI analysis per day with
+            Free tokens on first launch &middot; 1 free AI analysis per day with
             streak &middot; Manual logging always free
           </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SocialProofStrip() {
+  const stats = [
+    { value: '10 sec', label: 'Setup time' },
+    { value: '95%', label: 'AI confidence' },
+    { value: '15', label: 'Cuisines' },
+    { value: '0', label: 'Login required' },
+  ];
+
+  return (
+    <section className="border-y border-brand-100 bg-brand-950 py-12">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="text-center">
+              <div className="text-3xl font-extrabold text-brand-400 sm:text-4xl">
+                {stat.value}
+              </div>
+              <div className="mt-1 text-sm text-gray-400">{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -532,60 +568,35 @@ function DownloadSection() {
       id="download"
       className="relative overflow-hidden py-24 lg:py-32"
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-500/5 to-transparent" />
+      <div className="absolute inset-0 hero-gradient" />
       <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-          Start tracking <span className="gradient-text">in 30 seconds</span>
+        <h2 className="text-3xl font-bold tracking-tight text-brand-950 sm:text-4xl lg:text-5xl">
+          Start tracking{' '}
+          <span className="gradient-text">in 10 seconds</span>
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-gray-400">
-          No login. No credit card. No hidden fees. Download MiRO and get 10
-          free AI analyses to see the difference.
+        <p className="mx-auto mt-4 max-w-xl text-lg text-gray-600">
+          No login. No credit card. No setup quiz. Download ArCal and get free
+          tokens to try AI-powered calorie counting right now.
         </p>
 
-        <StoreButtons className="mt-10" />
+        <StoreButtons className="mt-10" size="large" />
 
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm font-medium text-gray-500">
           <div className="flex items-center gap-2">
-            <Shield size={16} className="text-green-400" />
+            <Shield size={16} className="text-brand-500" />
             No account needed
           </div>
           <div className="flex items-center gap-2">
-            <Smartphone size={16} className="text-brand-400" />
-            Android &amp; iOS
+            <Smartphone size={16} className="text-brand-500" />
+            Android & iOS
           </div>
           <div className="flex items-center gap-2">
-            <Zap size={16} className="text-yellow-400" />
-            10 free AI analyses
+            <Gift size={16} className="text-brand-500" />
+            Free tokens included
           </div>
         </div>
       </div>
     </section>
-  );
-}
-
-function USPBanner() {
-  const items = [
-    'No Login Required',
-    'Offline-First',
-    '15 Cuisines',
-    'Ingredient-Level Accuracy',
-    'Purchases Never Expire',
-  ];
-
-  return (
-    <div className="overflow-hidden border-y border-white/5 bg-white/[0.02] py-4">
-      <div className="flex animate-[scroll_30s_linear_infinite] items-center gap-8 whitespace-nowrap">
-        {[...items, ...items].map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 text-sm text-gray-400"
-          >
-            <ChevronRight size={14} className="text-brand-400" />
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -594,7 +605,7 @@ export default function Home() {
     <>
       <HeroSection />
       <USPBanner />
-      <VideoPreviewSection />
+      <SocialProofStrip />
       <ShowcaseSection />
       <FeaturesGrid />
       <HowItWorksSection />

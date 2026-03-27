@@ -1607,6 +1607,10 @@ class L10nZh extends L10n {
   String get cameraFailedToInitialize => '相机初始化失败';
 
   @override
+  String get cameraPermissionDeniedMessage =>
+      'Camera permission was denied. Please enable camera access in Settings to use AR Scan.';
+
+  @override
   String get cameraFailedToCapture => '拍摄照片失败';
 
   @override
@@ -1799,7 +1803,7 @@ class L10nZh extends L10n {
   String get subscriptionSubscribeNow => '立即订阅';
 
   @override
-  String get subscriptionSubscribe => 'Subscribe';
+  String get subscriptionSubscribe => '订阅';
 
   @override
   String get subscriptionCancelAnytime => '随时取消';
@@ -1809,7 +1813,7 @@ class L10nZh extends L10n {
 
   @override
   String get subscriptionAutoRenewTermsIos =>
-      'Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.';
+      '购买确认后将向您的Apple ID账户收费。除非在当前周期结束前至少24小时取消，否则订阅将自动续订。您可以在App Store账户设置中管理和取消订阅。';
 
   @override
   String subscriptionRenewsDate(String date) {
@@ -1817,13 +1821,13 @@ class L10nZh extends L10n {
   }
 
   @override
-  String get subscriptionBestValue => 'BEST VALUE';
+  String get subscriptionBestValue => '超值';
 
   @override
-  String get energyStoreTitle => 'Energy Store';
+  String get energyStoreTitle => '能量商店';
 
   @override
-  String get energyPackages => 'Energy Packages';
+  String get energyPackages => '能量套餐';
 
   @override
   String get energyPackageStarterKick => 'Starter Kick';
@@ -1838,30 +1842,30 @@ class L10nZh extends L10n {
   String get energyPackageUltimateSaver => 'Ultimate Saver';
 
   @override
-  String get energyBadgeBestValue => 'BEST VALUE';
+  String get energyBadgeBestValue => '超值';
 
   @override
-  String get energyBadgePopular => 'POPULAR';
+  String get energyBadgePopular => '热门';
 
   @override
-  String get energyBadgeBonus10 => '+10% bonus';
+  String get energyBadgeBonus10 => '+10% 奖励';
 
   @override
-  String get energyPassUnlimitedAI => 'Unlimited AI Analysis';
+  String get energyPassUnlimitedAI => '无限AI分析';
 
   @override
   String energyPassUnlimitedFromPrice(String price) {
-    return 'Unlimited AI Analysis • from $price/month';
+    return '无限AI分析 • 低至$price/月';
   }
 
   @override
-  String get energyPassActive => 'ACTIVE';
+  String get energyPassActive => '已激活';
 
   @override
-  String get subscriptionDeal => 'Subscription Deal';
+  String get subscriptionDeal => '订阅优惠';
 
   @override
-  String get subscriptionViewDeal => 'View Deal';
+  String get subscriptionViewDeal => '查看优惠';
 
   @override
   String get disclaimerHealthDisclaimer => '健康免责声明';
@@ -3361,25 +3365,22 @@ class L10nZh extends L10n {
   String get burnedLabel => 'Burned';
 
   @override
-  String get subscriptionAutoRenew => 'Auto-Renew';
+  String get subscriptionAutoRenew => '自动续订';
 
   @override
-  String get subscriptionAutoRenewOn => 'On';
+  String get subscriptionAutoRenewOn => '已开启';
 
   @override
-  String get subscriptionAutoRenewOff => 'Off — expires at end of period';
+  String get subscriptionAutoRenewOff => '已关闭 — 到期后失效';
 
   @override
-  String get subscriptionManagedByAppStore =>
-      'Subscription is managed through the App Store';
+  String get subscriptionManagedByAppStore => '订阅通过App Store管理';
 
   @override
-  String get subscriptionManagedByPlayStore =>
-      'Subscription is managed through Google Play';
+  String get subscriptionManagedByPlayStore => '订阅通过Google Play管理';
 
   @override
-  String get subscriptionCannotLoadPrices =>
-      'Unable to load prices from the Store right now';
+  String get subscriptionCannotLoadPrices => '暂时无法从商店加载价格';
 
   @override
   String get cloudSync => 'Cloud Sync';
@@ -3764,7 +3765,7 @@ class L10nZh extends L10n {
 
   @override
   String get privacyConsentSubtitle =>
-      'Please review how ArCal uses your data. Toggle each option and scroll to the bottom to continue.';
+      'Please review how ArCal uses your data. Toggle each option, then tap Continue.';
 
   @override
   String get privacyConsentNotifTitle => 'Push Notifications';
@@ -3867,4 +3868,175 @@ class L10nZh extends L10n {
 
   @override
   String get arScanMoveToAngle => 'Tilt to next angle';
+
+  @override
+  String get subscriptionPlanWeeklyName => 'Energy Pass 每周';
+
+  @override
+  String get subscriptionPlanMonthlyName => 'Energy Pass 每月';
+
+  @override
+  String get subscriptionPlanYearlyName => 'Energy Pass 年度';
+
+  @override
+  String get subscriptionPlanWeeklyDesc => '每周订阅';
+
+  @override
+  String get subscriptionPlanMonthlyDesc => '无限AI分析';
+
+  @override
+  String get subscriptionPlanYearlyDesc => '超值 — 节省81%';
+
+  @override
+  String get subscriptionPeriodWeek => '周';
+
+  @override
+  String get subscriptionPeriodMonth => '月';
+
+  @override
+  String get subscriptionPeriodYear => '年';
+
+  @override
+  String get subscriptionBenefitUnlimitedAI => '无限AI分析';
+
+  @override
+  String get subscriptionBenefitExclusiveBadge => '专属徽章';
+
+  @override
+  String get subscriptionBenefitPrioritySupport => '优先支持';
+
+  @override
+  String subscriptionSavePercent(String price) {
+    return '节省81% — $price/月';
+  }
+
+  @override
+  String subscriptionYearlySavingsVsMonthly(int percent, String price) {
+    return '节省$percent% — $price/月';
+  }
+
+  @override
+  String get subscriptionStatusActive => '活跃';
+
+  @override
+  String get subscriptionStatusCancelled => '已取消';
+
+  @override
+  String get subscriptionStatusExpired => '已过期';
+
+  @override
+  String get subscriptionStatusGracePeriod => '宽限期';
+
+  @override
+  String get subscriptionStatusNone => '未订阅';
+
+  @override
+  String get energyYourBalance => '您的能量余额';
+
+  @override
+  String get energyLimitedTime => '限时';
+
+  @override
+  String energyAmountLabel(int amount) {
+    return '$amount 能量';
+  }
+
+  @override
+  String get energyClaiming => '领取中...';
+
+  @override
+  String energyDaysFreeAI(int days) {
+    return '$days天免费AI';
+  }
+
+  @override
+  String energyBonusOnPurchases(int percent) {
+    return '+$percent% 所有购买奖励！';
+  }
+
+  @override
+  String energyBonusBreakdown(int base, int bonus, int total) {
+    return '$base + $bonus 奖励 = $total 能量';
+  }
+
+  @override
+  String energyPromoBonusPercent(int percent) {
+    return '促销奖励: +$percent%';
+  }
+
+  @override
+  String energyTierBonusPercent(String tierName, int percent) {
+    return '$tierName奖励: +$percent%';
+  }
+
+  @override
+  String get energyAboutTitle => '关于能量';
+
+  @override
+  String get energyInfoAnalysis => '1能量 = 1次AI分析';
+
+  @override
+  String get energyInfoNeverExpires => '能量永不过期';
+
+  @override
+  String get energyInfoOneTime => '一次购买，按设备';
+
+  @override
+  String get energyInfoManualFree => '手动记录始终免费';
+
+  @override
+  String get shareCard => 'Share Card';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get saveToGallery => 'Save';
+
+  @override
+  String get savedToGallery => 'Saved to gallery';
+
+  @override
+  String get saveFailed => 'Failed to save';
+
+  @override
+  String get macros => 'Macros';
+
+  @override
+  String get micronutrients => 'Micronutrients';
+
+  @override
+  String get shareNoImageSelected => 'No image selected yet';
+
+  @override
+  String get shareImageSelected => 'Image selected';
+
+  @override
+  String get shareSelectImageRequired =>
+      'Please select an image before sharing';
+
+  @override
+  String get shareCardDailySummaryTitle => '每日摘要';
+
+  @override
+  String get shareCardFiber => '纤维';
+
+  @override
+  String get shareCardSugar => '糖';
+
+  @override
+  String get shareCardSodium => '钠';
+
+  @override
+  String shareCardDayStreak(int days) {
+    return '$days天连续打卡';
+  }
+
+  @override
+  String shareCardDays(int days) {
+    return '$days天';
+  }
+
+  @override
+  String get shareCardShowBoundingBox => 'Show bounding box';
 }

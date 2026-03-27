@@ -12,9 +12,14 @@ import '../../../core/ai/gemini_service.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 import '../providers/my_meal_provider.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../sharing/models/share_card_config.dart';
+import '../../sharing/presentation/share_card_creator_screen.dart';
+import '../../sharing/widgets/budget_meter.dart';
 
 class FoodDetailBottomSheet extends ConsumerStatefulWidget {
   final FoodEntry entry;
@@ -529,6 +534,36 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                     const SizedBox(height: 12),
                     _buildCollapsibleNotes(entry.notes!, isDark),
                   ],
+
+                  // === Budget Meter ===
+                  if (entry.calories > 0) ...[
+                    const SizedBox(height: 16),
+                    _buildBudgetMeter(entry),
+                  ],
+
+                  // === Share button (same style/position as Simple sheet) ===
+                  if (entry.calories > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12, bottom: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openShareCard(entry),
+                          icon: const Icon(Icons.share_rounded, size: 18),
+                          label: Text(L10n.of(context)!.share),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 24),
 
@@ -1265,6 +1300,81 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  // ============================================================
+  // Budget Meter
+  // ============================================================
+  Widget _buildBudgetMeter(FoodEntry entry) {
+    final profile = ref.watch(profileNotifierProvider).valueOrNull;
+    if (profile == null) return const SizedBox.shrink();
+
+    final date = widget.selectedDate ?? dateOnly(entry.timestamp);
+    final todayEntries = ref.watch(foodEntriesByDateProvider(date));
+    final dailyCal = todayEntries.valueOrNull?.fold<double>(0, (sum, e) => sum + e.calories) ?? 0;
+
+    double mealBudget;
+    String mealLabel;
+    switch (entry.mealType) {
+      case MealType.breakfast:
+        mealBudget = profile.breakfastBudget;
+        mealLabel = 'Breakfast';
+      case MealType.lunch:
+        mealBudget = profile.lunchBudget;
+        mealLabel = 'Lunch';
+      case MealType.dinner:
+        mealBudget = profile.dinnerBudget;
+        mealLabel = 'Dinner';
+      case MealType.snack:
+        mealBudget = profile.snackBudget;
+        mealLabel = 'Snack';
+    }
+
+    return BudgetMeterSection(
+      mealCalories: entry.calories,
+      mealBudget: mealBudget,
+      dailyCalories: dailyCal,
+      dailyGoal: profile.calorieGoal,
+      protein: entry.protein,
+      proteinGoal: profile.proteinGoal,
+      carbs: entry.carbs,
+      carbGoal: profile.carbGoal,
+      fat: entry.fat,
+      fatGoal: profile.fatGoal,
+      mealLabel: mealLabel,
+    );
+  }
+
+  // ============================================================
+  // Share
+  // ============================================================
+  void _openShareCard(FoodEntry entry) {
+    final profile = ref.read(profileNotifierProvider).valueOrNull;
+    double? mealBudget;
+    if (profile != null) {
+      switch (entry.mealType) {
+        case MealType.breakfast:
+          mealBudget = profile.breakfastBudget;
+        case MealType.lunch:
+          mealBudget = profile.lunchBudget;
+        case MealType.dinner:
+          mealBudget = profile.dinnerBudget;
+        case MealType.snack:
+          mealBudget = profile.snackBudget;
+      }
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ShareCardCreatorScreen(
+          initialConfig: ShareCardConfig(
+            type: ShareCardType.foodItem,
+            foodEntry: entry,
+            mealBudget: mealBudget,
+          ),
+        ),
+      ),
+    );
   }
 
   // ============================================================

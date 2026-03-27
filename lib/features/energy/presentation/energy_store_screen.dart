@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/app_localizations.dart';
@@ -12,6 +13,8 @@ import 'package:miro_hybrid/features/energy/providers/energy_provider.dart';
 import 'package:miro_hybrid/core/models/gamification_state.dart';
 import 'package:miro_hybrid/features/energy/providers/gamification_provider.dart';
 import 'package:miro_hybrid/features/subscription/presentation/subscription_screen.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:miro_hybrid/features/subscription/services/subscription_service.dart';
 import 'package:miro_hybrid/core/services/analytics_service.dart';
 import 'package:miro_hybrid/features/subscription/models/freepass_data.dart';
 import '../../../core/theme/app_colors.dart';
@@ -40,6 +43,11 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   Timer? _countdownTimer;
   Duration? _remainingTime;
   DateTime? _offerExpiryTime;
+  Map<String, String> _localizedEnergyPrices = {};
+  /// Store listing titles (Play / App Store) — keys: energy_50, energy_200, energy_500
+  Map<String, String> _localizedEnergyTitles = {};
+  /// Subscription plan prices from Store (monthly, yearly)
+  Map<String, String> _subscriptionPrices = {};
   bool _isClaimingFreeEnergy = false;
   bool _isClaimingFreepass = false;
   bool _isConvertingToFreepass = false;
@@ -53,6 +61,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   void initState() {
     super.initState();
     AnalyticsService.logStoreOpened();
+    _loadLocalizedEnergyPrices();
 
     if (widget.highlightOfferId != null) {
       _highlightController = AnimationController(
@@ -136,6 +145,40 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
     }
   }
 
+  Future<void> _loadLocalizedEnergyPrices() async {
+    final info = await PurchaseService.getLocalizedEnergyStoreInfo();
+    if (!mounted) return;
+    setState(() {
+      _localizedEnergyPrices = info.prices;
+      _localizedEnergyTitles = info.titles;
+    });
+    // Also load subscription prices for the CTA
+    _loadSubscriptionPrices();
+  }
+
+  Future<void> _loadSubscriptionPrices() async {
+    try {
+      final svc = SubscriptionService();
+      final products = await svc.getProducts()
+          .timeout(const Duration(seconds: 10), onTimeout: () => <ProductDetails>[]);
+      if (!mounted || products.isEmpty) return;
+      final prices = Platform.isIOS
+          ? SubscriptionService.extractProductPrices(products)
+          : SubscriptionService.extractBasePlanPrices(products.first);
+      if (mounted) setState(() => _subscriptionPrices = prices);
+    } catch (_) {}
+  }
+
+  String _energyPriceLabel(String productId, String fallback) {
+    return _localizedEnergyPrices[productId] ?? fallback;
+  }
+
+  String _energyDisplayName(String productId, String l10nFallback) {
+    final raw = _localizedEnergyTitles[productId];
+    if (raw == null || raw.trim().isEmpty) return l10nFallback;
+    return raw.replaceAll(RegExp(r'\s*\([^)]*\)\s*$'), '').trim();
+  }
+
   void _startCountdown() {
     _countdownTimer?.cancel();
     if (_offerExpiryTime == null) return;
@@ -211,6 +254,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
           ref.invalidate(currentEnergyProvider);
           ref.invalidate(energyBalanceProvider);
           await ref.read(gamificationProvider.notifier).refresh();
+          await _loadLocalizedEnergyPrices();
           await _loadOffers();
         },
         child: ListView(
@@ -266,47 +310,44 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             _buildModernPackageCard(
               icon: AppIcons.target,
               iconColor: AppIcons.targetColor,
-              name: L10n.of(context)!.energyPackageStarterKick,
-              energy: 100,
-              price: 0.99,
-              priceText: '\$0.99',
-              productId: PurchaseService.energy100,
+              name: _energyDisplayName(
+                PurchaseService.energy50,
+                L10n.of(context)!.energyPackageStarterKick,
+              ),
+              energy: 50,
+              price: 1.99,
+              priceText: _energyPriceLabel(PurchaseService.energy50, '\$1.99'),
+              productId: PurchaseService.energy50,
               gradient: [AppColors.info.withValues(alpha: 0.6), AppColors.info],
             ),
 
             _buildModernPackageCard(
               icon: AppIcons.subscription,
               iconColor: AppColors.primary,
-              name: L10n.of(context)!.energyPackageValuePack,
-              energy: 550,
-              price: 4.99,
-              priceText: '\$4.99',
-              productId: PurchaseService.energy550,
-              badge: L10n.of(context)!.energyBadgeBonus10,
+              name: _energyDisplayName(
+                PurchaseService.energy200,
+                L10n.of(context)!.energyPackageValuePack,
+              ),
+              energy: 200,
+              price: 5.99,
+              priceText: _energyPriceLabel(PurchaseService.energy200, '\$5.99'),
+              productId: PurchaseService.energy200,
+              badge: L10n.of(context)!.energyBadgePopular,
+              isPopular: true,
               gradient: [AppColors.premium.withValues(alpha: 0.6), AppColors.premium],
             ),
 
             _buildModernPackageCard(
               icon: AppIcons.streak,
               iconColor: AppIcons.streakColor,
-              name: L10n.of(context)!.energyPackagePowerUser,
-              energy: 1200,
-              price: 7.99,
-              priceText: '\$7.99',
-              productId: PurchaseService.energy1200,
-              badge: L10n.of(context)!.energyBadgePopular,
-              isPopular: true,
-              gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
-            ),
-
-            _buildModernPackageCard(
-              icon: AppIcons.milestone,
-              iconColor: AppIcons.milestoneColor,
-              name: L10n.of(context)!.energyPackageUltimateSaver,
-              energy: 2000,
-              price: 9.99,
-              priceText: '\$9.99',
-              productId: PurchaseService.energy2000,
+              name: _energyDisplayName(
+                PurchaseService.energy500,
+                L10n.of(context)!.energyPackagePowerUser,
+              ),
+              energy: 500,
+              price: 12.99,
+              priceText: _energyPriceLabel(PurchaseService.energy500, '\$12.99'),
+              productId: PurchaseService.energy500,
               badge: L10n.of(context)!.energyBadgeBestValue,
               isBest: true,
               gradient: [AppColors.warning.withValues(alpha: 0.7), AppColors.warning],
@@ -549,9 +590,9 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                               color: Colors.white.withOpacity(0.25),
                               borderRadius: AppRadius.sm,
                             ),
-                            child: const Text(
-                              'LIMITED TIME',
-                              style: TextStyle(
+                            child: Text(
+                              L10n.of(context)!.energyLimitedTime,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -588,7 +629,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                             const Icon(AppIcons.energy, size: 16, color: Colors.white),
                             const SizedBox(width: 4),
                             Text(
-                              '$energyAmount Energy',
+                              L10n.of(context)!.energyAmountLabel(energyAmount),
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 14,
@@ -660,7 +701,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
   /// Free Energy Card (claim ได้เลย ไม่ต้องซื้อ)
   Widget _buildFreeEnergyCard(dynamic offer) {
-    final title = offer['title'] as String? ?? 'Free Energy';
+    final title = offer['title'] as String? ?? L10n.of(context)!.energyAmountLabel(0);
     final description = offer['description'] as String? ?? '';
     final ctaText = offer['ctaText'] as String? ?? 'Claim';
     final icon = offer['icon'] as String? ?? '🎁';
@@ -744,7 +785,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '+$amount Energy',
+                          '+${L10n.of(context)!.energyAmountLabel(amount)}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -774,7 +815,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                         ),
                       ),
                       child: Text(
-                        _isClaimingFreeEnergy ? 'Claiming...' : ctaText,
+                        _isClaimingFreeEnergy ? L10n.of(context)!.energyClaiming : ctaText,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -910,7 +951,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$days days free AI', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                        Text(L10n.of(context)!.energyDaysFreeAI(days), style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                         if (remainingSeconds != null && remainingSeconds > 0) ...[
                           const SizedBox(height: 4),
                           Text(_formatDuration(Duration(seconds: remainingSeconds)), style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12)),
@@ -926,7 +967,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                         shape: RoundedRectangleBorder(borderRadius: AppRadius.md),
                       ),
                       child: Text(
-                        _isClaimingFreepass ? 'Claiming...' : ctaText,
+                        _isClaimingFreepass ? L10n.of(context)!.energyClaiming : ctaText,
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -993,7 +1034,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
 
   /// Bonus banner (40% bonus / tier promo)
   Widget _buildBonusBanner(dynamic offer) {
-    final title = offer['title'] as String? ?? 'Bonus';
+    final title = offer['title'] as String? ?? 'Bonus';  // offer title comes from backend already localized
     final description = offer['description'] as String? ?? '';
     final metadata = offer['metadata'] as Map<String, dynamic>?;
     final bonusRate = (metadata?['bonusRate'] as num?)?.toDouble() ?? 0;
@@ -1053,7 +1094,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                   )
                 else if (bonusRate > 0)
                   Text(
-                    '+${(bonusRate * 100).toInt()}% Bonus on all purchases!',
+                    L10n.of(context)!.energyBonusOnPurchases((bonusRate * 100).toInt()),
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 13,
@@ -1121,7 +1162,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your Energy Balance',
+                  L10n.of(context)!.energyYourBalance,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 14,
@@ -1336,7 +1377,11 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        L10n.of(context)!.energyPassUnlimitedFromPrice('\$3.33'),
+                        L10n.of(context)!.energyPassUnlimitedFromPrice(
+                          _subscriptionPrices[SubscriptionService.kSubscriptionMonthlyBasePlan]
+                              ?? _subscriptionPrices[SubscriptionService.kIosMonthlyProductId]
+                              ?? '\$9.99',
+                        ),
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.9),
                           fontSize: 14,
@@ -1479,8 +1524,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                           const SizedBox(width: 4),
                           Text(
                             bonusEnergy > 0
-                                ? '$energy + $bonusEnergy Bonus = $totalEnergy Energy'
-                                : '$energy Energy',
+                                ? L10n.of(context)!.energyBonusBreakdown(energy, bonusEnergy, totalEnergy)
+                                : L10n.of(context)!.energyAmountLabel(energy),
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
@@ -1519,8 +1564,8 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
                               const SizedBox(width: 4),
                               Text(
                                 isPromoBonus
-                                    ? 'Promo Bonus: +${(bonusRate * 100).toInt()}%'
-                                    : '${gamification.tierName} Bonus: +${(bonusRate * 100).toInt()}%',
+                                    ? L10n.of(context)!.energyPromoBonusPercent((bonusRate * 100).toInt())
+                                    : L10n.of(context)!.energyTierBonusPercent(gamification.tierName, (bonusRate * 100).toInt()),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isPromoBonus
@@ -2189,7 +2234,7 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
               ),
               const SizedBox(width: 12),
               Text(
-                'About Energy',
+                L10n.of(context)!.energyAboutTitle,
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
@@ -2199,10 +2244,10 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
             ],
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(AppIcons.energy, AppIcons.energyColor, '1 Energy = 1 AI analysis', textColor),
-          _buildInfoRow(AppIcons.infinity, AppIcons.infinityColor, 'Energy never expires', textColor),
-          _buildInfoRow(AppIcons.device, AppIcons.deviceColor, 'One-time purchase, per device', textColor),
-          _buildInfoRow(Icons.favorite_rounded, AppColors.success, 'Manual logging is always free', textColor),
+          _buildInfoRow(AppIcons.energy, AppIcons.energyColor, L10n.of(context)!.energyInfoAnalysis, textColor),
+          _buildInfoRow(AppIcons.infinity, AppIcons.infinityColor, L10n.of(context)!.energyInfoNeverExpires, textColor),
+          _buildInfoRow(AppIcons.device, AppIcons.deviceColor, L10n.of(context)!.energyInfoOneTime, textColor),
+          _buildInfoRow(Icons.favorite_rounded, AppColors.success, L10n.of(context)!.energyInfoManualFree, textColor),
         ],
       ),
     );
