@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 ## Current Position
 
-Phase: Not started (roadmap defined — Phase 13 next)
+Phase: **13** — context gathered (`13-CONTEXT.md`)
 Plan: —
-Status: Ready to plan / execute Phase 13
-Last activity: 2026-03-29 — v2.0 เฟส 6–12 ทำเครื่องหมายเสร็จแล้ว; เหลือ v3.0 เฟส 13–18
+Status: Ready for `/gsd-plan-phase 13`
+Last activity: 2026-03-29 — `/gsd-discuss-phase 13` → CONTEXT + DISCUSSION-LOG committed
 
 Progress: [░░░░░░░░░░] 0%
 
