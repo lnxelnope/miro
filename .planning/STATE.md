@@ -2,15 +2,14 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: defining
-stopped_at: —
-last_updated: "2026-03-29T12:00:00.000Z"
-last_activity: 2026-03-29 — Milestone v3.0 started (GSD new-milestone)
+status: planning
+last_updated: "2026-03-28T19:04:24.113Z"
+last_activity: 2026-03-29 — v2.0 เฟส 6–12 ทำเครื่องหมายเสร็จแล้ว; เหลือ v3.0 เฟส 13–18
 progress:
-  total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 7
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 12
   percent: 0
 ---
 
@@ -57,5 +56,5 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-29 — `/gsd-new-milestone` + `_project_manager/arcal_2_00`
-Resume file: None
+Last session: 2026-03-28T19:04:24.105Z
+Resume file: .planning/phases/13-ingredients-schema-recompute/13-CONTEXT.md
