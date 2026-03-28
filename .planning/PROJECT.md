@@ -61,13 +61,13 @@ ArCal (formerly Miro) is an offline-first AI calorie and nutrition tracking mobi
 - [ ] Group merge, thumbnails, create-meal gallery (ARC2-GR-*, ARC2-THUMB-*, ARC2-MEAL-*)
 - [ ] Share card + promo redeem + admin (ARC2-SHARE-*, ARC2-PROMO-*)
 
-### Carryover (v2.0 ARscan — not closed by v3.0 start)
+### Validated (v2.0 GSD — Phases 6–12)
 
-<!-- Still tracked in REQUIREMENTS.md under v2.0; phases 10, 12 in ROADMAP -->
+<!-- ยืนยันโดยทีม: เฟส 6–12 เสร็จแล้ว — รายละเอียดใน REQUIREMENTS.md (ARSCAN-*, BRAND-*) และ ROADMAP -->
 
-- [ ] ARscan review bottom sheet + Gemini multi-image + navigation prominence (ARSCAN-11–18, Phase 10)
-- [ ] Full Miro→ArCal internal ID / inventory migration (Phase 12)
-- [ ] Optional polish: ARSCAN-07, 08, 10 if not already satisfied in tree
+- ✓ v2.0 ARscan pipeline (foundation → stream → detection → multi-angle → review → navigation) — Phases 6–10
+- ✓ App rebrand user-facing (ArCal) — Phase 11
+- ✓ Miro→ArCal inventory / rename / internal ID strategy — Phase 12
 
 ### Out of Scope
 
@@ -99,6 +99,7 @@ ArCal (formerly Miro) is an offline-first AI calorie and nutrition tracking mobi
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | v3.0 Arcal 2.00 | Product upgrade from `_project_manager/arcal_2_00` | In progress |
+| v2.0 phases 6–12 complete | ARscan + rebrand + migration shipped per team | Done |
 | Single visible mode (basic) | Reduce confusion; Pro code retained | Pending |
 | Nutrition truth from subs when present | Consistency with Create Meal + AI ingestion | Pending |
 | Skip fresh GSD ecosystem research | arcal2-00 / arcal2-01 already document codebase + decisions | Done |
@@ -124,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 — Milestone v3.0 Arcal 2.00 initialized (`/gsd-new-milestone` + `_project_manager/arcal_2_00`)*
+*Last updated: 2026-03-29 — v2.0 เฟส 6–12 ทำเครื่องหมายว่าเสร็จแล้ว; งานค้าง = v3.0 เฟส 13–18 เท่านั้น*

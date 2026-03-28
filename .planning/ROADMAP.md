@@ -5,8 +5,8 @@
 - ✅ **v1.0 MVP** - Phases 1-3 (pre-GSD)
 - ✅ **v1.1 Gamification & Monetization** - Phases 4 (pre-GSD)
 - ✅ **v1.2 Analytics & Health Integration** - Phase 5 (pre-GSD, last version v1.2.2+51)
-- 🚧 **v2.0 ARscan + Rebrand** — Phases 6–12 (carryover; เฟส 10 / 12 อาจยังเปิด)
-- 🚧 **v3.0 Arcal 2.00 (upgrade_basic)** — Phases 13–18 (current milestone)
+- ✅ **v2.0 ARscan + Rebrand** — Phases 6–12 (shipped)
+- 🚧 **v3.0 Arcal 2.00 (upgrade_basic)** — Phases 13–18 (current milestone — เหลือเท่านี้)
 
 ## Phases
 
@@ -21,16 +21,17 @@ Phases 1-5 were completed pre-GSD. See MILESTONES.md for details.
 
 </details>
 
-### 🚧 v2.0 ARscan + Rebrand
+### ✅ v2.0 ARscan + Rebrand (complete)
 
 **Milestone Goal:** เพิ่มฟีเจอร์ ARscan สำหรับตรวจจับอาหารแบบ real-time พร้อม auto-capture 3 มุม เพื่อวิเคราะห์แคลอรี่แม่นยำขึ้น และเปลี่ยนชื่อแอปเป็น ArCal
 
-- [ ] **Phase 6: Foundation** — Dependencies, data model, and build verification
-- [ ] **Phase 7: Camera Stream** — Real-time video processing infrastructure
-- [ ] **Phase 8: Food Detection** — ML Kit object detection with bounding box overlay
+- [x] **Phase 6: Foundation** — Dependencies, data model, and build verification
+- [x] **Phase 7: Camera Stream** — Real-time video processing infrastructure
+- [x] **Phase 8: Food Detection** — ML Kit object detection with bounding box overlay
 - [x] **Phase 9: Multi-Angle Capture** — Guided 3-angle auto-capture with sensor integration
-- [ ] **Phase 10: Review & Pipeline** — Bottom sheet review, Gemini analysis, and navigation
-- [x] **Phase 11: App Rebrand** — Rename app to ArCal across all platforms (completed 2026-03-16)
+- [x] **Phase 10: Review & Pipeline** — Bottom sheet review, Gemini analysis, and navigation
+- [x] **Phase 11: App Rebrand** — Rename app to ArCal across all platforms
+- [x] **Phase 12: Miro→ArCal migration** — Inventory, user-facing rename, internal ID strategy (see Phase Details below)
 
 ## Phase Details
 
@@ -46,9 +47,9 @@ Phases 1-5 were completed pre-GSD. See MILESTONES.md for details.
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 06-01: Data model (FoodEntry multi-image + dataSource) [wave 1]
-- [ ] 06-02: Dependencies (ML Kit, sensors_plus, camera upgrade) [wave 1]
-- [ ] 06-03: Repository layer (CRUD for ARscan FoodEntry) [wave 2]
+- [x] 06-01: Data model (FoodEntry multi-image + dataSource) [wave 1]
+- [x] 06-02: Dependencies (ML Kit, sensors_plus, camera upgrade) [wave 1]
+- [x] 06-03: Repository layer (CRUD for ARscan FoodEntry) [wave 2]
 
 ### Phase 7: Camera Stream
 **Goal**: Stable camera streaming with frame-by-frame processing at target FPS, lifecycle-safe on physical devices
@@ -62,9 +63,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 07-01: ARscan screen + camera preview widget [wave 1]
-- [ ] 07-02: Camera stream controller (logic layer) [wave 1]
-- [ ] 07-03: FPS diagnostics + long-run stability testing [wave 2]
+- [x] 07-01: ARscan screen + camera preview widget [wave 1]
+- [x] 07-02: Camera stream controller (logic layer) [wave 1]
+- [x] 07-03: FPS diagnostics + long-run stability testing [wave 2]
 
 ### Phase 8: Food Detection
 **Goal**: Users see real-time bounding boxes highlighting detected food items on camera preview, powered by on-device ML Kit
@@ -110,9 +111,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 10-01: Review bottom sheet (handoff from Phase 9, preview, form) [wave 1]
-- [ ] 10-02: Gemini multi-image analysis service + save FoodEntry [wave 2]
-- [ ] 10-03: Navigation (ARscan prominent button + keep old flow) [wave 3]
+- [x] 10-01: Review bottom sheet (handoff from Phase 9, preview, form) [wave 1]
+- [x] 10-02: Gemini multi-image analysis service + save FoodEntry [wave 2]
+- [x] 10-03: Navigation (ARscan prominent button + keep old flow) [wave 3]
 
 ### Phase 11: App Rebrand
 **Goal**: App identity changed from Miro to ArCal across all user-facing surfaces on both platforms
@@ -124,34 +125,35 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 11-01: Display name change (AndroidManifest + Info.plist) [wave 1]
-- [ ] 11-02: Privacy/permission strings update (localization + InfoPlist.strings) [wave 2]
+- [x] 11-01: Display name change (AndroidManifest + Info.plist) [wave 1]
+- [x] 11-02: Privacy/permission strings update (localization + InfoPlist.strings) [wave 2]
 
-## Progress
+## Progress (v2.0 — archived)
 
-**Execution Order:**
-Phases execute in numeric order: 6 → 7 → 8 → 9 → 10 → 11
+**Execution order ที่ใช้:** 6 → 7 → 8 → 9 → 10 → 11 → 12 — **ครบแล้ว**
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 6. Foundation | v2.0 | 0/3 | Not started | - |
-| 7. Camera Stream | v2.0 | 0/3 | Not started | - |
-| 8. Food Detection | 1/2 | In Progress|  | - |
+| 6. Foundation | v2.0 | 3/3 | Complete | — |
+| 7. Camera Stream | v2.0 | 3/3 | Complete | — |
+| 8. Food Detection | v2.0 | 2/2 | Complete | — |
 | 9. Multi-Angle Capture | v2.0 | 2/2 | Complete | 2026-03-16 |
-| 10. Review & Pipeline | v2.0 | 0/3 | Not started | - |
-| 11. App Rebrand | 2/2 | Complete   | 2026-03-16 | - |
+| 10. Review & Pipeline | v2.0 | 3/3 | Complete | — |
+| 11. App Rebrand | v2.0 | 2/2 | Complete | 2026-03-16 |
+| 12. Miro→ArCal migration | v2.0 | 3/3 | Complete | — |
 
 ### Phase 12: Rename from Miro to ArCal across app, web, admin; research all remaining Miro IDs/usages and plan migration
 
 **Goal:** มี inventory ครบทุกการใช้ \"miro\" ในระบบ และเปลี่ยน user-facing surfaces เป็น ArCal ทั้งหมด พร้อมเอกสารแผน migration สำหรับ internal IDs/slug
-**Requirements**: TBD
+**Requirements**: TBD (inventory / migration)
 **Depends on:** Phase 11
 **Plans:** 3 plans in 3 waves
+**Status:** ✅ Complete (ตามที่ทีมยืนยัน)
 
 Plans:
-- [ ] 12-01: Research & inventory ทุกการใช้ \"miro\" + classify และตัดสินใจเบื้องต้น [wave 1]
-- [ ] 12-02: User-facing rename (mobile/web/system dialogs) + verification commands [wave 2]
-- [ ] 12-03: Internal ID/slug/namespace strategy + migration/verification plan [wave 3]
+- [x] 12-01: Research & inventory ทุกการใช้ \"miro\" + classify และตัดสินใจเบื้องต้น [wave 1]
+- [x] 12-02: User-facing rename (mobile/web/system dialogs) + verification commands [wave 2]
+- [x] 12-03: Internal ID/slug/namespace strategy + migration/verification plan [wave 3]
 
 ---
 
@@ -172,7 +174,7 @@ Plans:
 
 ### Phase 13: Ingredients schema & recompute
 **Goal:** มีโมเดล/สัญญาข้อมูลเดียวสำหรับ main/sub สูงสุด 2 ระดับ, อ่านข้อมูลเก่าได้, และฟังก์ชัน recompute ที่เหลือทีม implement ทุกจุดใช้ร่วมกันได้  
-**Depends on:** — (อาจทำคู่กับ v2.0 แต่ไม่บังคับ)  
+**Depends on:** — (v2.0 เฟส 6–12 เสร็จแล้ว)  
 **Requirements:** ARC2-DATA-01, ARC2-DATA-02, ARC2-DATA-03  
 **Success criteria:**
 1. Legacy `ingredientsJson` ยังโหลดได้โดยไม่ crash; บันทึกใหม่ใช้รูปแบบใหม่

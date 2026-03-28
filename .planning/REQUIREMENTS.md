@@ -50,9 +50,9 @@
 
 ---
 
-## v2.0 Requirements (carryover)
+## v2.0 Requirements (complete)
 
-Requirements for milestone v2.0: ARscan + App Rebrand. Some items may still be open while v3.0 runs.
+Requirements for milestone v2.0: ARscan + App Rebrand. **ทีมยืนยันเฟส 6–12 เสร็จแล้ว** — checklist ด้านล่างถือว่าครบเพื่อการ traceability.
 
 ### ARScan Detection
 
@@ -65,27 +65,27 @@ Requirements for milestone v2.0: ARscan + App Rebrand. Some items may still be o
 
 - [x] **ARSCAN-05**: App auto-captures 3 angles (top-down ~0°, diagonal ~45°, side ~70°) when food is detected with sufficient confidence
 - [x] **ARSCAN-06**: App uses device sensors (accelerometer/gyroscope) to detect current camera angle
-- [ ] **ARSCAN-07**: App shows on-screen guidance text telling user which angle to capture next (e.g. "Hold steady", "Tilt to 45°", "Move to side view")
-- [ ] **ARSCAN-08**: App displays capture progress indicator showing how many angles captured (1/3, 2/3, 3/3)
+- [x] **ARSCAN-07**: App shows on-screen guidance text telling user which angle to capture next (e.g. "Hold steady", "Tilt to 45°", "Move to side view")
+- [x] **ARSCAN-08**: App displays capture progress indicator showing how many angles captured (1/3, 2/3, 3/3)
 - [x] **ARSCAN-09**: User can manually tap shutter button to capture if auto-capture doesn't trigger
-- [ ] **ARSCAN-10**: App provides haptic feedback and/or audio cue when each angle is successfully captured
+- [x] **ARSCAN-10**: App provides haptic feedback and/or audio cue when each angle is successfully captured
 
 ### ARScan Review & Analysis
 
-- [ ] **ARSCAN-11**: After 3 angles captured, app shows bottom sheet with captured images preview and form for additional details (hidden items, quantity, unit)
-- [ ] **ARSCAN-12**: User can tap "Analyse" button in the bottom sheet to send 3 images to Gemini for nutritional analysis
-- [ ] **ARSCAN-13**: Gemini analysis accepts and processes multiple images (3 angles) for improved portion estimation
+- [x] **ARSCAN-11**: After 3 angles captured, app shows bottom sheet with captured images preview and form for additional details (hidden items, quantity, unit)
+- [x] **ARSCAN-12**: User can tap "Analyse" button in the bottom sheet to send 3 images to Gemini for nutritional analysis
+- [x] **ARSCAN-13**: Gemini analysis accepts and processes multiple images (3 angles) for improved portion estimation
 
 ### ARScan Data & Display
 
 - [x] **ARSCAN-14**: FoodEntry model stores supplementary image paths (up to 3 images per entry)
-- [ ] **ARSCAN-15**: User can view all captured images (3 angles) in food entry detail view
+- [x] **ARSCAN-15**: User can view all captured images (3 angles) in food entry detail view
 - [x] **ARSCAN-16**: Food entries created via ARscan are distinguished from regular camera entries (DataSource indicator)
 
 ### ARScan Navigation
 
-- [ ] **ARSCAN-17**: ARscan button is prominently placed in navigation, more visually prominent than other buttons
-- [ ] **ARSCAN-18**: Existing camera/gallery flow remains accessible as alternative method
+- [x] **ARSCAN-17**: ARscan button is prominently placed in navigation, more visually prominent than other buttons
+- [x] **ARSCAN-18**: Existing camera/gallery flow remains accessible as alternative method
 
 ### App Rebrand
 
@@ -162,22 +162,22 @@ Requirements for milestone v2.0: ARscan + App Rebrand. Some items may still be o
 | ARSCAN-04 | Phase 9 | Complete |
 | ARSCAN-05 | Phase 9 | Complete |
 | ARSCAN-06 | Phase 9 | Complete |
-| ARSCAN-07 | Phase 9 | Pending |
-| ARSCAN-08 | Phase 9 | Pending |
+| ARSCAN-07 | Phase 9 | Complete |
+| ARSCAN-08 | Phase 9 | Complete |
 | ARSCAN-09 | Phase 9 | Complete |
-| ARSCAN-10 | Phase 9 | Pending |
-| ARSCAN-11 | Phase 10 | Pending |
-| ARSCAN-12 | Phase 10 | Pending |
-| ARSCAN-13 | Phase 10 | Pending |
+| ARSCAN-10 | Phase 9 | Complete |
+| ARSCAN-11 | Phase 10 | Complete |
+| ARSCAN-12 | Phase 10 | Complete |
+| ARSCAN-13 | Phase 10 | Complete |
 | ARSCAN-14 | Phase 6 | Complete |
-| ARSCAN-15 | Phase 10 | Pending |
+| ARSCAN-15 | Phase 10 | Complete |
 | ARSCAN-16 | Phase 6 | Complete |
-| ARSCAN-17 | Phase 10 | Pending |
-| ARSCAN-18 | Phase 10 | Pending |
+| ARSCAN-17 | Phase 10 | Complete |
+| ARSCAN-18 | Phase 10 | Complete |
 | BRAND-01 | Phase 11 | Complete |
 | BRAND-02 | Phase 11 | Complete |
 
 ---
 
 *Requirements defined: 2026-03-16*  
-*Last updated: 2026-03-29 — v3.0 Arcal 2.00 requirements + traceability (Phases 13–18)*
+*Last updated: 2026-03-29 — v2.0 ARSCAN ทั้งหมดทำเครื่องหมาย Complete ตามที่ทีมยืนยันเฟส 6–12 เสร็จแล้ว; v3.0 traceability ไม่เปลี่ยน*

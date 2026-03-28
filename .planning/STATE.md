@@ -42,14 +42,13 @@ Progress: [░░░░░░░░░░] 0%
 ### Decisions (v3.0)
 
 - Research: reuse `_project_manager/arcal_2_00` (arcal2-00 / arcal2-01); skip fresh 4-agent ecosystem research for this milestone
-- Phase numbering: continues from **Phase 13** (v2.0 roadmap ended at Phase 12)
+- Phase numbering: **Phase 13+** — v2.0 เฟส 6–12 **เสร็จแล้ว** (ยืนยันโดยทีม)
 - No feature flags for v3.0 — ship with version bump (per product decision in arcal2-01)
 - Pro mode: **no user access**; `AppMode` locked to basic; Pro code retained in repo
 
-### Carryover from v2.0 (ARscan)
+### v2.0 status
 
-- Phases **10** (Review & Pipeline), **12** (Miro→ArCal ID migration) may still be open — see `.planning/ROADMAP.md` v2.0 section and `REQUIREMENTS.md` ARSCAN-* pending items
-- v3.0 can proceed in parallel branches or after closing v2.0 gaps — team choice
+- เฟส **6–12** ถือว่า **ปิดงานแล้ว** — โฟกัสเหลือ **v3.0 เฟส 13–18** เท่านั้น
 
 ### Blockers / Concerns
 

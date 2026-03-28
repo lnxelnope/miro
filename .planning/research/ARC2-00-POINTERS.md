@@ -8,3 +8,5 @@
 - `_project_manager/arcal_2_00/arcal2-01.md` — Full upgrade spec, 14 decisions, dependency map (T1–T15), file touch list
 
 **Use during `/gsd-plan-phase`:** Read the above before planning Phases 13–18.
+
+**Note:** Milestone v2.0 (GSD phases 6–12) is **complete** per team — only phases **13–18** remain active.

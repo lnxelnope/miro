@@ -20,15 +20,15 @@
 
 **Last version:** v1.2.2+51
 
-## v2.0 — ARscan + Rebrand (in progress / carryover)
+## v2.0 — ARscan + Rebrand (shipped)
 
-**Goal:** ARscan multi-angle capture + review pipeline + app rebrand to ArCal.
+**Goal:** ARscan multi-angle capture + review pipeline + app rebrand to ArCal + Miro→ArCal migration work.
 
 **Phases (GSD):** 6–12 (see `.planning/ROADMAP.md`)
 
-**Status:** Parts shipped (e.g. detection, multi-angle core, display rebrand); **Phase 10 (Review & Pipeline)** and **Phase 12 (full Miro→ArCal ID migration)** may remain open when v3.0 starts.
+**Status:** ✅ **Complete** — ทีมยืนยันว่าเฟส 6–12 เสร็จแล้ว (งานถัดไป = v3.0 เฟส 13–18 เท่านั้น)
 
-**Last phase number used in roadmap:** 12
+**Last phase number completed:** 12
 
 ## v3.0 — Arcal 2.00 (upgrade_basic)
 
