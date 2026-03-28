@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 Phase: Not started (roadmap defined — Phase 13 next)
 Plan: —
 Status: Ready to plan / execute Phase 13
-Last activity: 2026-03-29 — Milestone v3.0 initialized from `_project_manager/arcal_2_00`
+Last activity: 2026-03-29 — v2.0 เฟส 6–12 ทำเครื่องหมายเสร็จแล้ว; เหลือ v3.0 เฟส 13–18
 
 Progress: [░░░░░░░░░░] 0%
 
