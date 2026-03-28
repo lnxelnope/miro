@@ -5,7 +5,8 @@
 - ✅ **v1.0 MVP** - Phases 1-3 (pre-GSD)
 - ✅ **v1.1 Gamification & Monetization** - Phases 4 (pre-GSD)
 - ✅ **v1.2 Analytics & Health Integration** - Phase 5 (pre-GSD, last version v1.2.2+51)
-- 🚧 **v2.0 ARscan + Rebrand** - Phases 6-11 (in progress)
+- 🚧 **v2.0 ARscan + Rebrand** — Phases 6–12 (carryover; เฟส 10 / 12 อาจยังเปิด)
+- 🚧 **v3.0 Arcal 2.00 (upgrade_basic)** — Phases 13–18 (current milestone)
 
 ## Phases
 
@@ -151,3 +152,100 @@ Plans:
 - [ ] 12-01: Research & inventory ทุกการใช้ \"miro\" + classify และตัดสินใจเบื้องต้น [wave 1]
 - [ ] 12-02: User-facing rename (mobile/web/system dialogs) + verification commands [wave 2]
 - [ ] 12-03: Internal ID/slug/namespace strategy + migration/verification plan [wave 3]
+
+---
+
+### 🚧 v3.0 Arcal 2.00 (upgrade_basic)
+
+**Milestone goal:** ประสบการณ์หลักโหมดเดียว (basic), แซนด์บ็อกซ์จัดกลุ่มมื้อเบาๆ, โภชนาการจาก sub เป็นความจริง, ซ่อน Quest/แชท, ถอด free energy legacy, วันที่อนาคต, ย้ายข้ามมื้อ, รวมกลุ่ม entry, thumbnail, สร้างเมนูจากรูป, share card, promo code
+
+**Spec:** `_project_manager/arcal_2_00/arcal2-01.md`
+
+- [ ] **Phase 13: Ingredients schema & recompute** — `ingredientsJson` v2, backwards read, flatten, recompute pipeline
+- [ ] **Phase 14: App shell & energy** — Lock basic, My Meal, hide chat & QuestBar, bottom nav alignment, remove legacy free energy
+- [ ] **Phase 15: Sandbox timeline** — Meal grouping in `FoodSandbox`, future date navigation, cross-meal move UX
+- [ ] **Phase 16: Ingredient UI & AI** — Add/Edit/Gemini/Intent unified rules; Gemini prompt/post-process alignment
+- [ ] **Phase 17: Merge & media** — Group merge, micro thumbnails + preview, Create Meal gallery → analysis
+- [ ] **Phase 18: Share & promo** — Share card aspect + serving toggle; Settings redeem; admin CRUD + backend
+
+## Phase Details (v3.0)
+
+### Phase 13: Ingredients schema & recompute
+**Goal:** มีโมเดล/สัญญาข้อมูลเดียวสำหรับ main/sub สูงสุด 2 ระดับ, อ่านข้อมูลเก่าได้, และฟังก์ชัน recompute ที่เหลือทีม implement ทุกจุดใช้ร่วมกันได้  
+**Depends on:** — (อาจทำคู่กับ v2.0 แต่ไม่บังคับ)  
+**Requirements:** ARC2-DATA-01, ARC2-DATA-02, ARC2-DATA-03  
+**Success criteria:**
+1. Legacy `ingredientsJson` ยังโหลดได้โดยไม่ crash; บันทึกใหม่ใช้รูปแบบใหม่
+2. Unit / integration test หรือ manual checklist ยืนยัน recompute sub → main → entry
+3. ตัวช่วย flatten จากผล AI ลึกเกิน 2 ระดับมีการทดสอบอย่างน้อย 1 เคส
+
+**Plans:** TBD (สร้างใน `/gsd-plan-phase 13`)
+
+### Phase 14: App shell & energy
+**Goal:** ผู้ใช้เห็น shell เดียว (basic), เข้า My Meal จาก AppBar, ไม่เห็น QuestBar/แชท, Energy Store ไม่มีทางรับ free energy legacy  
+**Depends on:** —  
+**Requirements:** ARC2-SHELL-01 … ARC2-SHELL-05, ARC2-ENERGY-01  
+**Success criteria:**
+1. ไม่มี UI สลับ Pro; ไม่มี `ModeToggle`
+2. แตะ My Meal จาก AppBar แล้วเข้า `HealthMyMealTab` + กลับได้
+3. `QuestBar` ไม่แสดงบนหน้าหลักที่กำหนด
+4. ไม่มี flow เรียก `claimFreeEnergy` / tile ที่เกี่ยว; free pass / offer อื่นยังทำงาน
+
+**Plans:** TBD
+
+### Phase 15: Sandbox timeline
+**Goal:** รายการอาหารต่อวันแสดงเป็น feed เดียวพร้อมกลุ่มมื้อเบาๆ; เลื่อนไปวันอนาคตได้; ย้ายรายการระหว่างมื้อได้  
+**Depends on:** Phase 14 (แนะนำ — shell เสถียร)  
+**Requirements:** ARC2-TIMELINE-01, ARC2-TIMELINE-02, ARC2-TIMELINE-03  
+**Success criteria:**
+1. มื้อเช้า/กลางวัน/เย็น/ว่างแยกมองเห็นได้โดยไม่ใช้ layout แบบ Pro `MealSection` เป็นหลัก
+2. เลือกวันพรุ่งนี้ใน summary/date bar ได้สอดคล้องกันทุกจุดที่เกี่ยว
+3. ผู้ใช้เปลี่ยน `mealType` จาก sandbox ได้อย่างน้อย 1 วิธี (ลากหรือปุ่ม)
+
+**Plans:** TBD
+
+### Phase 16: Ingredient UI & AI
+**Goal:** ทุกจุดบันทึก/แก้ไข/AI ใช้กฎเดียวกับ arcal2-00/01 (ล็อก main, derive จาก sub, สเกลรวม, root=main)  
+**Depends on:** Phase 13  
+**Requirements:** ARC2-ING-01 … ARC2-ING-04, ARC2-AI-01  
+**Success criteria:**
+1. หลัง AI วิเคราะห์ชื่อจาน ตัวเลขรวมสอดคล้องผลรวมจาก mains/subs
+2. แก้ sub แล้ว entry อัปเดต; แก้ปริมาณรวมแล้ว sub สเกล
+3. `IntentHandler` / sheets หลักไม่แตกคนละสัญญา
+
+**Plans:** TBD
+
+### Phase 17: Merge & media
+**Goal:** รวมหลาย entry เป็นกลุ่ม; thumbnail ราย ingredient; สร้างเมนูจากรูป  
+**Depends on:** Phase 13, Phase 15  
+**Requirements:** ARC2-GR-01, ARC2-THUMB-01, ARC2-MEAL-01  
+**Success criteria:**
+1. Multi-select → Group สร้าง entry ใหม่ชื่อ `group_xxx` และลบ/รวมข้อมูลตามสเปก
+2. แถวที่มีรูปแสดง thumb เล็ก; แตะดูเต็ม + bbox ถ้ามี
+3. Create Meal: เลือกรูปแล้วได้ผลวิเคราะห์เหมือน flow รูปปกติ
+
+**Plans:** TBD
+
+### Phase 18: Share & promo
+**Goal:** แชร์การ์ดหลายสัดส่วน + ปริมาณ; แลกโค้ดใน Settings; แอดมินจัดการโค้ด  
+**Depends on:** — (ทำ parallel ได้บางส่วน)  
+**Requirements:** ARC2-SHARE-01, ARC2-PROMO-01, ARC2-PROMO-02  
+**Success criteria:**
+1. Export 16:9 และ 1:1 ได้จาก UI
+2. Toggle แสดงปริมาณบนภาพทำงาน
+3. Redeem สำเร็จ/ล้มเหลวมีข้อความชัด; admin สร้างโค้ดจำกัดครั้ง/ผู้ใช้/วันหมดอายุได้
+
+**Plans:** TBD
+
+## Progress (v3.0)
+
+| Phase | Milestone | Requirements | Status |
+|-------|-----------|--------------|--------|
+| 13. Schema & recompute | v3.0 | ARC2-DATA-* | Not started |
+| 14. Shell & energy | v3.0 | ARC2-SHELL-*, ARC2-ENERGY-01 | Not started |
+| 15. Sandbox timeline | v3.0 | ARC2-TIMELINE-* | Not started |
+| 16. Ingredient UI & AI | v3.0 | ARC2-ING-*, ARC2-AI-01 | Not started |
+| 17. Merge & media | v3.0 | ARC2-GR-*, ARC2-THUMB-*, ARC2-MEAL-01 | Not started |
+| 18. Share & promo | v3.0 | ARC2-SHARE-*, ARC2-PROMO-* | Not started |
+
+**Suggested execution order:** 13 → 14 → 15 → 16 → 17 → 18 (adjust if parallelizing 14/18 with 13)
