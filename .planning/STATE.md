@@ -1,87 +1,62 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: ARscan + Rebrand
-status: executing
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-03-16T09:14:45.261Z"
-last_activity: 2026-03-16 — Completed Phase 9 (Multi-Angle Capture)
+milestone: v3.0
+milestone_name: Arcal 2.00 (upgrade_basic)
+status: defining
+stopped_at: —
+last_updated: "2026-03-29T12:00:00.000Z"
+last_activity: 2026-03-29 — Milestone v3.0 started (GSD new-milestone)
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 12
-  percent: 67
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 **Core value:** ผู้ใช้สามารถบันทึกแคลอรี่และสารอาหารได้อย่างแม่นยำและสะดวกที่สุด โดยใช้ AI ช่วยวิเคราะห์จากภาพถ่ายอาหาร
-**Current focus:** Phase 10 — Review & Pipeline
+
+**Current focus:** Milestone v3.0 — Arcal 2.00 (`upgrade_basic`): single-mode UX, meal grouping in sandbox, ingredients truth from subs, energy/chat cleanup, promo codes, share card, future dates.
 
 ## Current Position
 
-Phase: 10 of 11 (Review & Pipeline)
-Plan: 0 of 3 in current phase
-Status: Ready to execute
-Last activity: 2026-03-16 — Completed Phase 9 (Multi-Angle Capture)
+Phase: Not started (roadmap defined — Phase 13 next)
+Plan: —
+Status: Ready to plan / execute Phase 13
+Last activity: 2026-03-29 — Milestone v3.0 initialized from `_project_manager/arcal_2_00`
 
-Progress: [██████▓░░░] 67%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 1
-- Average duration: TBD
-- Total execution time: TBD
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 08-food-detection | 1 | 2 | TBD |
-
-**Recent Trend:**
-- Last 5 plans: 08-01 (Food detection model & service)
-- Trend: Picking up ARscan detection work
-
-*Updated after each plan completion*
-| Phase 08-food-detection P01 | TBD | 4 tasks | 3 files |
-| Phase 08-food-detection P02 | TBD | 3 tasks | 2 files |
-| Phase 11-app-rebrand P11-01 | 3 | 2 tasks | 3 files |
+*Reset for new milestone — metrics fill in as plans complete.*
 
 ## Accumulated Context
 
-### Decisions
+### Decisions (v3.0)
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+- Research: reuse `_project_manager/arcal_2_00` (arcal2-00 / arcal2-01); skip fresh 4-agent ecosystem research for this milestone
+- Phase numbering: continues from **Phase 13** (v2.0 roadmap ended at Phase 12)
+- No feature flags for v3.0 — ship with version bump (per product decision in arcal2-01)
+- Pro mode: **no user access**; `AppMode` locked to basic; Pro code retained in repo
 
-- Roadmap: ARscan uses ML Kit Object Detection (not custom TFLite) for v2.0
-- Roadmap: Camera stream phase separated from detection phase for stability validation
-- Roadmap: App rebrand (Miro → ArCal) is last phase — low coupling to ARscan features
-- [Phase 11-app-rebrand]: Kept identifiers and only changed user-facing display names to ArCal - AI Calorie Counter.
+### Carryover from v2.0 (ARscan)
 
-### Pending Todos
+- Phases **10** (Review & Pipeline), **12** (Miro→ArCal ID migration) may still be open — see `.planning/ROADMAP.md` v2.0 section and `REQUIREMENTS.md` ARSCAN-* pending items
+- v3.0 can proceed in parallel branches or after closing v2.0 gaps — team choice
 
-None yet.
+### Blockers / Concerns
 
-### Blockers/Concerns
-
-- ML Kit base model food detection quality on Asian/Thai cuisine is uncertain — validate early in Phase 8
-- Camera `startImageStream` + `takePicture` cannot run simultaneously — must stop stream before capture
-- iOS vs Android ML performance gap (2-10x) — need platform-specific FPS targets
-
-### Roadmap Evolution
-
-- Phase 12 added: Rename from Miro to ArCal across app, web, admin; research all remaining Miro IDs/usages and plan migration
+- `ingredientsJson` v2 must remain **backwards-compatible** with existing user data on device
+- Promo codes require **backend + admin-panel + app Settings** — coordinate releases
 
 ## Session Continuity
 
-Last session: 2026-03-16T09:14:45.257Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-03-29 — `/gsd-new-milestone` + `_project_manager/arcal_2_00`
 Resume file: None

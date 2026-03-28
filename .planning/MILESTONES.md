@@ -19,4 +19,23 @@
 **Phases:** Pre-GSD
 
 **Last version:** v1.2.2+51
-**Last phase number:** 5
+
+## v2.0 — ARscan + Rebrand (in progress / carryover)
+
+**Goal:** ARscan multi-angle capture + review pipeline + app rebrand to ArCal.
+
+**Phases (GSD):** 6–12 (see `.planning/ROADMAP.md`)
+
+**Status:** Parts shipped (e.g. detection, multi-angle core, display rebrand); **Phase 10 (Review & Pipeline)** and **Phase 12 (full Miro→ArCal ID migration)** may remain open when v3.0 starts.
+
+**Last phase number used in roadmap:** 12
+
+## v3.0 — Arcal 2.00 (upgrade_basic)
+
+**Goal:** Single-mode UX (basic), sandbox meal grouping, ingredients hierarchy with sub-derived truth, hide quest/chat, remove legacy free energy claim, future dates, cross-meal move, group merge, thumbnails, create-meal image button, share card presets, influencer promo codes (Settings + admin + backend).
+
+**Spec / research:** `_project_manager/arcal_2_00/arcal2-00.md`, `arcal2-01.md`
+
+**Phases (GSD):** 13–18 (see `.planning/ROADMAP.md`)
+
+**Started:** 2026-03-29
