@@ -36,4 +36,14 @@
 
 ---
 
+## Follow-up (2026-03-29) — user confirmations
+
+| # | Question | User choice |
+|---|----------|-------------|
+| 1 | รูปแบบ root ของ JSON v2 | **ตามที่แนะนำ** → ล็อกใน CONTEXT **D-10**: `{"schemaVersion": 2, "mainIngredients": [...]}` |
+| 2 | เมื่อ sub ไม่มี micro | **คงค่าเดิม** บน `FoodEntry` (fiber/sugar/sodium) — CONTEXT **D-08b** |
+| 3 | ขอบเขตเทสต์ | **ตาม ROADMAP** เฟส 13 ทั้งสามข้อ — CONTEXT **D-11** |
+
+---
+
 *End of discussion log*

@@ -25,15 +25,30 @@
 ### Backwards compatibility
 
 - **D-05:** **ไม่บังคับ migration ครั้งเดียวทั้งฐาน** — อ่าน legacy ได้; บันทึกครั้งถัดไปเขียนรูปแบบใหม่เมื่อ entry ถูกแก้/บันทึกผ่าน path ที่อัปเดตแล้ว
-- **D-06:** **ตรวจจับรูปแบบ:** ถ้า `jsonDecode` ได้เป็น `List` → ถือเป็น **legacy** (รายการระดับบนสุดแบบปัจจุบัน); ถ้าเป็น `Map` และมี `schemaVersion == 2` (หรือคีย์ที่ตกลงร่วมกัน เช่น `mainIngredients`) → **v2**
+- **D-06:** **ตรวจจับรูปแบบ:** ถ้า `jsonDecode` ได้เป็น `List` → ถือเป็น **legacy** (รายการระดับบนสุดแบบปัจจุบัน); ถ้าเป็น `Map` และ `schemaVersion == 2` → **v2** (รายละเอียดโครงสร้างดู **D-10**)
+
+### JSON v2 on wire (ล็อกตามที่ผู้ใช้ยอมรับคำแนะนำ)
+
+- **D-10:** Root ของ `ingredientsJson` รูปแบบใหม่เป็น **object เดียว** ไม่ใช่ array โดยตรง:
+  - `schemaVersion`: **2** (int)
+  - `mainIngredients`: **List** ของแต่ละ main; แต่ละ main มี `subIngredients` (List อาจว่าง) และฟิลด์โภชนาการ/ปริมาณต่อโหนดเป็นภาษาอังกฤษตาม D-09
+  - ไม่ใช้ชื่อคีย์ `version` แทน `schemaVersion` เพื่อความชัดเจนกับแพ็กเกจอื่น
 
 ### AI flatten
 
-- **D-07:** ผลจาก AI ที่มี `sub_ingredients` ซ้อนลึก: **ยุบให้เหลือ 2 ระดับ** โดยไม่ double-count แคลอรี่ — รายละเอียดการกระจายโหนดลึกเป็นดุลยภาพ implementation แต่ต้องมี **เทสต์อย่างน้อย 1 เคส** (ตาม success criteria ใน ROADMAP)
+- **D-07:** ผลจาก AI ที่มี `sub_ingredients` ซ้อนลึก: **ยุบให้เหลือ 2 ระดับ** โดยไม่ double-count แคลอรี่ — รายละเอียดการกระจายโหนดลึกเป็นดุลยภาพ implementation
 
 ### Micro nutrients (fiber / sugar / sodium)
 
-- **D-08:** Recompute ระดับ entry ในเฟสนี้รวม **macro บังคับ**; **micro** (`fiber`, `sugar`, `sodium` บน `FoodEntries`) **รวมเมื่อโหนดใน JSON มีค่าที่ parse ได้** — ถ้า legacy map ไม่มีฟิลด์ micro ให้เว้น null/ค่าเดิมตาม logic ที่ปลอดภัย
+- **D-08:** Recompute ระดับ entry: **macro บังคับ** จากผลรวมที่ derive ได้
+- **D-08b (ผู้ใช้ยืนยัน):** ถ้าโหนด sub/main **ไม่มีข้อมูล micro** ให้รวมเป็น entry ไม่ได้ — **คงค่า `fiber` / `sugar` / `sodium` เดิมบน `FoodEntry`** (ไม่เซ็ต null เพื่อ “ล้าง” โดยอัตโนมัติ); เมื่อมีค่า micro จาก subs ครบให้ใช้ผลรวมตามปกติ
+
+### การทดสอบ (ตาม ROADMAP เฟส 13 — ผู้ใช้ยืนยัน)
+
+- **D-11:**
+  1. Legacy `ingredientsJson` ยังโหลดได้โดยไม่ crash; มีวิธีตรวจ (เทสต์หรือ checklist) อย่างน้อย **หนึ่งเส้นทาง** read → save ที่คาดหวังรูปแบบใหม่เมื่อผ่าน encoder ที่อัปเดต
+  2. **Recompute** sub → main → entry: มี unit test, integration test หรือ **manual checklist** อย่างใดอย่างหนึ่งที่ยืนยันตัวเลข macro
+  3. **Flatten** จากผล AI ลึกกว่า 2 ระดับ: มีการทดสอบอย่างน้อย **1 เคส** (ตรงกับ success criteria ใน `.planning/ROADMAP.md` เฟส 13)
 
 ### ชื่อคีย์และภาษา
 
@@ -41,9 +56,9 @@
 
 ### Claude's Discretion
 
-- ตำแหน่งไฟล์โมเดล/parse (`lib/core/...`) และชื่อคลาส Dart ที่ชัดเจน
-- รูปแบบ JSON v2 ละเอียด (เช่น ชื่อฟิลด์ `schemaVersion` vs `version`, รายชื่อฟิลด์ต่อโหนด) ตราบใดที่ผ่าน D-01–D-09 และเทสต์ที่กำหนด
-- การแยก `IngredientsCodec` / `IngredientsV2` แบบ immutable หรือไม่ — ตามแนวทางที่อ่านง่ายใน codebase
+- ตำแหน่งไฟล์โมเดล/parse (`lib/core/...`) และชื่อคลาส Dart
+- รายชื่อฟิลด์ต่อโหนดใน `mainIngredients` / `subIngredients` (นอกจากโครงสร้างหลักใน D-10) — ให้สอดคล้องฟิลด์ที่มีใน legacy map วันนี้ + สิ่งที่ต้องใช้ recompute
+- การแยก `IngredientsCodec` / immutable models — ตามแนวทางที่อ่านง่ายใน codebase
 
 </decisions>
 
@@ -118,4 +133,4 @@
 ---
 
 *Phase: 13-ingredients-schema-recompute*  
-*Context gathered: 2026-03-29*
+*Context gathered: 2026-03-29 — อัปเดต: ผู้ใช้ยืนยัน D-10 (รูปแบบ v2), D-08b (คง micro เดิม), D-11 (ทดสอบตาม ROADMAP)*
