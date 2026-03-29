@@ -5,16 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/date_planning_limits.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/providers/analysis_provider.dart';
+import '../../health/providers/health_provider.dart';
+import '../../health/widgets/change_meal_bottom_sheet.dart';
+import '../../health/utils/meal_type_l10n.dart';
 class FoodSandbox extends ConsumerStatefulWidget {
   final List<FoodEntry> entries;
   final void Function(FoodEntry entry) onTap;
   final void Function(List<FoodEntry> selected) onDeleteSelected;
   final void Function(List<FoodEntry> selected) onAnalyzeSelected;
   final void Function(List<FoodEntry> selected, DateTime newDate)? onMoveToDate;
+  final Future<void> Function(List<FoodEntry> selected, MealType newType)?
+      onChangeMealForSelected;
   /// เมื่อโหมดเลือกเปิด/ปิด — ใช้ซ่อน AnalyzeBar ด้านล่างเพื่อไม่ให้กด "Analyze All" โดยไม่ตั้งใจ
   final void Function(bool isSelectionMode)? onSelectionModeChanged;
 
@@ -25,6 +31,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
     required this.onDeleteSelected,
     required this.onAnalyzeSelected,
     this.onMoveToDate,
+    this.onChangeMealForSelected,
     this.onSelectionModeChanged,
   });
 
@@ -56,7 +63,7 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
       context: context,
       initialDate: selectedEntries.first.timestamp,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: getMaxPlanningDate(),
     );
     if (picked == null || !mounted) return;
 
@@ -70,6 +77,30 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
       _selectedIds.clear();
     });
     widget.onSelectionModeChanged?.call(false);
+  }
+
+  Future<void> _openChangeMealForSelected() async {
+    if (_selectedIds.isEmpty || widget.onChangeMealForSelected == null) return;
+    final selectedEntries = widget.entries
+        .where((e) => _selectedIds.contains(e.id))
+        .toList();
+    if (selectedEntries.isEmpty) return;
+
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ChangeMealBottomSheet(
+        foods: selectedEntries,
+        currentMealType: selectedEntries.first.mealType,
+        currentDate: dateOnly(selectedEntries.first.timestamp),
+        allowDateChange: false,
+      ),
+    );
+    if (!mounted || result == null) return;
+    final newType = result['mealType'] as MealType?;
+    if (newType == null) return;
+    await widget.onChangeMealForSelected!.call(selectedEntries, newType);
+    _exitSelectionMode();
   }
 
   void _toggleSelection(int entryId) {
@@ -91,12 +122,89 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final analysisState = ref.watch(analysisProvider);
-    // Sort: items with images first, then text-only; within each group by timestamp descending (ล่าสุดด้านบน)
     final sorted = List<FoodEntry>.from(widget.entries)
       ..sort((a, b) {
         if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
         return b.timestamp.compareTo(a.timestamp);
       });
+
+    final groupedChildren = <Widget>[];
+    var firstGroup = true;
+    for (final meal in MealType.values) {
+      final group = widget.entries.where((e) => e.mealType == meal).toList()
+        ..sort((a, b) {
+          if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
+          return b.timestamp.compareTo(a.timestamp);
+        });
+      if (group.isEmpty) continue;
+      if (!firstGroup) {
+        groupedChildren.add(const SizedBox(height: AppSpacing.md));
+      }
+      firstGroup = false;
+      final borderColor = isDark
+          ? Colors.white.withValues(alpha: 0.12)
+          : AppColors.divider;
+      groupedChildren.add(
+        Text(
+          mealTypeLabel(meal, l10n),
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+        ),
+      );
+      groupedChildren.add(const SizedBox(height: AppSpacing.xs));
+      groupedChildren.add(
+        DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: AppRadius.md,
+            border: Border.all(color: borderColor),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : AppColors.surfaceVariant.withValues(alpha: 0.5),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: group
+                  .map(
+                    (entry) => _FoodBubble(
+                      entry: entry,
+                      isSelectionMode: _selectionMode,
+                      isSelected: _selectedIds.contains(entry.id),
+                      isAnalyzing: analysisState.isItemAnalyzing(entry.id),
+                      isPending: analysisState.isItemPending(entry.id),
+                      onTap: () {
+                        if (analysisState.isItemAnalyzing(entry.id) ||
+                            analysisState.isItemPending(entry.id)) {
+                          return;
+                        }
+                        if (_selectionMode) {
+                          _toggleSelection(entry.id);
+                        } else {
+                          widget.onTap(entry);
+                        }
+                      },
+                      onLongPress: () {
+                        if (analysisState.isItemAnalyzing(entry.id) ||
+                            analysisState.isItemPending(entry.id)) {
+                          return;
+                        }
+                        if (!_selectionMode) {
+                          _enterSelectionMode(entry.id);
+                        }
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,35 +238,9 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
         else
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: sorted.map((entry) {
-                final isSelected = _selectedIds.contains(entry.id);
-                final isAnalyzing = analysisState.isItemAnalyzing(entry.id);
-                final isPending = analysisState.isItemPending(entry.id);
-                return _FoodBubble(
-                  entry: entry,
-                  isSelectionMode: _selectionMode,
-                  isSelected: isSelected,
-                  isAnalyzing: isAnalyzing,
-                  isPending: isPending,
-                  onTap: () {
-                    if (isAnalyzing || isPending) return;
-                    if (_selectionMode) {
-                      _toggleSelection(entry.id);
-                    } else {
-                      widget.onTap(entry);
-                    }
-                  },
-                  onLongPress: () {
-                    if (isAnalyzing || isPending) return;
-                    if (!_selectionMode) {
-                      _enterSelectionMode(entry.id);
-                    }
-                  },
-                );
-              }).toList(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: groupedChildren,
             ),
           ),
       ],
@@ -224,6 +306,16 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
               color: AppColors.info,
               tooltip: l10n.moveToDate,
               onTap: _moveSelectedToDate,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+
+          if (widget.onChangeMealForSelected != null) ...[
+            _iconButton(
+              icon: Icons.swap_horiz_rounded,
+              color: AppColors.primary,
+              tooltip: l10n.sandboxTooltipChangeMeal,
+              onTap: _openChangeMealForSelected,
             ),
             const SizedBox(width: AppSpacing.xs),
           ],

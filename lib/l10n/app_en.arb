@@ -32,6 +32,41 @@
   "mealDinner": "Dinner",
   "mealSnack": "Snack",
 
+  "summaryLabelToday": "Today",
+  "summaryDatePickerSelectMonthHelp": "Select month",
+  "summaryPeriodAllTime": "All time",
+  "summaryBadgeToday": "Today",
+  "summaryBadgeThisWeek": "This week",
+  "summaryBadgeThisMonth": "This month",
+  "summaryBadgeThisYear": "This year",
+  "dateNavPreviousDay": "Previous day",
+  "dateNavNextDay": "Next day",
+  "dateNavPreviousWeek": "Previous week",
+  "dateNavNextWeek": "Next week",
+  "dateNavPreviousMonth": "Previous month",
+  "dateNavNextMonth": "Next month",
+  "dateNavPreviousYear": "Previous year",
+  "dateNavNextYear": "Next year",
+  "mealMovedToMealType": "Moved to {mealName}",
+  "@mealMovedToMealType": {
+    "placeholders": {
+      "mealName": {"type": "String"}
+    }
+  },
+  "mealMovedToDateLine": "Date: {dateStr}",
+  "@mealMovedToDateLine": {
+    "placeholders": {
+      "dateStr": {"type": "String"}
+    }
+  },
+  "changeMealBatchCount": "{count} items selected",
+  "@changeMealBatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "sandboxTooltipChangeMeal": "Change meal type",
+
   "todaySummary": "Today's Summary",
   "nutritionSummary": "Nutrition Summary",
   "dateSummary": "Summary for {date}",

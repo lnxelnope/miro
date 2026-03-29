@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/database/model_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../core/constants/date_planning_limits.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/services/health_sync_service.dart';
@@ -32,7 +33,11 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
   Widget build(BuildContext context) {
     final date = widget.selectedDate ?? dateOnly(DateTime.now());
     final isToday = _isToday(date);
+    final maxPlan = dateOnly(getMaxPlanningDate());
+    final canGoNext =
+        widget.onDateChanged != null && dateOnly(date).isBefore(maxPlan);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final localeTag = Localizations.localeOf(context).toString();
 
     final foodsAsync = ref.watch(foodEntriesByDateProvider(date));
     final profileAsync = ref.watch(profileNotifierProvider);
@@ -144,8 +149,9 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
                           children: [
                             Text(
                               isToday
-                                  ? 'Today'
-                                  : DateFormat('d MMM yyyy', 'en').format(date),
+                                  ? l10n.summaryLabelToday
+                                  : DateFormat('d MMM yyyy', localeTag)
+                                      .format(date),
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
@@ -156,7 +162,7 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
                             ),
                             const SizedBox(height: 1),
                             Text(
-                              DateFormat('EEEE', 'en').format(date),
+                              DateFormat('EEEE', localeTag).format(date),
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
@@ -172,12 +178,12 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
                     if (widget.onDateChanged != null)
                       _navArrow(
                         icon: Icons.chevron_right_rounded,
-                        onTap: isToday
-                            ? null
-                            : () => widget.onDateChanged!(
-                                date.add(const Duration(days: 1))),
+                        onTap: canGoNext
+                            ? () => widget.onDateChanged!(
+                                date.add(const Duration(days: 1)))
+                            : null,
                         isDark: isDark,
-                        disabled: isToday,
+                        disabled: !canGoNext,
                       ),
                     if (entries.isNotEmpty) ...[
                       const SizedBox(width: 4),
@@ -546,7 +552,7 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
       context: context,
       initialDate: current,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: getMaxPlanningDate(),
     );
     if (picked != null) {
       widget.onDateChanged?.call(picked);

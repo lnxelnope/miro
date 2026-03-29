@@ -90,6 +90,69 @@ class L10nEn extends L10n {
   String get mealSnack => 'Snack';
 
   @override
+  String get summaryLabelToday => 'Today';
+
+  @override
+  String get summaryDatePickerSelectMonthHelp => 'Select month';
+
+  @override
+  String get summaryPeriodAllTime => 'All time';
+
+  @override
+  String get summaryBadgeToday => 'Today';
+
+  @override
+  String get summaryBadgeThisWeek => 'This week';
+
+  @override
+  String get summaryBadgeThisMonth => 'This month';
+
+  @override
+  String get summaryBadgeThisYear => 'This year';
+
+  @override
+  String get dateNavPreviousDay => 'Previous day';
+
+  @override
+  String get dateNavNextDay => 'Next day';
+
+  @override
+  String get dateNavPreviousWeek => 'Previous week';
+
+  @override
+  String get dateNavNextWeek => 'Next week';
+
+  @override
+  String get dateNavPreviousMonth => 'Previous month';
+
+  @override
+  String get dateNavNextMonth => 'Next month';
+
+  @override
+  String get dateNavPreviousYear => 'Previous year';
+
+  @override
+  String get dateNavNextYear => 'Next year';
+
+  @override
+  String mealMovedToMealType(String mealName) {
+    return 'Moved to $mealName';
+  }
+
+  @override
+  String mealMovedToDateLine(String dateStr) {
+    return 'Date: $dateStr';
+  }
+
+  @override
+  String changeMealBatchCount(int count) {
+    return '$count items selected';
+  }
+
+  @override
+  String get sandboxTooltipChangeMeal => 'Change meal type';
+
+  @override
   String get todaySummary => 'Today\'s Summary';
 
   @override

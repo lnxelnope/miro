@@ -165,7 +165,7 @@ Plans:
 
 - [x] **Phase 13: Ingredients schema & recompute** — `ingredientsJson` v2, backwards read, flatten, recompute pipeline (completed 2026-03-29)
 - [x] **Phase 14: App shell & energy** — Lock basic, My Meal, hide chat & QuestBar, bottom nav alignment, remove legacy free energy (completed 2026-03-29)
-- [ ] **Phase 15: Sandbox timeline** — Meal grouping in `FoodSandbox`, future date navigation, cross-meal move UX
+- [x] **Phase 15: Sandbox timeline** — Meal grouping in `FoodSandbox`, future date navigation, cross-meal move UX (completed 2026-03-29)
 - [ ] **Phase 16: Ingredient UI & AI** — Add/Edit/Gemini/Intent unified rules; Gemini prompt/post-process alignment
 - [ ] **Phase 17: Merge & media** — Group merge, micro thumbnails + preview, Create Meal gallery → analysis
 - [ ] **Phase 18: Share & promo** — Share card aspect + serving toggle; Settings redeem; admin CRUD + backend
@@ -204,7 +204,7 @@ Plans:
 2. เลือกวันพรุ่งนี้ใน summary/date bar ได้สอดคล้องกันทุกจุดที่เกี่ยว
 3. ผู้ใช้เปลี่ยน `mealType` จาก sandbox ได้อย่างน้อย 1 วิธี (ลากหรือปุ่ม)
 
-**Plans:** 3 plans — `15-01` (วันที่อนาคต), `15-02` (ย้ายข้ามมื้อ), `15-03` (กลุ่มมื้อใน sandbox) ใน `.planning/phases/15-sandbox-timeline/` — `15-01` ขึ้นต่อ `14-02` ใน frontmatter
+**Plans:** 3/3 plans complete
 
 ### Phase 16: Ingredient UI & AI
 **Goal:** ทุกจุดบันทึก/แก้ไข/AI ใช้กฎเดียวกับ arcal2-00/01 (ล็อก main, derive จาก sub, สเกลรวม, root=main)  
@@ -245,7 +245,7 @@ Plans:
 |-------|-----------|--------------|--------|
 | 13. Schema & recompute | v3.0 | Complete    | 2026-03-29 |
 | 14. Shell & energy | v3.0 | Complete    | 2026-03-29 |
-| 15. Sandbox timeline | v3.0 | ARC2-TIMELINE-* | Not started |
+| 15. Sandbox timeline | v3.0 | Complete    | 2026-03-29 |
 | 16. Ingredient UI & AI | v3.0 | ARC2-ING-*, ARC2-AI-01 | Not started |
 | 17. Merge & media | v3.0 | ARC2-GR-*, ARC2-THUMB-*, ARC2-MEAL-01 | Not started |
 | 18. Share & promo | v3.0 | ARC2-SHARE-*, ARC2-PROMO-* | Not started |

@@ -18,6 +18,8 @@ import '../providers/fulfill_calorie_provider.dart';
 import 'food_detail_bottom_sheet.dart';
 import 'edit_food_bottom_sheet.dart';
 import 'ghost_meal_suggestion.dart';
+import 'change_meal_bottom_sheet.dart';
+import '../utils/meal_type_l10n.dart';
 import '../providers/analysis_provider.dart';
 
 class MealSection extends ConsumerStatefulWidget {
@@ -299,10 +301,11 @@ class _MealSectionState extends ConsumerState<MealSection> {
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => _ChangeMealBottomSheet(
-        food: food,
+      builder: (ctx) => ChangeMealBottomSheet(
+        foods: [food],
         currentMealType: widget.mealType,
         currentDate: widget.selectedDate,
+        allowDateChange: true,
       ),
     );
 
@@ -311,8 +314,9 @@ class _MealSectionState extends ConsumerState<MealSection> {
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);
     final newMealType = result['mealType'] as MealType?;
     final newDate = result['date'] as DateTime?;
+    final prevMeal = food.mealType;
 
-    if (newMealType != null && newMealType != food.mealType) {
+    if (newMealType != null && newMealType != prevMeal) {
       food.mealType = newMealType;
     }
     if (newDate != null) {
@@ -327,13 +331,15 @@ class _MealSectionState extends ConsumerState<MealSection> {
 
     if (!mounted) return;
 
+    final l10n = L10n.of(context)!;
+    final localeTag = Localizations.localeOf(context).toString();
     final parts = <String>[];
-    if (newMealType != null && newMealType != widget.mealType) {
-      parts.add('Moved to ${newMealType.icon} ${newMealType.displayName}');
+    if (newMealType != null && newMealType != prevMeal) {
+      parts.add(l10n.mealMovedToMealType(mealTypeLabel(newMealType, l10n)));
     }
     if (newDate != null) {
-      final fmt = DateFormat('d MMM');
-      parts.add('Date: ${fmt.format(newDate)}');
+      final fmt = DateFormat('d MMM', localeTag);
+      parts.add(l10n.mealMovedToDateLine(fmt.format(newDate)));
     }
     if (parts.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1248,318 +1254,6 @@ class _MealSectionState extends ConsumerState<MealSection> {
           await notifier.updateFoodEntry(updatedEntry);
           _refreshProviders();
         },
-      ),
-    );
-  }
-}
-
-// ============================================================
-// Bottom Sheet: Change Meal Type + Move Date
-// ============================================================
-class _ChangeMealBottomSheet extends StatefulWidget {
-  final FoodEntry food;
-  final MealType currentMealType;
-  final DateTime currentDate;
-
-  const _ChangeMealBottomSheet({
-    required this.food,
-    required this.currentMealType,
-    required this.currentDate,
-  });
-
-  @override
-  State<_ChangeMealBottomSheet> createState() => _ChangeMealBottomSheetState();
-}
-
-class _ChangeMealBottomSheetState extends State<_ChangeMealBottomSheet> {
-  late MealType _selectedMealType;
-  DateTime? _newDate;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedMealType = widget.currentMealType;
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: widget.currentDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
-    );
-    if (picked != null) {
-      setState(() => _newDate = picked);
-    }
-  }
-
-  bool get _hasChanges {
-    return _selectedMealType != widget.currentMealType || _newDate != null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dateFormat = DateFormat('d MMM yyyy');
-
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: AppRadius.xl,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : AppColors.textTertiary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Food name
-            Row(
-              children: [
-                const Icon(Icons.swap_horiz_rounded,
-                    color: AppColors.primary, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.food.foodName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Meal Type Selection
-            Text(
-              L10n.of(context)!.changeMealType,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: MealType.values.map((type) {
-                final isSelected = _selectedMealType == type;
-                final isCurrent = widget.currentMealType == type;
-                return Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      right: type != MealType.values.last ? 8 : 0,
-                    ),
-                    child: GestureDetector(
-                      onTap: () => setState(() => _selectedMealType = type),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.12)
-                              : isDark
-                                  ? Colors.white.withValues(alpha: 0.05)
-                                  : AppColors.textSecondary.withValues(alpha: 0.08),
-                          borderRadius: AppRadius.md,
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : Colors.transparent,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(type.icon,
-                                color: type.iconColor,
-                                size: 24),
-                            const SizedBox(height: 4),
-                            Text(
-                              type.displayName,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : isDark
-                                        ? Colors.white70
-                                        : AppColors.textSecondary,
-                              ),
-                            ),
-                            if (isCurrent) ...[
-                              const SizedBox(height: 2),
-                              Container(
-                                width: 4,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.6),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Move to Date
-            Text(
-              L10n.of(context)!.moveToAnotherDate,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: _pickDate,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: _newDate != null
-                      ? AppColors.primary.withValues(alpha: 0.08)
-                      : isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : AppColors.textSecondary.withValues(alpha: 0.08),
-                  borderRadius: AppRadius.md,
-                  border: Border.all(
-                    color: _newDate != null
-                        ? AppColors.primary
-                        : Colors.transparent,
-                    width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_rounded,
-                      size: 20,
-                      color: _newDate != null
-                          ? AppColors.primary
-                          : (isDark ? Colors.white54 : AppColors.textSecondary),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      _newDate != null
-                          ? dateFormat.format(_newDate!)
-                          : L10n.of(context)!.currentDate(dateFormat.format(widget.currentDate)),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: _newDate != null
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: _newDate != null
-                            ? AppColors.primary
-                            : isDark
-                                ? Colors.white54
-                                : AppColors.textSecondary,
-                      ),
-                    ),
-                    const Spacer(),
-                    Icon(
-                      Icons.edit_calendar_rounded,
-                      size: 18,
-                      color: isDark ? Colors.white38 : AppColors.textTertiary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (_newDate != null) ...[
-              const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () => setState(() => _newDate = null),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    L10n.of(context)!.cancelDateChange,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.error,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.md),
-                    ),
-                    child: Text(L10n.of(context)!.cancel),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: _hasChanges
-                        ? () {
-                            Navigator.pop(context, {
-                              'mealType':
-                                  _selectedMealType != widget.currentMealType
-                                      ? _selectedMealType
-                                      : null,
-                              'date': _newDate,
-                            });
-                          }
-                        : null,
-                    icon: const Icon(Icons.check_rounded, size: 20),
-                    label: Text(L10n.of(context)!.confirm),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor:
-                          isDark ? Colors.white12 : AppColors.divider,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: AppRadius.md),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: MediaQuery.of(context).viewPadding.bottom),
-          ],
-        ),
       ),
     );
   }

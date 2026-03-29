@@ -90,6 +90,69 @@ class L10nTh extends L10n {
   String get mealSnack => 'ของว่าง';
 
   @override
+  String get summaryLabelToday => 'วันนี้';
+
+  @override
+  String get summaryDatePickerSelectMonthHelp => 'เลือกเดือน';
+
+  @override
+  String get summaryPeriodAllTime => 'ตลอดกาล';
+
+  @override
+  String get summaryBadgeToday => 'วันนี้';
+
+  @override
+  String get summaryBadgeThisWeek => 'สัปดาห์นี้';
+
+  @override
+  String get summaryBadgeThisMonth => 'เดือนนี้';
+
+  @override
+  String get summaryBadgeThisYear => 'ปีนี้';
+
+  @override
+  String get dateNavPreviousDay => 'วันก่อน';
+
+  @override
+  String get dateNavNextDay => 'วันถัดไป';
+
+  @override
+  String get dateNavPreviousWeek => 'สัปดาห์ก่อน';
+
+  @override
+  String get dateNavNextWeek => 'สัปดาห์ถัดไป';
+
+  @override
+  String get dateNavPreviousMonth => 'เดือนก่อน';
+
+  @override
+  String get dateNavNextMonth => 'เดือนถัดไป';
+
+  @override
+  String get dateNavPreviousYear => 'ปีก่อน';
+
+  @override
+  String get dateNavNextYear => 'ปีถัดไป';
+
+  @override
+  String mealMovedToMealType(String mealName) {
+    return 'ย้ายไป $mealName';
+  }
+
+  @override
+  String mealMovedToDateLine(String dateStr) {
+    return 'วันที่: $dateStr';
+  }
+
+  @override
+  String changeMealBatchCount(int count) {
+    return 'เลือก $count รายการ';
+  }
+
+  @override
+  String get sandboxTooltipChangeMeal => 'เปลี่ยนมื้อ';
+
+  @override
   String get todaySummary => 'สรุปวันนี้';
 
   @override

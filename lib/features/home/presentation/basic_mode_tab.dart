@@ -29,6 +29,7 @@ import '../widgets/food_sandbox.dart';
 import '../widgets/basic_meal_suggestion.dart';
 import '../widgets/simple_food_detail_sheet.dart';
 import '../../health/widgets/add_food_bottom_sheet.dart';
+import '../../health/utils/meal_type_l10n.dart';
 
 class BasicModeTab extends ConsumerStatefulWidget {
   const BasicModeTab({super.key});
@@ -203,6 +204,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
       onMoveToDate: _moveEntriesToDate,
+      onChangeMealForSelected: _changeMealForSelectedEntries,
       onSelectionModeChanged: (active) {
         setState(() => _selectionModeActive = active);
       },
@@ -739,6 +741,26 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
     } finally {
       if (mounted) setState(() => _isScanning = false);
     }
+  }
+
+  Future<void> _changeMealForSelectedEntries(
+      List<FoodEntry> entries, MealType newType) async {
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    for (final entry in entries) {
+      entry.mealType = newType;
+      await notifier.updateFoodEntry(entry);
+    }
+    if (!mounted) return;
+    refreshFoodProviders(ref, _selectedDate);
+    final l10n = L10n.of(context)!;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.mealMovedToMealType(mealTypeLabel(newType, l10n))),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _moveEntriesToDate(List<FoodEntry> entries, DateTime newDate) async {

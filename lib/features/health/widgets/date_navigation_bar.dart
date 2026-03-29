@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:miro_hybrid/core/constants/date_planning_limits.dart';
+import 'package:miro_hybrid/l10n/app_localizations.dart';
+import '../providers/health_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../presentation/today_summary_dashboard_screen.dart';
@@ -16,16 +19,23 @@ class DateNavigationBar extends StatelessWidget {
     this.period = SummaryPeriod.day,
   });
 
-  // ── ช่วงวันที่แสดง ──
+  DateTime _weekRangeStart(DateTime d) {
+    final weekday = d.weekday;
+    return dateOnly(
+      DateTime(d.year, d.month, d.day),
+    ).subtract(Duration(days: weekday - 1));
+  }
+
+  DateTime _weekRangeEndFromStart(DateTime start) =>
+      start.add(const Duration(days: 6));
 
   /// วันแรกของช่วงที่เลือก (อิง selectedDate)
-  DateTime get _rangeStart {
+  DateTime _rangeStart() {
     switch (period) {
       case SummaryPeriod.day:
         return selectedDate;
       case SummaryPeriod.week:
-        // เริ่มต้นสัปดาห์ = วันจันทร์
-        final weekday = selectedDate.weekday; // 1=Mon, 7=Sun
+        final weekday = selectedDate.weekday;
         return DateTime(
           selectedDate.year,
           selectedDate.month,
@@ -40,43 +50,43 @@ class DateNavigationBar extends StatelessWidget {
     }
   }
 
-  DateTime get _rangeEnd {
+  DateTime _rangeEnd() {
     switch (period) {
       case SummaryPeriod.day:
         return selectedDate;
       case SummaryPeriod.week:
-        return _rangeStart.add(const Duration(days: 6));
+        return _rangeStart().add(const Duration(days: 6));
       case SummaryPeriod.month:
         return DateTime(selectedDate.year, selectedDate.month + 1, 0);
       case SummaryPeriod.year:
         return DateTime(selectedDate.year, 12, 31);
       case SummaryPeriod.all:
-        return DateTime.now();
+        return getMaxPlanningDate();
     }
   }
 
-  String _formatLabel() {
+  String _formatLabel(BuildContext context) {
+    final localeTag = Localizations.localeOf(context).toString();
     switch (period) {
       case SummaryPeriod.day:
-        return DateFormat('EEEE, MMMM d, yyyy').format(selectedDate);
+        return DateFormat('EEEE, MMMM d, yyyy', localeTag).format(selectedDate);
       case SummaryPeriod.week:
-        final start = _rangeStart;
-        final end = _rangeEnd;
-        // ถ้าต่างเดือน → แสดงทั้งคู่
+        final start = _rangeStart();
+        final end = _rangeEnd();
         if (start.month != end.month) {
-          return '${DateFormat('MMM d').format(start)} – ${DateFormat('MMM d, yyyy').format(end)}';
+          return '${DateFormat('MMM d', localeTag).format(start)} – ${DateFormat('MMM d, yyyy', localeTag).format(end)}';
         }
-        return '${DateFormat('MMM d').format(start)} – ${DateFormat('d, yyyy').format(end)}';
+        return '${DateFormat('MMM d', localeTag).format(start)} – ${DateFormat('d, yyyy', localeTag).format(end)}';
       case SummaryPeriod.month:
-        return DateFormat('MMMM yyyy').format(selectedDate);
+        return DateFormat('MMMM yyyy', localeTag).format(selectedDate);
       case SummaryPeriod.year:
         return selectedDate.year.toString();
       case SummaryPeriod.all:
-        return 'All Time';
+        return L10n.of(context)!.summaryPeriodAllTime;
     }
   }
 
-  bool get _isCurrentPeriod {
+  bool _isCurrentPeriod() {
     final now = DateTime.now();
     switch (period) {
       case SummaryPeriod.day:
@@ -84,8 +94,8 @@ class DateNavigationBar extends StatelessWidget {
             selectedDate.month == now.month &&
             selectedDate.day == now.day;
       case SummaryPeriod.week:
-        final start = _rangeStart;
-        final end = _rangeEnd;
+        final start = _rangeStart();
+        final end = _rangeEnd();
         return !now.isBefore(start) && !now.isAfter(end);
       case SummaryPeriod.month:
         return selectedDate.year == now.year && selectedDate.month == now.month;
@@ -96,9 +106,28 @@ class DateNavigationBar extends StatelessWidget {
     }
   }
 
-  bool get _canGoForward {
+  bool _canGoForward() {
     if (period == SummaryPeriod.all) return false;
-    return !_isCurrentPeriod;
+    final maxD = dateOnly(getMaxPlanningDate());
+    switch (period) {
+      case SummaryPeriod.day:
+        final next = dateOnly(selectedDate).add(const Duration(days: 1));
+        return !next.isAfter(maxD);
+      case SummaryPeriod.week:
+        final nextSel = selectedDate.add(const Duration(days: 7));
+        final start = _weekRangeStart(nextSel);
+        final end = _weekRangeEndFromStart(start);
+        return !dateOnly(end).isAfter(maxD);
+      case SummaryPeriod.month:
+        final nextEnd =
+            DateTime(selectedDate.year, selectedDate.month + 2, 0);
+        return !dateOnly(nextEnd).isAfter(maxD);
+      case SummaryPeriod.year:
+        final nextEnd = DateTime(selectedDate.year + 1, 12, 31);
+        return !dateOnly(nextEnd).isAfter(maxD);
+      case SummaryPeriod.all:
+        return false;
+    }
   }
 
   void _goBack() {
@@ -121,10 +150,12 @@ class DateNavigationBar extends StatelessWidget {
   }
 
   void _goForward() {
-    if (!_canGoForward) return;
+    if (!_canGoForward()) return;
+    final maxD = dateOnly(getMaxPlanningDate());
     switch (period) {
       case SummaryPeriod.day:
-        onDateChanged(selectedDate.add(const Duration(days: 1)));
+        final next = dateOnly(selectedDate).add(const Duration(days: 1));
+        onDateChanged(next.isAfter(maxD) ? maxD : next);
         break;
       case SummaryPeriod.week:
         onDateChanged(selectedDate.add(const Duration(days: 7)));
@@ -140,16 +171,17 @@ class DateNavigationBar extends StatelessWidget {
     }
   }
 
-  String get _badgeText {
+  String _badgeText(BuildContext context) {
+    final l10n = L10n.of(context)!;
     switch (period) {
       case SummaryPeriod.day:
-        return 'Today';
+        return l10n.summaryBadgeToday;
       case SummaryPeriod.week:
-        return 'This Week';
+        return l10n.summaryBadgeThisWeek;
       case SummaryPeriod.month:
-        return 'This Month';
+        return l10n.summaryBadgeThisMonth;
       case SummaryPeriod.year:
-        return 'This Year';
+        return l10n.summaryBadgeThisYear;
       case SummaryPeriod.all:
         return '';
     }
@@ -161,6 +193,8 @@ class DateNavigationBar extends StatelessWidget {
     final bgColor = isDark ? AppColors.surfaceDark : AppColors.surface;
     final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final iconColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final canFwd = _canGoForward();
+    final l10n = L10n.of(context)!;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -168,7 +202,8 @@ class DateNavigationBar extends StatelessWidget {
         color: bgColor,
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : Colors.black).withValues(alpha: isDark ? 0.3 : 0.05),
+            color: (isDark ? Colors.black : Colors.black)
+                .withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -176,16 +211,12 @@ class DateNavigationBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ◀ ย้อนหลัง
           IconButton(
             icon: Icon(Icons.chevron_left, color: iconColor),
             onPressed: period == SummaryPeriod.all ? null : _goBack,
-            tooltip: _prevTooltip,
+            tooltip: _prevTooltip(l10n),
           ),
-
           const SizedBox(width: 4),
-
-          // ── ป้ายวันที่ / ช่วงเวลา ──
           Expanded(
             child: InkWell(
               borderRadius: AppRadius.md,
@@ -199,7 +230,7 @@ class DateNavigationBar extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      _formatLabel(),
+                      _formatLabel(context),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -207,16 +238,17 @@ class DateNavigationBar extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    if (_isCurrentPeriod && period != SummaryPeriod.all) ...[
+                    if (_isCurrentPeriod() && period != SummaryPeriod.all) ...[
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.success.withValues(alpha: 0.15),
                           borderRadius: AppRadius.sm,
                         ),
                         child: Text(
-                          _badgeText,
+                          _badgeText(context),
                           style: const TextStyle(
                             fontSize: 11,
                             color: AppColors.success,
@@ -230,15 +262,12 @@ class DateNavigationBar extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(width: 4),
-
-          // ▶ ไปข้างหน้า
           IconButton(
             icon: Icon(Icons.chevron_right,
-                color: _canGoForward ? iconColor : iconColor.withValues(alpha: 0.3)),
-            onPressed: _canGoForward ? _goForward : null,
-            tooltip: _nextTooltip,
+                color: canFwd ? iconColor : iconColor.withValues(alpha: 0.3)),
+            onPressed: canFwd ? _goForward : null,
+            tooltip: _nextTooltip(l10n),
           ),
         ],
       ),
@@ -246,22 +275,23 @@ class DateNavigationBar extends StatelessWidget {
   }
 
   Future<void> _showPicker(BuildContext context) async {
+    final last = getMaxPlanningDate();
+    final l10n = L10n.of(context)!;
     if (period == SummaryPeriod.day || period == SummaryPeriod.week) {
       final picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
         firstDate: DateTime(2020),
-        lastDate: DateTime.now(),
+        lastDate: last,
       );
       if (picked != null) onDateChanged(picked);
     } else if (period == SummaryPeriod.month) {
-      // Month picker — แสดง date picker แล้วเอาแค่ปีและเดือน
       final picked = await showDatePicker(
         context: context,
         initialDate: selectedDate,
         firstDate: DateTime(2020),
-        lastDate: DateTime.now(),
-        helpText: 'Select month',
+        lastDate: last,
+        helpText: l10n.summaryDatePickerSelectMonthHelp,
       );
       if (picked != null) {
         onDateChanged(DateTime(picked.year, picked.month, 1));
@@ -269,23 +299,33 @@ class DateNavigationBar extends StatelessWidget {
     }
   }
 
-  String get _prevTooltip {
+  String _prevTooltip(L10n l10n) {
     switch (period) {
-      case SummaryPeriod.day: return 'Previous day';
-      case SummaryPeriod.week: return 'Previous week';
-      case SummaryPeriod.month: return 'Previous month';
-      case SummaryPeriod.year: return 'Previous year';
-      case SummaryPeriod.all: return '';
+      case SummaryPeriod.day:
+        return l10n.dateNavPreviousDay;
+      case SummaryPeriod.week:
+        return l10n.dateNavPreviousWeek;
+      case SummaryPeriod.month:
+        return l10n.dateNavPreviousMonth;
+      case SummaryPeriod.year:
+        return l10n.dateNavPreviousYear;
+      case SummaryPeriod.all:
+        return '';
     }
   }
 
-  String get _nextTooltip {
+  String _nextTooltip(L10n l10n) {
     switch (period) {
-      case SummaryPeriod.day: return 'Next day';
-      case SummaryPeriod.week: return 'Next week';
-      case SummaryPeriod.month: return 'Next month';
-      case SummaryPeriod.year: return 'Next year';
-      case SummaryPeriod.all: return '';
+      case SummaryPeriod.day:
+        return l10n.dateNavNextDay;
+      case SummaryPeriod.week:
+        return l10n.dateNavNextWeek;
+      case SummaryPeriod.month:
+        return l10n.dateNavNextMonth;
+      case SummaryPeriod.year:
+        return l10n.dateNavNextYear;
+      case SummaryPeriod.all:
+        return '';
     }
   }
 }

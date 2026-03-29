@@ -279,6 +279,120 @@ abstract class L10n {
   /// **'Snack'**
   String get mealSnack;
 
+  /// No description provided for @summaryLabelToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get summaryLabelToday;
+
+  /// No description provided for @summaryDatePickerSelectMonthHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Select month'**
+  String get summaryDatePickerSelectMonthHelp;
+
+  /// No description provided for @summaryPeriodAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get summaryPeriodAllTime;
+
+  /// No description provided for @summaryBadgeToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get summaryBadgeToday;
+
+  /// No description provided for @summaryBadgeThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get summaryBadgeThisWeek;
+
+  /// No description provided for @summaryBadgeThisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This month'**
+  String get summaryBadgeThisMonth;
+
+  /// No description provided for @summaryBadgeThisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get summaryBadgeThisYear;
+
+  /// No description provided for @dateNavPreviousDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get dateNavPreviousDay;
+
+  /// No description provided for @dateNavNextDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get dateNavNextDay;
+
+  /// No description provided for @dateNavPreviousWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous week'**
+  String get dateNavPreviousWeek;
+
+  /// No description provided for @dateNavNextWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Next week'**
+  String get dateNavNextWeek;
+
+  /// No description provided for @dateNavPreviousMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous month'**
+  String get dateNavPreviousMonth;
+
+  /// No description provided for @dateNavNextMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Next month'**
+  String get dateNavNextMonth;
+
+  /// No description provided for @dateNavPreviousYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous year'**
+  String get dateNavPreviousYear;
+
+  /// No description provided for @dateNavNextYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Next year'**
+  String get dateNavNextYear;
+
+  /// No description provided for @mealMovedToMealType.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to {mealName}'**
+  String mealMovedToMealType(String mealName);
+
+  /// No description provided for @mealMovedToDateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Date: {dateStr}'**
+  String mealMovedToDateLine(String dateStr);
+
+  /// No description provided for @changeMealBatchCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items selected'**
+  String changeMealBatchCount(int count);
+
+  /// No description provided for @sandboxTooltipChangeMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Change meal type'**
+  String get sandboxTooltipChangeMeal;
+
   /// No description provided for @todaySummary.
   ///
   /// In en, this message translates to:

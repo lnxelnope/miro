@@ -14,6 +14,7 @@ import '../../../core/utils/unit_converter.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/constants/date_planning_limits.dart';
 import '../../../core/database/model_extensions.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
@@ -2115,7 +2116,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       context: context,
       initialDate: _timestamp,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: getMaxPlanningDate(),
     );
     if (picked != null) {
       setState(() {

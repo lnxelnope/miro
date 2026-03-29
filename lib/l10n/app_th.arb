@@ -32,6 +32,41 @@
   "mealDinner": "เย็น",
   "mealSnack": "ของว่าง",
 
+  "summaryLabelToday": "วันนี้",
+  "summaryDatePickerSelectMonthHelp": "เลือกเดือน",
+  "summaryPeriodAllTime": "ตลอดกาล",
+  "summaryBadgeToday": "วันนี้",
+  "summaryBadgeThisWeek": "สัปดาห์นี้",
+  "summaryBadgeThisMonth": "เดือนนี้",
+  "summaryBadgeThisYear": "ปีนี้",
+  "dateNavPreviousDay": "วันก่อน",
+  "dateNavNextDay": "วันถัดไป",
+  "dateNavPreviousWeek": "สัปดาห์ก่อน",
+  "dateNavNextWeek": "สัปดาห์ถัดไป",
+  "dateNavPreviousMonth": "เดือนก่อน",
+  "dateNavNextMonth": "เดือนถัดไป",
+  "dateNavPreviousYear": "ปีก่อน",
+  "dateNavNextYear": "ปีถัดไป",
+  "mealMovedToMealType": "ย้ายไป {mealName}",
+  "@mealMovedToMealType": {
+    "placeholders": {
+      "mealName": {"type": "String"}
+    }
+  },
+  "mealMovedToDateLine": "วันที่: {dateStr}",
+  "@mealMovedToDateLine": {
+    "placeholders": {
+      "dateStr": {"type": "String"}
+    }
+  },
+  "changeMealBatchCount": "เลือก {count} รายการ",
+  "@changeMealBatchCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "sandboxTooltipChangeMeal": "เปลี่ยนมื้อ",
+
   "todaySummary": "สรุปวันนี้",
   "nutritionSummary": "สรุปโภชนาการ",
   "dateSummary": "สรุป {date}",
