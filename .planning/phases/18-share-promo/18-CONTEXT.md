@@ -1,7 +1,7 @@
 # Phase 18: Share & promo — Context
 
 **Gathered:** 2026-03-29  
-**Status:** Ready for planning
+**Status:** Planned — ดู `18-01`–`18-03-PLAN.md`, `18-RESEARCH.md`, `18-VALIDATION.md`
 
 <domain>
 ## Phase Boundary

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 13–16 planned; Phase 17 planned; Phase 18 context ready
-last_updated: "2026-03-30T00:00:00.000Z"
-last_activity: 2026-03-29 — `/gsd-discuss-phase 18` → 18-CONTEXT + DISCUSSION-LOG
+status: Phase 13–16 planned; Phase 17 planned; Phase 18 planned (18-01→03)
+last_updated: "2026-03-30T01:00:00.000Z"
+last_activity: 2026-03-29 — `/gsd-plan-phase 18` → RESEARCH, VALIDATION, 18-01..03, MANUAL-CHECKLIST
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 21
+  total_plans: 24
   completed_plans: 12
   percent: 0
 ---
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 ## Current Position
 
-Phase: **17** — **planned** (`17-01`→`17-03-PLAN.md`); execute หลัง dependency 13+15+16
-Plan: **17-01** (Group merge) → **17-02** (thumb + schema) → **17-03** (Create Meal gallery + checklist)
-Status: พร้อม `/gsd-execute-phase 17` หรือ execute ทีละแผน
-Last activity: 2026-03-29 — plan-phase 17: RESEARCH + VALIDATION + 3 PLAN + MANUAL-CHECKLIST
+Phase: **18** — **planned** (`18-01`→`18-03-PLAN.md`); **17** ยังรอ dependency 13+15+16
+Plan: **18-01** (Share 16:9/1:1 + serving food only) → **18-02** (Functions + admin CRUD) → **18-03** (Settings redeem)
+Status: พร้อม execute 18 (แนะนำลำดับ 01 → 02 → 03); หรือคู่ขนาน 01 กับ 02
+Last activity: 2026-03-29 — plan-phase 18
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,5 +56,5 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-29T23:00:00.000Z
-Resume file: .planning/phases/17-merge-media/17-01-PLAN.md
+Last session: 2026-03-30T01:00:00.000Z
+Resume file: .planning/phases/18-share-promo/18-01-PLAN.md
