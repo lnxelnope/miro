@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 15 context ready; แนะนำ `/gsd-plan-phase 13` ก่อน (ลำดับใน ROADMAP) หรือ parallel 14/15 ได้ตาม dependency
-last_updated: "2026-03-29T12:00:00.000Z"
-last_activity: 2026-03-29 — `/gsd-discuss-phase 15` → 15-CONTEXT.md + 15-DISCUSSION-LOG.md committed (f586137)
+status: Phase 16 context ready; ลำดับแนะนำ 13 → … → 16 (เฟส 16 ขึ้นกับ 13)
+last_updated: "2026-03-29T18:30:00.000Z"
+last_activity: 2026-03-29 — `/gsd-discuss-phase 16` → 16-CONTEXT.md + 16-DISCUSSION-LOG.md committed (722b6ec)
 progress:
   total_phases: 7
   completed_phases: 5
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 ## Current Position
 
-Phase: **15** — context gathered (`15-CONTEXT.md`); เฟส **13–14** มี CONTEXT แล้ว
+Phase: **16** — context gathered (`16-CONTEXT.md`); เฟส **13–15** มี CONTEXT แล้ว
 Plan: —
-Status: ถัดไป `/gsd-plan-phase 15` (หลังเฟส 14 แนะนำตาม ROADMAP) หรือวางแผน 13 ก่อนตามลำดับ
-Last activity: 2026-03-29 — `/gsd-discuss-phase 15` → CONTEXT + DISCUSSION-LOG committed
+Status: ถัดไป `/gsd-plan-phase 13` ก่อน แล้วค่อยต่อ 14→15→16 ตาม dependency; หรือ `/gsd-plan-phase 16` หลัง 13 execute
+Last activity: 2026-03-29 — `/gsd-discuss-phase 16` → CONTEXT + DISCUSSION-LOG committed
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,5 +56,5 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-29T12:00:00.000Z
-Resume file: .planning/phases/15-sandbox-timeline/15-CONTEXT.md
+Last session: 2026-03-29T18:30:00.000Z
+Resume file: .planning/phases/16-ingredient-ui-ai/16-CONTEXT.md
