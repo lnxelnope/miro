@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 13–16 planned; Phase 17 planned (17-01→03)
-last_updated: "2026-03-29T23:30:00.000Z"
-last_activity: 2026-03-29 — `/gsd-plan-phase 17` → RESEARCH, VALIDATION, 17-01..03-PLAN, MANUAL-CHECKLIST
+status: Phase 13–16 planned; Phase 17 planned; Phase 18 context ready
+last_updated: "2026-03-30T00:00:00.000Z"
+last_activity: 2026-03-29 — `/gsd-discuss-phase 18` → 18-CONTEXT + DISCUSSION-LOG
 progress:
   total_phases: 7
   completed_phases: 5
@@ -52,7 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 ### Blockers / Concerns
 
 - `ingredientsJson` v2 must remain **backwards-compatible** with existing user data on device
-- Promo codes require **backend + admin-panel + app Settings** — coordinate releases
+- Promo codes require **backend + admin-panel + app Settings** — coordinate releases (Phase 18: ต่อยอด repo เดิม — ดู `18-CONTEXT.md`)
 
 ## Session Continuity
 
