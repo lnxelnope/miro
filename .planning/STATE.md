@@ -2,15 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 13–18 planned + agent-readiness upgraded (structured XML format)
-last_updated: "2026-03-30T02:00:00.000Z"
-last_activity: 2026-03-30 — split 16-03→16-03+16-04; upgrade 17-01..03 + 18-01..03 to structured XML
+status: unknown
+last_updated: "2026-03-29T04:50:04.450Z"
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 25
-  completed_plans: 12
-  percent: 0
+  completed_phases: 6
+  total_plans: 18
+  completed_plans: 14
 ---
 
 # Project State
@@ -21,16 +19,12 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 **Core value:** ผู้ใช้สามารถบันทึกแคลอรี่และสารอาหารได้อย่างแม่นยำและสะดวกที่สุด โดยใช้ AI ช่วยวิเคราะห์จากภาพถ่ายอาหาร
 
-**Current focus:** Milestone v3.0 — Arcal 2.00 (`upgrade_basic`): single-mode UX, meal grouping in sandbox, ingredients truth from subs, energy/chat cleanup, promo codes, share card, future dates.
+**Current focus:** Phase 14
 
 ## Current Position
 
-Phase: **13–18** — ทั้งหมด **planned** + เสริม structured XML สำหรับ agent auto
-Plan: 16 แผน → **16-03 แยกเป็น 16-03+16-04**; **17-01..03 + 18-01..03** อัพเกรดจาก markdown → structured XML
-Status: พร้อม execute ตามลำดับ 13→14→15→16→17→18 (หรือ parallel 14∥18-01)
-Last activity: 2026-03-30 — agent-readiness upgrade
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 14 — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 

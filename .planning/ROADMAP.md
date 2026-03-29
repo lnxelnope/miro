@@ -163,7 +163,7 @@ Plans:
 
 **Spec:** `_project_manager/arcal_2_00/arcal2-01.md`
 
-- [ ] **Phase 13: Ingredients schema & recompute** — `ingredientsJson` v2, backwards read, flatten, recompute pipeline
+- [x] **Phase 13: Ingredients schema & recompute** — `ingredientsJson` v2, backwards read, flatten, recompute pipeline (completed 2026-03-29)
 - [ ] **Phase 14: App shell & energy** — Lock basic, My Meal, hide chat & QuestBar, bottom nav alignment, remove legacy free energy
 - [ ] **Phase 15: Sandbox timeline** — Meal grouping in `FoodSandbox`, future date navigation, cross-meal move UX
 - [ ] **Phase 16: Ingredient UI & AI** — Add/Edit/Gemini/Intent unified rules; Gemini prompt/post-process alignment
@@ -181,7 +181,7 @@ Plans:
 2. Unit / integration test หรือ manual checklist ยืนยัน recompute sub → main → entry
 3. ตัวช่วย flatten จากผล AI ลึกเกิน 2 ระดับมีการทดสอบอย่างน้อย 1 เคส
 
-**Plans:** 2 plans — `13-01` (codec + models + recompute/flatten), `13-02` (tests + manual checklist) ใน `.planning/phases/13-ingredients-schema-recompute/`
+**Plans:** 2/2 plans complete
 
 ### Phase 14: App shell & energy
 **Goal:** ผู้ใช้เห็น shell เดียว (basic), เข้า My Meal จาก AppBar, ไม่เห็น QuestBar/แชท, Energy Store ไม่มีทางรับ free energy legacy  
@@ -243,7 +243,7 @@ Plans:
 
 | Phase | Milestone | Requirements | Status |
 |-------|-----------|--------------|--------|
-| 13. Schema & recompute | v3.0 | ARC2-DATA-* | Not started |
+| 13. Schema & recompute | v3.0 | Complete    | 2026-03-29 |
 | 14. Shell & energy | v3.0 | ARC2-SHELL-*, ARC2-ENERGY-01 | Not started |
 | 15. Sandbox timeline | v3.0 | ARC2-TIMELINE-* | Not started |
 | 16. Ingredient UI & AI | v3.0 | ARC2-ING-*, ARC2-AI-01 | Not started |
