@@ -27,7 +27,6 @@ import '../../energy/widgets/energy_badge_riverpod.dart';
 import '../../energy/providers/gamification_provider.dart';
 import '../widgets/feature_tour.dart';
 import '../../../core/providers/app_mode_provider.dart';
-import '../../../core/widgets/mode_toggle.dart';
 import 'basic_mode_tab.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -290,8 +289,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       leadingWidth: badgeWidth,
       actions: [
-        const ModeToggle(),
-        const SizedBox(width: 4),
+        IconButton(
+          icon: const Icon(Icons.restaurant_menu_outlined),
+          tooltip: L10n.of(context)!.navMyMeals,
+          onPressed: _openMyMealScreen,
+        ),
         IconButton(
           icon: const Icon(Icons.person_outline),
           onPressed: () {
@@ -303,6 +305,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           tooltip: L10n.of(context)!.navProfile,
         ),
       ],
+    );
+  }
+
+  void _openMyMealScreen() {
+    final l10n = L10n.of(context)!;
+    Navigator.push<void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (ctx) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.appBarMyMeals),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(ctx),
+              tooltip: MaterialLocalizations.of(ctx).backButtonTooltip,
+            ),
+          ),
+          body: const HealthMyMealTab(),
+        ),
+      ),
     );
   }
 

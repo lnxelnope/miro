@@ -48,7 +48,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
   Map<String, String> _localizedEnergyTitles = {};
   /// Subscription plan prices from Store (monthly, yearly)
   Map<String, String> _subscriptionPrices = {};
-  bool _isClaimingFreeEnergy = false;
   bool _isClaimingFreepass = false;
   bool _isConvertingToFreepass = false;
   final Map<String, GlobalKey> _offerKeys = {};
@@ -470,9 +469,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         case 'bonus_rate':
           card = _buildBonusBanner(offer);
           break;
-        case 'free_energy':
-          card = _buildFreeEnergyCard(offer);
-          break;
         case 'freepass':
           card = _buildFreepassOfferCard(offer);
           break;
@@ -697,190 +693,6 @@ class _EnergyStoreScreenState extends ConsumerState<EnergyStoreScreen>
         ),
       ),
     );
-  }
-
-  /// Free Energy Card (claim ได้เลย ไม่ต้องซื้อ)
-  Widget _buildFreeEnergyCard(dynamic offer) {
-    final title = offer['title'] as String? ?? L10n.of(context)!.energyAmountLabel(0);
-    final description = offer['description'] as String? ?? '';
-    final ctaText = offer['ctaText'] as String? ?? 'Claim';
-    final icon = offer['icon'] as String? ?? '🎁';
-    final metadata = offer['metadata'] as Map<String, dynamic>?;
-    final amount = (metadata?['amount'] as num?)?.toInt() ?? 0;
-    final offerId = offer['id'] as String? ?? '';
-    final remainingSeconds = offer['remainingSeconds'] as int?;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.success.withValues(alpha: 0.7), AppColors.primary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: AppRadius.xl,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.success.withValues(alpha: 0.4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
-          borderRadius: AppRadius.xl,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: AppRadius.md,
-                      ),
-                      child: Text(
-                        icon,
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (description.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              description,
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '+${L10n.of(context)!.energyAmountLabel(amount)}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (remainingSeconds != null && remainingSeconds > 0) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDuration(Duration(seconds: remainingSeconds)),
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    ElevatedButton(
-                      onPressed: _isClaimingFreeEnergy ? null : () => _claimFreeEnergy(offerId),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                      foregroundColor: AppColors.success,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: AppRadius.md,
-                        ),
-                      ),
-                      child: Text(
-                        _isClaimingFreeEnergy ? L10n.of(context)!.energyClaiming : ctaText,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _claimFreeEnergy(String offerId) async {
-    setState(() => _isClaimingFreeEnergy = true);
-
-    try {
-      final deviceId = await DeviceIdService.getDeviceId();
-      final url = Uri.parse('https://us-central1-miro-d6856.cloudfunctions.net/claimFreeEnergyEndpoint');
-
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'deviceId': deviceId,
-          'templateId': offerId,
-        }),
-      );
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-
-      if (data['success'] == true) {
-        final energyAdded = data['energyAdded'] as int? ?? 0;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('ได้รับ $energyAdded Energy!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-        _loadOffers();
-        ref.invalidate(energyBalanceProvider);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['error'] as String? ?? 'ไม่สามารถ claim ได้'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('[EnergyStore] Error claiming free energy: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('เกิดข้อผิดพลาด'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isClaimingFreeEnergy = false);
-      }
-    }
   }
 
   Widget _buildFreepassOfferCard(dynamic offer) {

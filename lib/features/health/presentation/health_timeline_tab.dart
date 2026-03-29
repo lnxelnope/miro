@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../l10n/app_localizations.dart';
-import '../../../features/energy/widgets/quest_bar.dart';
 import '../../../core/utils/logger.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
@@ -66,10 +65,8 @@ class _HealthTimelineTabState extends ConsumerState<HealthTimelineTab> {
                   child: _buildUpsellBanner(),
                 ),
 
-                // Quest Bar
-                const SliverToBoxAdapter(
-                  child: QuestBar(),
-                ),
+                // QuestBar hidden (Phase 14 — basic shell)
+                const SliverToBoxAdapter(child: SizedBox.shrink()),
 
                 // Daily Summary Card
                 SliverToBoxAdapter(

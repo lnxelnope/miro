@@ -17,7 +17,6 @@ import '../../health/providers/analysis_provider.dart';
 import '../../health/providers/fulfill_calorie_provider.dart';
 import '../../../core/widgets/analyze_bar.dart';
 import '../../health/widgets/daily_summary_card.dart';
-import '../../energy/widgets/quest_bar.dart';
 import '../../arscan/presentation/arscan_screen.dart';
 import '../../health/presentation/image_analysis_preview_screen.dart';
 import '../../chat/providers/chat_provider.dart';
@@ -84,10 +83,10 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // 1. QuestBar
-                const SliverToBoxAdapter(child: QuestBar()),
+                // QuestBar hidden on basic home (Phase 14)
+                const SliverToBoxAdapter(child: SizedBox.shrink()),
 
-                // 2. DailySummaryCard
+                // DailySummaryCard
                 SliverToBoxAdapter(
                   child: DailySummaryCard(
                     selectedDate: _selectedDate,
@@ -125,8 +124,12 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
         // 5. Action Buttons (Camera | Gallery | Add)
         _buildActionButtons(l10n),
 
-        // 6. Chat Input
-        _buildChatInput(l10n),
+        // Chat input hidden on basic home; keep widget tree for state (Phase 14)
+        Visibility(
+          visible: false,
+          maintainState: true,
+          child: _buildChatInput(l10n),
+        ),
       ],
     );
   }
