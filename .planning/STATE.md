@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 13 planned (2 waves); พร้อม execute
-last_updated: "2026-03-29T19:00:00.000Z"
-last_activity: 2026-03-29 — `/gsd-plan-phase 13` → RESEARCH + VALIDATION + 13-01/02-PLAN.md (eeafdc6)
+status: Phase 13 & 14 planned; พร้อม execute (14 ไม่บังคับหลัง 13)
+last_updated: "2026-03-29T20:00:00.000Z"
+last_activity: 2026-03-29 — `/gsd-plan-phase 14` → RESEARCH + VALIDATION + 14-01/02-PLAN.md (8657aa6)
 progress:
   total_phases: 7
   completed_phases: 5
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 ## Current Position
 
-Phase: **13** — planned; เฟส **14–16** มี CONTEXT แล้ว
-Plan: **13-01** (wave 1) → **13-02** (wave 2)
-Status: ถัดไป `/gsd-execute-phase 13`
-Last activity: 2026-03-29 — `/gsd-plan-phase 13` → plans + research + validation committed
+Phase: **14** — planned; เฟส **13** planned; เฟส **15–16** มี CONTEXT
+Plan: **14-01** (wave 1) → **14-02** (wave 2); หรือ execute **13** ก่อนตามลำดับทีม
+Status: `/gsd-execute-phase 14` หรือ `/gsd-execute-phase 13`
+Last activity: 2026-03-29 — `/gsd-plan-phase 14` → plans + research + validation committed
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,5 +56,5 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-29T19:00:00.000Z
-Resume file: .planning/phases/13-ingredients-schema-recompute/13-01-PLAN.md
+Last session: 2026-03-29T20:00:00.000Z
+Resume file: .planning/phases/14-app-shell-energy/14-01-PLAN.md
