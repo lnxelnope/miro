@@ -215,7 +215,7 @@ Plans:
 2. แก้ sub แล้ว entry อัปเดต; แก้ปริมาณรวมแล้ว sub สเกล
 3. `IntentHandler` / sheets หลักไม่แตกคนละสัญญา
 
-**Plans:** 3 plans — `16-01` (Add/Edit + codec), `16-02` (Gemini / food preview), `16-03` (prompt + พื้นผิวที่เหลือ + checklist) ใน `.planning/phases/16-ingredient-ui-ai/` — `16-01` ขึ้นต่อ `13-02` ใน frontmatter
+**Plans:** 4 plans — `16-01` (Add/Edit + codec), `16-02` (Gemini / food preview), `16-03` (AI write paths: prompt + chat + log_from_meal), `16-04` (readers + MyMeal + checklist) ใน `.planning/phases/16-ingredient-ui-ai/` — `16-01` ขึ้นต่อ `13-02`; `16-04` ขึ้นต่อ `16-03`
 
 ### Phase 17: Merge & media
 **Goal:** รวมหลาย entry เป็นกลุ่ม; thumbnail ราย ingredient; สร้างเมนูจากรูป  
@@ -226,7 +226,7 @@ Plans:
 2. แถวที่มีรูปแสดง thumb เล็ก; แตะดูเต็ม + bbox ถ้ามี
 3. Create Meal: เลือกรูปแล้วได้ผลวิเคราะห์เหมือน flow รูปปกติ
 
-**Plans:** 3 plans — `17-01` (Group merge), `17-02` (thumb + schema โหนด), `17-03` (Create Meal gallery) ใน `.planning/phases/17-merge-media/` — `17-01` ขึ้นต่อ `13-02`, `15-03`, `16-03` ใน frontmatter
+**Plans:** 3 plans — `17-01` (Group merge), `17-02` (thumb + schema โหนด), `17-03` (Create Meal gallery) ใน `.planning/phases/17-merge-media/` — `17-01` ขึ้นต่อ `13-02`, `15-03`, `16-04` ใน frontmatter
 
 ### Phase 18: Share & promo
 **Goal:** แชร์การ์ดหลายสัดส่วน + ปริมาณ; แลกโค้ดใน Settings; แอดมินจัดการโค้ด  

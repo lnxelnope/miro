@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: Phase 13–16 planned; Phase 17 planned; Phase 18 planned (18-01→03)
-last_updated: "2026-03-30T01:00:00.000Z"
-last_activity: 2026-03-29 — `/gsd-plan-phase 18` → RESEARCH, VALIDATION, 18-01..03, MANUAL-CHECKLIST
+status: Phase 13–18 planned + agent-readiness upgraded (structured XML format)
+last_updated: "2026-03-30T02:00:00.000Z"
+last_activity: 2026-03-30 — split 16-03→16-03+16-04; upgrade 17-01..03 + 18-01..03 to structured XML
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 24
+  total_plans: 25
   completed_plans: 12
   percent: 0
 ---
@@ -25,10 +25,10 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 ## Current Position
 
-Phase: **18** — **planned** (`18-01`→`18-03-PLAN.md`); **17** ยังรอ dependency 13+15+16
-Plan: **18-01** (Share 16:9/1:1 + serving food only) → **18-02** (Functions + admin CRUD) → **18-03** (Settings redeem)
-Status: พร้อม execute 18 (แนะนำลำดับ 01 → 02 → 03); หรือคู่ขนาน 01 กับ 02
-Last activity: 2026-03-29 — plan-phase 18
+Phase: **13–18** — ทั้งหมด **planned** + เสริม structured XML สำหรับ agent auto
+Plan: 16 แผน → **16-03 แยกเป็น 16-03+16-04**; **17-01..03 + 18-01..03** อัพเกรดจาก markdown → structured XML
+Status: พร้อม execute ตามลำดับ 13→14→15→16→17→18 (หรือ parallel 14∥18-01)
+Last activity: 2026-03-30 — agent-readiness upgrade
 
 Progress: [░░░░░░░░░░] 0%
 
