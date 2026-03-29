@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
 status: Phase 16 context ready; ลำดับแนะนำ 13 → … → 16 (เฟส 16 ขึ้นกับ 13)
-last_updated: "2026-03-29T18:30:00.000Z"
-last_activity: 2026-03-29 — `/gsd-discuss-phase 16` → 16-CONTEXT.md + 16-DISCUSSION-LOG.md committed (722b6ec)
+last_updated: "2026-03-29T18:35:00.000Z"
+last_activity: 2026-03-29 — `/gsd-discuss-phase 16` → 16-CONTEXT.md + 16-DISCUSSION-LOG.md (722b6ec); STATE be426e1
 progress:
   total_phases: 7
   completed_phases: 5
@@ -56,5 +56,5 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-29T18:30:00.000Z
+Last session: 2026-03-29T18:35:00.000Z
 Resume file: .planning/phases/16-ingredient-ui-ai/16-CONTEXT.md
