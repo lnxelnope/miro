@@ -36,7 +36,7 @@ android {
         applicationId = "com.tanabun.miro"
         minSdk = 26  // Android 8.0+ (required by health plugin)
         targetSdk = 35  // Android 15 (Required by Play Store 2025)
-        versionCode = 74
+        versionCode = 75
         versionName = "1.2.7"
     }
 

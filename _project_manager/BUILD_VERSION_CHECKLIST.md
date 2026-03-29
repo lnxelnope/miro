@@ -2,26 +2,33 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-27 (Build 74)
+**อัปเดตล่าสุด:** 2026-03-28 (Build 75)
 
 ---
 
-## ✅ Build 74 (v1.2.7) - Status: READY FOR RELEASE
+## ✅ Build 75 (v1.2.7) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.7+74`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 74`, `versionName = "1.2.7"`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.7+75`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 75`, `versionName = "1.2.7"`)
 - [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.7'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
 - [ ] **Version Naming** - ตาม Semantic Versioning (`1.2.7`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.7+74)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.7+75)
 - [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
-- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (74)
+- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (75)
 
 ### ✨ Changes in this version:
+- Bump build 75 — สำหรับอัปโหลดขึ้น App Store / Google Play
+
+---
+
+## ✅ Build 74 (v1.2.7) - Status: RELEASED
+
+### ✨ Changes in that version:
 - **v1.2.7** — Share card (แชร์สรุปมื้อ / โภชนาการเป็นการ์ดภาพ)
 - Bump build 74 — สำหรับอัปโหลดขึ้น App Store / Google Play
 
@@ -575,16 +582,16 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.7+74
+version: 1.2.7+75
 ```
 **Format:** `versionName+versionCode`
 - `1.2.7` = Version name (แสดงให้ user เห็น)
-- `74` = Build number / Version code (internal)
+- `75` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 74
+    versionCode = 75
     versionName = "1.2.7"
 }
 ```
@@ -664,7 +671,8 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 74 | 1.2.7 | 2026-03-27 | ✅ Current |
+| 75 | 1.2.7 | 2026-03-28 | ✅ Current |
+| 74 | 1.2.7 | 2026-03-27 | ✅ Released |
 | 73 | 1.2.6 | 2026-03-27 | ✅ Released |
 | 72 | 1.2.6 | 2026-03-27 | ❌ Superseded |
 | 71 | 1.2.6 | 2026-03-26 | ✅ Released |
@@ -739,7 +747,7 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ### Pre-flight Checklist (Build 74 / v1.2.7):
 - [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.7+74`)
-- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (73 → 74)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (74 → 75)
 - [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.7'`)
 - [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.7+74)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)

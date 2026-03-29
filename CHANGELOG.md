@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.7+75] - 2026-03-28
+
+### 📦 Build
+- Bump build 74→75 — สำหรับอัปโหลดขึ้น App Store / Google Play
+
+---
+
 ## [1.2.7+74] - 2026-03-27
 
 ### ✨ Features
