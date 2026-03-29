@@ -181,7 +181,7 @@ Plans:
 2. Unit / integration test หรือ manual checklist ยืนยัน recompute sub → main → entry
 3. ตัวช่วย flatten จากผล AI ลึกเกิน 2 ระดับมีการทดสอบอย่างน้อย 1 เคส
 
-**Plans:** TBD (สร้างใน `/gsd-plan-phase 13`)
+**Plans:** 2 plans — `13-01` (codec + models + recompute/flatten), `13-02` (tests + manual checklist) ใน `.planning/phases/13-ingredients-schema-recompute/`
 
 ### Phase 14: App shell & energy
 **Goal:** ผู้ใช้เห็น shell เดียว (basic), เข้า My Meal จาก AppBar, ไม่เห็น QuestBar/แชท, Energy Store ไม่มีทางรับ free energy legacy  
@@ -193,7 +193,7 @@ Plans:
 3. `QuestBar` ไม่แสดงบนหน้าหลักที่กำหนด
 4. ไม่มี flow เรียก `claimFreeEnergy` / tile ที่เกี่ยว; free pass / offer อื่นยังทำงาน
 
-**Plans:** TBD
+**Plans:** 2 plans — `14-01` (shell / My Meal / hide chat & QuestBar / nav), `14-02` (ถอด legacy free energy ใน Energy Store) ใน `.planning/phases/14-app-shell-energy/`
 
 ### Phase 15: Sandbox timeline
 **Goal:** รายการอาหารต่อวันแสดงเป็น feed เดียวพร้อมกลุ่มมื้อเบาๆ; เลื่อนไปวันอนาคตได้; ย้ายรายการระหว่างมื้อได้  
@@ -204,7 +204,7 @@ Plans:
 2. เลือกวันพรุ่งนี้ใน summary/date bar ได้สอดคล้องกันทุกจุดที่เกี่ยว
 3. ผู้ใช้เปลี่ยน `mealType` จาก sandbox ได้อย่างน้อย 1 วิธี (ลากหรือปุ่ม)
 
-**Plans:** TBD
+**Plans:** 3 plans — `15-01` (วันที่อนาคต), `15-02` (ย้ายข้ามมื้อ), `15-03` (กลุ่มมื้อใน sandbox) ใน `.planning/phases/15-sandbox-timeline/` — `15-01` ขึ้นต่อ `14-02` ใน frontmatter
 
 ### Phase 16: Ingredient UI & AI
 **Goal:** ทุกจุดบันทึก/แก้ไข/AI ใช้กฎเดียวกับ arcal2-00/01 (ล็อก main, derive จาก sub, สเกลรวม, root=main)  
@@ -215,7 +215,7 @@ Plans:
 2. แก้ sub แล้ว entry อัปเดต; แก้ปริมาณรวมแล้ว sub สเกล
 3. `IntentHandler` / sheets หลักไม่แตกคนละสัญญา
 
-**Plans:** TBD
+**Plans:** 3 plans — `16-01` (Add/Edit + codec), `16-02` (Gemini / food preview), `16-03` (prompt + พื้นผิวที่เหลือ + checklist) ใน `.planning/phases/16-ingredient-ui-ai/` — `16-01` ขึ้นต่อ `13-02` ใน frontmatter
 
 ### Phase 17: Merge & media
 **Goal:** รวมหลาย entry เป็นกลุ่ม; thumbnail ราย ingredient; สร้างเมนูจากรูป  
@@ -226,7 +226,7 @@ Plans:
 2. แถวที่มีรูปแสดง thumb เล็ก; แตะดูเต็ม + bbox ถ้ามี
 3. Create Meal: เลือกรูปแล้วได้ผลวิเคราะห์เหมือน flow รูปปกติ
 
-**Plans:** TBD
+**Plans:** 3 plans — `17-01` (Group merge), `17-02` (thumb + schema โหนด), `17-03` (Create Meal gallery) ใน `.planning/phases/17-merge-media/` — `17-01` ขึ้นต่อ `13-02`, `15-03`, `16-03` ใน frontmatter
 
 ### Phase 18: Share & promo
 **Goal:** แชร์การ์ดหลายสัดส่วน + ปริมาณ; แลกโค้ดใน Settings; แอดมินจัดการโค้ด  
@@ -237,7 +237,7 @@ Plans:
 2. Toggle แสดงปริมาณบนภาพทำงาน
 3. Redeem สำเร็จ/ล้มเหลวมีข้อความชัด; admin สร้างโค้ดจำกัดครั้ง/ผู้ใช้/วันหมดอายุได้
 
-**Plans:** TBD
+**Plans:** 3 plans — `18-01` (share card aspect + serving food only), `18-02` (Functions + Firestore + admin CRUD), `18-03` (Settings redeem) ใน `.planning/phases/18-share-promo/` — `18-03` ขึ้นต่อ `18-02`; `18-01` ∥ `18-02` ได้
 
 ## Progress (v3.0)
 
