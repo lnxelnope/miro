@@ -2,26 +2,41 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-28 (Build 75)
+**อัปเดตล่าสุด:** 2026-03-30 (Build 77)
 
 ---
 
-## ✅ Build 75 (v1.2.7) - Status: READY FOR RELEASE
+## ✅ Build 77 (v2.0.0) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`1.2.7+75`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 75`, `versionName = "1.2.7"`)
-- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'1.2.7'`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`2.0.0+77`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 77`, `versionName = "2.0.0"`)
+- [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'2.0.0'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
-- [ ] **Version Naming** - ตาม Semantic Versioning (`1.2.7`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v1.2.7+75)
+- [ ] **Version Naming** - ตาม Semantic Versioning (`2.0.0`)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v2.0.0+77)
 - [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
-- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (75)
+- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (77)
 
 ### ✨ Changes in this version:
+- Bump build 76→77 — ส่ง Store แก้บั๊ก (เช่น Basic mode: merge แล้วเปลี่ยนชื่อ → บันทึกเป็น My Meal)
+
+---
+
+## ✅ Build 76 (v2.0.0) - Status: RELEASED
+
+### ✨ Changes in that version:
+- **v2.0.0** — major version bump (build 75→76)
+- Bump build 76 — สำหรับอัปโหลดขึ้น App Store / Google Play
+
+---
+
+## ✅ Build 75 (v1.2.7) - Status: RELEASED
+
+### ✨ Changes in that version:
 - Bump build 75 — สำหรับอัปโหลดขึ้น App Store / Google Play
 
 ---
@@ -582,17 +597,17 @@
 
 ### 1. `pubspec.yaml` (บรรทัด 4)
 ```yaml
-version: 1.2.7+75
+version: 2.0.0+77
 ```
 **Format:** `versionName+versionCode`
-- `1.2.7` = Version name (แสดงให้ user เห็น)
-- `75` = Build number / Version code (internal)
+- `2.0.0` = Version name (แสดงให้ user เห็น)
+- `77` = Build number / Version code (internal)
 
 ### 2. `android/app/build.gradle.kts` (บรรทัด 35-36)
 ```kotlin
 defaultConfig {
-    versionCode = 75
-    versionName = "1.2.7"
+    versionCode = 77
+    versionName = "2.0.0"
 }
 ```
 **Format:**
@@ -604,7 +619,7 @@ defaultConfig {
 _buildModernSettingCard(
   context: context,
   title: L10n.of(context)!.version,
-  subtitle: '1.2.7',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+  subtitle: '2.0.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
   showArrow: false,
 ),
 ```
@@ -629,22 +644,22 @@ _buildModernSettingCard(
 
 ### ขั้นที่ 1: อัปเดต pubspec.yaml
 ```bash
-# ตัวอย่าง: จาก 1.2.5+59 → 1.2.5+60
-version: 1.2.5+60
+# ตัวอย่าง: จาก 2.0.0+76 → 2.0.0+77
+version: 2.0.0+77
 ```
 
 ### ขั้นที่ 2: อัปเดต build.gradle.kts
 ```kotlin
 defaultConfig {
-    versionCode = 60  // เพิ่มทีละ 1
-    versionName = "1.2.5"  // ตรงกับ pubspec
+    versionCode = 77  // เพิ่มทีละ 1
+    versionName = "2.0.0"  // ตรงกับ pubspec
 ```
 
 ### ขั้นที่ 3: อัปเดต profile_screen.dart
 ```dart
 // ไฟล์: lib/features/profile/presentation/profile_screen.dart
 // หาบรรทัด ~310 และแก้ subtitle
-subtitle: '1.2.5',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
+subtitle: '2.0.0',  // ⚠️ ต้องเปลี่ยนให้ตรงกับ versionName
 ```
 
 ### ขั้นที่ 4: ตรวจสอบ
@@ -656,13 +671,13 @@ grep "version:" pubspec.yaml
 grep -A2 "defaultConfig" android/app/build.gradle.kts | grep version
 
 # 3. ตรวจสอบ profile_screen.dart
-grep "subtitle: '1\\.1\\." lib/features/profile/presentation/profile_screen.dart
+grep "subtitle:" lib/features/profile/presentation/profile_screen.dart
 ```
 
 ### ขั้นที่ 5: Git Commit
 ```bash
 git add pubspec.yaml android/app/build.gradle.kts CHANGELOG.md
-git commit -m "build: v1.1.18+43 - description here"
+git commit -m "build: v2.0.0+77 - description here"
 ```
 
 ---
@@ -671,7 +686,9 @@ git commit -m "build: v1.1.18+43 - description here"
 
 | Build | Version Name | Date | Status |
 |-------|-------------|------|--------|
-| 75 | 1.2.7 | 2026-03-28 | ✅ Current |
+| 77 | 2.0.0 | 2026-03-30 | ✅ Current |
+| 76 | 2.0.0 | 2026-03-30 | ✅ Released |
+| 75 | 1.2.7 | 2026-03-28 | ✅ Released |
 | 74 | 1.2.7 | 2026-03-27 | ✅ Released |
 | 73 | 1.2.6 | 2026-03-27 | ✅ Released |
 | 72 | 1.2.6 | 2026-03-27 | ❌ Superseded |
@@ -737,7 +754,7 @@ git commit -m "build: v1.1.18+43 - description here"
 **สาเหตุ:** ลืมแก้เลขเวอร์ชันใน `profile_screen.dart`
 **วิธีแก้:** เปิดไฟล์ `lib/features/profile/presentation/profile_screen.dart` บรรทัด ~310
 ```dart
-subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
+subtitle: '2.0.0',  // แก้ให้ตรงกับ versionName
 ```
 **⚠️ เป็นข้อผิดพลาดที่พบบ่อย - อย่าลืมแก้ทุกครั้ง!**
 
@@ -745,11 +762,11 @@ subtitle: '1.2.4',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 74 / v1.2.7):
-- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`1.2.7+74`)
-- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (74 → 75)
-- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'1.2.7'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v1.2.7+74)
+### Pre-flight Checklist (Build 76 / v2.0.0):
+- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`2.0.0+76`)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (75 → 76)
+- [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'2.0.0'`)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v2.0.0+76)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)

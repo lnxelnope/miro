@@ -1666,8 +1666,13 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                     width: double.infinity,
                     height: AppSizes.buttonMedium,
                     child: ElevatedButton(
+                      // เปลี่ยนชื่ออย่างเดียวต้องบันทึกเป็น My Meal ใหม่ด้วย (ไม่ใช่แค่ _save)
+                      // — _hasChanges ไม่ถูก set เมื่อแก้แค่ชื่อ
                       onPressed: _isDirty
-                          ? (_hasChanges ? _saveAndCreateMeal : _save)
+                          ? ((_hasChanges ||
+                                  (_isNameChanged && _ingredients.isNotEmpty))
+                              ? _saveAndCreateMeal
+                              : _save)
                           : !_hasNutrition
                               ? _startAnalyzeThisEntry
                               : () => Navigator.pop(context),

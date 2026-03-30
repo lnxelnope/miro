@@ -1,7 +1,7 @@
 name: miro_hybrid
 description: "ArCal - AI Calorie Counter"
 publish_to: 'none'
-version: 1.2.7+75
+version: 2.0.0+77
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
