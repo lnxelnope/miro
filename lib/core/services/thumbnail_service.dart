@@ -111,6 +111,50 @@ class ThumbnailService {
     }
   }
 
+  /// Backup thumbnail for [MyMeal] — path `my_meal_thumbs/{deviceHash}/{mealId}.jpg`
+  static Future<String?> uploadMyMealThumbnail({
+    required MyMeal meal,
+    required File imageFile,
+  }) async {
+    try {
+      if (meal.id <= 0 || !imageFile.existsSync()) return null;
+
+      final deviceId = await DeviceIdService.getDeviceId();
+      final hashedId = _hashDeviceId(deviceId);
+      final storagePath = 'my_meal_thumbs/$hashedId/${meal.id}.jpg';
+
+      final thumbnailBytes = await _compressToThumbnail(imageFile);
+      if (thumbnailBytes == null) return null;
+
+      final ref = _storage.ref(storagePath);
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {
+          'uid': hashedId,
+          'type': 'my_meal',
+          'mealId': meal.id.toString(),
+          'name': meal.name,
+          'kcal': meal.totalCalories.toStringAsFixed(0),
+        },
+      );
+
+      await ref.putData(thumbnailBytes, metadata);
+      final downloadUrl = await ref.getDownloadURL();
+
+      meal.thumbnailUrl = downloadUrl;
+      meal.thumbnailFirebasePath = storagePath;
+      await DatabaseService.db
+          .into(DatabaseService.db.myMeals)
+          .insertOnConflictUpdate(meal);
+
+      debugPrint('[Thumbnail] MyMeal uploaded: $storagePath');
+      return downloadUrl;
+    } catch (e) {
+      debugPrint('[Thumbnail] MyMeal upload failed (non-fatal): $e');
+      return null;
+    }
+  }
+
   /// Compress image to ~300x300 JPEG thumbnail.
   static Future<Uint8List?> _compressToThumbnail(File imageFile) async {
     try {

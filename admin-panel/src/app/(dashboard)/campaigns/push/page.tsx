@@ -207,6 +207,22 @@ export default function PushCampaignPage() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Campaigns</h1>
 
+      <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <p className="font-semibold mb-1">How delivery works in the app</p>
+        <ul className="list-disc list-inside space-y-1 text-blue-800">
+          <li>
+            <strong>Seasonal quests</strong> — Active quests appear as a <strong>one-time popup</strong> on the
+            user&apos;s home screen (Dashboard tab) when they can claim. After they tap <em>Claim</em>,{' '}
+            <em>Maybe later</em>, or dismiss the dialog, it won&apos;t show again that day for that quest (no
+            quest bar / streak strip).
+          </li>
+          <li>
+            <strong>Push notifications</strong> — FCM broadcast only; use copy that encourages opening the app.
+            Seasonal rewards are <strong>not</strong> shown as a persistent banner anymore.
+          </li>
+        </ul>
+      </div>
+
       {/* ─── Tab Bar ─── */}
       <div className="flex border-b border-gray-200 mb-6">
         <button
@@ -401,6 +417,10 @@ export default function PushCampaignPage() {
           {/* Create Form */}
           <div className="max-w-2xl space-y-4 mb-8">
             <h2 className="text-xl font-bold">Create New Seasonal Quest</h2>
+            <p className="text-sm text-gray-600 -mt-2">
+              Users will see this as a short popup on home with Claim / Maybe later — at most once per quest per
+              calendar day while the quest is active and claimable.
+            </p>
 
             {/* Title */}
             <div>

@@ -6,7 +6,7 @@
 - ✅ **v1.1 Gamification & Monetization** - Phases 4 (pre-GSD)
 - ✅ **v1.2 Analytics & Health Integration** - Phase 5 (pre-GSD, last version v1.2.2+51)
 - ✅ **v2.0 ARscan + Rebrand** — Phases 6–12 (shipped)
-- 🚧 **v3.0 Arcal 2.00 (upgrade_basic)** — Phases 13–18 (current milestone — เหลือเท่านี้)
+- ✅ **v3.0 Arcal 2.00 (upgrade_basic)** — Phases 13–18 โค้ดครบ; **UAT + deploy production** ตาม `18-MANUAL-CHECKLIST.md`
 
 ## Phases
 
@@ -166,9 +166,9 @@ Plans:
 - [x] **Phase 13: Ingredients schema & recompute** — `ingredientsJson` v2, backwards read, flatten, recompute pipeline (completed 2026-03-29)
 - [x] **Phase 14: App shell & energy** — Lock basic, My Meal, hide chat & QuestBar, bottom nav alignment, remove legacy free energy (completed 2026-03-29)
 - [x] **Phase 15: Sandbox timeline** — Meal grouping in `FoodSandbox`, future date navigation, cross-meal move UX (completed 2026-03-29)
-- [ ] **Phase 16: Ingredient UI & AI** — Add/Edit/Gemini/Intent unified rules; Gemini prompt/post-process alignment
-- [ ] **Phase 17: Merge & media** — Group merge, micro thumbnails + preview, Create Meal gallery → analysis
-- [ ] **Phase 18: Share & promo** — Share card aspect + serving toggle; Settings redeem; admin CRUD + backend
+- [x] **Phase 16: Ingredient UI & AI** — Add/Edit/Gemini/Intent unified rules; Gemini prompt/post-process alignment (completed 2026-03-29 — verify UAT `16-MANUAL-CHECKLIST.md`)
+- [x] **Phase 17: Merge & media** — Group merge, micro thumbnails + preview, Create Meal gallery → analysis (completed 2026-03-29 — UAT `17-MANUAL-CHECKLIST.md`)
+- [x] **Phase 18: Share & promo** — Share card aspect + serving toggle; Settings redeem; admin CRUD + backend (completed 2026-03-29 — UAT/deploy `18-MANUAL-CHECKLIST.md`)
 
 ## Phase Details (v3.0)
 
@@ -246,8 +246,8 @@ Plans:
 | 13. Schema & recompute | v3.0 | Complete    | 2026-03-29 |
 | 14. Shell & energy | v3.0 | Complete    | 2026-03-29 |
 | 15. Sandbox timeline | v3.0 | Complete    | 2026-03-29 |
-| 16. Ingredient UI & AI | v3.0 | ARC2-ING-*, ARC2-AI-01 | Not started |
-| 17. Merge & media | v3.0 | ARC2-GR-*, ARC2-THUMB-*, ARC2-MEAL-01 | Not started |
-| 18. Share & promo | v3.0 | ARC2-SHARE-*, ARC2-PROMO-* | Not started |
+| 16. Ingredient UI & AI | v3.0 | ARC2-ING-*, ARC2-AI-01 | Complete (manual UAT: `16-MANUAL-CHECKLIST.md`) |
+| 17. Merge & media | v3.0 | ARC2-GR-*, ARC2-THUMB-*, ARC2-MEAL-01 | Complete (manual UAT: `17-MANUAL-CHECKLIST.md`) |
+| 18. Share & promo | v3.0 | ARC2-SHARE-*, ARC2-PROMO-* | Complete (manual UAT + deploy: `18-MANUAL-CHECKLIST.md`) |
 
 **Suggested execution order:** 13 → 14 → 15 → 16 → 17 → 18 (adjust if parallelizing 14/18 with 13)

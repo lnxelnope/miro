@@ -702,6 +702,7 @@
       }
     }
   },
+  "ingredientMainMacrosFromSubIngredientsLabel": "From sub-ingredients",
   "addSubIngredient": "Add",
   "subIngredientNameHint": "Sub-ingredient name",
   "amountShort": "Amt",
@@ -1810,6 +1811,8 @@
   },
   "seasonalQuestClaimed": "Claimed!",
   "seasonalQuestClaimedToday": "Claimed today",
+  "seasonalQuestMaybeLater": "Maybe later",
+  "seasonalQuestClaimNow": "Claim reward",
 
   "errorFailed": "Failed",
   "errorFailedToClaim": "Failed to claim",
@@ -1885,6 +1888,25 @@
     }
   },
   "referralAllLevelsClaimed": "All levels claimed!",
+  "referralRewardsPopupTitle": "Referral rewards",
+  "referralRewardsPopupBody": "Friends you invited unlocked Energy. Claim every pending level in one tap.",
+  "referralRewardsClaimAllButton": "Claim +{energy} Energy",
+  "@referralRewardsClaimAllButton": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRewardsClaimedSummary": "+{energy} Energy claimed!",
+  "@referralRewardsClaimedSummary": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRewardsMaybeLater": "Not now",
   "referralLevel": "Level {level}: {subtitle}",
   "@referralLevel": {
     "placeholders": {
@@ -2073,6 +2095,11 @@
 
   "editMealTitle": "Edit Meal",
   "createNewMealTitle": "Create New Meal",
+  "myMealCoverPhotoLabel": "Meal photo",
+  "myMealAddPhoto": "Add photo",
+  "myMealChangePhoto": "Change photo",
+  "myMealRemovePhoto": "Remove photo",
+  "mealSourceManualShort": "Manual",
   "mealNameLabel": "Meal Name *",
   "mealNameHint": "e.g. Pad Krapow with fried egg",
   "servingSizeLabel": "Serving Size *",
@@ -2226,6 +2253,33 @@
   "gallery": "Gallery",
   "ingredients": "Ingredients",
   "longPressToSelect": "Long-press to select items",
+
+  "mergeGroup": "Group",
+  "confirmMergeTitle": "Merge {count} items?",
+  "@confirmMergeTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmMergeMessage": "Selected items will be combined into one entry. This cannot be undone.",
+  "mergeDisabledNested": "Cannot merge items that are already groups",
+  "mergedSuccess": "Merged {count} items into one entry",
+  "@mergedSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "analyzeFromPhoto": "Analyze from photo",
+  "photoSourceTitle": "Choose photo source",
+  "fromGallery": "Gallery",
+  "fromCamera": "Camera",
+  "subAnalysisApplied": "Analysis applied to {name}",
+  "@subAnalysisApplied": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
 
   "healthSyncSection": "Health Sync",
   "healthSyncTitle": "Sync with Health App",
@@ -2620,6 +2674,7 @@
   "shareImageSelected": "Image selected",
   "shareSelectImageRequired": "Please select an image before sharing",
   "shareCardDailySummaryTitle": "Daily Summary",
+  "shareCardReferralCaption": "Invite code",
   "shareCardFiber": "Fiber",
   "shareCardSugar": "Sugar",
   "shareCardSodium": "Sodium",
@@ -2639,5 +2694,33 @@
       }
     }
   },
-  "shareCardShowBoundingBox": "Show bounding box"
+  "shareCardShowBoundingBox": "Show bounding box",
+  "shareCardStreakToggle": "Streak",
+  "shareCardGoalPercentToggle": "Goal %",
+  "aspectRatio16x9": "16:9 Wide",
+  "aspectRatio9x16": "9:16 Vertical",
+  "aspectRatio1x1": "1:1 Square",
+  "aspectRatioLabel": "Aspect ratio",
+  "showServingToggle": "Show serving size",
+  "servingDisplay": "{size} {unit}",
+  "@servingDisplay": {
+    "placeholders": {
+      "size": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "noServingData": "No serving data",
+
+  "promoCodeTitle": "Promo Code",
+  "promoCodeHint": "Enter promo code",
+  "redeemButton": "Redeem",
+  "redeemSuccess": "Code redeemed! Reward applied.",
+  "redeemErrorInvalid": "Invalid promo code",
+  "redeemErrorExpired": "This code has expired",
+  "redeemErrorMaxReached": "This code has reached its limit",
+  "redeemErrorAlreadyUsed": "You have already used this code",
+  "redeemErrorGeneric": "Failed to redeem code. Please try again.",
+
+  "parentAmountHintWithSubs": "Scale all",
+  "parentAmountTooltip": "Change to scale all sub-ingredients proportionally"
 }

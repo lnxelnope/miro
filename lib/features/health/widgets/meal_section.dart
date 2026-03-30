@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +12,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
 import '../providers/health_provider.dart';
 import '../providers/fulfill_calorie_provider.dart';
 import 'food_detail_bottom_sheet.dart';
@@ -63,8 +63,8 @@ class _MealSectionState extends ConsumerState<MealSection> {
       return 0;
     }
     try {
-      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
-      return decoded.length;
+      final doc = parseIngredientsJson(entry.ingredientsJson).documentV2;
+      return doc?.mainIngredients.length ?? 0;
     } catch (_) {
       return 0;
     }

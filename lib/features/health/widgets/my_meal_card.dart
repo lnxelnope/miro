@@ -3,6 +3,7 @@ import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/my_meal_cover_image.dart';
 import '../../../l10n/app_localizations.dart';
 class MyMealCard extends StatelessWidget {
   final MyMeal meal;
@@ -51,17 +52,12 @@ class MyMealCard extends StatelessWidget {
                 // Header row
                 Row(
                   children: [
-                    // Meal icon
-                    Container(
+                    MyMealCoverImage(
+                      meal: meal,
                       width: 44,
                       height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.health.withValues(alpha: 0.1),
-                        borderRadius: AppRadius.md,
-                      ),
-                      child: const Center(
-                        child: Icon(AppIcons.meal, size: 24, color: AppIcons.mealColor),
-                      ),
+                      borderRadius: AppRadius.md,
+                      allowNetworkThumbnail: false,
                     ),
                     const SizedBox(width: 12),
                     // Name & meta
@@ -102,22 +98,29 @@ class MyMealCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isAi ? AppIcons.aiAnalyzed : AppIcons.edit,
+                            isAi
+                                ? AppIcons.aiAnalyzed
+                                : Icons.restaurant_menu_outlined,
                             size: 12,
                             color: isAi
                                 ? AppIcons.aiAnalyzedColor
-                                : AppIcons.editColor,
+                                : (isDark
+                                    ? AppColors.textSecondaryDark
+                                    : AppColors.textSecondary),
                           ),
-                          const SizedBox(width: 2),
-                          if (isAi)
-                            const Text(
-                              'AI',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppIcons.aiAnalyzedColor,
-                              ),
+                          const SizedBox(width: 4),
+                          Text(
+                            isAi ? 'AI' : L10n.of(context)!.mealSourceManualShort,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isAi
+                                  ? AppIcons.aiAnalyzedColor
+                                  : (isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondary),
                             ),
+                          ),
                         ],
                       ),
                     ),

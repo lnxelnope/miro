@@ -149,6 +149,14 @@ Map<String, dynamic> _nodeToMap(IngredientNode n) {
   if (n.fiber != null) map['fiber'] = n.fiber;
   if (n.sugar != null) map['sugar'] = n.sugar;
   if (n.sodium != null) map['sodium'] = n.sodium;
+  if (n.imagePath != null && n.imagePath!.isNotEmpty) {
+    map['imagePath'] = n.imagePath;
+  }
+  if (n.arBoundingBox != null && n.arBoundingBox!.isNotEmpty) {
+    map['arBoundingBox'] = n.arBoundingBox;
+  }
+  if (n.arImageWidth != null) map['arImageWidth'] = n.arImageWidth;
+  if (n.arImageHeight != null) map['arImageHeight'] = n.arImageHeight;
   if (n.subIngredients.isNotEmpty) {
     map['subIngredients'] = n.subIngredients.map(_nodeToMap).toList();
   }
@@ -189,6 +197,10 @@ IngredientNode _nodeFromDynamicMap(Map<String, dynamic> map, {required bool isRo
     sugar: _optionalDouble(map['sugar']),
     sodium: _optionalDouble(map['sodium']),
     subIngredients: subs,
+    imagePath: _optionalString(map['imagePath']),
+    arBoundingBox: _optionalString(map['arBoundingBox']),
+    arImageWidth: _optionalInt(map['arImageWidth']),
+    arImageHeight: _optionalInt(map['arImageHeight']),
   );
 }
 
@@ -202,6 +214,19 @@ double? _optionalDouble(dynamic v) {
   if (v == null) return null;
   if (v is num) return v.toDouble();
   return double.tryParse(v.toString());
+}
+
+String? _optionalString(dynamic v) {
+  if (v == null) return null;
+  final s = v.toString().trim();
+  return s.isEmpty ? null : s;
+}
+
+int? _optionalInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  return int.tryParse(v.toString());
 }
 
 IngredientNode _rollupMain(IngredientNode main) {
@@ -273,6 +298,9 @@ IngredientNode _rollupMain(IngredientNode main) {
 
 IngredientNode _flattenRootToMain(Map<String, dynamic> root) {
   final name = (root['name'] as String?)?.trim() ?? '';
+  final nameEn = root['name_en'] as String?;
+  final rootUnit = (root['unit'] as String?) ?? 'g';
+  final rootAmount = _toDouble(root['amount']);
   final subsRaw = _subListFromMap(root);
   final flatSubs = <IngredientNode>[];
   if (subsRaw != null) {
@@ -293,6 +321,41 @@ IngredientNode _flattenRootToMain(Map<String, dynamic> root) {
   var cb = _toDouble(root['carbs']);
   var f = _toDouble(root['fat']);
   if (flatSubs.isNotEmpty) {
+    double sumC = 0, sumP = 0, sumCb = 0, sumF = 0;
+    for (final s in flatSubs) {
+      sumC += s.calories;
+      sumP += s.protein;
+      sumCb += s.carbs;
+      sumF += s.fat;
+    }
+
+    // When root's declared calories significantly exceed sum of subs, the root
+    // ingredient itself carries "missing" nutrition (e.g. lady-finger cookie
+    // 140 kcal with sub coffee 2 kcal — the cookie base is 138 kcal).
+    // Insert a self sub-ingredient at position 0 so no calories are lost.
+    final deltaC = c - sumC;
+    if (deltaC > 1) {
+      double selfAmount = rootAmount;
+      for (final s in flatSubs) {
+        if (s.unit == rootUnit) selfAmount -= s.amount;
+      }
+      if (selfAmount <= 0) selfAmount = rootAmount;
+
+      flatSubs.insert(
+        0,
+        IngredientNode(
+          name: name,
+          nameEn: nameEn,
+          amount: selfAmount,
+          unit: rootUnit,
+          calories: deltaC,
+          protein: (p - sumP).clamp(0.0, double.infinity),
+          carbs: (cb - sumCb).clamp(0.0, double.infinity),
+          fat: (f - sumF).clamp(0.0, double.infinity),
+        ),
+      );
+    }
+
     c = 0;
     p = 0;
     cb = 0;
@@ -306,9 +369,9 @@ IngredientNode _flattenRootToMain(Map<String, dynamic> root) {
   }
   return IngredientNode(
     name: name,
-    nameEn: root['name_en'] as String?,
-    amount: _toDouble(root['amount']),
-    unit: (root['unit'] as String?) ?? 'g',
+    nameEn: nameEn,
+    amount: rootAmount,
+    unit: rootUnit,
     calories: c,
     protein: p,
     carbs: cb,
@@ -317,6 +380,10 @@ IngredientNode _flattenRootToMain(Map<String, dynamic> root) {
     sugar: _optionalDouble(root['sugar']),
     sodium: _optionalDouble(root['sodium']),
     subIngredients: flatSubs,
+    imagePath: _optionalString(root['imagePath']),
+    arBoundingBox: _optionalString(root['arBoundingBox']),
+    arImageWidth: _optionalInt(root['arImageWidth']),
+    arImageHeight: _optionalInt(root['arImageHeight']),
   );
 }
 
@@ -435,5 +502,9 @@ IngredientNode _leafFromMap(
     sugar: _optionalDouble(map['sugar']),
     sodium: _optionalDouble(map['sodium']),
     subIngredients: const [],
+    imagePath: _optionalString(map['imagePath']),
+    arBoundingBox: _optionalString(map['arBoundingBox']),
+    arImageWidth: _optionalInt(map['arImageWidth']),
+    arImageHeight: _optionalInt(map['arImageHeight']),
   );
 }

@@ -24,6 +24,13 @@ class IngredientNode {
   final double? sodium;
   final List<IngredientNode> subIngredients;
 
+  /// Optional local image path (sub-ingredient photo, etc.)
+  final String? imagePath;
+  /// Normalized bbox JSON, e.g. `{"x":0.1,"y":0.2,"w":0.3,"h":0.4}`.
+  final String? arBoundingBox;
+  final int? arImageWidth;
+  final int? arImageHeight;
+
   const IngredientNode({
     required this.name,
     this.nameEn,
@@ -37,6 +44,10 @@ class IngredientNode {
     this.sugar,
     this.sodium,
     this.subIngredients = const [],
+    this.imagePath,
+    this.arBoundingBox,
+    this.arImageWidth,
+    this.arImageHeight,
   });
 
   IngredientNode copyWith({
@@ -52,6 +63,10 @@ class IngredientNode {
     double? sugar,
     double? sodium,
     List<IngredientNode>? subIngredients,
+    String? imagePath,
+    String? arBoundingBox,
+    int? arImageWidth,
+    int? arImageHeight,
   }) {
     return IngredientNode(
       name: name ?? this.name,
@@ -66,6 +81,10 @@ class IngredientNode {
       sugar: sugar ?? this.sugar,
       sodium: sodium ?? this.sodium,
       subIngredients: subIngredients ?? this.subIngredients,
+      imagePath: imagePath ?? this.imagePath,
+      arBoundingBox: arBoundingBox ?? this.arBoundingBox,
+      arImageWidth: arImageWidth ?? this.arImageWidth,
+      arImageHeight: arImageHeight ?? this.arImageHeight,
     );
   }
 }

@@ -386,6 +386,7 @@ class _DailySummaryCardState extends ConsumerState<DailySummaryCard> {
                 totalSugar: sugar > 0 ? sugar : null,
                 totalSodium: sodium > 0 ? sodium : null,
                 streakDays: gamification.currentStreak,
+                referralCode: gamification.miroId,
               ),
             ),
           ),

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/share_card_config.dart';
+import 'share_card_brand_badge.dart';
+import 'share_card_referral_line.dart';
 
 class ShareCardNutritionSummary extends StatelessWidget {
   final ShareCardConfig config;
@@ -15,18 +17,23 @@ class ShareCardNutritionSummary extends StatelessWidget {
         config.heroImagePath!.isNotEmpty &&
         File(config.heroImagePath!).existsSync();
 
+    final cardSize = config.logicalSize;
+    final s = config.layoutScale;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: SizedBox(
-        width: 1080 / 3,
-        height: 1350 / 3,
+        width: cardSize.width,
+        height: cardSize.height,
         child: Stack(
           fit: StackFit.expand,
           children: [
             if (hasHero)
-              Image.file(
-                File(config.heroImagePath!),
-                fit: BoxFit.cover,
+              Positioned.fill(
+                child: Image.file(
+                  File(config.heroImagePath!),
+                  fit: BoxFit.cover,
+                ),
               )
             else
               Container(
@@ -56,14 +63,14 @@ class ShareCardNutritionSummary extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 16,
-              right: 16,
-              top: 14,
+              left: 16 * s,
+              right: 16 * s,
+              top: 14 * s,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 10 * s),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14 * s),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -74,14 +81,26 @@ class ShareCardNutritionSummary extends StatelessWidget {
                         Expanded(
                           child: Text(
                             config.periodLabel ?? l10n.nutritionSummary,
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: TextStyle(
+                              fontSize: 16 * s,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
                             ),
                           ),
                         ),
-                        _buildBrandBadge(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ShareCardBrandBadge(layoutScale: s),
+                            ShareCardReferralLine(
+                              referralCode: config.referralCode,
+                              layoutScale: s,
+                              align: CrossAxisAlignment.end,
+                              compactBelowLogo: true,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     if (config.dateRangeStart != null && config.dateRangeEnd != null)
@@ -90,7 +109,7 @@ class ShareCardNutritionSummary extends StatelessWidget {
                         child: Text(
                           '${_fmtDate(context, config.dateRangeStart!)} - ${_fmtDate(context, config.dateRangeEnd!)}',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 10 * s,
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
@@ -100,14 +119,14 @@ class ShareCardNutritionSummary extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14,
+              left: 16 * s,
+              right: 16 * s,
+              bottom: 14 * s,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(12 * s),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.38),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(14 * s),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -118,18 +137,18 @@ class ShareCardNutritionSummary extends StatelessWidget {
                         children: [
                           Text(
                             _fmtNum(config.totalCalories!),
-                            style: const TextStyle(
-                              fontSize: 24,
+                            style: TextStyle(
+                              fontSize: 24 * s,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                               height: 1,
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          SizedBox(width: 5 * s),
                           Text(
                             l10n.kcal.toUpperCase(),
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 9 * s,
                               fontWeight: FontWeight.w700,
                               color: Colors.white70,
                               letterSpacing: 1.2,
@@ -140,80 +159,80 @@ class ShareCardNutritionSummary extends StatelessWidget {
                             Text(
                               l10n.shareCardDays(config.daysTracked!),
                               style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 10 * s,
                                 color: Colors.white.withValues(alpha: 0.65),
                               ),
                             ),
                         ],
                       ),
                     if (config.showMacros) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8 * s),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                        padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 7 * s),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(20 * s),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _macroText('P', config.totalProtein ?? 0),
-                            const SizedBox(width: 12),
-                            _macroText('C', config.totalCarbs ?? 0),
-                            const SizedBox(width: 12),
-                            _macroText('F', config.totalFat ?? 0),
+                            _macroText('P', config.totalProtein ?? 0, s),
+                            SizedBox(width: 12 * s),
+                            _macroText('C', config.totalCarbs ?? 0, s),
+                            SizedBox(width: 12 * s),
+                            _macroText('F', config.totalFat ?? 0, s),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8 * s),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(4 * s),
                         child: SizedBox(
-                          height: 6,
+                          height: 6 * s,
                           child: _buildMacroBar(),
                         ),
                       ),
                     ],
                     if (config.showMicros && _hasMicros) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8 * s),
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(8 * s),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(10 * s),
                         ),
                         child: Column(
                           children: [
                             if (config.totalFiber != null && config.totalFiber! > 0)
-                              _microRow(l10n.shareCardFiber, '${config.totalFiber!.toStringAsFixed(1)}g'),
+                              _microRow(l10n.shareCardFiber, '${config.totalFiber!.toStringAsFixed(1)}g', s),
                             if (config.totalSugar != null && config.totalSugar! > 0)
-                              _microRow(l10n.shareCardSugar, '${config.totalSugar!.toStringAsFixed(1)}g'),
+                              _microRow(l10n.shareCardSugar, '${config.totalSugar!.toStringAsFixed(1)}g', s),
                             if (config.totalSodium != null && config.totalSodium! > 0)
-                              _microRow(l10n.shareCardSodium, '${config.totalSodium!.toInt()}mg'),
+                              _microRow(l10n.shareCardSodium, '${config.totalSodium!.toInt()}mg', s),
                           ],
                         ),
                       ),
                     ],
                     if (!hasHero) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8 * s),
                       Text(
                         l10n.shareNoImageSelected,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 11 * s,
                           color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
                     if (config.showStreak && config.streakDays != null && config.streakDays! > 0) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8 * s),
                       Row(
                         children: [
-                          const Text('🔥', style: TextStyle(fontSize: 14)),
-                          const SizedBox(width: 6),
+                          Text('🔥', style: TextStyle(fontSize: 14 * s)),
+                          SizedBox(width: 6 * s),
                           Text(
                             l10n.shareCardDayStreak(config.streakDays!),
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: TextStyle(
+                              fontSize: 12 * s,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -261,14 +280,14 @@ class ShareCardNutritionSummary extends StatelessWidget {
     );
   }
 
-  Widget _macroText(String prefix, double value) {
+  Widget _macroText(String prefix, double value, double s) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           '${value.toInt()}',
-          style: const TextStyle(
-            fontSize: 16,
+          style: TextStyle(
+            fontSize: 16 * s,
             fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
@@ -276,7 +295,7 @@ class ShareCardNutritionSummary extends StatelessWidget {
         Text(
           prefix,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 10 * s,
             fontWeight: FontWeight.w600,
             color: Colors.white.withValues(alpha: 0.55),
           ),
@@ -285,34 +304,22 @@ class ShareCardNutritionSummary extends StatelessWidget {
     );
   }
 
-  Widget _microRow(String label, String value) {
+  Widget _microRow(String label, String value, double s) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: EdgeInsets.symmetric(vertical: 2 * s),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.6))),
-          Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white70)),
+          Text(label, style: TextStyle(fontSize: 11 * s, color: Colors.white.withValues(alpha: 0.6))),
+          Text(value, style: TextStyle(fontSize: 11 * s, fontWeight: FontWeight.w600, color: Colors.white70)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBrandBadge() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: Image.asset(
-        'assets/icon/logo_with_store.png',
-        width: 92,
-        height: 92,
-        fit: BoxFit.contain,
       ),
     );
   }
 
   String _fmtNum(double v) {
     return v.toInt().toString().replaceAllMapped(
-      RegExp(r'(\\d)(?=(\\d{3})+(?!\\d))'),
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
       (m) => '${m[1]},',
     );
   }

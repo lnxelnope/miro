@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +15,10 @@ import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/constants/date_planning_limits.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
+import '../../../core/widgets/ingredient_thumb.dart';
 import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
 
@@ -47,6 +50,11 @@ class _EditableIngredient {
   // Sub-ingredients (nested)
   List<_EditableIngredient> subIngredients = [];
 
+  String? imagePath;
+  String? arBoundingBox;
+  int? arImageWidth;
+  int? arImageHeight;
+
   _EditableIngredient({
     required String name,
     this.nameEn,
@@ -58,6 +66,10 @@ class _EditableIngredient {
     required this.fat,
     List<_EditableIngredient>? subIngredients,
     this.source = 'ai',
+    this.imagePath,
+    this.arBoundingBox,
+    this.arImageWidth,
+    this.arImageHeight,
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(
             text: amount > 0 ? amount.toStringAsFixed(0) : ''),
@@ -117,7 +129,9 @@ class _EditableIngredient {
       for (final sub in subIngredients) {
         final subBaseAmt = sub.baseAmount;
         final newSubAmt = subBaseAmt * ratio;
-        sub.amountController.text = newSubAmt.toStringAsFixed(0);
+        sub.amountController.text = newSubAmt >= 10
+            ? newSubAmt.round().toString()
+            : newSubAmt.toStringAsFixed(1);
         sub.calories = sub.baseCalories * newSubAmt;
         sub.protein = sub.baseProtein * newSubAmt;
         sub.carbs = sub.baseCarbs * newSubAmt;
@@ -163,6 +177,14 @@ class _EditableIngredient {
       'fat': fat,
       'source': source,
     };
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      map['imagePath'] = imagePath;
+    }
+    if (arBoundingBox != null && arBoundingBox!.isNotEmpty) {
+      map['arBoundingBox'] = arBoundingBox;
+    }
+    if (arImageWidth != null) map['arImageWidth'] = arImageWidth;
+    if (arImageHeight != null) map['arImageHeight'] = arImageHeight;
     if (subIngredients.isNotEmpty) {
       map['sub_ingredients'] =
           subIngredients.map((sub) => sub.toMap()).toList();
@@ -271,51 +293,44 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     _servingSizeController.addListener(_onServingSizeChanged);
   }
 
+  _EditableIngredient _editableIngredientFromNode(IngredientNode n) {
+    return _EditableIngredient(
+      name: n.name,
+      nameEn: n.nameEn,
+      amount: n.amount,
+      unit: UnitConverter.ensureValid(n.unit),
+      calories: n.calories,
+      protein: n.protein,
+      carbs: n.carbs,
+      fat: n.fat,
+      subIngredients:
+          n.subIngredients.map(_editableIngredientFromNode).toList(),
+      source: 'ai',
+      imagePath: n.imagePath,
+      arBoundingBox: n.arBoundingBox,
+      arImageWidth: n.arImageWidth,
+      arImageHeight: n.arImageHeight,
+    );
+  }
+
   void _loadIngredientsFromJson() {
-    if (widget.entry.ingredientsJson != null &&
-        widget.entry.ingredientsJson!.isNotEmpty) {
-      try {
-        final list = jsonDecode(widget.entry.ingredientsJson!) as List;
-        for (final item in list) {
-          final map = item as Map<String, dynamic>;
-          
-          // Load sub-ingredients recursively
-          List<_EditableIngredient>? subs;
-          if (map['sub_ingredients'] != null) {
-            final subList = map['sub_ingredients'] as List;
-            subs = subList.map((subItem) {
-              final subMap = subItem as Map<String, dynamic>;
-              return _EditableIngredient(
-                name: subMap['name'] as String? ?? '',
-                nameEn: subMap['name_en'] as String?,
-                amount: (subMap['amount'] as num?)?.toDouble() ?? 0,
-                unit: subMap['unit'] as String? ?? 'g',
-                calories: (subMap['calories'] as num?)?.toDouble() ?? 0,
-                protein: (subMap['protein'] as num?)?.toDouble() ?? 0,
-                carbs: (subMap['carbs'] as num?)?.toDouble() ?? 0,
-                fat: (subMap['fat'] as num?)?.toDouble() ?? 0,
-                source: subMap['source'] as String? ?? 'ai',
-              );
-            }).toList();
-          }
-          
-          _ingredients.add(_EditableIngredient(
-            name: map['name'] as String? ?? '',
-            nameEn: map['name_en'] as String?,
-            amount: (map['amount'] as num?)?.toDouble() ?? 0,
-            unit: map['unit'] as String? ?? 'g',
-            calories: (map['calories'] as num?)?.toDouble() ?? 0,
-            protein: (map['protein'] as num?)?.toDouble() ?? 0,
-            carbs: (map['carbs'] as num?)?.toDouble() ?? 0,
-            fat: (map['fat'] as num?)?.toDouble() ?? 0,
-            subIngredients: subs,
-            source: map['source'] as String? ?? 'ai',
-          ));
+    final raw = widget.entry.ingredientsJson;
+    if (raw == null || raw.trim().isEmpty) return;
+    try {
+      final parsed = parseIngredientsJson(raw);
+      final doc = parsed.documentV2;
+      if (doc == null || doc.mainIngredients.isEmpty) {
+        if (parsed.kind == IngredientsJsonKind.invalidJson) {
+          AppLogger.warn('parse ingredientsJson error', parsed.decodeError);
         }
-        _ingredientsLoaded = true;
-      } catch (e) {
-        AppLogger.warn('parse ingredientsJson error', e);
+        return;
       }
+      for (final node in doc.mainIngredients) {
+        _ingredients.add(_editableIngredientFromNode(node));
+      }
+      _ingredientsLoaded = true;
+    } catch (e) {
+      AppLogger.warn('parse ingredientsJson error', e);
     }
   }
 
@@ -376,7 +391,9 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       final ratio = newServing / _originalServing;
       for (final ing in _ingredients) {
         final newAmount = ing.baseAmount * ratio;
-        ing.amountController.text = newAmount.toStringAsFixed(0);
+        ing.amountController.text = newAmount >= 10
+            ? newAmount.round().toString()
+            : newAmount.toStringAsFixed(1);
         ing.recalculate();
       }
       _recalculateFromIngredients();
@@ -452,6 +469,14 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     parent.fat = parent.baseFatWithoutSubs + subF;
   }
 
+  void _syncBaseValuesAfterSubEdit(_EditableIngredient parent) {
+    if (parent.subIngredients.isEmpty) return;
+    for (final s in parent.subIngredients) {
+      s.saveBaseValues();
+    }
+    parent.saveBaseValues();
+  }
+
   /// AI lookup for a sub-ingredient
   Future<void> _lookupSubIngredient(
       _EditableIngredient parentRow, int subIdx) async {
@@ -517,6 +542,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
+          _syncBaseValuesAfterSubEdit(parentRow);
           _recalculateFromIngredients();
         });
         if (mounted) {
@@ -569,6 +595,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
+          _syncBaseValuesAfterSubEdit(parentRow);
           _recalculateFromIngredients();
         });
 
@@ -1441,6 +1468,16 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           // Row 1: ชื่อ + lookup + delete
           Row(
             children: [
+              IngredientThumb(
+                imagePath: row.imagePath,
+                onTap: (row.imagePath != null && row.imagePath!.isNotEmpty)
+                    ? () => IngredientThumb.showFullScreen(
+                          context,
+                          row.imagePath!,
+                          arBoundingBox: row.arBoundingBox,
+                        )
+                    : null,
+              ),
               Expanded(
                 child: Autocomplete<Ingredient>(
                   key: ValueKey('ac_${row.key}'),
@@ -1609,8 +1646,18 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: L10n.of(context)!.amountHint,
+                    hintText: row.subIngredients.isNotEmpty
+                        ? L10n.of(context)!.parentAmountHintWithSubs
+                        : L10n.of(context)!.amountHint,
                     hintStyle: TextStyle(fontSize: 11, color: isDark ? Colors.white38 : AppColors.textTertiary),
+                    suffixIcon: row.subIngredients.isNotEmpty
+                        ? Tooltip(
+                            message: L10n.of(context)!.parentAmountTooltip,
+                            child: Icon(Icons.sync_alt, size: 14,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                          )
+                        : null,
+                    suffixIconConstraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
@@ -1626,7 +1673,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  initialValue: _getValidUnit(row.unit),
+                  value: _getValidUnit(row.unit),
                   isDense: true,
                   isExpanded: true,
                   style: TextStyle(fontSize: 12, color: isDark ? AppColors.textPrimaryDark : Colors.black87),
@@ -1638,8 +1685,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: AppRadius.sm,
-                      borderSide: const BorderSide(color: AppColors.divider),
+                        borderRadius: AppRadius.sm,
+                        borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   items: _buildCompactUnitItems(),
@@ -1649,23 +1696,56 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                 ),
               ),
               const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${row.calories.toInt()} kcal',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.health),
-                  ),
-                  Text(
-                    'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+              if (row.subIngredients.isNotEmpty)
+                SizedBox(
+                  width: 132,
+                  child: TextFormField(
+                    key: ValueKey(
+                        'main_macro_${row.key}_${row.calories}_${row.protein}_${row.carbs}_${row.fat}'),
+                    readOnly: true,
+                    initialValue:
+                        '${row.calories.toInt()} kcal\nP:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                    maxLines: 2,
                     style: TextStyle(
-                        fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.health),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText:
+                          L10n.of(context)!.ingredientMainMacrosFromSubIngredientsLabel,
+                      labelStyle: TextStyle(
+                          fontSize: 9,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
+                      border: OutlineInputBorder(borderRadius: AppRadius.sm),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: AppRadius.sm,
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                )
+              else
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${row.calories.toInt()} kcal',
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.health),
+                    ),
+                    Text(
+                      'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                    ),
+                  ],
+                ),
             ],
           ),
 
@@ -1763,6 +1843,17 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                   shape: BoxShape.circle,
                                 ),
                               ),
+                              IngredientThumb(
+                                imagePath: sub.imagePath,
+                                onTap: (sub.imagePath != null &&
+                                        sub.imagePath!.isNotEmpty)
+                                    ? () => IngredientThumb.showFullScreen(
+                                          context,
+                                          sub.imagePath!,
+                                          arBoundingBox: sub.arBoundingBox,
+                                        )
+                                    : null,
+                              ),
                               Expanded(
                                 child: Autocomplete<Ingredient>(
                                   key: ValueKey('sub_ac_${sub.key}_$subIdx'),
@@ -1797,6 +1888,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                       sub.source = 'user_db';
                                       sub.saveBaseValues();
                                       _recalculateParentFromSubs(row);
+                                      _syncBaseValuesAfterSubEdit(row);
                                       _recalculateFromIngredients();
                                     });
                                   },
@@ -1898,6 +1990,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                   setState(() {
                                     row.subIngredients.removeAt(subIdx);
                                     _recalculateParentFromSubs(row);
+                                    _syncBaseValuesAfterSubEdit(row);
                                     _recalculateFromIngredients();
                                   });
                                 },
@@ -1923,6 +2016,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                     setState(() {
                                       sub.recalculate();
                                       _recalculateParentFromSubs(row);
+                                      _syncBaseValuesAfterSubEdit(row);
                                       _recalculateFromIngredients();
                                     });
                                   },
@@ -2205,8 +2299,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     }
 
     if (_hasIngredients) {
-      widget.entry.ingredientsJson =
-          jsonEncode(_ingredients.map((e) => e.toMap()).toList());
+      final doc =
+          legacyListToV2(_ingredients.map((e) => e.toMap()).toList());
+      widget.entry.ingredientsJson = serializeIngredientsV2(doc);
+      applyIngredientsRollupToFoodEntry(widget.entry, doc);
     }
 
     widget.onSave(widget.entry);
@@ -2482,8 +2578,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       double newCal, double newProt, double newCarbs, double newFat) {
     final entry = widget.entry;
     final newName = _nameController.text.trim();
-    final newIngJson =
-        _hasIngredients ? jsonEncode(_ingredients.map((e) => e.toMap()).toList()) : null;
+    final newIngJson = _hasIngredients
+        ? ingredientsEditableMapsToV2Json(
+            _ingredients.map((e) => e.toMap()).toList())
+        : null;
 
     // Snapshot originals on first edit only
     if (entry.originalFoodName == null && entry.source == DataSource.aiAnalyzed) {
@@ -2552,8 +2650,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
       widget.entry.baseFat = fat / servingSize;
     }
 
-    widget.entry.ingredientsJson =
-        jsonEncode(_ingredients.map((e) => e.toMap()).toList());
+    final docForSave =
+        legacyListToV2(_ingredients.map((e) => e.toMap()).toList());
+    widget.entry.ingredientsJson = serializeIngredientsV2(docForSave);
+    applyIngredientsRollupToFoodEntry(widget.entry, docForSave);
 
     widget.onSave(widget.entry);
 
@@ -2562,7 +2662,8 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
     final servingDescription = '$servingSize $_servingUnit';
 
     try {
-      final ingredientsData = _ingredients.map((ing) => ing.toMap()).toList();
+      final ingredientsData =
+          ingredientsDocumentToMyMealInputs(docForSave);
 
       final allMeals = await ref.read(allMyMealsProvider.future);
       final uniqueName = _getUniqueMealName(mealName, allMeals);

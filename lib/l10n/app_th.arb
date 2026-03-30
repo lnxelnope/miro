@@ -401,6 +401,11 @@
   "noMealsYet": "ยังไม่มีเมนู",
   "noMealsYetDesc": "วิเคราะห์อาหารด้วย AI เพื่อบันทึกเมนูอัตโนมัติ\nหรือสร้างด้วยมือ",
   "createMeal": "สร้างเมนู",
+  "myMealCoverPhotoLabel": "รูปเมนู",
+  "myMealAddPhoto": "เพิ่มรูป",
+  "myMealChangePhoto": "เปลี่ยนรูป",
+  "myMealRemovePhoto": "ลบรูป",
+  "mealSourceManualShort": "มือ",
   "noIngredientsYet": "ยังไม่มีวัตถุดิบ",
   "noIngredientsYetDesc": "เมื่อคุณวิเคราะห์อาหารด้วย AI\nวัตถุดิบจะถูกบันทึกอัตโนมัติ",
   "parentIngredientDrivenBySubs": "ปริมาณและหน่วยคำนวณจากวัตถุดิบย่อย (ล็อกไว้)",
@@ -703,6 +708,7 @@
       }
     }
   },
+  "ingredientMainMacrosFromSubIngredientsLabel": "สรุปจากวัตถุดิบย่อย",
   "addSubIngredient": "เพิ่ม",
   "subIngredientNameHint": "ชื่อวัตถุดิบย่อย",
   "amountShort": "ปริมาณ",
@@ -1791,6 +1797,8 @@
   },
   "seasonalQuestClaimed": "รับแล้ว!",
   "seasonalQuestClaimedToday": "วันนี้รับไปแล้ว",
+  "seasonalQuestMaybeLater": "ภายหลัง",
+  "seasonalQuestClaimNow": "รับรางวัล",
 
   "errorFailed": "ล้มเหลว",
   "errorFailedToClaim": "เคลมไม่สำเร็จ",
@@ -1866,6 +1874,25 @@
     }
   },
   "referralAllLevelsClaimed": "เคลมครบทุก level แล้ว!",
+  "referralRewardsPopupTitle": "รางวัลเชิญเพื่อน",
+  "referralRewardsPopupBody": "เพื่อนที่คุณเชิญทำให้ปลดล็อกพลังงาน — กดรับทุกระดับที่ค้างในครั้งเดียว",
+  "referralRewardsClaimAllButton": "รับ +{energy} พลังงาน",
+  "@referralRewardsClaimAllButton": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRewardsClaimedSummary": "รับแล้ว +{energy} พลังงาน!",
+  "@referralRewardsClaimedSummary": {
+    "placeholders": {
+      "energy": {
+        "type": "int"
+      }
+    }
+  },
+  "referralRewardsMaybeLater": "ภายหลัง",
   "referralLevel": "Level {level}: {subtitle}",
   "@referralLevel": {
     "placeholders": {
@@ -2024,6 +2051,33 @@
   "gallery": "แกลเลอรี",
   "ingredients": "ส่วนประกอบ",
   "longPressToSelect": "กดค้างเพื่อเลือกรายการ",
+
+  "mergeGroup": "รวมกลุ่ม",
+  "confirmMergeTitle": "รวม {count} รายการ?",
+  "@confirmMergeTitle": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "confirmMergeMessage": "รายการที่เลือกจะถูกรวมเป็นรายการเดียว การกระทำนี้ย้อนกลับไม่ได้",
+  "mergeDisabledNested": "ไม่สามารถรวมรายการที่เป็นกลุ่มอยู่แล้ว",
+  "mergedSuccess": "รวม {count} รายการเรียบร้อย",
+  "@mergedSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "analyzeFromPhoto": "วิเคราะห์จากรูป",
+  "photoSourceTitle": "เลือกแหล่งรูป",
+  "fromGallery": "แกลเลอรี",
+  "fromCamera": "กล้อง",
+  "subAnalysisApplied": "นำผลวิเคราะห์ไปใช้กับ {name}",
+  "@subAnalysisApplied": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
 
   "healthSyncSection": "เชื่อมต่อสุขภาพ",
   "healthSyncTitle": "เชื่อมต่อกับ Health App",
@@ -2341,6 +2395,7 @@
   "shareImageSelected": "เลือกรูปแล้ว",
   "shareSelectImageRequired": "กรุณาเลือกรูปก่อนแชร์",
   "shareCardDailySummaryTitle": "สรุปรายวัน",
+  "shareCardReferralCaption": "รหัสเชิญ",
   "shareCardFiber": "ไฟเบอร์",
   "shareCardSugar": "น้ำตาล",
   "shareCardSodium": "โซเดียม",
@@ -2360,5 +2415,33 @@
       }
     }
   },
-  "shareCardShowBoundingBox": "แสดงกรอบตรวจจับ"
+  "shareCardShowBoundingBox": "แสดงกรอบตรวจจับ",
+  "shareCardStreakToggle": "สตรีค",
+  "shareCardGoalPercentToggle": "เป้า %",
+  "aspectRatio16x9": "16:9 กว้าง",
+  "aspectRatio9x16": "9:16 แนวตั้ง",
+  "aspectRatio1x1": "1:1 สี่เหลี่ยม",
+  "aspectRatioLabel": "อัตราส่วนภาพ",
+  "showServingToggle": "แสดงปริมาณ",
+  "servingDisplay": "{size} {unit}",
+  "@servingDisplay": {
+    "placeholders": {
+      "size": {"type": "String"},
+      "unit": {"type": "String"}
+    }
+  },
+  "noServingData": "ไม่มีข้อมูลปริมาณ",
+
+  "promoCodeTitle": "โค้ดโปรโมชั่น",
+  "promoCodeHint": "กรอกโค้ดโปรโมชั่น",
+  "redeemButton": "ใช้โค้ด",
+  "redeemSuccess": "ใช้โค้ดสำเร็จ! ได้รับรางวัลแล้ว",
+  "redeemErrorInvalid": "โค้ดไม่ถูกต้อง",
+  "redeemErrorExpired": "โค้ดนี้หมดอายุแล้ว",
+  "redeemErrorMaxReached": "โค้ดนี้ถูกใช้ครบจำนวนแล้ว",
+  "redeemErrorAlreadyUsed": "คุณใช้โค้ดนี้แล้ว",
+  "redeemErrorGeneric": "ไม่สามารถใช้โค้ดได้ กรุณาลองอีกครั้ง",
+
+  "parentAmountHintWithSubs": "ปรับทั้งหมด",
+  "parentAmountTooltip": "เปลี่ยนเพื่อ scale วัตถุดิบย่อยทั้งหมดตามสัดส่วน"
 }

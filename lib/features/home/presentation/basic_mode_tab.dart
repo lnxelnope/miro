@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:miro_hybrid/core/database/model_extensions.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/database/database_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/services/permission_service.dart';
@@ -30,6 +32,7 @@ import '../widgets/basic_meal_suggestion.dart';
 import '../widgets/simple_food_detail_sheet.dart';
 import '../../health/widgets/add_food_bottom_sheet.dart';
 import '../../health/utils/meal_type_l10n.dart';
+import '../../health/services/merge_food_entries.dart';
 
 class BasicModeTab extends ConsumerStatefulWidget {
   const BasicModeTab({super.key});
@@ -203,6 +206,7 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       onTap: (entry) => _showFoodDetail(entry),
       onDeleteSelected: _deleteSelectedEntries,
       onAnalyzeSelected: _analyzeSelectedEntries,
+      onMergeSelected: _mergeSelectedEntries,
       onMoveToDate: _moveEntriesToDate,
       onChangeMealForSelected: _changeMealForSelectedEntries,
       onSelectionModeChanged: (active) {
@@ -795,6 +799,95 @@ class _BasicModeTabState extends ConsumerState<BasicModeTab> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SimpleFoodDetailSheet(entry: entry),
+    );
+  }
+
+  Future<void> _mergeSelectedEntries(List<FoodEntry> entries) async {
+    if (entries.length < 2) return;
+    final l10n = L10n.of(context)!;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.confirmMergeTitle(entries.length)),
+        content: Text(l10n.confirmMergeMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    final notifier = ref.read(foodEntriesNotifierProvider.notifier);
+    final existingRows = await (DatabaseService.db
+            .select(DatabaseService.db.foodEntries)
+          ..where((t) => t.isDeleted.equals(false)))
+        .get();
+    final groupName = computeNextSequentialGroupName(
+        existingRows.map((e) => e.foodName));
+    final merged = buildMergedEntry(entries, groupFoodName: groupName);
+    final now = DateTime.now();
+    final imgPaths = merged.mergedImagePaths;
+    final newEntry = FoodEntry(
+      id: 0,
+      foodName: merged.foodName,
+      timestamp: merged.timestamp,
+      imagePath: imgPaths.isNotEmpty ? imgPaths[0] : null,
+      supplementaryImagePath2: imgPaths.length > 1 ? imgPaths[1] : null,
+      supplementaryImagePath3: imgPaths.length > 2 ? imgPaths[2] : null,
+      imagePathsJson:
+          imgPaths.length > 3 ? jsonEncode(imgPaths) : null,
+      arLabelsJson: merged.arLabelsJson,
+      arImageWidth: merged.arImageWidth,
+      arImageHeight: merged.arImageHeight,
+      mealType: merged.mealType,
+      servingSize: 1,
+      servingUnit: 'serving',
+      calories: merged.calories,
+      protein: merged.protein,
+      carbs: merged.carbs,
+      fat: merged.fat,
+      baseCalories: merged.calories,
+      baseProtein: merged.protein,
+      baseCarbs: merged.carbs,
+      baseFat: merged.fat,
+      source: DataSource.manual,
+      searchMode: FoodSearchMode.normal,
+      isVerified: false,
+      isDeleted: false,
+      isGroupOriginal: true,
+      ingredientsJson: merged.ingredientsJson,
+      editCount: 0,
+      isUserCorrected: false,
+      isCalibrated: false,
+      isSynced: false,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await notifier.addFoodEntry(newEntry);
+    for (final e in entries) {
+      await notifier.deleteFoodEntry(e.id);
+    }
+    refreshFoodProviders(ref, _selectedDate);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.mergedSuccess(entries.length)),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 

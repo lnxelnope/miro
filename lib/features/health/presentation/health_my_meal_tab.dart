@@ -7,6 +7,7 @@ import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/widgets/my_meal_cover_image.dart';
 import '../../../core/constants/enums.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/my_meal_provider.dart';
@@ -1105,6 +1106,184 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     }
   }
 
+  String _formatMealDetailAmount(double amount) {
+    if (amount == amount.roundToDouble()) {
+      return amount.toInt().toString();
+    }
+    return amount.toStringAsFixed(1);
+  }
+
+  /// แถววัตถุดิบหลัก (root) ใน sheet รายละเอียดเมนู
+  Widget _buildMealDetailMainIngredientTile(
+    MyMealIngredient ing,
+    bool isDark,
+    BuildContext context,
+  ) {
+    final l10n = L10n.of(context)!;
+    final amt = _formatMealDetailAmount(ing.amount);
+    final primary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : AppColors.surfaceVariant,
+        borderRadius: AppRadius.md,
+        border: Border(
+          left: BorderSide(color: AppColors.health, width: 4),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ing.ingredientName,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: primary,
+                    height: 1.25,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$amt ${ing.unit}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            l10n.ingredientCalories(ing.calories.toInt()),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.health,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// แถว sub-ingredient (เยื้อง + ไอคอนลำดับชั้น)
+  Widget _buildMealDetailSubIngredientTile(
+    MyMealIngredient ing,
+    bool isDark,
+    BuildContext context,
+  ) {
+    final l10n = L10n.of(context)!;
+    final amt = _formatMealDetailAmount(ing.amount);
+    final nameColor =
+        isDark ? AppColors.textPrimaryDark.withValues(alpha: 0.92) : AppColors.textPrimary;
+    return Padding(
+      padding: const EdgeInsets.only(left: AppSpacing.lg, bottom: AppSpacing.xs),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm + 2,
+          vertical: AppSpacing.sm + 2,
+        ),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.04)
+              : AppColors.surfaceVariant.withValues(alpha: 0.65),
+          borderRadius: AppRadius.sm,
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : AppColors.divider.withValues(alpha: 0.45),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.subdirectory_arrow_right_rounded,
+              size: 18,
+              color: isDark ? Colors.white38 : AppColors.textTertiary,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ing.ingredientName,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: nameColor,
+                      height: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$amt ${ing.unit}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              l10n.ingredientCalories(ing.calories.toInt()),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildMealDetailIngredientTree(
+    List<IngredientTreeNode> tree,
+    bool isDark,
+    BuildContext context,
+  ) {
+    final children = <Widget>[];
+    for (var ti = 0; ti < tree.length; ti++) {
+      final node = tree[ti];
+      children.add(
+        _buildMealDetailMainIngredientTile(node.ingredient, isDark, context),
+      );
+      for (final sub in node.children) {
+        children.add(
+          _buildMealDetailSubIngredientTile(sub, isDark, context),
+        );
+      }
+      if (ti < tree.length - 1) {
+        children.add(const SizedBox(height: AppSpacing.sm));
+      }
+    }
+    return children;
+  }
+
   void _showMealDetail(MyMeal meal) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
@@ -1113,191 +1292,196 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
       backgroundColor: Colors.transparent,
       builder: (ctx) => Consumer(
         builder: (ctx, consumerRef, _) {
-          final ingredientsAsync = consumerRef.watch(mealIngredientsProvider(meal.id));
+          final treeAsync = consumerRef.watch(mealIngredientTreeProvider(meal.id));
+          final keyboardBottom = MediaQuery.viewInsetsOf(ctx).bottom;
+          final sheetH = (MediaQuery.sizeOf(ctx).height * 0.88).clamp(280.0, 820.0);
 
-          return Container(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.lg, AppSpacing.xxl, AppSpacing.xxl),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surfaceDark : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark ? AppColors.dividerDark : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // Header
-                Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
+          Widget scrollableBody() {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
                       decoration: BoxDecoration(
-                        color: AppColors.health.withValues(alpha: 0.1),
-                        borderRadius: AppRadius.lg,
+                        color: isDark ? AppColors.dividerDark : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      child: const Center(
-                          child: Icon(AppIcons.meal, size: 28, color: AppIcons.mealColor)),
-                    ),
-                    const SizedBox(width: AppSpacing.md + 2),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            meal.name,
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.textPrimaryDark : null,
-                                letterSpacing: -0.3),
-                          ),
-                          const SizedBox(height: AppSpacing.xxs),
-                          Text(
-                            meal.baseServingDescription,
-                            style: TextStyle(
-                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xl - 2),
-
-                // Nutrition pills
-                Row(
-                  children: [
-                    _detailNutritionPill('${meal.totalCalories.toInt()}', 'kcal',
-                        AppColors.protein),
-                    const SizedBox(width: AppSpacing.sm),
-                    _detailNutritionPill('${meal.totalProtein.toInt()}g', 'Protein',
-                        AppColors.tasks),
-                    const SizedBox(width: AppSpacing.sm),
-                    _detailNutritionPill('${meal.totalCarbs.toInt()}g', 'Carbs',
-                        AppColors.carbs),
-                    const SizedBox(width: AppSpacing.sm),
-                    _detailNutritionPill('${meal.totalFat.toInt()}g', 'Fat',
-                        AppColors.success),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // Ingredients header
-                Text(L10n.of(context)!.tabIngredients,
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.textPrimaryDark : Colors.grey.shade800)),
-                const SizedBox(height: 10),
-
-                // Ingredients list
-                ingredientsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, st) => Text('${L10n.of(context)!.error}: $e'),
-                  data: (ingredients) {
-                    if (ingredients.isEmpty) {
-                      return Text(L10n.of(context)!.noIngredientsData,
-                          style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary));
-                    }
-                    return Column(
-                      children: ingredients
-                          .map((ing) => Container(
-                                margin: const EdgeInsets.only(bottom: AppSpacing.xs + 2),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.md + 2, vertical: AppSpacing.xl / 2),
-                                decoration: BoxDecoration(
-                                  color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-                                  borderRadius: AppRadius.md,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.health,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.xl / 2),
-                                    Expanded(
-                                      child: Text(
-                                        L10n.of(context)!.ingredientDetail(
-                                          ing.ingredientName,
-                                          ing.amount.toStringAsFixed(0),
-                                          ing.unit,
-                                        ),
-                                        style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : null),
-                                      ),
-                                    ),
-                                    Text(
-                                      L10n.of(context)!.ingredientCalories(ing.calories.toInt()),
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade500,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                  ],
-                                ),
-                              ))
-                          .toList(),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.xl),
-
-                // Use meal button
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _logFromMeal(meal);
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: AppColors.health,
-                      borderRadius: AppRadius.lg,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.health.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.restaurant_rounded,
-                            color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          L10n.of(context)!.useThisMeal,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.xl),
+                  MyMealCoverImage(
+                    meal: meal,
+                    height: 168,
+                    width: double.infinity,
+                    borderRadius: AppRadius.lg,
+                    allowNetworkThumbnail: true,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    meal.name,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppColors.textPrimaryDark : null,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    meal.baseServingDescription,
+                    style: TextStyle(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl - 2),
+                  Row(
+                    children: [
+                      _detailNutritionPill(
+                        '${meal.totalCalories.toInt()}',
+                        'kcal',
+                        AppColors.protein,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _detailNutritionPill(
+                        '${meal.totalProtein.toInt()}g',
+                        'Protein',
+                        AppColors.tasks,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _detailNutritionPill(
+                        '${meal.totalCarbs.toInt()}g',
+                        'Carbs',
+                        AppColors.carbs,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _detailNutritionPill(
+                        '${meal.totalFat.toInt()}g',
+                        'Fat',
+                        AppColors.success,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    L10n.of(ctx)!.tabIngredients,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.textPrimaryDark : Colors.grey.shade800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  treeAsync.when(
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (e, st) => Text(
+                      '${L10n.of(ctx)!.error}: $e',
+                      style: TextStyle(
+                        color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                      ),
+                    ),
+                    data: (tree) {
+                      if (tree.isEmpty) {
+                        return Text(
+                          L10n.of(ctx)!.noIngredientsData,
+                          style: TextStyle(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondary,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: _buildMealDetailIngredientTree(tree, isDark, ctx),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: keyboardBottom),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  height: sheetH,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.xxl,
+                    AppSpacing.lg,
+                    AppSpacing.xxl,
+                    AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.surfaceDark : Colors.white,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(child: scrollableBody()),
+                      const SizedBox(height: AppSpacing.sm),
+                      SafeArea(
+                        top: false,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            _logFromMeal(meal);
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                            decoration: BoxDecoration(
+                              color: AppColors.health,
+                              borderRadius: AppRadius.lg,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.health.withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.restaurant_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  L10n.of(ctx)!.useThisMeal,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           );
         },

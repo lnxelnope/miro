@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -22,32 +23,43 @@ typedef EnergyTransaction = EnergyTransactionData;
 // ============================================
 extension FoodEntryExtensions on FoodEntryData {
   bool get hasLocalImage =>
-      imagePath != null &&
-      imagePath!.isNotEmpty &&
-      File(imagePath!).existsSync();
+      allImagePaths.any((p) => p.isNotEmpty && File(p).existsSync());
 
   bool get hasAnyImage =>
-      (imagePath != null && imagePath!.isNotEmpty) ||
-      (thumbnailUrl != null && thumbnailUrl!.isNotEmpty);
+      (thumbnailUrl != null && thumbnailUrl!.isNotEmpty) ||
+      allImagePaths.isNotEmpty;
 
+  /// ลำดับรูปทั้งหมด — ถ้ามี [imagePathsJson] (กรณี >3 รูป) ใช้เป็นแหล่งหลัก
   List<String> get allImagePaths {
-    final entry = this as dynamic;
+    final j = imagePathsJson;
+    if (j != null && j.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(j);
+        if (decoded is List && decoded.isNotEmpty) {
+          final list = decoded
+              .map((e) => e.toString())
+              .where((s) => s.trim().isNotEmpty)
+              .toList();
+          if (list.isNotEmpty) return list;
+        }
+      } catch (_) {}
+    }
     final paths = <String>[];
     if (imagePath != null && imagePath!.isNotEmpty) {
       paths.add(imagePath!);
     }
-    final String? path2 = entry.supplementaryImagePath2 as String?;
-    if (path2 != null && path2.isNotEmpty) {
-      paths.add(path2);
+    if (supplementaryImagePath2 != null &&
+        supplementaryImagePath2!.isNotEmpty) {
+      paths.add(supplementaryImagePath2!);
     }
-    final String? path3 = entry.supplementaryImagePath3 as String?;
-    if (path3 != null && path3.isNotEmpty) {
-      paths.add(path3);
+    if (supplementaryImagePath3 != null &&
+        supplementaryImagePath3!.isNotEmpty) {
+      paths.add(supplementaryImagePath3!);
     }
     return paths;
   }
 
-  bool get isArScan => source == DataSource.arScan.index;
+  bool get isArScan => source == DataSource.arScan;
 
   bool get hasMultipleImages => allImagePaths.length > 1;
 
@@ -112,6 +124,14 @@ extension MyMealExtensions on MyMealData {
     final size = parsedServingSize;
     return size > 0 ? totalFat / size : totalFat;
   }
+
+  bool get hasMealLocalImage =>
+      imagePath != null &&
+      imagePath!.isNotEmpty &&
+      File(imagePath!).existsSync();
+
+  bool get hasMealThumbnailUrl =>
+      thumbnailUrl != null && thumbnailUrl!.trim().isNotEmpty;
 }
 
 // ============================================

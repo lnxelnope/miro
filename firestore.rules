@@ -42,5 +42,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // ─── Promo codes (admin + Cloud Functions only) ───
+    match /promo_codes/{codeId} {
+      allow read, write: if false;
+      match /redemptions/{deviceId} {
+        allow read, write: if false;
+      }
+    }
   }
 }

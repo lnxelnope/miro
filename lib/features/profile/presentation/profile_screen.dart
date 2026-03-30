@@ -38,6 +38,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/health_sync_service.dart';
 import '../../../core/services/recovery_key_service.dart';
 import '../../../core/services/device_id_service.dart';
+import '../../../core/services/promo_code_service.dart';
+import '../../energy/providers/energy_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'restore_account_screen.dart';
 
@@ -199,6 +201,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           },
                         ),
                         _RecoveryKeyCard(),
+                        const _PromoCodeSection(),
                         _buildModernSettingCard(
                           context: context,
                           title: L10n.of(context)!.inviteFriends,
@@ -3407,6 +3410,138 @@ class _FoodResearchConsentToggleState
                 value: _isEnabled,
                 onChanged: _toggle,
               ),
+      ),
+    );
+  }
+}
+
+class _PromoCodeSection extends ConsumerStatefulWidget {
+  const _PromoCodeSection();
+
+  @override
+  ConsumerState<_PromoCodeSection> createState() => _PromoCodeSectionState();
+}
+
+class _PromoCodeSectionState extends ConsumerState<_PromoCodeSection> {
+  final _controller = TextEditingController();
+  bool _isRedeeming = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _messageForError(String key) {
+    final l10n = L10n.of(context)!;
+    switch (key) {
+      case 'invalid_code':
+        return l10n.redeemErrorInvalid;
+      case 'expired':
+        return l10n.redeemErrorExpired;
+      case 'max_reached':
+        return l10n.redeemErrorMaxReached;
+      case 'per_user_limit':
+        return l10n.redeemErrorAlreadyUsed;
+      case 'user_not_found':
+      case 'invalid_reward':
+      case 'server_error':
+        return l10n.redeemErrorGeneric;
+      default:
+        return l10n.redeemErrorGeneric;
+    }
+  }
+
+  Future<void> _redeem() async {
+    final code = _controller.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _isRedeeming = true);
+    try {
+      await PromoCodeService.redeemCode(code);
+      if (!mounted) return;
+      await ref.read(energyServiceProvider).syncBalanceWithServer();
+      ref.invalidate(currentEnergyProvider);
+      await ref.read(gamificationProvider.notifier).refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            L10n.of(context)!.redeemSuccess,
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      _controller.clear();
+    } on PromoRedeemException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _messageForError(e.errorKey),
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            L10n.of(context)!.redeemErrorGeneric,
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isRedeeming = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = L10n.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.promoCodeTitle,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _controller,
+                textCapitalization: TextCapitalization.characters,
+                decoration: InputDecoration(
+                  hintText: l10n.promoCodeHint,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onSubmitted: (_) => _redeem(),
+              ),
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: _isRedeeming ? null : _redeem,
+                child: _isRedeeming
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(l10n.redeemButton),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -35,6 +35,13 @@ class _ShareCardCreatorScreenState
       _config.heroImagePath!.isNotEmpty &&
       File(_config.heroImagePath!).existsSync();
 
+  bool get _canToggleServingOnImage {
+    if (_config.type != ShareCardType.foodItem) return false;
+    final e = _config.foodEntry;
+    if (e == null) return false;
+    return e.servingSize > 0 && e.servingUnit.trim().isNotEmpty;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -273,11 +280,11 @@ class _ShareCardCreatorScreenState
       body: SafeArea(
         child: Column(
           children: [
-            // Card preview (centered, scaled)
             Expanded(
+              flex: 5,
               child: Center(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: FittedBox(
                     fit: BoxFit.contain,
                     child: RepaintBoundary(
@@ -288,65 +295,126 @@ class _ShareCardCreatorScreenState
                 ),
               ),
             ),
-
-            if (_config.type == ShareCardType.dailySummary) ...[
-              _buildDailyHeroSelector(l10n, isDark),
-              const SizedBox(height: 8),
-            ],
-            if (_config.type == ShareCardType.nutritionSummary) ...[
-              _buildNutritionHeroSelector(l10n, isDark),
-              const SizedBox(height: 8),
-            ],
-
-            // Toggles
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _toggleRow(
-                    l10n.macros,
-                    _config.showMacros,
-                    (v) => setState(() => _config = _config.copyWith(showMacros: v)),
-                  ),
-                  _toggleRow(
-                    l10n.micronutrients,
-                    _config.showMicros,
-                    (v) => setState(() => _config = _config.copyWith(showMicros: v)),
-                  ),
-                  if (_config.type == ShareCardType.foodItem)
-                    _toggleRow(
-                      l10n.ingredients,
-                      _config.showIngredients,
-                      (v) => setState(() => _config = _config.copyWith(showIngredients: v)),
+            Expanded(
+              flex: 4,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_config.type == ShareCardType.dailySummary) ...[
+                      _buildDailyHeroSelector(l10n, isDark),
+                      const SizedBox(height: 8),
+                    ],
+                    if (_config.type == ShareCardType.nutritionSummary) ...[
+                      _buildNutritionHeroSelector(l10n, isDark),
+                      const SizedBox(height: 8),
+                    ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            l10n.aspectRatioLabel,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SegmentedButton<ShareCardAspect>(
+                            showSelectedIcon: false,
+                            segments: [
+                              ButtonSegment<ShareCardAspect>(
+                                value: ShareCardAspect.ratio9x16,
+                                tooltip: l10n.aspectRatio9x16,
+                                icon: const Icon(Icons.crop_portrait_rounded, size: 22),
+                              ),
+                              ButtonSegment<ShareCardAspect>(
+                                value: ShareCardAspect.ratio1x1,
+                                tooltip: l10n.aspectRatio1x1,
+                                icon: const Icon(Icons.crop_square_rounded, size: 22),
+                              ),
+                              ButtonSegment<ShareCardAspect>(
+                                value: ShareCardAspect.ratio16x9,
+                                tooltip: l10n.aspectRatio16x9,
+                                icon: const Icon(Icons.crop_landscape_rounded, size: 22),
+                              ),
+                            ],
+                            selected: {_config.aspect},
+                            onSelectionChanged: (Set<ShareCardAspect> next) {
+                              if (next.isEmpty) return;
+                              setState(() {
+                                _config = _config.copyWith(aspect: next.first);
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          if (_config.type == ShareCardType.foodItem) ...[
+                            _toggleRow(
+                              l10n.showServingToggle,
+                              _config.showServingOnImage,
+                              _canToggleServingOnImage
+                                  ? (v) => setState(
+                                        () => _config =
+                                            _config.copyWith(showServingOnImage: v),
+                                      )
+                                  : null,
+                              subtitle: _canToggleServingOnImage
+                                  ? null
+                                  : l10n.noServingData,
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                          _toggleRow(
+                            l10n.macros,
+                            _config.showMacros,
+                            (v) => setState(() => _config = _config.copyWith(showMacros: v)),
+                          ),
+                          _toggleRow(
+                            l10n.micronutrients,
+                            _config.showMicros,
+                            (v) => setState(() => _config = _config.copyWith(showMicros: v)),
+                          ),
+                          if (_config.type == ShareCardType.foodItem)
+                            _toggleRow(
+                              l10n.ingredients,
+                              _config.showIngredients,
+                              (v) => setState(() => _config = _config.copyWith(showIngredients: v)),
+                            ),
+                          if (_config.type == ShareCardType.foodItem && _config.mealBudget != null)
+                            _toggleRow(
+                              l10n.shareCardGoalPercentToggle,
+                              _config.showGoalProgress,
+                              (v) => setState(() => _config = _config.copyWith(showGoalProgress: v)),
+                            ),
+                          if (_config.type != ShareCardType.foodItem)
+                            _toggleRow(
+                              l10n.shareCardStreakToggle,
+                              _config.showStreak,
+                              (v) => setState(() => _config = _config.copyWith(showStreak: v)),
+                            ),
+                          if (_config.type != ShareCardType.foodItem && _config.calorieGoal != null)
+                            _toggleRow(
+                              l10n.shareCardGoalPercentToggle,
+                              _config.showGoalProgress,
+                              (v) => setState(() => _config = _config.copyWith(showGoalProgress: v)),
+                            ),
+                          if (_config.type == ShareCardType.foodItem)
+                            _toggleRow(
+                              l10n.shareCardShowBoundingBox,
+                              _config.showHealthData,
+                              (v) => setState(() => _config = _config.copyWith(showHealthData: v)),
+                            ),
+                        ],
+                      ),
                     ),
-                  if (_config.type == ShareCardType.foodItem && _config.mealBudget != null)
-                    _toggleRow(
-                      '% Goal',
-                      _config.showGoalProgress,
-                      (v) => setState(() => _config = _config.copyWith(showGoalProgress: v)),
-                    ),
-                  if (_config.type != ShareCardType.foodItem)
-                    _toggleRow(
-                      'Streak',
-                      _config.showStreak,
-                      (v) => setState(() => _config = _config.copyWith(showStreak: v)),
-                    ),
-                  if (_config.type != ShareCardType.foodItem && _config.calorieGoal != null)
-                    _toggleRow(
-                      '% Goal',
-                      _config.showGoalProgress,
-                      (v) => setState(() => _config = _config.copyWith(showGoalProgress: v)),
-                    ),
-                  if (_config.type == ShareCardType.foodItem)
-                    _toggleRow(
-                      l10n.shareCardShowBoundingBox,
-                      _config.showHealthData,
-                      (v) => setState(() => _config = _config.copyWith(showHealthData: v)),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 8),
 
             // Action buttons
             Padding(
@@ -414,19 +482,39 @@ class _ShareCardCreatorScreenState
     );
   }
 
-  Widget _toggleRow(String label, bool value, ValueChanged<bool> onChanged) {
+  Widget _toggleRow(
+    String label,
+    bool value,
+    ValueChanged<bool>? onChanged, {
+    String? subtitle,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white70 : AppColors.textPrimary,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white70 : AppColors.textPrimary,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white38 : AppColors.textTertiary,
+                    ),
+                  ),
+              ],
             ),
           ),
           Switch.adaptive(

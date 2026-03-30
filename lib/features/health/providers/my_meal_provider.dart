@@ -135,6 +135,10 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
           isComposite: const Value(false),
           detail: Value(input.detail),
           sortOrder: Value(sortOrder),
+          ingredientImagePath: Value(input.ingredientImagePath),
+          ingredientArBoundingBox: Value(input.ingredientArBoundingBox),
+          ingredientArImageWidth: Value(input.ingredientArImageWidth),
+          ingredientArImageHeight: Value(input.ingredientArImageHeight),
         ));
 
     // 3. ถ้ามี sub-ingredients → save recursively
@@ -168,6 +172,8 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     String? nameEn,
     required String baseServingDescription,
     String? imagePath,
+    String? thumbnailUrl,
+    String? thumbnailFirebasePath,
     required List<MealIngredientInput> ingredients,
     String source = 'gemini',
   }) async {
@@ -193,6 +199,8 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
           source: source,
           nameEn: Value(nameEn),
           imagePath: Value(imagePath),
+          thumbnailUrl: Value(thumbnailUrl),
+          thumbnailFirebasePath: Value(thumbnailFirebasePath),
           usageCount: const Value(1),
         ));
 
@@ -225,7 +233,10 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     required String name,
     String? nameEn,
     required String baseServingDescription,
-    String? imagePath,
+    /// เปลี่ยนรูปเมนู (คัดลอกไฟล์ถาวรก่อนส่งจาก UI)
+    String? newImagePath,
+    /// ลบรูปเมนู + thumbnail backup
+    bool removeMealImage = false,
     required List<MealIngredientInput> ingredients,
   }) async {
     final meal = await (DatabaseService.db.select(DatabaseService.db.myMeals)
@@ -250,7 +261,15 @@ class MyMealNotifier extends StateNotifier<AsyncValue<void>> {
     meal.totalCarbs = totalC;
     meal.totalFat = totalF;
     meal.baseServingDescription = baseServingDescription;
-    if (imagePath != null) meal.imagePath = imagePath;
+    if (removeMealImage) {
+      meal.imagePath = null;
+      meal.thumbnailUrl = null;
+      meal.thumbnailFirebasePath = null;
+    } else if (newImagePath != null) {
+      meal.imagePath = newImagePath;
+      meal.thumbnailUrl = null;
+      meal.thumbnailFirebasePath = null;
+    }
     meal.updatedAt = DateTime.now();
 
     await DatabaseService.db.transaction(() async {
@@ -377,6 +396,10 @@ class MealIngredientInput {
   final double carbs;
   final double fat;
   final List<MealIngredientInput>? subIngredients;
+  final String? ingredientImagePath;
+  final String? ingredientArBoundingBox;
+  final int? ingredientArImageWidth;
+  final int? ingredientArImageHeight;
 
   MealIngredientInput({
     required this.name,
@@ -389,6 +412,10 @@ class MealIngredientInput {
     required this.carbs,
     required this.fat,
     this.subIngredients,
+    this.ingredientImagePath,
+    this.ingredientArBoundingBox,
+    this.ingredientArImageWidth,
+    this.ingredientArImageHeight,
   });
 }
 
@@ -457,6 +484,19 @@ List<Map<String, dynamic>> ingredientTreeToJsonMaps(
     if (detail != null && detail.isNotEmpty) {
       rootMap['detail'] = detail;
     }
+    final rootImg = node.ingredient.ingredientImagePath;
+    if (rootImg != null && rootImg.isNotEmpty) {
+      rootMap['imagePath'] = rootImg;
+    }
+    final rootBbox = node.ingredient.ingredientArBoundingBox;
+    if (rootBbox != null && rootBbox.isNotEmpty) {
+      rootMap['arBoundingBox'] = rootBbox;
+    }
+    final rootW = node.ingredient.ingredientArImageWidth;
+    if (rootW != null) rootMap['arImageWidth'] = rootW;
+    final rootH = node.ingredient.ingredientArImageHeight;
+    if (rootH != null) rootMap['arImageHeight'] = rootH;
+
     if (node.children.isNotEmpty) {
       rootMap['sub_ingredients'] = node.children.map((child) {
         final subMap = <String, dynamic>{
@@ -471,6 +511,18 @@ List<Map<String, dynamic>> ingredientTreeToJsonMaps(
         if (child.detail != null && child.detail!.isNotEmpty) {
           subMap['detail'] = child.detail;
         }
+        final cImg = child.ingredientImagePath;
+        if (cImg != null && cImg.isNotEmpty) {
+          subMap['imagePath'] = cImg;
+        }
+        final cBbox = child.ingredientArBoundingBox;
+        if (cBbox != null && cBbox.isNotEmpty) {
+          subMap['arBoundingBox'] = cBbox;
+        }
+        final cW = child.ingredientArImageWidth;
+        if (cW != null) subMap['arImageWidth'] = cW;
+        final cH = child.ingredientArImageHeight;
+        if (cH != null) subMap['arImageHeight'] = cH;
         return subMap;
       }).toList();
     }

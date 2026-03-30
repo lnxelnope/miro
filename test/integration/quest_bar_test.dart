@@ -7,7 +7,6 @@ import 'dart:convert';
 
 import 'package:miro_hybrid/features/energy/widgets/quest_bar.dart';
 import 'package:miro_hybrid/features/energy/widgets/claim_button.dart';
-import 'package:miro_hybrid/core/services/device_id_service.dart';
 
 /// Quest Bar Integration Tests
 /// 
@@ -24,8 +23,6 @@ void main() {
 
     setUp(() {
       mockClient = MockClient();
-      // Mock DeviceIdService
-      DeviceIdService.deviceId = 'test-device-id';
     });
 
     tearDown(() {
@@ -329,7 +326,8 @@ void main() {
     testWidgets('Quest Bar handles offline mode', (WidgetTester tester) async {
       // Arrange: Mock network error
       when(mockClient.post(
-        any,
+        Uri.parse(
+            'https://us-central1-miro-d6856.cloudfunctions.net/getActiveOffersEndpoint'),
         headers: anyNamed('headers'),
         body: anyNamed('body'),
       )).thenThrow(const SocketException('No internet'));

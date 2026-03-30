@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/disclaimer_widget.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/utils/logger.dart';
 import '../../../features/energy/widgets/no_energy_dialog.dart';
@@ -16,6 +19,7 @@ import '../../../core/ar_scale/widgets/calibration_badge.dart';
 import '../../../core/ar_scale/constants/ar_scale_enums.dart';
 import '../providers/my_meal_provider.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../core/widgets/ingredient_thumb.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -50,6 +54,11 @@ class _EditableIngredient {
   // NEW: Sub-ingredients
   List<_EditableIngredient>? subIngredients; // NEW
 
+  String? imagePath;
+  String? arBoundingBox;
+  int? arImageWidth;
+  int? arImageHeight;
+
   _EditableIngredient({
     required String name,
     this.nameEn,
@@ -62,6 +71,10 @@ class _EditableIngredient {
     required this.fat,
     this.subIngredients, // NEW
     this.source = 'ai',
+    this.imagePath,
+    this.arBoundingBox,
+    this.arImageWidth,
+    this.arImageHeight,
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(
             text: amount > 0 ? amount.toStringAsFixed(0) : ''),
@@ -95,7 +108,9 @@ class _EditableIngredient {
       for (final sub in subIngredients!) {
         final subBaseAmt = sub.baseAmount;
         final newSubAmt = subBaseAmt * ratio;
-        sub.amountController.text = newSubAmt.toStringAsFixed(0);
+        sub.amountController.text = newSubAmt >= 10
+            ? newSubAmt.round().toString()
+            : newSubAmt.toStringAsFixed(1);
         sub.calories = sub.baseCalories * newSubAmt;
         sub.protein = sub.baseProtein * newSubAmt;
         sub.carbs = sub.baseCarbs * newSubAmt;
@@ -128,6 +143,14 @@ class _EditableIngredient {
       'fat': fat,
       'source': source,
     };
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      map['imagePath'] = imagePath;
+    }
+    if (arBoundingBox != null && arBoundingBox!.isNotEmpty) {
+      map['arBoundingBox'] = arBoundingBox;
+    }
+    if (arImageWidth != null) map['arImageWidth'] = arImageWidth;
+    if (arImageHeight != null) map['arImageHeight'] = arImageHeight;
 
     if (subIngredients != null && subIngredients!.isNotEmpty) {
       map['sub_ingredients'] =
@@ -295,6 +318,15 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
     parent.protein = totalP;
     parent.carbs = totalC;
     parent.fat = totalF;
+  }
+
+  void _syncBaseValuesAfterSubEdit(int parentIndex) {
+    final parent = _ingredients[parentIndex];
+    if (parent.subIngredients == null || parent.subIngredients!.isEmpty) return;
+    for (final s in parent.subIngredients!) {
+      s.saveBaseValues();
+    }
+    parent.saveBaseValues();
   }
 
   /// When serving size changes, scale all ingredients proportionally
@@ -1094,6 +1126,16 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       child: Icon(Icons.subdirectory_arrow_right,
                           size: 14, color: Colors.grey[600]),
                     ),
+                  IngredientThumb(
+                    imagePath: row.imagePath,
+                    onTap: (row.imagePath != null && row.imagePath!.isNotEmpty)
+                        ? () => IngredientThumb.showFullScreen(
+                              context,
+                              row.imagePath!,
+                              arBoundingBox: row.arBoundingBox,
+                            )
+                        : null,
+                  ),
                   // Name with Autocomplete
                   Expanded(
                     child: Autocomplete<Ingredient>(
@@ -1253,14 +1295,25 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       onChanged: (_) {
                         setState(() {
                           row.recalculate();
+                          _recalculateParentFromSubs(index);
                         });
                         _recalculate();
                       },
                       decoration: InputDecoration(
                         isDense: true,
-                        hintText: 'Amount',
+                        hintText: hasSubs
+                            ? L10n.of(context)!.parentAmountHintWithSubs
+                            : 'Amount',
                         hintStyle:
                             TextStyle(fontSize: 11, color: Colors.grey[400]),
+                        suffixIcon: hasSubs
+                            ? Tooltip(
+                                message: L10n.of(context)!.parentAmountTooltip,
+                                child: const Icon(Icons.sync_alt, size: 14,
+                                    color: AppColors.textSecondary),
+                              )
+                            : null,
+                        suffixIconConstraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 8),
                         border: OutlineInputBorder(
@@ -1277,7 +1330,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   SizedBox(
                     width: 72,
                     child: DropdownButtonFormField<String>(
-                      initialValue: _getValidUnit(row.unit),
+                      value: _getValidUnit(row.unit),
                       isDense: true,
                       isExpanded: true,
                       style:
@@ -1290,8 +1343,8 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8)),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
                       ),
                       items: _buildCompactUnitItems(),
@@ -1304,24 +1357,57 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   ),
                   const Spacer(),
 
-                  // kcal / macro info
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${row.calories.toInt()} kcal',
+                  // kcal / macro — แถว main ที่มี sub: readOnly (D-01/D-04)
+                  if (hasSubs)
+                    SizedBox(
+                      width: 132,
+                      child: TextFormField(
+                        key: ValueKey(
+                            'gem_main_macro_${row.key}_${row.calories}_${row.protein}'),
+                        readOnly: true,
+                        initialValue:
+                            '${row.calories.toInt()} kcal\nP:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                        maxLines: 2,
                         style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: AppColors.health),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          labelText: L10n.of(context)!
+                              .ingredientMainMacrosFromSubIngredientsLabel,
+                          labelStyle: const TextStyle(
+                              fontSize: 9, color: AppColors.textSecondary),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 6),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide:
+                                BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
                       ),
-                      Text(
-                        'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
-                        style: const TextStyle(
-                            fontSize: 10, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${row.calories.toInt()} kcal',
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.health),
+                        ),
+                        Text(
+                          'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                          style: const TextStyle(
+                              fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
                 ],
               ),
 
@@ -1447,6 +1533,16 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
+              IngredientThumb(
+                imagePath: sub.imagePath,
+                onTap: (sub.imagePath != null && sub.imagePath!.isNotEmpty)
+                    ? () => IngredientThumb.showFullScreen(
+                          context,
+                          sub.imagePath!,
+                          arBoundingBox: sub.arBoundingBox,
+                        )
+                    : null,
+              ),
               // Name field with Autocomplete
               Expanded(
                 child: Autocomplete<Ingredient>(
@@ -1482,6 +1578,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                       sub.source = 'user_db';
                       sub.saveBaseValues();
                       _recalculateParentFromSubs(parentIndex);
+                      _syncBaseValuesAfterSubEdit(parentIndex);
                       _recalculate();
                     });
                   },
@@ -1621,6 +1718,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                     setState(() {
                       sub.recalculate();
                       _recalculateParentFromSubs(parentIndex);
+                      _syncBaseValuesAfterSubEdit(parentIndex);
                       _recalculate();
                     });
                   },
@@ -1761,6 +1859,61 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
   void _confirm() {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1.0;
+    final ss = servingSize > 0 ? servingSize : 1.0;
+
+    List<Map<String, dynamic>>? detailMaps;
+    IngredientsDocumentV2? doc;
+    String? ingredientsJsonV2;
+    var outCal = _displayCalories;
+    var outP = _displayProtein;
+    var outC = _displayCarbs;
+    var outF = _displayFat;
+    double? outFiber = widget.analysisResult.nutrition.fiber;
+    double? outSugar = widget.analysisResult.nutrition.sugar;
+    double? outSodium = widget.analysisResult.nutrition.sodium;
+
+    if (_hasIngredients) {
+      final roots = _ingredients.map((e) => e.toMap()).toList();
+      doc = flattenAiIngredientRoots(roots);
+      detailMaps = ingredientsDocumentToMyMealInputs(doc);
+      final r = recomputeEntryRollup(
+        doc: doc,
+        entryFiber: outFiber,
+        entrySugar: outSugar,
+        entrySodium: outSodium,
+      );
+      outCal = r.calories;
+      outP = r.protein;
+      outC = r.carbs;
+      outF = r.fat;
+      outFiber = r.fiber;
+      outSugar = r.sugar;
+      outSodium = r.sodium;
+    } else if (widget.analysisResult.ingredientsDetail != null &&
+        widget.analysisResult.ingredientsDetail!.isNotEmpty) {
+      final roots = widget.analysisResult.ingredientsDetail!
+          .map((e) => e.toJson())
+          .toList();
+      doc = flattenAiIngredientRoots(roots);
+      detailMaps = ingredientsDocumentToMyMealInputs(doc);
+      final r = recomputeEntryRollup(
+        doc: doc,
+        entryFiber: outFiber,
+        entrySugar: outSugar,
+        entrySodium: outSodium,
+      );
+      outCal = r.calories;
+      outP = r.protein;
+      outC = r.carbs;
+      outF = r.fat;
+      outFiber = r.fiber;
+      outSugar = r.sugar;
+      outSodium = r.sodium;
+    }
+
+    if (doc != null) {
+      ingredientsJsonV2 = serializeIngredientsV2(doc);
+    }
 
     widget.onConfirm(GeminiConfirmedData(
       foodName: _nameController.text.trim(),
@@ -1768,42 +1921,21 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       servingSize: servingSize,
       servingUnit: _servingUnit,
       servingGrams: widget.analysisResult.servingGrams?.toDouble(),
-      calories: _displayCalories,
-      protein: _displayProtein,
-      carbs: _displayCarbs,
-      fat: _displayFat,
-      baseCalories: _hasIngredients
-          ? (_displayCalories / (servingSize > 0 ? servingSize : 1))
-          : _baseCalories,
-      baseProtein: _hasIngredients
-          ? (_displayProtein / (servingSize > 0 ? servingSize : 1))
-          : _baseProtein,
-      baseCarbs: _hasIngredients
-          ? (_displayCarbs / (servingSize > 0 ? servingSize : 1))
-          : _baseCarbs,
-      baseFat: _hasIngredients
-          ? (_displayFat / (servingSize > 0 ? servingSize : 1))
-          : _baseFat,
+      calories: outCal,
+      protein: outP,
+      carbs: outC,
+      fat: outF,
+      baseCalories: doc != null ? outCal / ss : _baseCalories,
+      baseProtein: doc != null ? outP / ss : _baseProtein,
+      baseCarbs: doc != null ? outC / ss : _baseCarbs,
+      baseFat: doc != null ? outF / ss : _baseFat,
       confidence: widget.analysisResult.confidence,
-      fiber: widget.analysisResult.nutrition.fiber,
-      sugar: widget.analysisResult.nutrition.sugar,
-      sodium: widget.analysisResult.nutrition.sodium,
+      fiber: outFiber,
+      sugar: outSugar,
+      sodium: outSodium,
       ingredients: widget.analysisResult.ingredients,
-      ingredientsDetail: _hasIngredients
-          ? _ingredients.map((e) => e.toMap()).toList()
-          : widget.analysisResult.ingredientsDetail
-              ?.map((e) => {
-                    'name': e.name,
-                    'name_en': e.nameEn,
-                    'amount': e.amount,
-                    'unit': e.unit,
-                    'calories': e.calories,
-                    'protein': e.protein,
-                    'carbs': e.carbs,
-                    'fat': e.fat,
-                    'source': 'ai',
-                  })
-              .toList(),
+      ingredientsDetail: detailMaps,
+      ingredientsJsonV2: ingredientsJsonV2,
       notes: widget.analysisResult.notes,
     ));
     Navigator.pop(context);
@@ -1850,7 +1982,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           sub.isFromDb = true;
           sub.source = 'user_db';
           sub.isLoading = false;
+          sub.saveBaseValues();
           _recalculateParentFromSubs(parentIndex);
+          _syncBaseValuesAfterSubEdit(parentIndex);
         });
 
         _recalculate();
@@ -1917,7 +2051,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
           sub.isFromDb = false;
           sub.source = 'user_ai';
           sub.isLoading = false;
+          sub.saveBaseValues();
           _recalculateParentFromSubs(parentIndex);
+          _syncBaseValuesAfterSubEdit(parentIndex);
         });
 
         _recalculate();
@@ -1968,6 +2104,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
       }
 
       _recalculateParentFromSubs(parentIndex);
+      _syncBaseValuesAfterSubEdit(parentIndex);
       _recalculate();
     });
   }
@@ -1992,7 +2129,9 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
 
     if (converted != null) {
       setState(() {
-        sub.amountController.text = converted.toStringAsFixed(0);
+        sub.amountController.text = converted >= 10
+            ? converted.round().toString()
+            : converted.toStringAsFixed(1);
         sub.unit = newUnit;
         sub.recalculate();
         _recalculate();
@@ -2027,6 +2166,8 @@ class GeminiConfirmedData {
   final double? sodium;
   final List<String>? ingredients;
   final List<Map<String, dynamic>>? ingredientsDetail;
+  /// Canonical v2 JSON from [serializeIngredientsV2] when ingredients tree exists.
+  final String? ingredientsJsonV2;
   final String? notes;
 
   GeminiConfirmedData({
@@ -2049,6 +2190,7 @@ class GeminiConfirmedData {
     this.sodium,
     this.ingredients,
     this.ingredientsDetail,
+    this.ingredientsJsonV2,
     this.notes,
   });
 }

@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:math';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/date_planning_limits.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -13,11 +15,21 @@ import '../../health/providers/analysis_provider.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/widgets/change_meal_bottom_sheet.dart';
 import '../../health/utils/meal_type_l10n.dart';
+
+/// ลำดับมื้อบนแดชบอร์ด: เช้า → กลางวัน → เย็น → ว่าง จากนั้นตามเวลา (เก่าก่อน)
+int _compareSandboxEntries(FoodEntry a, FoodEntry b) {
+  final mealCmp = a.mealType.index.compareTo(b.mealType.index);
+  if (mealCmp != 0) return mealCmp;
+  if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
+  return a.timestamp.compareTo(b.timestamp);
+}
+
 class FoodSandbox extends ConsumerStatefulWidget {
   final List<FoodEntry> entries;
   final void Function(FoodEntry entry) onTap;
   final void Function(List<FoodEntry> selected) onDeleteSelected;
   final void Function(List<FoodEntry> selected) onAnalyzeSelected;
+  final void Function(List<FoodEntry> selected)? onMergeSelected;
   final void Function(List<FoodEntry> selected, DateTime newDate)? onMoveToDate;
   final Future<void> Function(List<FoodEntry> selected, MealType newType)?
       onChangeMealForSelected;
@@ -30,6 +42,7 @@ class FoodSandbox extends ConsumerStatefulWidget {
     required this.onTap,
     required this.onDeleteSelected,
     required this.onAnalyzeSelected,
+    this.onMergeSelected,
     this.onMoveToDate,
     this.onChangeMealForSelected,
     this.onSelectionModeChanged,
@@ -122,57 +135,49 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
     final l10n = L10n.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final analysisState = ref.watch(analysisProvider);
-    final sorted = List<FoodEntry>.from(widget.entries)
-      ..sort((a, b) {
-        if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
-        return b.timestamp.compareTo(a.timestamp);
-      });
+    final ordered = List<FoodEntry>.from(widget.entries)
+      ..sort(_compareSandboxEntries);
 
-    final groupedChildren = <Widget>[];
-    var firstGroup = true;
-    for (final meal in MealType.values) {
-      final group = widget.entries.where((e) => e.mealType == meal).toList()
-        ..sort((a, b) {
-          if (a.hasAnyImage != b.hasAnyImage) return a.hasAnyImage ? -1 : 1;
-          return b.timestamp.compareTo(a.timestamp);
-        });
-      if (group.isEmpty) continue;
-      if (!firstGroup) {
-        groupedChildren.add(const SizedBox(height: AppSpacing.md));
-      }
-      firstGroup = false;
-      final borderColor = isDark
-          ? Colors.white.withValues(alpha: 0.12)
-          : AppColors.divider;
-      groupedChildren.add(
-        Text(
-          mealTypeLabel(meal, l10n),
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
-          ),
-        ),
-      );
-      groupedChildren.add(const SizedBox(height: AppSpacing.xs));
-      groupedChildren.add(
-        DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: AppRadius.md,
-            border: Border.all(color: borderColor),
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : AppColors.surfaceVariant.withValues(alpha: 0.5),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Selection action bar
+        if (_selectionMode) _buildSelectionBar(l10n, isDark),
+
+        // Empty state
+        if (ordered.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxxl),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.inbox_rounded,
+                  size: 48,
+                  color: isDark ? Colors.white24 : AppColors.textTertiary,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.sandboxEmpty,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white38 : AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
-              children: group
+              children: ordered
                   .map(
                     (entry) => _FoodBubble(
                       entry: entry,
+                      mealTypeTooltip: mealTypeLabel(entry.mealType, l10n),
                       isSelectionMode: _selectionMode,
                       isSelected: _selectedIds.contains(entry.id),
                       isAnalyzing: analysisState.isItemAnalyzing(entry.id),
@@ -202,47 +207,6 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
                   .toList(),
             ),
           ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Selection action bar
-        if (_selectionMode) _buildSelectionBar(l10n, isDark),
-
-        // Empty state
-        if (sorted.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxxl),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.inbox_rounded,
-                  size: 48,
-                  color: isDark ? Colors.white24 : AppColors.textTertiary,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  l10n.sandboxEmpty,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white38 : AppColors.textTertiary,
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: groupedChildren,
-            ),
-          ),
       ],
     );
   }
@@ -253,6 +217,8 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
         .toList();
     final unanalyzedSelected =
         selectedEntries.where((e) => !e.hasNutritionData).toList();
+    final canMerge = selectedEntries.length >= 2 &&
+        !selectedEntries.any((e) => e.isGroupOriginal == true);
 
     return Container(
       margin: const EdgeInsets.symmetric(
@@ -306,6 +272,30 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
               color: AppColors.info,
               tooltip: l10n.moveToDate,
               onTap: _moveSelectedToDate,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+
+          if (widget.onMergeSelected != null &&
+              selectedEntries.length >= 2) ...[
+            _iconButton(
+              icon: Icons.merge_type_rounded,
+              color: AppColors.primary,
+              tooltip: l10n.mergeGroup,
+              onTap: () {
+                if (canMerge) {
+                  widget.onMergeSelected!(selectedEntries);
+                  _exitSelectionMode();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.mergeDisabledNested),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(width: AppSpacing.xs),
           ],
@@ -383,6 +373,8 @@ class _FoodSandboxState extends ConsumerState<FoodSandbox>
 /// แต่ละ bubble ใน sandbox
 class _FoodBubble extends StatefulWidget {
   final FoodEntry entry;
+  /// ชื่อมื้อสำหรับ Tooltip บน badge
+  final String mealTypeTooltip;
   final bool isSelectionMode;
   final bool isSelected;
   final bool isAnalyzing;
@@ -392,6 +384,7 @@ class _FoodBubble extends StatefulWidget {
 
   const _FoodBubble({
     required this.entry,
+    required this.mealTypeTooltip,
     required this.isSelectionMode,
     required this.isSelected,
     required this.isAnalyzing,
@@ -408,6 +401,7 @@ class _FoodBubbleState extends State<_FoodBubble>
     with SingleTickerProviderStateMixin {
   late AnimationController _wiggleController;
   late Animation<double> _wiggleAnimation;
+  int _bubbleImagePage = 0;
 
   @override
   void initState() {
@@ -429,6 +423,9 @@ class _FoodBubbleState extends State<_FoodBubble>
   @override
   void didUpdateWidget(covariant _FoodBubble oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.id != widget.entry.id) {
+      _bubbleImagePage = 0;
+    }
     if (widget.isSelectionMode && !_wiggleController.isAnimating) {
       // Random delay ให้ bubble สั่นไม่พร้อมกัน
       Future.delayed(Duration(milliseconds: Random().nextInt(100)), () {
@@ -448,11 +445,29 @@ class _FoodBubbleState extends State<_FoodBubble>
     super.dispose();
   }
 
+  Widget _bubbleImagePlaceholder() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.12),
+        borderRadius: AppRadius.sm,
+      ),
+      child: Icon(
+        Icons.broken_image_rounded,
+        size: 28,
+        color: Colors.grey.withValues(alpha: 0.35),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final entry = widget.entry;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final hasImage = entry.hasAnyImage;
+    final imagePaths =
+        entry.allImagePaths.where((p) => p.trim().isNotEmpty).toList();
     final isUnanalyzed = !entry.hasNutritionData;
     final isProduct = entry.searchMode == FoodSearchMode.product;
 
@@ -513,14 +528,67 @@ class _FoodBubbleState extends State<_FoodBubble>
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Image (แสดงเฉพาะเมื่อมีรูป)
+                // รูป — หลายมุมเลื่อนในกล่อง (กลุ่ม merge / AR หลายรูป)
                 if (hasImage) ...[
-                  FoodEntryImage(
-                    entry: entry,
-                    width: double.infinity,
-                    height: 56,
-                    borderRadius: AppRadius.sm,
-                  ),
+                  if (imagePaths.length > 1)
+                    SizedBox(
+                      height: 56,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          PageView.builder(
+                            itemCount: imagePaths.length,
+                            onPageChanged: (i) =>
+                                setState(() => _bubbleImagePage = i),
+                            itemBuilder: (_, i) {
+                              final p = imagePaths[i];
+                              final ok = File(p).existsSync();
+                              return ClipRRect(
+                                borderRadius: AppRadius.sm,
+                                child: ok
+                                    ? Image.file(
+                                        File(p),
+                                        width: double.infinity,
+                                        height: 56,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            _bubbleImagePlaceholder(),
+                                      )
+                                    : _bubbleImagePlaceholder(),
+                              );
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(imagePaths.length, (i) {
+                                final active = i == _bubbleImagePage;
+                                return Container(
+                                  width: active ? 12 : 5,
+                                  height: 5,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 2),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(3),
+                                    color: active
+                                        ? Colors.white
+                                        : Colors.white.withValues(alpha: 0.45),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    FoodEntryImage(
+                      entry: entry,
+                      width: double.infinity,
+                      height: 56,
+                      borderRadius: AppRadius.sm,
+                    ),
                   const SizedBox(height: AppSpacing.xs),
                 ],
             // Name
@@ -571,6 +639,41 @@ class _FoodBubbleState extends State<_FoodBubble>
                     ),
                   ),
               ],
+            ),
+            // Badge มื้อ — ชุดไอคอนเดียวกับ Change Meal Type sheet
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Tooltip(
+                message: widget.mealTypeTooltip,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.35)
+                          : AppColors.textSecondary.withValues(alpha: 0.12),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    widget.entry.mealType.icon,
+                    size: 14,
+                    color: widget.entry.mealType.iconColor,
+                  ),
+                ),
+              ),
             ),
             // Analyzing overlay — spinner บน icon
             if (widget.isAnalyzing)

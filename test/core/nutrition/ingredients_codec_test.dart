@@ -271,6 +271,99 @@ void main() {
       expect(sum, closeTo(300, 0.01));
     });
 
+    test('inserts self sub when root calories exceed sum of subs (tiramisu-like)', () {
+      // Gemini returns lady finger 140 kcal with only sub coffee 2 kcal;
+      // the cookie base (138 kcal) must not be lost.
+      final roots = <Map<String, dynamic>>[
+        {
+          'name': 'เลดี้ฟิงเกอร์',
+          'name_en': 'Lady Finger',
+          'amount': 40,
+          'unit': 'g',
+          'calories': 140,
+          'protein': 3,
+          'carbs': 25,
+          'fat': 2,
+          'sub_ingredients': [
+            {
+              'name': 'กาแฟ',
+              'name_en': 'Coffee',
+              'amount': 10,
+              'unit': 'ml',
+              'calories': 2,
+              'protein': 0,
+              'carbs': 0,
+              'fat': 0,
+            },
+          ],
+        },
+      ];
+      final flat = flattenAiIngredientRoots(roots);
+      expect(flat.mainIngredients.length, 1);
+      final main = flat.mainIngredients.first;
+      // Self sub + coffee sub = 2 subs
+      expect(main.subIngredients.length, 2);
+      // Self sub at position 0 carries the missing calories
+      final selfSub = main.subIngredients[0];
+      expect(selfSub.name, 'เลดี้ฟิงเกอร์');
+      expect(selfSub.calories, closeTo(138, 0.01));
+      expect(selfSub.protein, closeTo(3, 0.01));
+      // Coffee sub stays at position 1
+      final coffeeSub = main.subIngredients[1];
+      expect(coffeeSub.name, 'กาแฟ');
+      expect(coffeeSub.calories, closeTo(2, 0.01));
+      // Main total = 140 (preserved)
+      expect(main.calories, closeTo(140, 0.01));
+    });
+
+    test('no self sub when root calories match sum of subs', () {
+      final roots = <Map<String, dynamic>>[
+        {
+          'name': 'Chicken',
+          'amount': 100,
+          'unit': 'g',
+          'calories': 250,
+          'protein': 18,
+          'carbs': 12,
+          'fat': 15,
+          'sub_ingredients': [
+            {
+              'name': 'Meat',
+              'amount': 70,
+              'unit': 'g',
+              'calories': 132,
+              'protein': 17,
+              'carbs': 0,
+              'fat': 3,
+            },
+            {
+              'name': 'Batter',
+              'amount': 25,
+              'unit': 'g',
+              'calories': 48,
+              'protein': 1,
+              'carbs': 12,
+              'fat': 0,
+            },
+            {
+              'name': 'Oil',
+              'amount': 5,
+              'unit': 'ml',
+              'calories': 70,
+              'protein': 0,
+              'carbs': 0,
+              'fat': 8,
+            },
+          ],
+        },
+      ];
+      final flat = flattenAiIngredientRoots(roots);
+      final main = flat.mainIngredients.first;
+      // sum(132+48+70)=250 == root 250 → no self sub inserted
+      expect(main.subIngredients.length, 3);
+      expect(main.calories, closeTo(250, 0.01));
+    });
+
     test('flatten leaves sum calories within root budget', () {
       final roots = <Map<String, dynamic>>[
         jsonDecode(

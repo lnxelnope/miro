@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:drift/drift.dart' hide JsonKey, Column;
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
@@ -10,9 +15,12 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/services/image_picker_service.dart';
+import '../../../core/services/thumbnail_service.dart';
 import '../../../core/services/usage_limiter.dart';
-import '../../../l10n/app_localizations.dart';
+import '../../../core/widgets/ingredient_thumb.dart';
 import '../../../features/energy/providers/energy_provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../providers/my_meal_provider.dart';
 /// Bottom sheet สำหรับสร้าง/แก้ไขเมนูอาหาร
 class CreateMealSheet extends ConsumerStatefulWidget {
@@ -51,6 +59,13 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
   // Cache ingredients จาก DB เพื่อให้ Autocomplete ใช้ได้
   List<Ingredient> _cachedIngredients = [];
 
+  /// รูปเมนู (จาก DB ตอนแก้ไข)
+  String? _initialMealImagePath;
+  String? _persistedThumbnailUrl;
+  /// รูปที่เลือกใหม่ในรอบนี้
+  String? _mealPickedPath;
+  bool _mealImageRemoved = false;
+
   bool get _isEditMode => widget.existingMeal != null;
 
   @override
@@ -66,6 +81,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       _originalServingSize = parsed.size; // Save original for scaling
 
       // Prefill ROOT ingredients (sub-ingredients จะโหลดแบบ async)
+      _initialMealImagePath = widget.existingMeal!.imagePath;
+      _persistedThumbnailUrl = widget.existingMeal!.thumbnailUrl;
+
       if (widget.existingIngredients != null) {
         for (final ing in widget.existingIngredients!) {
           final row = _IngredientRow();
@@ -113,6 +131,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         subRow.carbsController.text = sub.carbs.toStringAsFixed(0);
         subRow.fatController.text = sub.fat.toStringAsFixed(0);
         subRow.detail = sub.detail;
+        subRow.ingredientImagePath = sub.ingredientImagePath;
+        subRow.ingredientArBoundingBox = sub.ingredientArBoundingBox;
+        subRow.ingredientArImageWidth = sub.ingredientArImageWidth;
+        subRow.ingredientArImageHeight = sub.ingredientArImageHeight;
         subRow.saveBaseValues();
         return subRow;
       }).toList();
@@ -138,6 +160,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     copy.carbsController.text = row.carbsController.text;
     copy.fatController.text = row.fatController.text;
     copy.detail = row.detail;
+    copy.ingredientImagePath = row.ingredientImagePath;
+    copy.ingredientArBoundingBox = row.ingredientArBoundingBox;
+    copy.ingredientArImageWidth = row.ingredientArImageWidth;
+    copy.ingredientArImageHeight = row.ingredientArImageHeight;
     copy.saveBaseValues();
     return copy;
   }
@@ -280,6 +306,10 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       subIngredients: (subs == null || subs.isEmpty)
           ? null
           : subs.map(_ingredientRowToInput).toList(),
+      ingredientImagePath: row.ingredientImagePath,
+      ingredientArBoundingBox: row.ingredientArBoundingBox,
+      ingredientArImageWidth: row.ingredientArImageWidth,
+      ingredientArImageHeight: row.ingredientArImageHeight,
     );
   }
 
@@ -317,6 +347,183 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
         ),
         child: Icon(Icons.close, size: 20, color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600),
       ),
+    );
+  }
+
+  Future<String?> _copyMealCoverToPermanent(File source) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      if (source.path.startsWith(appDir.path)) {
+        return source.path;
+      }
+      final fileName =
+          'meal_cover_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final destPath = '${appDir.path}/$fileName';
+      await source.copy(destPath);
+      return destPath;
+    } catch (e, st) {
+      AppLogger.error('copyMealCover failed', e, st);
+      return source.path;
+    }
+  }
+
+  Future<void> _pickMealCoverPhoto() async {
+    final l10n = L10n.of(context)!;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.photoSourceTitle,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.fromGallery),
+              onTap: () => Navigator.pop(ctx, 'gallery'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.fromCamera),
+              onTap: () => Navigator.pop(ctx, 'camera'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || choice == null) return;
+
+    final picked = choice == 'gallery'
+        ? await ImagePickerService.pickFromGallery()
+        : await ImagePickerService.pickFromCamera();
+    if (picked == null || !mounted) return;
+
+    final permanent = await _copyMealCoverToPermanent(picked);
+    if (permanent == null || permanent.isEmpty) return;
+
+    setState(() {
+      _mealPickedPath = permanent;
+      _mealImageRemoved = false;
+    });
+  }
+
+  void _removeMealCoverPhoto() {
+    setState(() {
+      _mealPickedPath = null;
+      _mealImageRemoved = true;
+    });
+  }
+
+  Widget _mealCoverEmptyPlaceholder(bool isDark) {
+    return Container(
+      width: double.infinity,
+      height: 140,
+      color: isDark
+          ? AppColors.surfaceVariantDark
+          : AppColors.surfaceVariant,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.restaurant_rounded,
+        size: 48,
+        color: isDark ? Colors.white24 : Colors.grey.shade400,
+      ),
+    );
+  }
+
+  Widget _buildMealCoverSection(bool isDark) {
+    final l10n = L10n.of(context)!;
+    final local =
+        _mealPickedPath ?? (_mealImageRemoved ? null : _initialMealImagePath);
+    final hasLocal =
+        local != null && local.isNotEmpty && File(local).existsSync();
+    final showNetwork = !hasLocal &&
+        !_mealImageRemoved &&
+        (_persistedThumbnailUrl != null &&
+            _persistedThumbnailUrl!.trim().isNotEmpty);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.myMealCoverPhotoLabel,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: AppRadius.lg,
+              child: SizedBox(
+                height: 140,
+                width: double.infinity,
+                child: hasLocal
+                    ? Image.file(
+                        File(local),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _mealCoverEmptyPlaceholder(isDark),
+                      )
+                    : showNetwork
+                        ? CachedNetworkImage(
+                            imageUrl: _persistedThumbnailUrl!.trim(),
+                            fit: BoxFit.cover,
+                            memCacheWidth: 400,
+                            placeholder: (_, __) => Container(
+                              color: isDark
+                                  ? AppColors.surfaceVariantDark
+                                  : AppColors.surfaceVariant,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                ),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) =>
+                                _mealCoverEmptyPlaceholder(isDark),
+                          )
+                        : _mealCoverEmptyPlaceholder(isDark),
+              ),
+            ),
+            if (hasLocal || showNetwork)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.black54,
+                  shape: const CircleBorder(),
+                  child: IconButton(
+                    icon:
+                        const Icon(Icons.close, color: Colors.white, size: 20),
+                    onPressed: _removeMealCoverPhoto,
+                    tooltip: l10n.myMealRemovePhoto,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TextButton.icon(
+          onPressed: _pickMealCoverPhoto,
+          icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+          label: Text(
+            (hasLocal || showNetwork)
+                ? l10n.myMealChangePhoto
+                : l10n.myMealAddPhoto,
+          ),
+        ),
+      ],
     );
   }
 
@@ -369,6 +576,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
               ],
             ),
             const SizedBox(height: 20),
+
+            _buildMealCoverSection(isDark),
+            const SizedBox(height: AppSpacing.lg),
 
             // ชื่อเมนู
             TextField(
@@ -844,6 +1054,19 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                           // Row 1: Name (Autocomplete) + AI Search + Delete
                           Row(
                             children: [
+                              IngredientThumb(
+                                imagePath: sub.ingredientImagePath,
+                                size: 28,
+                                onTap: (sub.ingredientImagePath != null &&
+                                        sub.ingredientImagePath!.isNotEmpty)
+                                    ? () => IngredientThumb.showFullScreen(
+                                          context,
+                                          sub.ingredientImagePath!,
+                                          arBoundingBox:
+                                              sub.ingredientArBoundingBox,
+                                        )
+                                    : null,
+                              ),
                               Expanded(
                                 child: Autocomplete<Ingredient>(
                                   key: ValueKey('sub_ac_${sub.key}_$subIndex'),
@@ -950,8 +1173,44 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.xs),
+                              if (sub.isAnalyzingFromPhoto)
+                                const SizedBox(
+                                  width: 28,
+                                  height: 28,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Tooltip(
+                                  message: L10n.of(context)!.analyzeFromPhoto,
+                                  child: InkWell(
+                                    onTap: sub.isLookingUp
+                                        ? null
+                                        : () => _analyzeSubFromPhoto(row, subIndex),
+                                    borderRadius:
+                                        BorderRadius.circular(AppSpacing.sm - 2),
+                                    child: Container(
+                                      padding:
+                                          const EdgeInsets.all(AppSpacing.xs + 1),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.info
+                                            .withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(
+                                            AppSpacing.sm - 2),
+                                      ),
+                                      child: const Icon(Icons.photo_camera_outlined,
+                                          size: 16, color: AppColors.info),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: AppSpacing.xs),
                               // AI Search button
-                              if (!sub.isLookingUp)
+                              if (!sub.isLookingUp && !sub.isAnalyzingFromPhoto)
                                 InkWell(
                                   onTap: () => _lookupSubIngredient(row, subIndex),
                                   borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
@@ -964,10 +1223,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                     child: const Icon(Icons.search, size: 16, color: AppColors.info),
                                   ),
                                 )
-                              else
+                              else if (sub.isLookingUp)
                                 const SizedBox(
                                     width: 16, height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2)),
+                                    child: CircularProgressIndicator(strokeWidth: 2))
+                              else
+                                const SizedBox(width: 16, height: 16),
                               const SizedBox(width: AppSpacing.xs),
                               // Delete button
                               IconButton(
@@ -1695,6 +1956,165 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     }
   }
 
+  Future<String?> _copyIngredientPhotoToPermanent(File source) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      if (source.path.startsWith(appDir.path)) {
+        return source.path;
+      }
+      final fileName =
+          'meal_sub_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final destPath = '${appDir.path}/$fileName';
+      await source.copy(destPath);
+      return destPath;
+    } catch (e, st) {
+      AppLogger.error('copyIngredientPhoto failed', e, st);
+      return source.path;
+    }
+  }
+
+  /// Gallery/camera → Gemini image analysis → map into sub row (phase 17-03).
+  Future<void> _analyzeSubFromPhoto(
+      _IngredientRow parentRow, int subIdx) async {
+    final l10n = L10n.of(context)!;
+    final sub = parentRow.subIngredients![subIdx];
+    if (sub.isLookingUp || sub.isAnalyzingFromPhoto) return;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(
+                l10n.photoSourceTitle,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.fromGallery),
+              onTap: () => Navigator.pop(ctx, 'gallery'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.fromCamera),
+              onTap: () => Navigator.pop(ctx, 'camera'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || choice == null) return;
+
+    final picked = choice == 'gallery'
+        ? await ImagePickerService.pickFromGallery()
+        : await ImagePickerService.pickFromCamera();
+    if (picked == null || !mounted) return;
+
+    final permanentPath = await _copyIngredientPhotoToPermanent(picked);
+    if (permanentPath == null || permanentPath.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.couldNotAnalyzeSubIngredient)),
+        );
+      }
+      return;
+    }
+
+    final hasEnergy = await GeminiService.hasEnergy();
+    if (!hasEnergy) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.notEnoughEnergy)),
+        );
+      }
+      return;
+    }
+
+    setState(() => sub.isAnalyzingFromPhoto = true);
+    try {
+      final energyService = ref.read(energyServiceProvider);
+      final hint = sub.nameController.text.trim();
+      final qty = double.tryParse(sub.amountController.text);
+      final result = await GeminiService.analyzeFoodImage(
+        File(permanentPath),
+        foodName: hint.isEmpty ? null : hint,
+        quantity: qty,
+        unit: sub.unit,
+        energyService: energyService,
+      );
+
+      if (!mounted) return;
+      if (result == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.couldNotAnalyzeSubIngredient),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        return;
+      }
+
+      await UsageLimiter.recordAiUsage();
+      ref.invalidate(energyBalanceProvider);
+      ref.invalidate(currentEnergyProvider);
+
+      final ss = result.servingSize;
+      final amountStr = ss == ss.roundToDouble()
+          ? ss.round().toString()
+          : ss.toStringAsFixed(1);
+
+      setState(() {
+        sub.nameController.text = result.foodName;
+        sub.amountController.text = amountStr;
+        sub.unit = UnitConverter.ensureValid(result.servingUnit);
+        sub.calController.text =
+            result.nutrition.calories.toStringAsFixed(0);
+        sub.proteinController.text =
+            result.nutrition.protein.toStringAsFixed(0);
+        sub.carbsController.text =
+            result.nutrition.carbs.toStringAsFixed(0);
+        sub.fatController.text = result.nutrition.fat.toStringAsFixed(0);
+        sub.ingredientImagePath = permanentPath;
+        sub.ingredientArBoundingBox = null;
+        sub.ingredientArImageWidth = null;
+        sub.ingredientArImageHeight = null;
+        sub.saveBaseValues();
+      });
+      _recalculateIngredientRow(parentRow);
+      _recalculateTotal();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.subAnalysisApplied(result.foodName)),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e, st) {
+      AppLogger.error('analyzeSubFromPhoto', e, st);
+      if (mounted) {
+        if (e.toString().contains('Insufficient energy')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.notEnoughEnergy)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.couldNotAnalyzeSubIngredient)),
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => sub.isAnalyzingFromPhoto = false);
+      }
+    }
+  }
+
   /// AI lookup for a sub-ingredient
   Future<void> _lookupSubIngredient(
       _IngredientRow parentRow, int subIdx) async {
@@ -1707,6 +2127,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
       );
       return;
     }
+
+    if (sub.isAnalyzingFromPhoto) return;
 
     // ถามใช้ 100g ถ้าไม่กรอกปริมาณ
     final currentAmount = double.tryParse(sub.amountController.text) ?? 0;
@@ -1946,6 +2368,8 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           name: _nameController.text.trim(),
           baseServingDescription: baseServingDescription,
           ingredients: ingredients,
+          newImagePath: _mealPickedPath,
+          removeMealImage: _mealImageRemoved,
         );
       } else {
         meal = await notifier.createMeal(
@@ -1953,6 +2377,16 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           baseServingDescription: baseServingDescription,
           ingredients: ingredients,
           source: 'manual',
+          imagePath: _mealPickedPath,
+        );
+      }
+
+      if (meal.hasMealLocalImage) {
+        unawaited(
+          ThumbnailService.uploadMyMealThumbnail(
+            meal: meal,
+            imageFile: File(meal.imagePath!),
+          ),
         );
       }
 
@@ -1996,9 +2430,14 @@ class _IngredientRow {
   final carbsController = TextEditingController(text: '0');
   final fatController = TextEditingController(text: '0');
   bool isLookingUp = false; // Gemini lookup state
+  bool isAnalyzingFromPhoto = false;
 
   // NEW: Nested ingredients support
   String? detail; // คำอธิบายเพิ่มเติม
+  String? ingredientImagePath;
+  String? ingredientArBoundingBox;
+  int? ingredientArImageWidth;
+  int? ingredientArImageHeight;
   List<_IngredientRow>?
       subIngredients; // Sub-ingredients (read-only ในหน้า edit)
 

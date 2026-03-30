@@ -2020,6 +2020,12 @@ abstract class L10n {
   /// **'Sub-ingredients ({count})'**
   String subIngredients(int count);
 
+  /// No description provided for @ingredientMainMacrosFromSubIngredientsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From sub-ingredients'**
+  String get ingredientMainMacrosFromSubIngredientsLabel;
+
   /// No description provided for @addSubIngredient.
   ///
   /// In en, this message translates to:
@@ -4836,6 +4842,18 @@ abstract class L10n {
   /// **'Claimed today'**
   String get seasonalQuestClaimedToday;
 
+  /// No description provided for @seasonalQuestMaybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get seasonalQuestMaybeLater;
+
+  /// No description provided for @seasonalQuestClaimNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim reward'**
+  String get seasonalQuestClaimNow;
+
   /// No description provided for @errorFailed.
   ///
   /// In en, this message translates to:
@@ -4985,6 +5003,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'All levels claimed!'**
   String get referralAllLevelsClaimed;
+
+  /// No description provided for @referralRewardsPopupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral rewards'**
+  String get referralRewardsPopupTitle;
+
+  /// No description provided for @referralRewardsPopupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends you invited unlocked Energy. Claim every pending level in one tap.'**
+  String get referralRewardsPopupBody;
+
+  /// No description provided for @referralRewardsClaimAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim +{energy} Energy'**
+  String referralRewardsClaimAllButton(int energy);
+
+  /// No description provided for @referralRewardsClaimedSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'+{energy} Energy claimed!'**
+  String referralRewardsClaimedSummary(int energy);
+
+  /// No description provided for @referralRewardsMaybeLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get referralRewardsMaybeLater;
 
   /// No description provided for @referralLevel.
   ///
@@ -5442,6 +5490,36 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Create New Meal'**
   String get createNewMealTitle;
+
+  /// No description provided for @myMealCoverPhotoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal photo'**
+  String get myMealCoverPhotoLabel;
+
+  /// No description provided for @myMealAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get myMealAddPhoto;
+
+  /// No description provided for @myMealChangePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Change photo'**
+  String get myMealChangePhoto;
+
+  /// No description provided for @myMealRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get myMealRemovePhoto;
+
+  /// No description provided for @mealSourceManualShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get mealSourceManualShort;
 
   /// No description provided for @mealNameLabel.
   ///
@@ -5917,6 +5995,66 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Long-press to select items'**
   String get longPressToSelect;
+
+  /// No description provided for @mergeGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get mergeGroup;
+
+  /// No description provided for @confirmMergeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge {count} items?'**
+  String confirmMergeTitle(int count);
+
+  /// No description provided for @confirmMergeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected items will be combined into one entry. This cannot be undone.'**
+  String get confirmMergeMessage;
+
+  /// No description provided for @mergeDisabledNested.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot merge items that are already groups'**
+  String get mergeDisabledNested;
+
+  /// No description provided for @mergedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged {count} items into one entry'**
+  String mergedSuccess(int count);
+
+  /// No description provided for @analyzeFromPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze from photo'**
+  String get analyzeFromPhoto;
+
+  /// No description provided for @photoSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo source'**
+  String get photoSourceTitle;
+
+  /// No description provided for @fromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get fromGallery;
+
+  /// No description provided for @fromCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get fromCamera;
+
+  /// No description provided for @subAnalysisApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis applied to {name}'**
+  String subAnalysisApplied(String name);
 
   /// No description provided for @healthSyncSection.
   ///
@@ -7388,6 +7526,12 @@ abstract class L10n {
   /// **'Daily Summary'**
   String get shareCardDailySummaryTitle;
 
+  /// No description provided for @shareCardReferralCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get shareCardReferralCaption;
+
   /// No description provided for @shareCardFiber.
   ///
   /// In en, this message translates to:
@@ -7423,6 +7567,126 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Show bounding box'**
   String get shareCardShowBoundingBox;
+
+  /// No description provided for @shareCardStreakToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak'**
+  String get shareCardStreakToggle;
+
+  /// No description provided for @shareCardGoalPercentToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal %'**
+  String get shareCardGoalPercentToggle;
+
+  /// No description provided for @aspectRatio16x9.
+  ///
+  /// In en, this message translates to:
+  /// **'16:9 Wide'**
+  String get aspectRatio16x9;
+
+  /// No description provided for @aspectRatio9x16.
+  ///
+  /// In en, this message translates to:
+  /// **'9:16 Vertical'**
+  String get aspectRatio9x16;
+
+  /// No description provided for @aspectRatio1x1.
+  ///
+  /// In en, this message translates to:
+  /// **'1:1 Square'**
+  String get aspectRatio1x1;
+
+  /// No description provided for @aspectRatioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Aspect ratio'**
+  String get aspectRatioLabel;
+
+  /// No description provided for @showServingToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show serving size'**
+  String get showServingToggle;
+
+  /// No description provided for @servingDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} {unit}'**
+  String servingDisplay(String size, String unit);
+
+  /// No description provided for @noServingData.
+  ///
+  /// In en, this message translates to:
+  /// **'No serving data'**
+  String get noServingData;
+
+  /// No description provided for @promoCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Code'**
+  String get promoCodeTitle;
+
+  /// No description provided for @promoCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter promo code'**
+  String get promoCodeHint;
+
+  /// No description provided for @redeemButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem'**
+  String get redeemButton;
+
+  /// No description provided for @redeemSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Code redeemed! Reward applied.'**
+  String get redeemSuccess;
+
+  /// No description provided for @redeemErrorInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid promo code'**
+  String get redeemErrorInvalid;
+
+  /// No description provided for @redeemErrorExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has expired'**
+  String get redeemErrorExpired;
+
+  /// No description provided for @redeemErrorMaxReached.
+  ///
+  /// In en, this message translates to:
+  /// **'This code has reached its limit'**
+  String get redeemErrorMaxReached;
+
+  /// No description provided for @redeemErrorAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already used this code'**
+  String get redeemErrorAlreadyUsed;
+
+  /// No description provided for @redeemErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to redeem code. Please try again.'**
+  String get redeemErrorGeneric;
+
+  /// No description provided for @parentAmountHintWithSubs.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale all'**
+  String get parentAmountHintWithSubs;
+
+  /// No description provided for @parentAmountTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change to scale all sub-ingredients proportionally'**
+  String get parentAmountTooltip;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

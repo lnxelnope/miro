@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Arcal 2.00 (upgrade_basic)
-status: unknown
-last_updated: "2026-03-29T05:02:35.918Z"
+status: milestone_code_complete
+last_updated: "2026-03-29T12:00:00.000Z"
 progress:
-  total_phases: 7
-  completed_phases: 8
-  total_plans: 22
-  completed_plans: 19
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,12 +19,18 @@ See: `.planning/PROJECT.md` (Current Milestone: v3.0)
 
 **Core value:** ผู้ใช้สามารถบันทึกแคลอรี่และสารอาหารได้อย่างแม่นยำและสะดวกที่สุด โดยใช้ AI ช่วยวิเคราะห์จากภาพถ่ายอาหาร
 
-**Current focus:** Phase 16
+**Current focus:** UAT + deploy production ตาม `18-MANUAL-CHECKLIST.md` (และ checklist เฟส 16–17 ถ้ายังไม่ sign-off)
 
 ## Current Position
 
-Phase: 16 — EXECUTING
-Plan: 1 of 4
+Phase: **13–18 โค้ดใน repo ครบ** — งานที่เหลือคือ manual UAT, `firebase deploy` (rules/indexes/functions), และ deploy admin-panel ตาม stack ของทีม
+
+### ตรวจใน repo (ล่าสุด)
+
+- `functions/`: `npm run build` (tsc) ผ่าน  
+- `admin-panel/`: `npm run build` ผ่าน  
+- Flutter: **ไม่มี analyzer error** เมื่อใช้ `flutter analyze --no-fatal-infos --no-fatal-warnings`; แก้ `test/integration/quest_bar_test.dart` (mock Uri + ลบ `DeviceIdService.deviceId` ที่ไม่มีใน API)  
+- `firebase deploy --only firestore:rules,firestore:indexes,functions` จาก sandbox อาจล้มเหลวเรื่องเครือข่าย/API — **รันซ้ำบนเครื่องที่ login Firebase ได้**
 
 ## Performance Metrics
 
@@ -41,7 +47,7 @@ Plan: 1 of 4
 
 ### v2.0 status
 
-- เฟส **6–12** ถือว่า **ปิดงานแล้ว** — โฟกัสเหลือ **v3.0 เฟส 13–18** เท่านั้น
+- เฟส **6–12** ถือว่า **ปิดงานแล้ว** — v3.0 เฟส **13–18** โค้ดใน repo **ครบ**; เหลือ UAT / deploy ตาม checklist
 
 ### Blockers / Concerns
 
@@ -51,4 +57,4 @@ Plan: 1 of 4
 ## Session Continuity
 
 Last session: 2026-03-30T01:00:00.000Z
-Resume file: .planning/phases/18-share-promo/18-01-PLAN.md
+Resume file: .planning/phases/18-share-promo/18-MANUAL-CHECKLIST.md

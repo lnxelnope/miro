@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'package:drift/drift.dart' hide JsonKey, Column;
 import 'package:flutter/material.dart';
@@ -10,17 +10,20 @@ import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/services/thumbnail_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
 import '../../../core/utils/unit_converter.dart';
-import '../../../core/utils/batch_analysis_helper.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
 import '../../health/providers/health_provider.dart';
 import '../../health/providers/my_meal_provider.dart';
 import '../../health/providers/analysis_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../energy/providers/gamification_provider.dart';
 import '../../sharing/models/share_card_config.dart';
 import '../../sharing/presentation/share_card_creator_screen.dart';
 import '../../sharing/widgets/budget_meter.dart';
@@ -42,7 +45,6 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   late FoodSearchMode _searchMode;
   bool _isEditingName = false;
   bool _hasChanges = false;
-  bool _isReanalyzing = false;
   List<Map<String, dynamic>> _ingredients = [];
   final bool _isAddingIngredient = false;
 
@@ -55,6 +57,9 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
   // Original values for ingredient scaling
   late double _originalServingSize;
   List<Map<String, dynamic>> _baseIngredients = [];
+
+  /// Root indices whose sub-ingredients are visible (default: none = collapsed).
+  final Set<int> _expandedIngredientRoots = {};
 
   // Multi-image page tracking
   int _imagePage = 0;
@@ -107,18 +112,13 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
         _carbs = entry.baseCarbs * newQty;
         _fat = entry.baseFat * newQty;
 
-        // Scale ingredients proportionally
+        // Scale ingredients + nested sub_ingredients proportionally
         if (_baseIngredients.isNotEmpty) {
           final ratio = newQty / _originalServingSize;
           _ingredients = _baseIngredients.map((base) {
-            final scaled = Map<String, dynamic>.from(base);
-            final baseAmt = (base['amount'] as num?)?.toDouble() ?? 0;
-            scaled['amount'] = baseAmt * ratio;
-            scaled['calories'] = ((base['calories'] as num?)?.toDouble() ?? 0) * ratio;
-            scaled['protein'] = ((base['protein'] as num?)?.toDouble() ?? 0) * ratio;
-            scaled['carbs'] = ((base['carbs'] as num?)?.toDouble() ?? 0) * ratio;
-            scaled['fat'] = ((base['fat'] as num?)?.toDouble() ?? 0) * ratio;
-            return scaled;
+            final copy = _deepCopyIngredientMap(base);
+            _scaleIngredientMapInPlace(copy, ratio);
+            return copy;
           }).toList();
         }
 
@@ -127,23 +127,117 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     }
   }
 
+  /// รายการย่อยจาก map (รองรับทั้ง `sub_ingredients` และ `subIngredients`)
+  List<Map<String, dynamic>>? _getSubsListFromMap(Map<String, dynamic> m) {
+    final raw = m['sub_ingredients'] ?? m['subIngredients'];
+    if (raw is! List || raw.isEmpty) return null;
+    final out = <Map<String, dynamic>>[];
+    for (final e in raw) {
+      if (e is Map<String, dynamic>) {
+        out.add(e);
+      } else if (e is Map) {
+        out.add(Map<String, dynamic>.from(e));
+      }
+    }
+    return out.isEmpty ? null : out;
+  }
+
+  Map<String, dynamic> _deepCopyIngredientMap(Map<String, dynamic> src) {
+    final m = Map<String, dynamic>.from(src);
+    m.remove('subIngredients');
+    final subs = _getSubsListFromMap(src);
+    if (subs != null && subs.isNotEmpty) {
+      m['sub_ingredients'] =
+          subs.map((s) => _deepCopyIngredientMap(Map<String, dynamic>.from(s))).toList();
+    } else {
+      m.remove('sub_ingredients');
+    }
+    return m;
+  }
+
+  void _normalizeIngredientMap(Map<String, dynamic> m) {
+    if (m.containsKey('subIngredients') && !m.containsKey('sub_ingredients')) {
+      m['sub_ingredients'] = m.remove('subIngredients');
+    }
+    final subs = _getSubsListFromMap(m);
+    if (subs != null) {
+      m['sub_ingredients'] = subs;
+      for (final s in subs) {
+        _normalizeIngredientMap(s);
+      }
+    }
+  }
+
+  void _scaleIngredientMapInPlace(Map<String, dynamic> ing, double ratio) {
+    if (ratio == 1.0) return;
+    final baseAmt = (ing['amount'] as num?)?.toDouble() ?? 0;
+    ing['amount'] = baseAmt * ratio;
+    ing['calories'] = ((ing['calories'] as num?)?.toDouble() ?? 0) * ratio;
+    ing['protein'] = ((ing['protein'] as num?)?.toDouble() ?? 0) * ratio;
+    ing['carbs'] = ((ing['carbs'] as num?)?.toDouble() ?? 0) * ratio;
+    ing['fat'] = ((ing['fat'] as num?)?.toDouble() ?? 0) * ratio;
+    final subs = _getSubsListFromMap(ing);
+    if (subs != null) {
+      for (final s in subs) {
+        _scaleIngredientMapInPlace(s, ratio);
+      }
+    }
+  }
+
+  void _rollupParentFromSubsMap(Map<String, dynamic> parent) {
+    final subs = _getSubsListFromMap(parent);
+    if (subs == null || subs.isEmpty) return;
+    double c = 0, p = 0, cb = 0, f = 0;
+    for (final s in subs) {
+      c += (s['calories'] as num?)?.toDouble() ?? 0;
+      p += (s['protein'] as num?)?.toDouble() ?? 0;
+      cb += (s['carbs'] as num?)?.toDouble() ?? 0;
+      f += (s['fat'] as num?)?.toDouble() ?? 0;
+    }
+    parent['calories'] = c;
+    parent['protein'] = p;
+    parent['carbs'] = cb;
+    parent['fat'] = f;
+  }
+
+  /// คง `_baseIngredients` ให้สอดคล้องกับ `_ingredients` ที่ปริมาณรวมปัจจุบัน
+  void _syncBaseIngredientsFromCurrent() {
+    if (_ingredients.isEmpty) {
+      _baseIngredients = [];
+      return;
+    }
+    final currentServing =
+        double.tryParse(_quantityController.text) ?? _originalServingSize;
+    if (currentServing <= 0) return;
+    final factor = _originalServingSize / currentServing;
+    _baseIngredients = _ingredients
+        .map((ing) {
+          final copy = _deepCopyIngredientMap(ing);
+          _scaleIngredientMapInPlace(copy, factor);
+          return copy;
+        })
+        .toList();
+  }
+
   void _loadIngredients() {
+    _expandedIngredientRoots.clear();
     if (widget.entry.ingredientsJson != null &&
         widget.entry.ingredientsJson!.isNotEmpty) {
       try {
-        final decoded =
-            jsonDecode(widget.entry.ingredientsJson!) as List<dynamic>;
-        _ingredients = decoded
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-        // Deep copy for base reference used when scaling by quantity
-        _baseIngredients = decoded
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList();
-
-        // Fix: ถ้าผลรวม ingredients ไม่ตรงกับ entry → recalculate
-        _fixCaloriesIfMismatch();
-        return;
+        final parsed = parseIngredientsJson(widget.entry.ingredientsJson);
+        final doc = parsed.documentV2;
+        if (doc != null && doc.mainIngredients.isNotEmpty) {
+          final list = ingredientsDocumentToLegacyList(doc);
+          _ingredients = list.map((m) {
+            final copy = _deepCopyIngredientMap(Map<String, dynamic>.from(m));
+            _normalizeIngredientMap(copy);
+            return copy;
+          }).toList();
+          _baseIngredients =
+              _ingredients.map((m) => _deepCopyIngredientMap(m)).toList();
+          _fixCaloriesIfMismatch();
+          return;
+        }
       } catch (_) {}
     }
     if (widget.entry.myMealId != null && !_loadedFromMeal) {
@@ -158,10 +252,14 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       if (!mounted || tree.isEmpty) return;
       final maps = ingredientTreeToJsonMaps(tree);
       setState(() {
-        _ingredients =
-            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+        _expandedIngredientRoots.clear();
+        _ingredients = maps.map((m) {
+          final copy = _deepCopyIngredientMap(Map<String, dynamic>.from(m));
+          _normalizeIngredientMap(copy);
+          return copy;
+        }).toList();
         _baseIngredients =
-            maps.map((m) => Map<String, dynamic>.from(m)).toList();
+            _ingredients.map((m) => _deepCopyIngredientMap(m)).toList();
       });
       _fixCaloriesIfMismatch();
     } catch (e) {
@@ -238,16 +336,66 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     });
   }
 
-  void _removeIngredient(int index) {
+  void _removeIngredient(int rootIndex, {int? subIndex}) {
     setState(() {
-      _ingredients.removeAt(index);
+      if (subIndex != null) {
+        final parent = _ingredients[rootIndex];
+        final subs = _getSubsListFromMap(parent);
+        if (subs != null && subIndex >= 0 && subIndex < subs.length) {
+          subs.removeAt(subIndex);
+          parent.remove('subIngredients');
+          if (subs.isEmpty) {
+            parent.remove('sub_ingredients');
+            parent['calories'] = 0.0;
+            parent['protein'] = 0.0;
+            parent['carbs'] = 0.0;
+            parent['fat'] = 0.0;
+            _expandedIngredientRoots.remove(rootIndex);
+          } else {
+            parent['sub_ingredients'] = subs;
+            _rollupParentFromSubsMap(parent);
+          }
+        }
+      } else {
+        _ingredients.removeAt(rootIndex);
+        _remapExpandedRootsAfterRootRemoved(rootIndex);
+      }
       _recalculateNutrition();
+      _syncBaseIngredientsFromCurrent();
       _hasChanges = true;
     });
   }
 
-  void _editIngredientAmount(int index) {
-    final ing = _ingredients[index];
+  void _remapExpandedRootsAfterRootRemoved(int removedIndex) {
+    final next = <int>{};
+    for (final idx in _expandedIngredientRoots) {
+      if (idx == removedIndex) continue;
+      next.add(idx > removedIndex ? idx - 1 : idx);
+    }
+    _expandedIngredientRoots
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _shiftExpandedRootsForInsertAt(int insertIndex) {
+    final next = <int>{};
+    for (final idx in _expandedIngredientRoots) {
+      next.add(idx >= insertIndex ? idx + 1 : idx);
+    }
+    _expandedIngredientRoots
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _editIngredientAmount(int rootIndex, {int? subIndex}) {
+    final Map<String, dynamic> ing;
+    if (subIndex != null) {
+      final subs = _getSubsListFromMap(_ingredients[rootIndex]);
+      if (subs == null || subIndex >= subs.length) return;
+      ing = subs[subIndex];
+    } else {
+      ing = _ingredients[rootIndex];
+    }
     final oldAmount = (ing['amount'] as num?)?.toDouble() ?? 0;
     final name = ing['name'] as String? ?? '';
     final unit = ing['unit'] as String? ?? 'g';
@@ -273,7 +421,8 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
               isDense: true,
             ),
             onSubmitted: (_) {
-              _applyIngredientAmountChange(index, controller.text, oldAmount);
+              _applyIngredientAmountChange(
+                  rootIndex, subIndex, controller.text, oldAmount);
               Navigator.pop(ctx);
             },
           ),
@@ -284,7 +433,8 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             ),
             FilledButton(
               onPressed: () {
-                _applyIngredientAmountChange(index, controller.text, oldAmount);
+                _applyIngredientAmountChange(
+                    rootIndex, subIndex, controller.text, oldAmount);
                 Navigator.pop(ctx);
               },
               child: Text(L10n.of(context)!.ok),
@@ -295,20 +445,50 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     );
   }
 
-  void _applyIngredientAmountChange(int index, String newText, double oldAmount) {
+  void _applyIngredientAmountChange(
+    int rootIndex,
+    int? subIndex,
+    String newText,
+    double oldAmount,
+  ) {
     final newAmount = double.tryParse(newText);
     if (newAmount == null || newAmount <= 0 || newAmount == oldAmount) return;
     if (oldAmount <= 0) return;
 
     final ratio = newAmount / oldAmount;
     setState(() {
-      final ing = _ingredients[index];
-      ing['amount'] = newAmount;
-      ing['calories'] = ((ing['calories'] as num?)?.toDouble() ?? 0) * ratio;
-      ing['protein'] = ((ing['protein'] as num?)?.toDouble() ?? 0) * ratio;
-      ing['carbs'] = ((ing['carbs'] as num?)?.toDouble() ?? 0) * ratio;
-      ing['fat'] = ((ing['fat'] as num?)?.toDouble() ?? 0) * ratio;
+      if (subIndex != null) {
+        final parent = _ingredients[rootIndex];
+        final subs = _getSubsListFromMap(parent);
+        if (subs == null || subIndex >= subs.length) return;
+        final ing = subs[subIndex];
+        ing['amount'] = newAmount;
+        ing['calories'] = ((ing['calories'] as num?)?.toDouble() ?? 0) * ratio;
+        ing['protein'] = ((ing['protein'] as num?)?.toDouble() ?? 0) * ratio;
+        ing['carbs'] = ((ing['carbs'] as num?)?.toDouble() ?? 0) * ratio;
+        ing['fat'] = ((ing['fat'] as num?)?.toDouble() ?? 0) * ratio;
+        _rollupParentFromSubsMap(parent);
+      } else {
+        final ing = _ingredients[rootIndex];
+        final subs = _getSubsListFromMap(ing);
+        if (subs != null && subs.isNotEmpty) {
+          ing['amount'] = newAmount;
+          for (final s in subs) {
+            _scaleIngredientMapInPlace(s, ratio);
+          }
+          _rollupParentFromSubsMap(ing);
+        } else {
+          ing['amount'] = newAmount;
+          ing['calories'] =
+              ((ing['calories'] as num?)?.toDouble() ?? 0) * ratio;
+          ing['protein'] =
+              ((ing['protein'] as num?)?.toDouble() ?? 0) * ratio;
+          ing['carbs'] = ((ing['carbs'] as num?)?.toDouble() ?? 0) * ratio;
+          ing['fat'] = ((ing['fat'] as num?)?.toDouble() ?? 0) * ratio;
+        }
+      }
       _recalculateNutrition();
+      _syncBaseIngredientsFromCurrent();
       _hasChanges = true;
     });
   }
@@ -332,6 +512,35 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     _protein = p;
     _carbs = c;
     _fat = f;
+  }
+
+  int _countAllIngredientRows(List<Map<String, dynamic>> roots) {
+    var n = roots.length;
+    for (final r in roots) {
+      final subs = _getSubsListFromMap(r);
+      if (subs != null) n += subs.length;
+    }
+    return n;
+  }
+
+  MealIngredientInput _mapToMealIngredientInput(Map<String, dynamic> ing) {
+    final subs = _getSubsListFromMap(ing);
+    return MealIngredientInput(
+      name: (ing['name'] as String?) ?? '',
+      nameEn: ing['name_en'] as String?,
+      detail: ing['detail'] as String?,
+      amount: (ing['amount'] as num?)?.toDouble() ?? 0,
+      unit: (ing['unit'] as String?) ?? 'g',
+      calories: (ing['calories'] as num?)?.toDouble() ?? 0,
+      protein: (ing['protein'] as num?)?.toDouble() ?? 0,
+      carbs: (ing['carbs'] as num?)?.toDouble() ?? 0,
+      fat: (ing['fat'] as num?)?.toDouble() ?? 0,
+      subIngredients: subs?.map(_mapToMealIngredientInput).toList(),
+      ingredientImagePath: ing['imagePath'] as String?,
+      ingredientArBoundingBox: ing['arBoundingBox'] as String?,
+      ingredientArImageWidth: (ing['arImageWidth'] as num?)?.toInt(),
+      ingredientArImageHeight: (ing['arImageHeight'] as num?)?.toInt(),
+    );
   }
 
   /// Show dialog to add a new ingredient with DB autocomplete + free AI lookup
@@ -374,8 +583,10 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             };
             IngredientActions.incrementUsage(ing.id);
             setState(() {
+              _shiftExpandedRootsForInsertAt(0);
               _ingredients.insert(0, newIng);
               _recalculateNutrition();
+              _syncBaseIngredientsFromCurrent();
               _hasChanges = true;
             });
             Navigator.pop(ctx);
@@ -426,8 +637,10 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                 _saveToIngredientDb(result, amount, unit);
 
                 setState(() {
+                  _shiftExpandedRootsForInsertAt(0);
                   _ingredients.insert(0, newIng);
                   _recalculateNutrition();
+                  _syncBaseIngredientsFromCurrent();
                   _hasChanges = true;
                 });
 
@@ -630,12 +843,22 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     }
 
     if (_hasChanges) {
-      entry.ingredientsJson =
-          _ingredients.isNotEmpty ? jsonEncode(_ingredients) : null;
-      entry.calories = _calories;
-      entry.protein = _protein;
-      entry.carbs = _carbs;
-      entry.fat = _fat;
+      if (_ingredients.isNotEmpty) {
+        final doc = legacyListToV2(_ingredients);
+        entry.ingredientsJson = serializeIngredientsV2(doc);
+        applyIngredientsRollupToFoodEntry(entry, doc);
+      } else {
+        entry.ingredientsJson = null;
+        entry.calories = _calories;
+        entry.protein = _protein;
+        entry.carbs = _carbs;
+        entry.fat = _fat;
+        final ss = entry.servingSize > 0 ? entry.servingSize : 1.0;
+        entry.baseCalories = _calories / ss;
+        entry.baseProtein = _protein / ss;
+        entry.baseCarbs = _carbs / ss;
+        entry.baseFat = _fat / ss;
+      }
       changed = true;
     }
 
@@ -678,25 +901,39 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             ? await _getNextMealName(currentName)
             : currentName;
 
-        final inputs = _ingredients.map((ing) => MealIngredientInput(
-              name: (ing['name'] as String?) ?? '',
-              amount: (ing['amount'] as num?)?.toDouble() ?? 0,
-              unit: (ing['unit'] as String?) ?? 'g',
-              calories: (ing['calories'] as num?)?.toDouble() ?? 0,
-              protein: (ing['protein'] as num?)?.toDouble() ?? 0,
-              carbs: (ing['carbs'] as num?)?.toDouble() ?? 0,
-              fat: (ing['fat'] as num?)?.toDouble() ?? 0,
-            )).toList();
+        final inputs =
+            _ingredients.map((ing) => _mapToMealIngredientInput(ing)).toList();
 
         final serving = '${_quantityController.text.trim()} $_selectedUnit';
 
-        await ref.read(myMealNotifierProvider.notifier).createMeal(
+        final entryAfterSave = widget.entry;
+        String? mealImagePath;
+        for (final p in entryAfterSave.allImagePaths) {
+          if (p.isNotEmpty && File(p).existsSync()) {
+            mealImagePath = p;
+            break;
+          }
+        }
+
+        final created = await ref.read(myMealNotifierProvider.notifier).createMeal(
               name: mealName,
               baseServingDescription: serving,
               ingredients: inputs,
               source: 'manual',
+              imagePath: mealImagePath,
+              thumbnailUrl: entryAfterSave.thumbnailUrl,
+              thumbnailFirebasePath: entryAfterSave.thumbnailFirebasePath,
             );
         ref.invalidate(allMyMealsProvider);
+
+        if (created.hasMealLocalImage) {
+          unawaited(
+            ThumbnailService.uploadMyMealThumbnail(
+              meal: created,
+              imageFile: File(created.imagePath!),
+            ),
+          );
+        }
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -727,284 +964,6 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       candidate = '$baseName $suffix';
     }
     return candidate;
-  }
-
-  Future<void> _reanalyze() async {
-    if (_isReanalyzing) return;
-    
-    final entry = widget.entry;
-    final l10n = L10n.of(context)!;
-    final newName = _nameController.text.trim();
-    
-    // Check if name changed and has ingredients
-    final nameChanged = newName != entry.foodName;
-    final hasIngredients = _ingredients.isNotEmpty;
-    
-    List<Map<String, dynamic>>? keptIngredients;
-    
-    // If name changed AND has ingredients → show checkbox dialog
-    if (nameChanged && hasIngredients) {
-      final checkedFlags = List<bool>.filled(_ingredients.length, true);
-      
-      final shouldProceed = await showDialog<List<bool>>(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  const Icon(Icons.auto_awesome, color: AppColors.premium, size: 28),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(l10n.keepOrReanalyzeTitle, style: const TextStyle(fontSize: 17)),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.keepOrReanalyzeDesc, style: const TextStyle(fontSize: 14)),
-                    const SizedBox(height: AppSpacing.md),
-                    const Divider(height: 1),
-                    Flexible(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _ingredients.length,
-                        itemBuilder: (_, i) {
-                          final ing = _ingredients[i];
-                          final name = ing['name'] ?? '—';
-                          final amount = ing['amount'] ?? 0;
-                          final unit = ing['unit'] ?? '';
-                          final cal = ing['calories'] ?? 0;
-                          return CheckboxListTile(
-                            dense: true,
-                            controlAffinity: ListTileControlAffinity.leading,
-                            value: checkedFlags[i],
-                            onChanged: (v) => setDialogState(() => checkedFlags[i] = v ?? true),
-                            title: Text(
-                              name,
-                              style: TextStyle(
-                                fontSize: 14,
-                                decoration: checkedFlags[i] ? TextDecoration.lineThrough : null,
-                                color: checkedFlags[i] ? Colors.grey : null,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '$amount $unit  •  ${cal.round()} kcal',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: checkedFlags[i] ? Colors.grey.shade400 : null,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, null),
-                  child: Text(l10n.cancel),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Store kept ingredients indices (unchecked)
-                    Navigator.pop(ctx, checkedFlags);
-                  },
-                  icon: const Icon(Icons.auto_fix_high, size: 18),
-                  label: Text(l10n.reanalyze),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.premium,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-      
-      if (shouldProceed == null || !mounted) return;
-      
-      // Build kept ingredients (unchecked)
-      keptIngredients = [];
-      for (int i = 0; i < _ingredients.length; i++) {
-        if (!shouldProceed[i]) {
-          keptIngredients.add(_ingredients[i]);
-        }
-      }
-    }
-    
-    // Snapshot original before re-analysis
-    final snapName = entry.foodName;
-    final snapNameEn = entry.foodNameEn;
-    final snapCalories = entry.calories;
-    final snapProtein = entry.protein;
-    final snapCarbs = entry.carbs;
-    final snapFat = entry.fat;
-    final snapIngredientsJson = entry.ingredientsJson;
-    
-    // Set reanalyzing state
-    setState(() => _isReanalyzing = true);
-    
-    try {
-      // Check free edit lookup first (free for user corrections)
-      final hasEnergy = await GeminiService.hasEnergy();
-      if (!hasEnergy) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.notEnoughEnergy)),
-          );
-        }
-        setState(() => _isReanalyzing = false);
-        return;
-      }
-      
-      // Prepare user ingredients for kept items
-      final userIngredients = keptIngredients?.map((ing) => <String, dynamic>{
-        'name': ing['name'],
-        'amount': ing['amount'],
-        'unit': ing['unit'],
-      }).toList();
-      
-      // Call Gemini
-      FoodAnalysisResult? result;
-      if (entry.hasAnyImage && entry.imagePath != null) {
-        result = await GeminiService.analyzeFoodImage(
-          File(entry.imagePath!),
-          foodName: newName,
-          searchMode: _searchMode,
-          userIngredients: userIngredients,
-        );
-      } else {
-        result = await GeminiService.analyzeFoodByName(
-          newName,
-          searchMode: _searchMode,
-          userIngredients: userIngredients,
-        );
-      }
-      
-      if (result == null || !mounted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.reanalyzeSuccess)),
-          );
-        }
-        setState(() => _isReanalyzing = false);
-        return;
-      }
-      
-      await UsageLimiter.recordAiUsage();
-      
-      // Apply result
-      BatchAnalysisHelper.applyResultToEntry(entry, result);
-      
-      // Save correction history
-      final correctionHistory = _buildCorrectionHistory(
-        snapName, snapNameEn, snapCalories, snapProtein, snapCarbs, snapFat, snapIngredientsJson,
-        entry, result,
-      );
-      entry.correctionHistoryJson = correctionHistory;
-      
-      // Mark as user corrected
-      if (entry.originalFoodName == null && entry.source == DataSource.aiAnalyzed) {
-        entry.originalFoodName = snapName;
-        entry.originalFoodNameEn = snapNameEn;
-        entry.originalCalories = snapCalories;
-        entry.originalProtein = snapProtein;
-        entry.originalCarbs = snapCarbs;
-        entry.originalFat = snapFat;
-        entry.originalIngredientsJson = snapIngredientsJson;
-      }
-      entry.editCount += 1;
-      entry.isUserCorrected = true;
-      
-      // Save to database
-      await ref.read(foodEntriesNotifierProvider.notifier).updateFoodEntry(entry);
-      refreshFoodProviders(ref, entry.timestamp);
-      
-      // Update UI inline
-      setState(() {
-        _nameController.text = entry.foodName;
-        _calories = entry.calories;
-        _protein = entry.protein;
-        _carbs = entry.carbs;
-        _fat = entry.fat;
-        _loadIngredients();
-        _hasChanges = false;
-        _isReanalyzing = false;
-      });
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.reanalyzeSuccess)),
-        );
-      }
-    } catch (e) {
-      AppLogger.error('Re-analysis failed', e);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.analysisFailed)),
-        );
-      }
-      setState(() => _isReanalyzing = false);
-    }
-  }
-  
-  String? _buildCorrectionHistory(
-    String snapName, String? snapNameEn, double snapCalories, double snapProtein, double snapCarbs, double snapFat, String? snapIngredientsJson,
-    FoodEntry entry, FoodAnalysisResult result,
-  ) {
-    final history = <Map<String, dynamic>>[];
-    
-    // Try to parse existing history
-    if (entry.correctionHistoryJson != null) {
-      try {
-        final existing = jsonDecode(entry.correctionHistoryJson!) as List;
-        history.addAll(existing.cast<Map<String, dynamic>>());
-      } catch (_) {}
-    }
-    
-    // Add new correction
-    history.add({
-      'timestamp': DateTime.now().toIso8601String(),
-      'action': 'reanalyze',
-      'before': {
-        'foodName': snapName,
-        'foodNameEn': snapNameEn,
-        'calories': snapCalories,
-        'protein': snapProtein,
-        'carbs': snapCarbs,
-        'fat': snapFat,
-        'ingredientsJson': snapIngredientsJson,
-      },
-      'after': {
-        'foodName': entry.foodName,
-        'foodNameEn': entry.foodNameEn,
-        'calories': entry.calories,
-        'protein': entry.protein,
-        'carbs': entry.carbs,
-        'fat': entry.fat,
-        'ingredientsJson': entry.ingredientsJson,
-      },
-      'aiResult': {
-        'foodName': result.foodName,
-        'foodNameEn': result.foodNameEn,
-        'calories': result.nutrition.calories,
-        'protein': result.nutrition.protein,
-        'carbs': result.nutrition.carbs,
-        'fat': result.nutrition.fat,
-        'confidence': result.confidence,
-      },
-    });
-    
-    return jsonEncode(history);
   }
 
   bool get _isNameChanged =>
@@ -1109,6 +1068,15 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
       }
     }
 
+    final paths = entry.allImagePaths;
+    final safePage = paths.isEmpty
+        ? 0
+        : _imagePage.clamp(0, paths.length - 1);
+    final shareHeroPath =
+        paths.isNotEmpty ? paths[safePage] : null;
+
+    final referralCode = ref.read(gamificationProvider).miroId;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ShareCardCreatorScreen(
@@ -1116,6 +1084,8 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             type: ShareCardType.foodItem,
             foodEntry: entry,
             mealBudget: mealBudget,
+            heroImagePath: shareHeroPath,
+            referralCode: referralCode,
           ),
         ),
       ),
@@ -1438,7 +1408,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField<String>(
-                          initialValue: _selectedUnit,
+                          initialValue: UnitConverter.ensureValid(_selectedUnit),
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: _ingredients.isNotEmpty
@@ -1563,7 +1533,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            '${_ingredients.length}',
+                            '${_countAllIngredientRows(_ingredients)}',
                             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.primary),
                           ),
                         ),
@@ -1595,15 +1565,57 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   if (_ingredients.isNotEmpty)
-                    ..._ingredients.asMap().entries.map((e) {
+                    ..._ingredients.asMap().entries.expand((e) {
                       final i = e.key;
                       final ing = e.value;
                       final ingName = ing['name'] as String? ?? '';
                       final ingAmt = (ing['amount'] as num?)?.toDouble() ?? 0;
-                      return KeyedSubtree(
-                        key: ValueKey('ing_${i}_${ingName}_$ingAmt'),
-                        child: _buildIngredientRow(i, ing, isDark),
-                      );
+                      final subs = _getSubsListFromMap(ing);
+                      final hasSubs = subs != null && subs.isNotEmpty;
+                      final subsExpanded =
+                          hasSubs && _expandedIngredientRoots.contains(i);
+                      final rows = <Widget>[
+                        KeyedSubtree(
+                          key: ValueKey('ing_root_${i}_${ingName}_$ingAmt'),
+                          child: _buildIngredientRow(
+                            rootIndex: i,
+                            ing: ing,
+                            isDark: isDark,
+                            isSub: false,
+                            hasCollapsibleSubs: hasSubs,
+                            subsExpanded: subsExpanded,
+                            onToggleSubs: hasSubs
+                                ? () => setState(() {
+                                      if (_expandedIngredientRoots.contains(i)) {
+                                        _expandedIngredientRoots.remove(i);
+                                      } else {
+                                        _expandedIngredientRoots.add(i);
+                                      }
+                                    })
+                                : null,
+                          ),
+                        ),
+                      ];
+                      if (subs != null && subsExpanded) {
+                        for (var si = 0; si < subs.length; si++) {
+                          final sub = subs[si];
+                          final sName = sub['name'] as String? ?? '';
+                          final sAmt = (sub['amount'] as num?)?.toDouble() ?? 0;
+                          rows.add(
+                            KeyedSubtree(
+                              key: ValueKey('ing_sub_${i}_${si}_${sName}_$sAmt'),
+                              child: _buildIngredientRow(
+                                rootIndex: i,
+                                subIndex: si,
+                                ing: sub,
+                                isDark: isDark,
+                                isSub: true,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                      return rows;
                     }),
                   if (_ingredients.isEmpty)
                     Container(
@@ -1647,166 +1659,46 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                       ),
                     ),
 
-                  // 5. Info text
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.info.withValues(alpha: 0.06),
-                      borderRadius: AppRadius.md,
-                      border: Border.all(
-                        color: AppColors.info.withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline_rounded,
-                            size: 16, color: AppColors.info),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            l10n.useProModeForDetail,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark
-                                  ? Colors.white54
-                                  : AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // 6. Re-analyze / Save / OK button
-                  if (_isNameChanged) ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: AppSizes.buttonMedium,
-                            child: ElevatedButton(
-                              onPressed: _isReanalyzing ? null : _saveAndCreateMeal,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: AppRadius.md,
-                                ),
-                              ),
-                              child: Text(
-                                l10n.saveChanges,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
+                  // 5. Save / OK / Analyze (เปลี่ยนชื่อแล้วใช้แค่บันทึก — ไม่มี Re-analyze)
+                  SizedBox(
+                    width: double.infinity,
+                    height: AppSizes.buttonMedium,
+                    child: ElevatedButton(
+                      onPressed: _isDirty
+                          ? (_hasChanges ? _saveAndCreateMeal : _save)
+                          : !_hasNutrition
+                              ? _startAnalyzeThisEntry
+                              : () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isDirty || !_hasNutrition
+                            ? AppColors.primary
+                            : isDark
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.surfaceVariant,
+                        foregroundColor: _isDirty || !_hasNutrition
+                            ? Colors.white
+                            : isDark
+                                ? Colors.white70
+                                : AppColors.textPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: AppRadius.md,
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: SizedBox(
-                            height: AppSizes.buttonMedium,
-                            child: ElevatedButton(
-                              onPressed: _isReanalyzing ? null : _reanalyze,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.premium,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: AppRadius.md,
-                                ),
-                              ),
-                              child: _isReanalyzing
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(Colors.white),
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.auto_awesome, size: 16),
-                                        const SizedBox(width: 4),
-                                        Flexible(
-                                          child: Text(
-                                            l10n.reanalyze,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 14,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 4, vertical: 1),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.2),
-                                            borderRadius: AppRadius.sm,
-                                          ),
-                                          child: const Text(
-                                            '1⚡',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    SizedBox(
-                      width: double.infinity,
-                      height: AppSizes.buttonMedium,
-                      child: ElevatedButton(
-                        onPressed: _isReanalyzing
-                            ? null
-                            : _isDirty
-                                ? (_hasChanges ? _saveAndCreateMeal : _save)
-                                : !_hasNutrition
-                                    ? _startAnalyzeThisEntry
-                                    : () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _isDirty || !_hasNutrition
-                              ? AppColors.primary
-                              : isDark
-                                  ? AppColors.surfaceVariantDark
-                                  : AppColors.surfaceVariant,
-                          foregroundColor: _isDirty || !_hasNutrition
-                              ? Colors.white
-                              : isDark
-                                  ? Colors.white70
-                                  : AppColors.textPrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.md,
-                          ),
-                        ),
-                        child: Text(
-                          _isDirty
-                              ? l10n.saveChanges
-                              : !_hasNutrition
-                                  ? l10n.analyzeSelected
-                                  : l10n.ok,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
+                      ),
+                      child: Text(
+                        _isDirty
+                            ? l10n.saveChanges
+                            : !_hasNutrition
+                                ? l10n.analyzeSelected
+                                : l10n.ok,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
                       ),
                     ),
-                  ],
+                  ),
 
                   const SizedBox(height: AppSpacing.sm),
                 ],
@@ -1818,8 +1710,16 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     );
   }
 
-  Widget _buildIngredientRow(
-      int index, Map<String, dynamic> ing, bool isDark) {
+  Widget _buildIngredientRow({
+    required int rootIndex,
+    int? subIndex,
+    required Map<String, dynamic> ing,
+    required bool isDark,
+    required bool isSub,
+    bool hasCollapsibleSubs = false,
+    bool subsExpanded = false,
+    VoidCallback? onToggleSubs,
+  }) {
     final name = ing['name'] as String? ?? '';
     final amount = (ing['amount'] as num?)?.toDouble();
     final unit = ing['unit'] as String? ?? 'g';
@@ -1827,35 +1727,90 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     final amountStr = amount != null && amount > 0
         ? amount.toStringAsFixed(amount == amount.roundToDouble() ? 0 : 1)
         : null;
+    final l10n = L10n.of(context)!;
+    final nameStyle = TextStyle(
+      fontSize: isSub ? 12 : 13,
+      fontWeight: FontWeight.w600,
+      color: isDark ? Colors.white : AppColors.textPrimary,
+    );
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: EdgeInsets.only(
+        bottom: AppSpacing.xs,
+        left: isSub ? AppSpacing.md : 0,
+      ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.06)
-              : AppColors.surfaceVariant,
+              ? Colors.white.withValues(alpha: isSub ? 0.04 : 0.06)
+              : (isSub ? AppColors.surfaceVariant.withValues(alpha: 0.65) : AppColors.surfaceVariant),
           borderRadius: AppRadius.sm,
+          border: isSub
+              ? Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : AppColors.divider.withValues(alpha: 0.5),
+                )
+              : null,
         ),
         child: Row(
           children: [
+            if (!isSub)
+              SizedBox(
+                width: 32,
+                child: hasCollapsibleSubs && onToggleSubs != null
+                    ? Tooltip(
+                        message: subsExpanded
+                            ? l10n.hideDetails
+                            : l10n.showDetails,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onToggleSubs,
+                            borderRadius: BorderRadius.circular(8),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Icon(
+                                subsExpanded
+                                    ? Icons.keyboard_arrow_down_rounded
+                                    : Icons.keyboard_arrow_right_rounded,
+                                size: 22,
+                                color: isDark
+                                    ? Colors.white54
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            if (isSub) ...[
+              Icon(
+                Icons.subdirectory_arrow_right,
+                size: 14,
+                color: isDark ? Colors.white38 : AppColors.textTertiary,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : AppColors.textPrimary,
-                    ),
-                  ),
+                  if (amountStr == null)
+                    GestureDetector(
+                      onTap: () =>
+                          _editIngredientAmount(rootIndex, subIndex: subIndex),
+                      child: Text(name, style: nameStyle),
+                    )
+                  else
+                    Text(name, style: nameStyle),
                   if (amountStr != null) ...[
                     const SizedBox(height: 2),
                     GestureDetector(
-                      onTap: () => _editIngredientAmount(index),
+                      onTap: () =>
+                          _editIngredientAmount(rootIndex, subIndex: subIndex),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -1901,19 +1856,28 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                 ],
               ),
             ),
-            GestureDetector(
-              onTap: () => _removeIngredient(index),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppColors.error.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.close_rounded,
-                  size: 14,
-                  color: AppColors.error,
+            Tooltip(
+              message: l10n.delete,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () =>
+                      _removeIngredient(rootIndex, subIndex: subIndex),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 14,
+                      color: AppColors.error,
+                    ),
+                  ),
                 ),
               ),
             ),

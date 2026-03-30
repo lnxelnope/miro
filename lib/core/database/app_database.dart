@@ -61,6 +61,8 @@ class FoodEntries extends Table {
   TextColumn get imagePath => text().nullable()();
   TextColumn get supplementaryImagePath2 => text().nullable()();
   TextColumn get supplementaryImagePath3 => text().nullable()();
+  /// ลำดับ path รูปทั้งหมดเป็น JSON `["p0","p1",...]` เมื่อมีมากกว่า 3 รูป (≤3 ใช้แค่ 3 คอลัมน์ด้านบน)
+  TextColumn get imagePathsJson => text().nullable()();
 
   // Meal type
   IntColumn get mealType => intEnum<MealType>()();
@@ -237,6 +239,8 @@ class MyMeals extends Table {
 
   TextColumn get baseServingDescription => text()();
   TextColumn get imagePath => text().nullable()();
+  TextColumn get thumbnailUrl => text().nullable()();
+  TextColumn get thumbnailFirebasePath => text().nullable()();
   TextColumn get source => text()();
   IntColumn get usageCount => integer().withDefault(const Constant(0))();
 
@@ -270,6 +274,12 @@ class MyMealIngredients extends Table {
   IntColumn get depth => integer().withDefault(const Constant(0))();
   BoolColumn get isComposite => boolean().withDefault(const Constant(false))();
   TextColumn get detail => text().nullable()();
+
+  /// Per-row ingredient photo (e.g. sub from gallery) — phase 17
+  TextColumn get ingredientImagePath => text().nullable()();
+  TextColumn get ingredientArBoundingBox => text().nullable()();
+  IntColumn get ingredientArImageWidth => integer().nullable()();
+  IntColumn get ingredientArImageHeight => integer().nullable()();
 }
 
 @DataClassName('DailySummaryData')
@@ -438,7 +448,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -454,6 +464,23 @@ class AppDatabase extends _$AppDatabase {
                 foodEntries, foodEntries.supplementaryImagePath2);
             await m.addColumn(
                 foodEntries, foodEntries.supplementaryImagePath3);
+          }
+          if (from < 4) {
+            await m.addColumn(
+                myMealIngredients, myMealIngredients.ingredientImagePath);
+            await m.addColumn(
+                myMealIngredients, myMealIngredients.ingredientArBoundingBox);
+            await m.addColumn(
+                myMealIngredients, myMealIngredients.ingredientArImageWidth);
+            await m.addColumn(
+                myMealIngredients, myMealIngredients.ingredientArImageHeight);
+          }
+          if (from < 5) {
+            await m.addColumn(foodEntries, foodEntries.imagePathsJson);
+          }
+          if (from < 6) {
+            await m.addColumn(myMeals, myMeals.thumbnailUrl);
+            await m.addColumn(myMeals, myMeals.thumbnailFirebasePath);
           }
         },
         beforeOpen: (details) async {

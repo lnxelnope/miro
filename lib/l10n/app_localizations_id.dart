@@ -1081,6 +1081,10 @@ class L10nId extends L10n {
   }
 
   @override
+  String get ingredientMainMacrosFromSubIngredientsLabel =>
+      'From sub-ingredients';
+
+  @override
   String get addSubIngredient => 'Menambahkan';
 
   @override
@@ -2749,6 +2753,12 @@ class L10nId extends L10n {
   String get seasonalQuestClaimedToday => 'Diklaim hari ini';
 
   @override
+  String get seasonalQuestMaybeLater => 'Maybe later';
+
+  @override
+  String get seasonalQuestClaimNow => 'Claim reward';
+
+  @override
   String get errorFailed => 'Gagal';
 
   @override
@@ -2840,6 +2850,26 @@ class L10nId extends L10n {
 
   @override
   String get referralAllLevelsClaimed => 'Semua level diklaim!';
+
+  @override
+  String get referralRewardsPopupTitle => 'Referral rewards';
+
+  @override
+  String get referralRewardsPopupBody =>
+      'Friends you invited unlocked Energy. Claim every pending level in one tap.';
+
+  @override
+  String referralRewardsClaimAllButton(int energy) {
+    return 'Claim +$energy Energy';
+  }
+
+  @override
+  String referralRewardsClaimedSummary(int energy) {
+    return '+$energy Energy claimed!';
+  }
+
+  @override
+  String get referralRewardsMaybeLater => 'Not now';
 
   @override
   String referralLevel(int level, String subtitle) {
@@ -3116,6 +3146,21 @@ class L10nId extends L10n {
   String get createNewMealTitle => 'Create New Meal';
 
   @override
+  String get myMealCoverPhotoLabel => 'Meal photo';
+
+  @override
+  String get myMealAddPhoto => 'Add photo';
+
+  @override
+  String get myMealChangePhoto => 'Change photo';
+
+  @override
+  String get myMealRemovePhoto => 'Remove photo';
+
+  @override
+  String get mealSourceManualShort => 'Manual';
+
+  @override
   String get mealNameLabel => 'Meal Name *';
 
   @override
@@ -3380,6 +3425,44 @@ class L10nId extends L10n {
 
   @override
   String get longPressToSelect => 'Tekan lama untuk memilih';
+
+  @override
+  String get mergeGroup => 'Group';
+
+  @override
+  String confirmMergeTitle(int count) {
+    return 'Merge $count items?';
+  }
+
+  @override
+  String get confirmMergeMessage =>
+      'Selected items will be combined into one entry. This cannot be undone.';
+
+  @override
+  String get mergeDisabledNested =>
+      'Cannot merge items that are already groups';
+
+  @override
+  String mergedSuccess(int count) {
+    return 'Merged $count items into one entry';
+  }
+
+  @override
+  String get analyzeFromPhoto => 'Analyze from photo';
+
+  @override
+  String get photoSourceTitle => 'Choose photo source';
+
+  @override
+  String get fromGallery => 'Gallery';
+
+  @override
+  String get fromCamera => 'Camera';
+
+  @override
+  String subAnalysisApplied(String name) {
+    return 'Analysis applied to $name';
+  }
 
   @override
   String get healthSyncSection => 'Sinkronisasi Kesehatan';
@@ -4216,6 +4299,9 @@ class L10nId extends L10n {
   String get shareCardDailySummaryTitle => 'Ringkasan Harian';
 
   @override
+  String get shareCardReferralCaption => 'Invite code';
+
+  @override
   String get shareCardFiber => 'Serat';
 
   @override
@@ -4236,4 +4322,67 @@ class L10nId extends L10n {
 
   @override
   String get shareCardShowBoundingBox => 'Show bounding box';
+
+  @override
+  String get shareCardStreakToggle => 'Streak';
+
+  @override
+  String get shareCardGoalPercentToggle => 'Goal %';
+
+  @override
+  String get aspectRatio16x9 => '16:9 Wide';
+
+  @override
+  String get aspectRatio9x16 => '9:16 Vertical';
+
+  @override
+  String get aspectRatio1x1 => '1:1 Square';
+
+  @override
+  String get aspectRatioLabel => 'Aspect ratio';
+
+  @override
+  String get showServingToggle => 'Show serving size';
+
+  @override
+  String servingDisplay(String size, String unit) {
+    return '$size $unit';
+  }
+
+  @override
+  String get noServingData => 'No serving data';
+
+  @override
+  String get promoCodeTitle => 'Promo Code';
+
+  @override
+  String get promoCodeHint => 'Enter promo code';
+
+  @override
+  String get redeemButton => 'Redeem';
+
+  @override
+  String get redeemSuccess => 'Code redeemed! Reward applied.';
+
+  @override
+  String get redeemErrorInvalid => 'Invalid promo code';
+
+  @override
+  String get redeemErrorExpired => 'This code has expired';
+
+  @override
+  String get redeemErrorMaxReached => 'This code has reached its limit';
+
+  @override
+  String get redeemErrorAlreadyUsed => 'You have already used this code';
+
+  @override
+  String get redeemErrorGeneric => 'Failed to redeem code. Please try again.';
+
+  @override
+  String get parentAmountHintWithSubs => 'Scale all';
+
+  @override
+  String get parentAmountTooltip =>
+      'Change to scale all sub-ingredients proportionally';
 }

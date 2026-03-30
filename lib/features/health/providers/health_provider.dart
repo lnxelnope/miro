@@ -423,6 +423,10 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
           carbs: (data['carbs'] as num).toDouble(),
           fat: (data['fat'] as num).toDouble(),
           subIngredients: subs,
+          ingredientImagePath: data['imagePath'] as String?,
+          ingredientArBoundingBox: data['arBoundingBox'] as String?,
+          ingredientArImageWidth: (data['arImageWidth'] as num?)?.toInt(),
+          ingredientArImageHeight: (data['arImageHeight'] as num?)?.toInt(),
         );
       }
 
@@ -441,7 +445,7 @@ class FoodEntriesNotifier extends StateNotifier<AsyncValue<List<FoodEntry>>> {
             name: mealName,
             nameEn: mealNameEn,
             baseServingDescription: servingDescription,
-            imagePath: imagePath,
+            newImagePath: imagePath,
             ingredients: inputs,
           );
           AppLogger.info(

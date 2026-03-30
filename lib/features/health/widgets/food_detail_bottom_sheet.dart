@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,11 +13,14 @@ import '../../../core/ai/gemini_service.dart';
 import '../../../core/ar_scale/models/detected_object_label.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 import '../providers/my_meal_provider.dart';
 import '../../profile/providers/profile_provider.dart';
+import '../../energy/providers/gamification_provider.dart';
 import '../../sharing/models/share_card_config.dart';
 import '../../sharing/presentation/share_card_creator_screen.dart';
 import '../../sharing/widgets/budget_meter.dart';
@@ -49,6 +53,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   bool _ingredientsExpanded = false;
   final Set<int> _expandedSubIndices = {};
 
+  /// หน้ารูปปัจจุบัน (หลายรูป) — ใช้กับแชร์การ์ดให้ตรงกับรูปที่กำลังดู
+  int _detailImagePage = 0;
+
   List<IngredientDetail>? _cachedIngredients;
   bool _loadedFromMeal = false;
 
@@ -56,6 +63,14 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   void initState() {
     super.initState();
     _loadIngredients();
+  }
+
+  @override
+  void didUpdateWidget(covariant FoodDetailBottomSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.entry.id != widget.entry.id) {
+      _detailImagePage = 0;
+    }
   }
 
   void _loadIngredients() {
@@ -180,6 +195,249 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
     }
   }
 
+  Widget _buildDetailImageSection(FoodEntry entry) {
+    final paths =
+        entry.allImagePaths.where((p) => p.trim().isNotEmpty).toList();
+
+    if (paths.length <= 1) {
+      return GestureDetector(
+        onTap: () => showFoodEntryImage(context, entry),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              FoodEntryImageWithOverlay(
+                entry: entry,
+                width: double.infinity,
+                height: 220,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.4),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (entry.isVerified)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: _buildVerifiedChip(),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: 220,
+      child: Stack(
+        children: [
+          PageView.builder(
+            itemCount: paths.length,
+            onPageChanged: (i) => setState(() => _detailImagePage = i),
+            itemBuilder: (_, i) {
+              final path = paths[i];
+              final fileOk = File(path).existsSync();
+              final file = File(path);
+              final labels = ArImageDetectionData.labelsForImage(
+                  entry.arLabelsJson, i);
+              final imgSize =
+                  ArImageDetectionData.imageSizeForImage(entry.arLabelsJson, i);
+              final imgW = imgSize?.width ?? entry.arImageWidth;
+              final imgH = imgSize?.height ?? entry.arImageHeight;
+              final hasOverlay =
+                  labels.isNotEmpty && imgW != null && imgH != null;
+
+              return GestureDetector(
+                onTap: fileOk
+                    ? () => _showFullScreenDetailImage(file, imageIndex: i)
+                    : null,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 220,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (fileOk)
+                          Image.file(
+                            file,
+                            width: double.infinity,
+                            height: 220,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.broken_image, size: 40),
+                            ),
+                          )
+                        else
+                          Container(
+                            color: Colors.grey.shade300,
+                            child: const Icon(Icons.broken_image, size: 40),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.4),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (hasOverlay)
+                          CustomPaint(
+                            painter: BoundingBoxPainter(
+                              labels: labels,
+                              imageWidth: imgW,
+                              imageHeight: imgH,
+                              boxFit: BoxFit.cover,
+                            ),
+                          ),
+                        if (entry.isVerified)
+                          Positioned(
+                            top: 12,
+                            right: 12,
+                            child: _buildVerifiedChip(),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(paths.length, (i) {
+                final active = i == _detailImagePage;
+                return Container(
+                  width: active ? 20 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: active
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.4),
+                  ),
+                );
+              }),
+            ),
+          ),
+          Positioned(
+            top: 6,
+            left: 6,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${_detailImagePage + 1}/${paths.length}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenDetailImage(File file, {int imageIndex = 0}) {
+    final entry = widget.entry;
+    final labels =
+        ArImageDetectionData.labelsForImage(entry.arLabelsJson, imageIndex);
+    final imgSize =
+        ArImageDetectionData.imageSizeForImage(entry.arLabelsJson, imageIndex);
+    final imgW = imgSize?.width ?? entry.arImageWidth;
+    final imgH = imgSize?.height ?? entry.arImageHeight;
+    final hasOverlay = labels.isNotEmpty && imgW != null && imgH != null;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.of(ctx).pop(),
+              ),
+            ),
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(bottom: Radius.circular(16)),
+              child: SizedBox(
+                width: MediaQuery.of(ctx).size.width - 32,
+                height: MediaQuery.of(ctx).size.height * 0.75,
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: hasOverlay
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.file(file, fit: BoxFit.contain),
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: BoundingBoxPainter(
+                                  labels: labels,
+                                  imageWidth: imgW,
+                                  imageHeight: imgH,
+                                  boxFit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Image.file(file, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCloseButton(bool isDark) {
     return GestureDetector(
       onTap: () => Navigator.pop(context),
@@ -247,48 +505,9 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === Image (if available) — tap to view full screen, tap again to close ===
+                  // === Image(s) — หลายรูปเลื่อนได้; แชร์ใช้รูปหน้าปัจจุบัน ===
                   if (hasImage) ...[
-                    GestureDetector(
-                      onTap: () => showFoodEntryImage(context, entry),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          children: [
-                            FoodEntryImageWithOverlay(
-                              entry: entry,
-                              width: double.infinity,
-                              height: 220,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              height: 60,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withValues(alpha: 0.4),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                          if (entry.isVerified)
-                            Positioned(
-                              top: 12,
-                              right: 12,
-                              child: _buildVerifiedChip(),
-                            ),
-                        ],
-                      ),
-                    ),
-                    ),
+                    _buildDetailImageSection(entry),
                     const SizedBox(height: 16),
                   ],
 
@@ -822,13 +1041,34 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
   // ============================================================
   // Parse Ingredients from JSON
   // ============================================================
+  IngredientDetail _ingredientDetailFromNode(IngredientNode n) {
+    return IngredientDetail(
+      name: n.name,
+      nameEn: n.nameEn,
+      detail: null,
+      amount: n.amount,
+      unit: n.unit,
+      calories: n.calories,
+      protein: n.protein,
+      carbs: n.carbs,
+      fat: n.fat,
+      subIngredients: n.subIngredients.isEmpty
+          ? null
+          : n.subIngredients.map(_ingredientDetailFromNode).toList(),
+    );
+  }
+
   List<IngredientDetail> _parseIngredientsFromJson(FoodEntry entry) {
     if (entry.ingredientsJson == null || entry.ingredientsJson!.isEmpty) {
       return [];
     }
     try {
-      final List<dynamic> list = jsonDecode(entry.ingredientsJson!);
-      return list.map((e) => IngredientDetail.fromJson(e)).toList();
+      final parsed = parseIngredientsJson(entry.ingredientsJson);
+      final doc = parsed.documentV2;
+      if (doc != null && doc.mainIngredients.isNotEmpty) {
+        return doc.mainIngredients.map(_ingredientDetailFromNode).toList();
+      }
+      return [];
     } catch (e) {
       AppLogger.warn('Failed to parse ingredientsJson: $e');
       return [];
@@ -1386,6 +1626,19 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
       }
     }
 
+    final paths =
+        entry.allImagePaths.where((p) => p.trim().isNotEmpty).toList();
+    final safePage =
+        paths.isEmpty ? 0 : _detailImagePage.clamp(0, paths.length - 1);
+    final rawHero = paths.isNotEmpty ? paths[safePage] : null;
+    final shareHeroPath = rawHero != null &&
+            rawHero.isNotEmpty &&
+            File(rawHero).existsSync()
+        ? rawHero
+        : null;
+
+    final referralCode = ref.read(gamificationProvider).miroId;
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => ShareCardCreatorScreen(
@@ -1393,6 +1646,8 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
             type: ShareCardType.foodItem,
             foodEntry: entry,
             mealBudget: mealBudget,
+            heroImagePath: shareHeroPath,
+            referralCode: referralCode,
           ),
         ),
       ),

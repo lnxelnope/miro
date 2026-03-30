@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/constants/enums.dart';
 import '../providers/my_meal_provider.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Bottom sheet สำหรับบันทึกอาหารจาก MyMeal
@@ -421,16 +421,32 @@ class _LogFromMealSheetState extends ConsumerState<LogFromMealSheet> {
 
       String? ingredientsJsonStr;
       if (tree.isNotEmpty) {
-        ingredientsJsonStr = jsonEncode(ingredientTreeToJsonMaps(tree));
+        final maps = ingredientTreeToJsonMaps(tree);
+        ingredientsJsonStr =
+            serializeIngredientsV2(legacyListToV2(maps));
       }
 
       final logNow = DateTime.now();
+      final m = widget.meal;
+      final mealImagePath = m.hasMealLocalImage ? m.imagePath : null;
+      final thumbUrl = m.thumbnailUrl;
+      final thumbUrlTrim = thumbUrl != null && thumbUrl.trim().isNotEmpty
+          ? thumbUrl.trim()
+          : null;
+      final thumbPath = m.thumbnailFirebasePath;
+      final thumbPathTrim = thumbPath != null && thumbPath.trim().isNotEmpty
+          ? thumbPath.trim()
+          : null;
+
       final entry = FoodEntry(
         id: 0,
         foodName: widget.meal.name,
         foodNameEn: widget.meal.nameEn,
         mealType: _selectedMealType,
         timestamp: logNow,
+        imagePath: mealImagePath,
+        thumbnailUrl: thumbUrlTrim,
+        thumbnailFirebasePath: thumbPathTrim,
         servingSize: _servingSize,
         servingUnit: widget.meal.parsedServingUnit,
         calories: _calories,

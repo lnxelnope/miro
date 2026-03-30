@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../models/share_card_config.dart';
+import 'share_card_brand_badge.dart';
+import 'share_card_referral_line.dart';
 
 class ShareCardDailySummary extends StatelessWidget {
   final ShareCardConfig config;
@@ -17,19 +19,23 @@ class ShareCardDailySummary extends StatelessWidget {
 
     final hasFoodPhotos = config.selectedFoodPhotos.isNotEmpty;
 
+    final cardSize = config.logicalSize;
+    final s = config.layoutScale;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: SizedBox(
-        width: 1080 / 3,
-        height: 1350 / 3,
+        width: cardSize.width,
+        height: cardSize.height,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Background
             if (hasHero)
-              Image.file(File(config.heroImagePath!), fit: BoxFit.cover)
+              Positioned.fill(
+                child: Image.file(File(config.heroImagePath!), fit: BoxFit.cover),
+              )
             else if (hasFoodPhotos)
-              _buildFoodCollage()
+              Positioned.fill(child: _buildFoodCollage())
             else
               Container(
                 decoration: const BoxDecoration(
@@ -41,7 +47,6 @@ class ShareCardDailySummary extends StatelessWidget {
                 ),
               ),
 
-            // Gradient scrim
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -60,11 +65,10 @@ class ShareCardDailySummary extends StatelessWidget {
               ),
             ),
 
-            // Header
             Positioned(
-              top: 14,
-              left: 16,
-              right: 16,
+              top: 14 * s,
+              left: 16 * s,
+              right: 16 * s,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -75,7 +79,7 @@ class ShareCardDailySummary extends StatelessWidget {
                         Text(
                           l10n.shareCardDailySummaryTitle,
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 18 * s,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             letterSpacing: 0.5,
@@ -85,7 +89,7 @@ class ShareCardDailySummary extends StatelessWidget {
                           Text(
                             _formatDate(context, config.date!),
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 11 * s,
                               color: Colors.white.withValues(alpha: 0.6),
                               letterSpacing: 1,
                             ),
@@ -93,117 +97,132 @@ class ShareCardDailySummary extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  _buildBrandBadge(),
+                  SizedBox(width: 8 * s),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ShareCardBrandBadge(layoutScale: s),
+                      ShareCardReferralLine(
+                        referralCode: config.referralCode,
+                        layoutScale: s,
+                        align: CrossAxisAlignment.end,
+                        compactBelowLogo: true,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
 
-            // Bottom content
             Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14,
+              left: 16 * s,
+              right: 16 * s,
+              bottom: 14 * s,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Kcal + Macro row
                   if (config.showCalories || config.showMacros)
                     Row(
                       children: [
                         if (config.showCalories && config.totalCalories != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 6 * s),
                             decoration: BoxDecoration(
                               color: const Color(0xFF4CAF50),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20 * s),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   _fmtNum(config.totalCalories!),
-                                  style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white,
+                                  style: TextStyle(
+                                    fontSize: 16 * s,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                const SizedBox(width: 3),
+                                SizedBox(width: 3 * s),
                                 Text(
                                   l10n.kcal.toUpperCase(),
-                                  style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Colors.white70, letterSpacing: 1),
+                                  style: TextStyle(
+                                    fontSize: 8 * s,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white70,
+                                    letterSpacing: 1,
+                                  ),
                                 ),
                                 if (config.showGoalProgress && config.goalPercent != null) ...[
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 4 * s),
                                   Icon(
                                     config.goalPercent! <= 100 ? Icons.check_circle : Icons.info_outline,
-                                    size: 14,
+                                    size: 14 * s,
                                     color: Colors.white70,
                                   ),
                                 ],
                               ],
                             ),
                           ),
-                        if (config.showCalories && config.showMacros) const SizedBox(width: 8),
+                        if (config.showCalories && config.showMacros) SizedBox(width: 8 * s),
                         if (config.showMacros)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 6 * s),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20 * s),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                _macroText('P', config.totalProtein ?? 0),
-                                const SizedBox(width: 10),
-                                _macroText('C', config.totalCarbs ?? 0),
-                                const SizedBox(width: 10),
-                                _macroText('F', config.totalFat ?? 0),
+                                _macroText('P', config.totalProtein ?? 0, s),
+                                SizedBox(width: 10 * s),
+                                _macroText('C', config.totalCarbs ?? 0, s),
+                                SizedBox(width: 10 * s),
+                                _macroText('F', config.totalFat ?? 0, s),
                               ],
                             ),
                           ),
                       ],
                     ),
 
-                  // Micros
                   if (config.showMicros && _hasMicros) ...[
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6 * s),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 5 * s),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(12 * s),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           if (config.totalFiber != null && config.totalFiber! > 0)
-                            _microText(l10n.shareCardFiber, config.totalFiber!, 'g'),
+                            _microText(l10n.shareCardFiber, config.totalFiber!, 'g', s),
                           if (config.totalSugar != null && config.totalSugar! > 0) ...[
-                            const SizedBox(width: 10),
-                            _microText(l10n.shareCardSugar, config.totalSugar!, 'g'),
+                            SizedBox(width: 10 * s),
+                            _microText(l10n.shareCardSugar, config.totalSugar!, 'g', s),
                           ],
                           if (config.totalSodium != null && config.totalSodium! > 0) ...[
-                            const SizedBox(width: 10),
-                            _microText(l10n.shareCardSodium, config.totalSodium!, 'mg'),
+                            SizedBox(width: 10 * s),
+                            _microText(l10n.shareCardSodium, config.totalSodium!, 'mg', s),
                           ],
                         ],
                       ),
                     ),
                   ],
 
-                  // Streak
                   if (config.showStreak && config.streakDays != null && config.streakDays! > 0) ...[
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6 * s),
                     Row(
                       children: [
-                        const Text('🔥', style: TextStyle(fontSize: 14)),
-                        const SizedBox(width: 4),
+                        Text('🔥', style: TextStyle(fontSize: 14 * s)),
+                        SizedBox(width: 4 * s),
                         Text(
                           l10n.shareCardDayStreak(config.streakDays!),
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TextStyle(
+                            fontSize: 12 * s,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                             letterSpacing: 0.5,
@@ -269,38 +288,26 @@ class ShareCardDailySummary extends StatelessWidget {
     );
   }
 
-  Widget _buildBrandBadge() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: Image.asset(
-        'assets/icon/logo_with_store.png',
-        width: 92,
-        height: 92,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  Widget _macroText(String prefix, double value) {
+  Widget _macroText(String prefix, double value, double s) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           '${value.toInt()}',
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+          style: TextStyle(fontSize: 13 * s, fontWeight: FontWeight.w700, color: Colors.white),
         ),
         Text(
           prefix,
-          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.5)),
+          style: TextStyle(fontSize: 9 * s, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.5)),
         ),
       ],
     );
   }
 
-  Widget _microText(String name, double value, String unit) {
+  Widget _microText(String name, double value, String unit, double s) {
     return Text(
       '$name ${value.toInt()}$unit',
-      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.7)),
+      style: TextStyle(fontSize: 10 * s, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.7)),
     );
   }
 

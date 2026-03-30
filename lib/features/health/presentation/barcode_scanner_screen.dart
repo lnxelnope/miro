@@ -11,6 +11,9 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/ai/gemini_service.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
 import '../../../l10n/app_localizations.dart';
 import '../providers/health_provider.dart';
 import '../providers/my_meal_provider.dart';
@@ -439,6 +442,17 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
         onConfirm: (confirmedData) async {
           // สร้าง FoodEntry
           final barcodeNow = DateTime.now();
+          String? ingredientsJsonStr;
+          IngredientsDocumentV2? ingDoc;
+          final v2 = confirmedData.ingredientsJsonV2;
+          if (v2 != null && v2.isNotEmpty) {
+            ingredientsJsonStr = v2;
+            ingDoc = parseIngredientsJson(v2).documentV2;
+          } else if (confirmedData.ingredientsDetail != null &&
+              confirmedData.ingredientsDetail!.isNotEmpty) {
+            ingDoc = legacyListToV2(confirmedData.ingredientsDetail!);
+            ingredientsJsonStr = serializeIngredientsV2(ingDoc);
+          }
           final entry = FoodEntry(
             id: 0,
             foodName: confirmedData.foodName,
@@ -465,6 +479,7 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             isVerified: true,
             notes: 'Barcode scan: $barcodeValue',
             searchMode: FoodSearchMode.product,
+            ingredientsJson: ingredientsJsonStr,
             isDeleted: false,
             isGroupOriginal: false,
             editCount: 0,
@@ -474,6 +489,9 @@ class _BarcodeScannerScreenState extends ConsumerState<BarcodeScannerScreen> {
             createdAt: barcodeNow,
             updatedAt: barcodeNow,
           );
+          if (ingDoc != null) {
+            applyIngredientsRollupToFoodEntry(entry, ingDoc);
+          }
 
           final notifier = ref.read(foodEntriesNotifierProvider.notifier);
           await notifier.addFoodEntry(entry);

@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -15,7 +16,12 @@ import '../providers/my_meal_provider.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 import '../../../core/database/app_database.dart';
+import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
+import '../../../core/widgets/ingredient_thumb.dart';
 
 // ===== Editable Ingredient Row Model =====
 class _EditableIngredient {
@@ -32,6 +38,11 @@ class _EditableIngredient {
 
   List<_EditableIngredient> subIngredients = [];
 
+  String? imagePath;
+  String? arBoundingBox;
+  int? arImageWidth;
+  int? arImageHeight;
+
   _EditableIngredient({
     required String name,
     this.nameEn,
@@ -42,6 +53,10 @@ class _EditableIngredient {
     required this.carbs,
     required this.fat,
     List<_EditableIngredient>? subIngredients,
+    this.imagePath,
+    this.arBoundingBox,
+    this.arImageWidth,
+    this.arImageHeight,
   })  : nameController = TextEditingController(text: name),
         amountController = TextEditingController(
             text: amount > 0 ? amount.toStringAsFixed(0) : ''),
@@ -74,7 +89,9 @@ class _EditableIngredient {
       final ratio = amt / baseAmount;
       for (final sub in subIngredients) {
         final newSubAmt = sub.baseAmount * ratio;
-        sub.amountController.text = newSubAmt.toStringAsFixed(0);
+        sub.amountController.text = newSubAmt >= 10
+            ? newSubAmt.round().toString()
+            : newSubAmt.toStringAsFixed(1);
         sub.calories = sub.baseCalories * newSubAmt;
         sub.protein = sub.baseProtein * newSubAmt;
         sub.carbs = sub.baseCarbs * newSubAmt;
@@ -102,6 +119,14 @@ class _EditableIngredient {
       'carbs': carbs,
       'fat': fat,
     };
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      map['imagePath'] = imagePath;
+    }
+    if (arBoundingBox != null && arBoundingBox!.isNotEmpty) {
+      map['arBoundingBox'] = arBoundingBox;
+    }
+    if (arImageWidth != null) map['arImageWidth'] = arImageWidth;
+    if (arImageHeight != null) map['arImageHeight'] = arImageHeight;
     if (subIngredients.isNotEmpty) {
       map['sub_ingredients'] =
           subIngredients.map((sub) => sub.toMap()).toList();
@@ -122,6 +147,9 @@ class _FoodSuggestion {
   final double servingSize;
   final String servingUnit;
   final int? myMealId;
+  final String? myMealImagePath;
+  final String? myMealThumbnailUrl;
+  final String? myMealThumbnailFirebasePath;
 
   const _FoodSuggestion({
     required this.name,
@@ -134,6 +162,9 @@ class _FoodSuggestion {
     this.servingSize = 1,
     this.servingUnit = 'serving',
     this.myMealId,
+    this.myMealImagePath,
+    this.myMealThumbnailUrl,
+    this.myMealThumbnailFirebasePath,
   });
 }
 
@@ -150,6 +181,8 @@ class AddFoodBottomSheet extends ConsumerStatefulWidget {
   final double? prefillServingSize;
   final String? prefillServingUnit;
   final int? prefillMyMealId;
+  /// ถ้ามี (เช่น คัดลอกจากรายการ) โหลดวัตถุดิบผ่าน [parseIngredientsJson] (legacy หรือ v2)
+  final String? prefillIngredientsJson;
 
   const AddFoodBottomSheet({
     super.key,
@@ -164,6 +197,7 @@ class AddFoodBottomSheet extends ConsumerStatefulWidget {
     this.prefillServingSize,
     this.prefillServingUnit,
     this.prefillMyMealId,
+    this.prefillIngredientsJson,
   });
 
   @override
@@ -184,6 +218,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
   FoodSearchMode _searchMode = FoodSearchMode.normal;
   bool _filledFromDb = false;
   int? _selectedMyMealId;
+  /// รูปจาก MyMeal ที่เลือก (ส่งเข้า FoodEntry ตอนบันทึก)
+  String? _myMealCoverImagePath;
+  String? _myMealCoverThumbnailUrl;
+  String? _myMealCoverThumbnailFirebasePath;
   final bool _isAnalyzing = false;
   bool _nutritionExpanded = false;
   bool _showDetails = false;
@@ -208,6 +246,82 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     _selectedMealType = widget.mealType;
     _servingSizeController.addListener(_onServingSizeChanged);
     _applyPrefill();
+    _loadIngredientsFromPrefillJson();
+    if (widget.prefillMyMealId != null) {
+      unawaited(_hydrateMyMealCoverFromId(widget.prefillMyMealId!));
+    }
+  }
+
+  static String? _trimOrNull(String? v) {
+    if (v == null) return null;
+    final t = v.trim();
+    return t.isEmpty ? null : t;
+  }
+
+  Future<void> _hydrateMyMealCoverFromId(int mealId) async {
+    final meal = await (DatabaseService.db.select(DatabaseService.db.myMeals)
+          ..where((tbl) => tbl.id.equals(mealId)))
+        .getSingleOrNull();
+    if (!mounted || meal == null) return;
+    setState(() {
+      _myMealCoverImagePath = meal.hasMealLocalImage ? meal.imagePath : null;
+      _myMealCoverThumbnailUrl = _trimOrNull(meal.thumbnailUrl);
+      _myMealCoverThumbnailFirebasePath =
+          _trimOrNull(meal.thumbnailFirebasePath);
+    });
+  }
+
+  void _syncMyMealCoverFromSuggestion(_FoodSuggestion s) {
+    if (s.source == 'meal' && s.myMealId != null) {
+      _myMealCoverImagePath = s.myMealImagePath;
+      _myMealCoverThumbnailUrl = _trimOrNull(s.myMealThumbnailUrl);
+      _myMealCoverThumbnailFirebasePath =
+          _trimOrNull(s.myMealThumbnailFirebasePath);
+    } else {
+      _myMealCoverImagePath = null;
+      _myMealCoverThumbnailUrl = null;
+      _myMealCoverThumbnailFirebasePath = null;
+    }
+  }
+
+  _EditableIngredient _editableIngredientFromNode(IngredientNode n) {
+    return _EditableIngredient(
+      name: n.name,
+      nameEn: n.nameEn,
+      amount: n.amount,
+      unit: UnitConverter.ensureValid(n.unit),
+      calories: n.calories,
+      protein: n.protein,
+      carbs: n.carbs,
+      fat: n.fat,
+      subIngredients:
+          n.subIngredients.map(_editableIngredientFromNode).toList(),
+      imagePath: n.imagePath,
+      arBoundingBox: n.arBoundingBox,
+      arImageWidth: n.arImageWidth,
+      arImageHeight: n.arImageHeight,
+    );
+  }
+
+  void _loadIngredientsFromPrefillJson() {
+    final raw = widget.prefillIngredientsJson;
+    if (raw == null || raw.trim().isEmpty) return;
+    final parsed = parseIngredientsJson(raw);
+    final doc = parsed.documentV2;
+    if (doc == null || doc.mainIngredients.isEmpty) {
+      if (parsed.kind == IngredientsJsonKind.invalidJson) {
+        AppLogger.warn(
+            'AddFood prefill ingredientsJson invalid', parsed.decodeError);
+      }
+      return;
+    }
+    _ingredients.clear();
+    for (final node in doc.mainIngredients) {
+      _ingredients.add(_editableIngredientFromNode(node));
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _recalculateFromIngredients();
+    });
   }
 
   void _applyPrefill() {
@@ -337,6 +451,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           servingSize: meal.parsedServingSize,
           servingUnit: meal.parsedServingUnit,
           myMealId: meal.id,
+          myMealImagePath: meal.hasMealLocalImage ? meal.imagePath : null,
+          myMealThumbnailUrl: meal.thumbnailUrl,
+          myMealThumbnailFirebasePath: meal.thumbnailFirebasePath,
         ));
       }
     }
@@ -386,6 +503,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       _fatController.text = suggestion.fat.round().toString();
       _filledFromDb = true;
       _selectedMyMealId = suggestion.myMealId;
+      _syncMyMealCoverFromSuggestion(suggestion);
       // Show details for both meal and ingredient
       if (suggestion.source == 'meal' || suggestion.source == 'ingredient') {
         _showDetails = true;
@@ -498,6 +616,14 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     parent.protein = totalP;
     parent.carbs = totalC;
     parent.fat = totalF;
+  }
+
+  void _syncBaseValuesAfterSubEdit(_EditableIngredient parent) {
+    if (parent.subIngredients.isEmpty) return;
+    for (final s in parent.subIngredients) {
+      s.saveBaseValues();
+    }
+    parent.saveBaseValues();
   }
 
   // ============================================================
@@ -730,6 +856,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
+          _syncBaseValuesAfterSubEdit(parentRow);
           _recalculateFromIngredients();
         });
         if (mounted) {
@@ -798,6 +925,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           sub.isLoading = false;
           sub.saveBaseValues();
           _recalculateParentFromSubs(parentRow);
+          _syncBaseValuesAfterSubEdit(parentRow);
           _recalculateFromIngredients();
         });
 
@@ -1499,6 +1627,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   if (_filledFromDb) {
                     _filledFromDb = false;
                     _selectedMyMealId = null;
+                    _myMealCoverImagePath = null;
+                    _myMealCoverThumbnailUrl = null;
+                    _myMealCoverThumbnailFirebasePath = null;
                   }
                 });
               }
@@ -1535,6 +1666,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                           setState(() {
                             _filledFromDb = false;
                             _selectedMyMealId = null;
+                            _myMealCoverImagePath = null;
+                            _myMealCoverThumbnailUrl = null;
+                            _myMealCoverThumbnailFirebasePath = null;
                             _showDetails = false;
                             _baseCalories = 0;
                             _baseProtein = 0;
@@ -1654,6 +1788,16 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           // Row 1: Name (Autocomplete) + AI search + delete
           Row(
             children: [
+              IngredientThumb(
+                imagePath: row.imagePath,
+                onTap: (row.imagePath != null && row.imagePath!.isNotEmpty)
+                    ? () => IngredientThumb.showFullScreen(
+                          context,
+                          row.imagePath!,
+                          arBoundingBox: row.arBoundingBox,
+                        )
+                    : null,
+              ),
               Expanded(
                 child: Autocomplete<Ingredient>(
                   key: ValueKey('ac_${row.key}'),
@@ -1807,13 +1951,24 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   onChanged: (_) {
                     setState(() {
                       row.recalculate();
+                      _recalculateParentFromSubs(row);
                     });
                     _recalculateFromIngredients();
                   },
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: L10n.of(context)!.amountHint,
+                    hintText: row.subIngredients.isNotEmpty
+                        ? L10n.of(context)!.parentAmountHintWithSubs
+                        : L10n.of(context)!.amountHint,
                     hintStyle: TextStyle(fontSize: 11, color: isDark ? Colors.white38 : AppColors.textTertiary),
+                    suffixIcon: row.subIngredients.isNotEmpty
+                        ? Tooltip(
+                            message: L10n.of(context)!.parentAmountTooltip,
+                            child: Icon(Icons.sync_alt, size: 14,
+                                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                          )
+                        : null,
+                    suffixIconConstraints: const BoxConstraints(minWidth: 24, minHeight: 24),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
@@ -1829,7 +1984,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  initialValue: UnitConverter.ensureValid(row.unit),
+                  value: UnitConverter.ensureValid(row.unit),
                   isDense: true,
                   isExpanded: true,
                   style: TextStyle(fontSize: 12, color: isDark ? AppColors.textPrimaryDark : Colors.black87),
@@ -1841,8 +1996,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: AppRadius.sm,
-                      borderSide: const BorderSide(color: AppColors.divider),
+                        borderRadius: AppRadius.sm,
+                        borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                   items: UnitConverter.compactDropdownItems,
@@ -1852,23 +2007,57 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                 ),
               ),
               const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${row.calories.toInt()} kcal',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.health),
-                  ),
-                  Text(
-                    'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+              // D-01/D-04: main ที่มี sub — แสดง macro เป็นช่อง readOnly (แก้ที่แถวย่อย)
+              if (row.subIngredients.isNotEmpty)
+                SizedBox(
+                  width: 132,
+                  child: TextFormField(
+                    key: ValueKey(
+                        'main_macro_${row.key}_${row.calories}_${row.protein}_${row.carbs}_${row.fat}'),
+                    readOnly: true,
+                    initialValue:
+                        '${row.calories.toInt()} kcal\nP:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                    maxLines: 2,
                     style: TextStyle(
-                        fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.health),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText:
+                          L10n.of(context)!.ingredientMainMacrosFromSubIngredientsLabel,
+                      labelStyle: TextStyle(
+                          fontSize: 9,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
+                      border: OutlineInputBorder(borderRadius: AppRadius.sm),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: AppRadius.sm,
+                        borderSide: const BorderSide(color: AppColors.divider),
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                )
+              else
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${row.calories.toInt()} kcal',
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.health),
+                    ),
+                    Text(
+                      'P:${row.protein.toInt()} C:${row.carbs.toInt()} F:${row.fat.toInt()}',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
+                    ),
+                  ],
+                ),
             ],
           ),
 
@@ -1989,6 +2178,16 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   shape: BoxShape.circle,
                 ),
               ),
+              IngredientThumb(
+                imagePath: sub.imagePath,
+                onTap: (sub.imagePath != null && sub.imagePath!.isNotEmpty)
+                    ? () => IngredientThumb.showFullScreen(
+                          context,
+                          sub.imagePath!,
+                          arBoundingBox: sub.arBoundingBox,
+                        )
+                    : null,
+              ),
               Expanded(
                 child: Autocomplete<Ingredient>(
                   key: ValueKey('sub_ac_${sub.key}_$subIdx'),
@@ -2024,6 +2223,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                       sub.isFromDb = true;
                       sub.saveBaseValues();
                       _recalculateParentFromSubs(parentRow);
+                      _syncBaseValuesAfterSubEdit(parentRow);
                       _recalculateFromIngredients();
                     });
                   },
@@ -2124,6 +2324,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   setState(() {
                     parentRow.subIngredients.removeAt(subIdx);
                     _recalculateParentFromSubs(parentRow);
+                    _syncBaseValuesAfterSubEdit(parentRow);
                     _recalculateFromIngredients();
                   });
                 },
@@ -2149,6 +2350,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     setState(() {
                       sub.recalculate();
                       _recalculateParentFromSubs(parentRow);
+                      _syncBaseValuesAfterSubEdit(parentRow);
                       _recalculateFromIngredients();
                     });
                   },
@@ -2226,6 +2428,9 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       _servingUnit = 'serving';
       _filledFromDb = false;
       _selectedMyMealId = null;
+      _myMealCoverImagePath = null;
+      _myMealCoverThumbnailUrl = null;
+      _myMealCoverThumbnailFirebasePath = null;
       _showDetails = false;
       _ingredients.clear();
     });
@@ -2252,8 +2457,11 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     final timestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     String? ingredientsJsonStr;
+    IngredientsDocumentV2? ingredientsDoc;
     if (_hasIngredients) {
-      ingredientsJsonStr = jsonEncode(_ingredients.map((e) => e.toMap()).toList());
+      ingredientsDoc =
+          legacyListToV2(_ingredients.map((e) => e.toMap()).toList());
+      ingredientsJsonStr = serializeIngredientsV2(ingredientsDoc);
     }
 
     final entry = FoodEntry(
@@ -2261,6 +2469,11 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       foodName: foodName,
       mealType: _selectedMealType,
       timestamp: timestamp,
+      imagePath: _selectedMyMealId != null ? _myMealCoverImagePath : null,
+      thumbnailUrl:
+          _selectedMyMealId != null ? _myMealCoverThumbnailUrl : null,
+      thumbnailFirebasePath:
+          _selectedMyMealId != null ? _myMealCoverThumbnailFirebasePath : null,
       servingSize: servingSize,
       servingUnit: _servingUnit,
       calories: 0,
@@ -2271,6 +2484,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       baseProtein: 0,
       baseCarbs: 0,
       baseFat: 0,
+      myMealId: _selectedMyMealId,
       ingredientsJson: ingredientsJsonStr,
       searchMode: _searchMode,
       source: DataSource.manual,
@@ -2284,6 +2498,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       createdAt: now,
       updatedAt: now,
     );
+
+    if (ingredientsDoc != null) {
+      applyIngredientsRollupToFoodEntry(entry, ingredientsDoc);
+    }
 
     await widget.onSave(entry);
 
@@ -2329,11 +2547,13 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     final timestamp =
         DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
-    // Build ingredientsJson
+    // Build ingredientsJson (v2 + rollup ตาม codec)
     String? ingredientsJsonStr;
+    IngredientsDocumentV2? ingredientsDoc;
     if (_hasIngredients) {
-      ingredientsJsonStr =
-          jsonEncode(_ingredients.map((e) => e.toMap()).toList());
+      ingredientsDoc =
+          legacyListToV2(_ingredients.map((e) => e.toMap()).toList());
+      ingredientsJsonStr = serializeIngredientsV2(ingredientsDoc);
     } else if (_filledFromDb && _selectedMyMealId != null) {
       try {
         final tree = await ref
@@ -2372,7 +2592,8 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
             }
             return rootMap;
           }).toList();
-          ingredientsJsonStr = jsonEncode(ingredientsData);
+          ingredientsDoc = legacyListToV2(ingredientsData);
+          ingredientsJsonStr = serializeIngredientsV2(ingredientsDoc);
         }
       } catch (_) {}
     }
@@ -2383,6 +2604,11 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       foodName: finalName,
       mealType: _selectedMealType,
       timestamp: timestamp,
+      imagePath: _selectedMyMealId != null ? _myMealCoverImagePath : null,
+      thumbnailUrl:
+          _selectedMyMealId != null ? _myMealCoverThumbnailUrl : null,
+      thumbnailFirebasePath:
+          _selectedMyMealId != null ? _myMealCoverThumbnailFirebasePath : null,
       servingSize: servingSize,
       servingUnit: _servingUnit,
       calories: calories,
@@ -2408,6 +2634,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
       updatedAt: entryNow,
     );
 
+    if (ingredientsDoc != null) {
+      applyIngredientsRollupToFoodEntry(entry, ingredientsDoc);
+    }
+
     await widget.onSave(entry);
 
     // Auto-save to MyMeal + Ingredient DB if has new ingredients AND has nutrition
@@ -2431,10 +2661,11 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
     if (ingredientsJsonStr == null || ingredientsJsonStr.isEmpty) return;
 
     try {
-      final ingredientsData =
-          (jsonDecode(ingredientsJsonStr) as List<dynamic>)
-              .map((e) => e as Map<String, dynamic>)
-              .toList();
+      final parsed = parseIngredientsJson(ingredientsJsonStr);
+      final doc = parsed.documentV2;
+      if (doc == null || doc.mainIngredients.isEmpty) return;
+
+      final ingredientsData = ingredientsDocumentToMyMealInputs(doc);
 
       final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 

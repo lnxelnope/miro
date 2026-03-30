@@ -20,6 +20,10 @@ class QuickAddItem {
   final int? myMealId;
   final int? ingredientId;
   final int usageCount;
+  /// จาก MyMeal — ส่งต่อเข้า FoodEntry ตอน quick add
+  final String? myMealImagePath;
+  final String? myMealThumbnailUrl;
+  final String? myMealThumbnailFirebasePath;
 
   QuickAddItem({
     required this.name,
@@ -37,6 +41,9 @@ class QuickAddItem {
     this.myMealId,
     this.ingredientId,
     required this.usageCount,
+    this.myMealImagePath,
+    this.myMealThumbnailUrl,
+    this.myMealThumbnailFirebasePath,
   });
 }
 
@@ -53,6 +60,8 @@ final topQuickAddItemsProvider =
 
   for (final meal in topMeals) {
     if (meal.usageCount > 0) {
+      final tu = meal.thumbnailUrl;
+      final tf = meal.thumbnailFirebasePath;
       items.add(QuickAddItem(
         name: meal.name,
         emoji: '🍽️',
@@ -68,6 +77,11 @@ final topQuickAddItemsProvider =
         baseFat: meal.fatPerUnit,
         myMealId: meal.id,
         usageCount: meal.usageCount,
+        myMealImagePath: meal.hasMealLocalImage ? meal.imagePath : null,
+        myMealThumbnailUrl:
+            tu != null && tu.trim().isNotEmpty ? tu.trim() : null,
+        myMealThumbnailFirebasePath:
+            tf != null && tf.trim().isNotEmpty ? tf.trim() : null,
       ));
     }
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/cuisine_options.dart';
+import '../../../core/constants/feature_flags.dart';
 import '../../../core/utils/logger.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../health/providers/health_provider.dart';
@@ -87,11 +88,12 @@ class GreetingService {
         greetings.add(l10n.greetingCuisineTip(cuisineLabel));
       }
 
-      // 3. Energy / streak tip
-      final gamification = ref.read(gamificationProvider);
-      if (gamification.balance > 0 &&
-          gamification.currentStreak > 0) {
-        greetings.add(l10n.greetingEnergyTip(gamification.balance));
+      // 3. Energy / streak tip (hidden until streak + quest bar ship)
+      if (FeatureFlags.enableStreakQuestPromotions) {
+        final gamification = ref.read(gamificationProvider);
+        if (gamification.balance > 0 && gamification.currentStreak > 0) {
+          greetings.add(l10n.greetingEnergyTip(gamification.balance));
+        }
       }
 
       // 4. Rename photo tip

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../constants/feature_flags.dart';
 import '../services/analytics_service.dart';
 import '../services/energy_service.dart';
 import '../services/device_id_service.dart';
@@ -83,6 +84,7 @@ class GeminiService {
     Map<String, dynamic> data,
   ) {
     if (!context.mounted) return;
+    if (!FeatureFlags.enableStreakQuestPromotions) return;
 
     final dailyEnergy = data['dailyEnergy'] as int? ?? 0;
     final currentStreak = data['currentStreak'] as int? ?? 0;
@@ -1659,6 +1661,7 @@ CRITICAL RULES:
 - For complex dishes, use sub_ingredients to show composition
 - The sum of ROOT ingredient calories must EXACTLY equal total nutrition.calories
 - sub_ingredients should NOT have nested sub_ingredients (max 1 level)
+- ONE LEVEL ONLY: each sub_ingredient is a leaf — no "sub_ingredients" array inside sub_ingredients (no nested hierarchy).
 - Include a "detail" field for each ingredient describing its preparation state
 - Estimate amounts in grams/ml
 

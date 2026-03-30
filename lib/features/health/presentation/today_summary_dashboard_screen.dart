@@ -151,6 +151,7 @@ class _TodaySummaryDashboardScreenState
             streakDays: gamification.currentStreak,
             daysTracked: days,
             daysInPeriod: days,
+            referralCode: gamification.miroId,
           ),
         ),
       ),

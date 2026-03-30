@@ -1,9 +1,20 @@
+import 'dart:ui' show Size;
+
 import '../../../core/database/app_database.dart';
 
 enum ShareCardType { foodItem, dailySummary, nutritionSummary }
 
+/// Export aspect presets for share cards (9:16 vertical / 1:1 square / 16:9 wide).
+enum ShareCardAspect { ratio9x16, ratio1x1, ratio16x9 }
+
 class ShareCardConfig {
   final ShareCardType type;
+
+  /// Card frame aspect; default 9:16 vertical (Stories / short video).
+  final ShareCardAspect aspect;
+
+  /// Food-item only: show serving line on hero image.
+  final bool showServingOnImage;
 
   // Hero image (gallery pick — for daily/nutrition only)
   final String? heroImagePath;
@@ -34,6 +45,9 @@ class ShareCardConfig {
   // Streak
   final int? streakDays;
 
+  /// User referral / miroId — always shown under the logo on exported cards.
+  final String referralCode;
+
   // Summary values (for daily/nutrition)
   final double? totalCalories;
   final double? totalProtein;
@@ -47,6 +61,8 @@ class ShareCardConfig {
 
   const ShareCardConfig({
     required this.type,
+    this.aspect = ShareCardAspect.ratio9x16,
+    this.showServingOnImage = false,
     this.heroImagePath,
     this.showCalories = true,
     this.showMacros = true,
@@ -64,6 +80,7 @@ class ShareCardConfig {
     this.mealBudget,
     this.calorieGoal,
     this.streakDays,
+    this.referralCode = '',
     this.totalCalories,
     this.totalProtein,
     this.totalCarbs,
@@ -75,8 +92,33 @@ class ShareCardConfig {
     this.daysInPeriod,
   });
 
+  double get aspectRatio => switch (aspect) {
+        ShareCardAspect.ratio9x16 => 9 / 16,
+        ShareCardAspect.ratio1x1 => 1.0,
+        ShareCardAspect.ratio16x9 => 16 / 9,
+      };
+
+  /// Logical pixel size for card layout & capture (scaled by FittedBox in UI).
+  Size get logicalSize => switch (aspect) {
+        ShareCardAspect.ratio9x16 => const Size(360, 640),
+        ShareCardAspect.ratio1x1 => const Size(360, 360),
+        ShareCardAspect.ratio16x9 => const Size(360, 202.5),
+      };
+
+  /// Scale inner typography/layout vs original 360×450 card.
+  double get layoutScale {
+    const refW = 360.0;
+    const refH = 450.0;
+    final s = logicalSize;
+    final sx = s.width / refW;
+    final sy = s.height / refH;
+    return (sx < sy ? sx : sy).clamp(0.38, 1.2);
+  }
+
   ShareCardConfig copyWith({
     ShareCardType? type,
+    ShareCardAspect? aspect,
+    bool? showServingOnImage,
     String? heroImagePath,
     bool clearHeroImage = false,
     bool? showCalories,
@@ -95,6 +137,7 @@ class ShareCardConfig {
     double? mealBudget,
     double? calorieGoal,
     int? streakDays,
+    String? referralCode,
     double? totalCalories,
     double? totalProtein,
     double? totalCarbs,
@@ -107,6 +150,8 @@ class ShareCardConfig {
   }) {
     return ShareCardConfig(
       type: type ?? this.type,
+      aspect: aspect ?? this.aspect,
+      showServingOnImage: showServingOnImage ?? this.showServingOnImage,
       heroImagePath: clearHeroImage ? null : (heroImagePath ?? this.heroImagePath),
       showCalories: showCalories ?? this.showCalories,
       showMacros: showMacros ?? this.showMacros,
@@ -124,6 +169,7 @@ class ShareCardConfig {
       mealBudget: mealBudget ?? this.mealBudget,
       calorieGoal: calorieGoal ?? this.calorieGoal,
       streakDays: streakDays ?? this.streakDays,
+      referralCode: referralCode ?? this.referralCode,
       totalCalories: totalCalories ?? this.totalCalories,
       totalProtein: totalProtein ?? this.totalProtein,
       totalCarbs: totalCarbs ?? this.totalCarbs,

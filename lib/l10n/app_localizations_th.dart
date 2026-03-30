@@ -1066,6 +1066,10 @@ class L10nTh extends L10n {
   }
 
   @override
+  String get ingredientMainMacrosFromSubIngredientsLabel =>
+      'สรุปจากวัตถุดิบย่อย';
+
+  @override
   String get addSubIngredient => 'เพิ่ม';
 
   @override
@@ -2679,6 +2683,12 @@ class L10nTh extends L10n {
   String get seasonalQuestClaimedToday => 'วันนี้รับไปแล้ว';
 
   @override
+  String get seasonalQuestMaybeLater => 'ภายหลัง';
+
+  @override
+  String get seasonalQuestClaimNow => 'รับรางวัล';
+
+  @override
   String get errorFailed => 'ล้มเหลว';
 
   @override
@@ -2768,6 +2778,26 @@ class L10nTh extends L10n {
 
   @override
   String get referralAllLevelsClaimed => 'เคลมครบทุก level แล้ว!';
+
+  @override
+  String get referralRewardsPopupTitle => 'รางวัลเชิญเพื่อน';
+
+  @override
+  String get referralRewardsPopupBody =>
+      'เพื่อนที่คุณเชิญทำให้ปลดล็อกพลังงาน — กดรับทุกระดับที่ค้างในครั้งเดียว';
+
+  @override
+  String referralRewardsClaimAllButton(int energy) {
+    return 'รับ +$energy พลังงาน';
+  }
+
+  @override
+  String referralRewardsClaimedSummary(int energy) {
+    return 'รับแล้ว +$energy พลังงาน!';
+  }
+
+  @override
+  String get referralRewardsMaybeLater => 'ภายหลัง';
 
   @override
   String referralLevel(int level, String subtitle) {
@@ -3041,6 +3071,21 @@ class L10nTh extends L10n {
   String get createNewMealTitle => 'Create New Meal';
 
   @override
+  String get myMealCoverPhotoLabel => 'รูปเมนู';
+
+  @override
+  String get myMealAddPhoto => 'เพิ่มรูป';
+
+  @override
+  String get myMealChangePhoto => 'เปลี่ยนรูป';
+
+  @override
+  String get myMealRemovePhoto => 'ลบรูป';
+
+  @override
+  String get mealSourceManualShort => 'มือ';
+
+  @override
   String get mealNameLabel => 'Meal Name *';
 
   @override
@@ -3305,6 +3350,43 @@ class L10nTh extends L10n {
 
   @override
   String get longPressToSelect => 'กดค้างเพื่อเลือกรายการ';
+
+  @override
+  String get mergeGroup => 'รวมกลุ่ม';
+
+  @override
+  String confirmMergeTitle(int count) {
+    return 'รวม $count รายการ?';
+  }
+
+  @override
+  String get confirmMergeMessage =>
+      'รายการที่เลือกจะถูกรวมเป็นรายการเดียว การกระทำนี้ย้อนกลับไม่ได้';
+
+  @override
+  String get mergeDisabledNested => 'ไม่สามารถรวมรายการที่เป็นกลุ่มอยู่แล้ว';
+
+  @override
+  String mergedSuccess(int count) {
+    return 'รวม $count รายการเรียบร้อย';
+  }
+
+  @override
+  String get analyzeFromPhoto => 'วิเคราะห์จากรูป';
+
+  @override
+  String get photoSourceTitle => 'เลือกแหล่งรูป';
+
+  @override
+  String get fromGallery => 'แกลเลอรี';
+
+  @override
+  String get fromCamera => 'กล้อง';
+
+  @override
+  String subAnalysisApplied(String name) {
+    return 'นำผลวิเคราะห์ไปใช้กับ $name';
+  }
 
   @override
   String get healthSyncSection => 'เชื่อมต่อสุขภาพ';
@@ -4129,6 +4211,9 @@ class L10nTh extends L10n {
   String get shareCardDailySummaryTitle => 'สรุปรายวัน';
 
   @override
+  String get shareCardReferralCaption => 'รหัสเชิญ';
+
+  @override
   String get shareCardFiber => 'ไฟเบอร์';
 
   @override
@@ -4149,4 +4234,67 @@ class L10nTh extends L10n {
 
   @override
   String get shareCardShowBoundingBox => 'แสดงกรอบตรวจจับ';
+
+  @override
+  String get shareCardStreakToggle => 'สตรีค';
+
+  @override
+  String get shareCardGoalPercentToggle => 'เป้า %';
+
+  @override
+  String get aspectRatio16x9 => '16:9 กว้าง';
+
+  @override
+  String get aspectRatio9x16 => '9:16 แนวตั้ง';
+
+  @override
+  String get aspectRatio1x1 => '1:1 สี่เหลี่ยม';
+
+  @override
+  String get aspectRatioLabel => 'อัตราส่วนภาพ';
+
+  @override
+  String get showServingToggle => 'แสดงปริมาณ';
+
+  @override
+  String servingDisplay(String size, String unit) {
+    return '$size $unit';
+  }
+
+  @override
+  String get noServingData => 'ไม่มีข้อมูลปริมาณ';
+
+  @override
+  String get promoCodeTitle => 'โค้ดโปรโมชั่น';
+
+  @override
+  String get promoCodeHint => 'กรอกโค้ดโปรโมชั่น';
+
+  @override
+  String get redeemButton => 'ใช้โค้ด';
+
+  @override
+  String get redeemSuccess => 'ใช้โค้ดสำเร็จ! ได้รับรางวัลแล้ว';
+
+  @override
+  String get redeemErrorInvalid => 'โค้ดไม่ถูกต้อง';
+
+  @override
+  String get redeemErrorExpired => 'โค้ดนี้หมดอายุแล้ว';
+
+  @override
+  String get redeemErrorMaxReached => 'โค้ดนี้ถูกใช้ครบจำนวนแล้ว';
+
+  @override
+  String get redeemErrorAlreadyUsed => 'คุณใช้โค้ดนี้แล้ว';
+
+  @override
+  String get redeemErrorGeneric => 'ไม่สามารถใช้โค้ดได้ กรุณาลองอีกครั้ง';
+
+  @override
+  String get parentAmountHintWithSubs => 'ปรับทั้งหมด';
+
+  @override
+  String get parentAmountTooltip =>
+      'เปลี่ยนเพื่อ scale วัตถุดิบย่อยทั้งหมดตามสัดส่วน';
 }

@@ -24,7 +24,10 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../../profile/providers/profile_provider.dart';
 import '../../energy/widgets/energy_badge_riverpod.dart';
+import '../../energy/widgets/referral_rewards_popup.dart';
+import '../../energy/widgets/seasonal_quest_popup.dart';
 import '../../energy/providers/gamification_provider.dart';
+import '../../../core/models/gamification_state.dart';
 import '../widgets/feature_tour.dart';
 import '../../../core/providers/app_mode_provider.dart';
 import 'basic_mode_tab.dart';
@@ -72,6 +75,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
 
     });
+  }
+
+  /// Seasonal quest popup first, then referrer milestone Energy (ex–quest bar).
+  Future<void> _showHomeRewardPopups(GamificationState next) async {
+    if (!mounted) return;
+    final mode = ref.read(appModeProvider);
+    final allow = mode == AppMode.basic || _currentIndex == 0;
+    if (!allow) return;
+
+    await SeasonalQuestPopupPresenter.maybeShow(
+      context,
+      ref,
+      next,
+      allowShow: allow,
+    );
+    if (!mounted) return;
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted) return;
+    await ReferralRewardsPopupPresenter.maybeShow(
+      context,
+      ref,
+      ref.read(gamificationProvider),
+      allowShow: allow,
+    );
   }
 
   Future<void> _checkAndRequestPermissions() async {
@@ -203,6 +230,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // AR Scan (2) and Gallery (3) are fullscreen, IndexedStack skips them
     final stackIndex = _currentIndex <= 1 ? _currentIndex : _currentIndex - 2;
 
+    ref.listen<GamificationState>(gamificationProvider, (previous, next) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showHomeRewardPopups(next);
+      });
+    });
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -289,10 +322,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       leadingWidth: badgeWidth,
       actions: [
-        IconButton(
-          icon: const Icon(Icons.restaurant_menu_outlined),
-          tooltip: L10n.of(context)!.navMyMeals,
+        TextButton.icon(
           onPressed: _openMyMealScreen,
+          icon: const Icon(Icons.restaurant_menu_outlined, size: 22),
+          label: Text(L10n.of(context)!.navMyMeals),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).appBarTheme.foregroundColor ??
+                Theme.of(context).colorScheme.onSurface,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
         IconButton(
           icon: const Icon(Icons.person_outline),
@@ -362,6 +403,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           return;
         }
         setState(() => _currentIndex = index);
+        if (index == 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            _showHomeRewardPopups(ref.read(gamificationProvider));
+          });
+        }
       },
       type: BottomNavigationBarType.fixed,
       selectedItemColor: AppColors.primary,

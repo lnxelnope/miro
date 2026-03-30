@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
@@ -480,11 +481,13 @@ class _ImageAnalysisPreviewScreenState
     String? imagePath;
     String? supPath2;
     String? supPath3;
+    String? imagePathsJson;
     if (_hasMultiImages) {
       final paths = await _copyAllArImagesToPermanentPaths();
       imagePath = paths.isNotEmpty ? paths[0] : null;
       supPath2 = paths.length > 1 ? paths[1] : null;
       supPath3 = paths.length > 2 ? paths[2] : null;
+      imagePathsJson = paths.length > 3 ? jsonEncode(paths) : null;
     } else {
       imagePath = _hasImage
           ? (_permanentImagePath ?? _currentImageFile!.path)
@@ -544,6 +547,7 @@ class _ImageAnalysisPreviewScreenState
       imagePath: imagePath,
       supplementaryImagePath2: supPath2,
       supplementaryImagePath3: supPath3,
+      imagePathsJson: imagePathsJson,
       servingSize: quantity,
       servingUnit: _selectedUnit,
       calories: 0,
@@ -625,11 +629,13 @@ class _ImageAnalysisPreviewScreenState
     String? imagePath;
     String? supPath2;
     String? supPath3;
+    String? imagePathsJson;
     if (_hasMultiImages) {
       final paths = await _copyAllArImagesToPermanentPaths();
       imagePath = paths.isNotEmpty ? paths[0] : null;
       supPath2 = paths.length > 1 ? paths[1] : null;
       supPath3 = paths.length > 2 ? paths[2] : null;
+      imagePathsJson = paths.length > 3 ? jsonEncode(paths) : null;
     } else {
       imagePath = _hasImage
           ? (_permanentImagePath ?? _currentImageFile!.path)
@@ -650,6 +656,7 @@ class _ImageAnalysisPreviewScreenState
       imagePath: imagePath,
       supplementaryImagePath2: supPath2,
       supplementaryImagePath3: supPath3,
+      imagePathsJson: imagePathsJson,
       servingSize: quantity,
       servingUnit: _selectedUnit,
       calories: 0,

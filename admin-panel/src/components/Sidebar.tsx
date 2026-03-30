@@ -15,6 +15,7 @@ import {
   UsersRound,
   FileText,
   Gift,
+  Tag,
   Database,
   LogOut 
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
   { icon: Users, label: 'Users', href: '/users' },
   { icon: Gift, label: 'Offers', href: '/offers' },
+  { icon: Tag, label: 'Promo Codes', href: '/promo-codes' },
   { icon: FlaskConical, label: 'Test Scenarios', href: '/test-scenarios' },
   { icon: UsersRound, label: 'Bulk Management', href: '/bulk-management' },
   { icon: FileText, label: 'Audit Logs', href: '/audit-logs' },

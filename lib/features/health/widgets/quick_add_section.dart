@@ -296,6 +296,10 @@ class _QuickAddSectionState extends ConsumerState<QuickAddSection>
       foodName: item.name,
       mealType: mealType,
       timestamp: ts,
+      imagePath: item.myMealId != null ? item.myMealImagePath : null,
+      thumbnailUrl: item.myMealId != null ? item.myMealThumbnailUrl : null,
+      thumbnailFirebasePath:
+          item.myMealId != null ? item.myMealThumbnailFirebasePath : null,
       servingSize: item.servingSize,
       servingUnit: item.servingUnit,
       calories: item.calories,

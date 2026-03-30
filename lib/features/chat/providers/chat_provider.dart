@@ -11,6 +11,7 @@ import '../../../core/ai/gemini_chat_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../services/food_lookup_service.dart';
 import '../../health/providers/health_provider.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
 import '../../energy/providers/energy_provider.dart';
 import '../../profile/providers/profile_provider.dart';
 
@@ -416,30 +417,43 @@ class ChatNotifier extends StateNotifier<List<ChatMessage>> {
                   }
                 })
             .toList();
-        preliminaryIngredientsJson = jsonEncode(preliminaryIngredients);
-        debugPrint('✅✅✅ SAVED ${ingredientsHint.length} ingredients from ingredients_hint: $preliminaryIngredientsJson');
+        final hintDoc = flattenAiIngredientRoots(
+            preliminaryIngredients.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+        preliminaryIngredientsJson = serializeIngredientsV2(hintDoc);
+        debugPrint('✅✅✅ SAVED ${ingredientsHint.length} ingredients from ingredients_hint (v2)');
         AppLogger.info(
             'Chat: Custom meal "$foodName" with ${ingredientsHint.length} ingredients → saved as preliminary ingredientsJson');
       } else if (ingredientsDetail != null && ingredientsDetail.isNotEmpty) {
         // Fallback: AI sent full ingredients_detail — preserve amounts if available
         final preliminaryIngredients = ingredientsDetail
             .map((ingredient) {
-              final name = ingredient['name'] as String? ?? ingredient['name_en'] as String? ?? 'Unknown';
-              return {
+              final ing = Map<String, dynamic>.from(ingredient as Map);
+              final name = ing['name'] as String? ??
+                  ing['name_en'] as String? ??
+                  'Unknown';
+              final out = <String, dynamic>{
                 'name': name,
-                'name_en': ingredient['name_en'] as String? ?? name,
-                'detail': ingredient['detail'] as String? ?? '',
-                'amount': (ingredient['amount'] as num?)?.toDouble() ?? 0,
-                'unit': ingredient['unit'] as String? ?? 'g',
-                'calories': (ingredient['calories'] as num?)?.toDouble() ?? 0,
-                'protein': (ingredient['protein'] as num?)?.toDouble() ?? 0,
-                'carbs': (ingredient['carbs'] as num?)?.toDouble() ?? 0,
-                'fat': (ingredient['fat'] as num?)?.toDouble() ?? 0,
+                'name_en': ing['name_en'] as String? ?? name,
+                'detail': ing['detail'] as String? ?? '',
+                'amount': (ing['amount'] as num?)?.toDouble() ?? 0,
+                'unit': ing['unit'] as String? ?? 'g',
+                'calories': (ing['calories'] as num?)?.toDouble() ?? 0,
+                'protein': (ing['protein'] as num?)?.toDouble() ?? 0,
+                'carbs': (ing['carbs'] as num?)?.toDouble() ?? 0,
+                'fat': (ing['fat'] as num?)?.toDouble() ?? 0,
               };
+              final subs = ing['sub_ingredients'] as List<dynamic>?;
+              if (subs != null && subs.isNotEmpty) {
+                out['sub_ingredients'] = subs
+                    .map((s) => Map<String, dynamic>.from(s as Map))
+                    .toList();
+              }
+              return out;
             })
             .toList();
-        preliminaryIngredientsJson = jsonEncode(preliminaryIngredients);
-        debugPrint('⚠️⚠️⚠️ FALLBACK: Extracted ${ingredientsDetail.length} ingredients from ingredients_detail (with amounts): $preliminaryIngredientsJson');
+        final detailDoc = flattenAiIngredientRoots(preliminaryIngredients);
+        preliminaryIngredientsJson = serializeIngredientsV2(detailDoc);
+        debugPrint('⚠️⚠️⚠️ FALLBACK: ingredients_detail → v2 (${ingredientsDetail.length} roots)');
         AppLogger.warn(
             'Chat: AI sent ingredients_detail instead of ingredients_hint for "$foodName" - extracted ${ingredientsDetail.length} ingredients with amounts');
       } else {

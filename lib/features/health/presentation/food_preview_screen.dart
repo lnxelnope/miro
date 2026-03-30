@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -11,7 +10,10 @@ import '../../../l10n/app_localizations.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/nutrition/ingredients_entry_codec.dart';
 import '../providers/health_provider.dart';
 import '../providers/analysis_provider.dart';
 
@@ -776,13 +778,17 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
     final servingSize = double.tryParse(_servingSizeController.text) ?? 1;
 
     final saveNow = DateTime.now();
+    IngredientsDocumentV2? ingredientsDoc;
     String? ingredientsJsonStr;
     if (_hasAnalyzed &&
         _analysisResult?.ingredientsDetail != null &&
         _analysisResult!.ingredientsDetail!.isNotEmpty) {
-      ingredientsJsonStr = jsonEncode(_analysisResult!.ingredientsDetail);
+      final roots =
+          _analysisResult!.ingredientsDetail!.map((e) => e.toJson()).toList();
+      ingredientsDoc = flattenAiIngredientRoots(roots);
+      ingredientsJsonStr = serializeIngredientsV2(ingredientsDoc);
       AppLogger.info(
-          'Saved ${_analysisResult!.ingredientsDetail!.length} ingredients to FoodEntry');
+          'Saved ${_analysisResult!.ingredientsDetail!.length} ingredient roots → v2 JSON on FoodEntry');
     }
 
     final entry = FoodEntry(
@@ -818,6 +824,10 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
       createdAt: saveNow,
       updatedAt: saveNow,
     );
+
+    if (ingredientsDoc != null) {
+      applyIngredientsRollupToFoodEntry(entry, ingredientsDoc);
+    }
 
     // Save
     final notifier = ref.read(foodEntriesNotifierProvider.notifier);

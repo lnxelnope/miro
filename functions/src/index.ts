@@ -74,6 +74,9 @@ export {winbackScheduler} from "./subscription/winbackScheduler";
 // Freepass API (energy → days conversion)
 export {convertEnergyToFreepass} from "./freepass/convertEnergyToFreepass";
 
+// Promo codes
+export {redeemPromoCode} from "./promo/redeemPromoCode";
+
 // ─── V3: Energy Marketing ───────────────────────────────────
 
 // Milestone V3 (10 steps)

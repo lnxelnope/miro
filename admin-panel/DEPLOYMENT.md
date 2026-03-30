@@ -1,6 +1,16 @@
 # MiRO Admin Panel - Deployment Guide
 
-## 🚀 Vercel Deployment
+## โปรดอ่านก่อน: production ใช้ Cloud Run — ไม่ใช่ Firebase Hosting
+
+- **Admin panel (Next.js)** ในโปรเจกต์นี้ deploy ไป **Google Cloud Run** (region `asia-southeast1`) คู่กับโปรเจกต์ Firebase/GCP `miro-d6856`  
+  - คู่มือหลัก: **[DEPLOYMENT_GCP.md](./DEPLOYMENT_GCP.md)** และ **[CLOUD_RUN.md](./CLOUD_RUN.md)**  
+  - ตัวอย่าง URL ปัจจุบัน: `https://admin-panel-65396857547.asia-southeast1.run.app`
+- **`firebase.json` → hosting** ใน repo นี้ชี้ไปที่ **`website/deploy`** (เว็บไซต์/landing) เท่านั้น — **ไม่ได้ host admin-panel**
+- ส่วนด้านล่างนี้คือทางเลือก **Vercel** (deploy Next.js แบบอื่น) ถ้าทีมต้องการใช้แทน Cloud Run
+
+---
+
+## 🚀 Vercel Deployment (ทางเลือก — ไม่ใช่ production ปัจจุบันของ MiRO)
 
 ### Prerequisites
 - Vercel account (https://vercel.com)

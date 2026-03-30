@@ -1,6 +1,9 @@
 import 'dart:convert';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/model_extensions.dart';
+import '../../../core/nutrition/ingredients_codec.dart';
+import '../../../core/nutrition/ingredients_models.dart';
+import '../nutrition/ingredients_entry_codec.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../ai/gemini_service.dart';
@@ -54,24 +57,28 @@ class BatchAnalysisHelper {
       return (names: null, userIngredients: null);
     }
     try {
-      final decoded = jsonDecode(entry.ingredientsJson!) as List<dynamic>;
-      final names = decoded
-          .map((item) => item['name'] as String?)
-          .where((name) => name != null && name.isNotEmpty)
-          .cast<String>()
-          .toList();
+      final parsed = parseIngredientsJson(entry.ingredientsJson);
+      final doc = parsed.documentV2;
+      if (doc == null || doc.mainIngredients.isEmpty) {
+        return (names: null, userIngredients: null);
+      }
 
-      final userIngredients = decoded
-          .where((item) =>
-              item['name'] != null &&
-              item['amount'] != null &&
-              (item['amount'] as num) > 0)
-          .map((item) => <String, dynamic>{
-                'name': item['name'] as String,
-                'amount': (item['amount'] as num).toDouble(),
-                'unit': item['unit'] as String? ?? 'g',
-              })
-          .toList();
+      final names = <String>[];
+      for (final m in doc.mainIngredients) {
+        if (m.name.trim().isNotEmpty) names.add(m.name);
+      }
+
+      final userIngredients = <Map<String, dynamic>>[];
+      for (final m in doc.mainIngredients) {
+        if (m.name.isNotEmpty &&
+            m.amount > 0) {
+          userIngredients.add(<String, dynamic>{
+            'name': m.name,
+            'amount': m.amount,
+            'unit': m.unit,
+          });
+        }
+      }
 
       return (
         names: names.isNotEmpty ? names : null,
@@ -94,23 +101,25 @@ class BatchAnalysisHelper {
     double carb = result.nutrition.carbs;
     double fa = result.nutrition.fat;
 
-    // ถ้ามี ingredients detail → รวมจาก ROOT ingredients (แม่นยำกว่า AI total)
+    IngredientsDocumentV2? ingredientsDoc;
     if (result.ingredientsDetail != null &&
         result.ingredientsDetail!.isNotEmpty) {
-      double sumCal = 0, sumP = 0, sumC = 0, sumF = 0;
-      for (final ing in result.ingredientsDetail!) {
-        sumCal += ing.calories;
-        sumP += ing.protein;
-        sumC += ing.carbs;
-        sumF += ing.fat;
-      }
-      if (sumCal > 0) {
-        cal = sumCal;
-        prot = sumP;
-        carb = sumC;
-        fa = sumF;
+      final roots =
+          result.ingredientsDetail!.map((e) => e.toJson()).toList();
+      ingredientsDoc = flattenAiIngredientRoots(roots);
+      final rollup = recomputeEntryRollup(
+        doc: ingredientsDoc,
+        entryFiber: result.nutrition.fiber,
+        entrySugar: result.nutrition.sugar,
+        entrySodium: result.nutrition.sodium,
+      );
+      if (rollup.calories > 0) {
+        cal = rollup.calories;
+        prot = rollup.protein;
+        carb = rollup.carbs;
+        fa = rollup.fat;
         AppLogger.info(
-            '[applyResult] Using ingredients sum ($sumCal kcal) instead of AI total (${result.nutrition.calories} kcal)');
+            '[applyResult] Using codec rollup (${rollup.calories} kcal) instead of AI total (${result.nutrition.calories} kcal)');
       }
     }
 
@@ -148,11 +157,8 @@ class BatchAnalysisHelper {
     entry.estimatedVolumeMl = result.estimatedVolumeMl;
     entry.isCalibrated = result.isCalibrated;
 
-    if (result.ingredientsDetail != null &&
-        result.ingredientsDetail!.isNotEmpty) {
-      entry.ingredientsJson = jsonEncode(
-        result.ingredientsDetail!.map((item) => item.toJson()).toList(),
-      );
+    if (ingredientsDoc != null) {
+      entry.ingredientsJson = serializeIngredientsV2(ingredientsDoc);
     }
 
     // Capture user's raw input text before AI overwrites foodName
@@ -196,8 +202,10 @@ class BatchAnalysisHelper {
     }
 
     try {
-      final ingredientsData =
+      final roots =
           result.ingredientsDetail!.map((e) => e.toJson()).toList();
+      final doc = flattenAiIngredientRoots(roots);
+      final ingredientsData = ingredientsDocumentToMyMealInputs(doc);
 
       await ref
           .read(foodEntriesNotifierProvider.notifier)

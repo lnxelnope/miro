@@ -54,6 +54,12 @@ class $FoodEntriesTable extends FoodEntries
   late final GeneratedColumn<String> supplementaryImagePath3 =
       GeneratedColumn<String>('supplementary_image_path3', aliasedName, true,
           type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imagePathsJsonMeta =
+      const VerificationMeta('imagePathsJson');
+  @override
+  late final GeneratedColumn<String> imagePathsJson = GeneratedColumn<String>(
+      'image_paths_json', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   late final GeneratedColumnWithTypeConverter<MealType, int> mealType =
       GeneratedColumn<int>('meal_type', aliasedName, false,
@@ -667,6 +673,7 @@ class $FoodEntriesTable extends FoodEntries
         imagePath,
         supplementaryImagePath2,
         supplementaryImagePath3,
+        imagePathsJson,
         mealType,
         servingSize,
         servingUnit,
@@ -812,6 +819,12 @@ class $FoodEntriesTable extends FoodEntries
           supplementaryImagePath3.isAcceptableOrUnknown(
               data['supplementary_image_path3']!,
               _supplementaryImagePath3Meta));
+    }
+    if (data.containsKey('image_paths_json')) {
+      context.handle(
+          _imagePathsJsonMeta,
+          imagePathsJson.isAcceptableOrUnknown(
+              data['image_paths_json']!, _imagePathsJsonMeta));
     }
     if (data.containsKey('serving_size')) {
       context.handle(
@@ -1337,6 +1350,8 @@ class $FoodEntriesTable extends FoodEntries
       supplementaryImagePath3: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}supplementary_image_path3']),
+      imagePathsJson: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}image_paths_json']),
       mealType: $FoodEntriesTable.$convertermealType.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}meal_type'])!),
@@ -1559,6 +1574,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
   String? imagePath;
   String? supplementaryImagePath2;
   String? supplementaryImagePath3;
+
+  /// ลำดับ path รูปทั้งหมดเป็น JSON `["p0","p1",...]` เมื่อมีมากกว่า 3 รูป (≤3 ใช้แค่ 3 คอลัมน์ด้านบน)
+  String? imagePathsJson;
   MealType mealType;
   double servingSize;
   String servingUnit;
@@ -1663,6 +1681,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       this.imagePath,
       this.supplementaryImagePath2,
       this.supplementaryImagePath3,
+      this.imagePathsJson,
       required this.mealType,
       required this.servingSize,
       required this.servingUnit,
@@ -1778,6 +1797,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
     if (!nullToAbsent || supplementaryImagePath3 != null) {
       map['supplementary_image_path3'] =
           Variable<String>(supplementaryImagePath3);
+    }
+    if (!nullToAbsent || imagePathsJson != null) {
+      map['image_paths_json'] = Variable<String>(imagePathsJson);
     }
     {
       map['meal_type'] =
@@ -2053,6 +2075,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       supplementaryImagePath3: supplementaryImagePath3 == null && nullToAbsent
           ? const Value.absent()
           : Value(supplementaryImagePath3),
+      imagePathsJson: imagePathsJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imagePathsJson),
       mealType: Value(mealType),
       servingSize: Value(servingSize),
       servingUnit: Value(servingUnit),
@@ -2303,6 +2328,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           serializer.fromJson<String?>(json['supplementaryImagePath2']),
       supplementaryImagePath3:
           serializer.fromJson<String?>(json['supplementaryImagePath3']),
+      imagePathsJson: serializer.fromJson<String?>(json['imagePathsJson']),
       mealType: $FoodEntriesTable.$convertermealType
           .fromJson(serializer.fromJson<int>(json['mealType'])),
       servingSize: serializer.fromJson<double>(json['servingSize']),
@@ -2428,6 +2454,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           serializer.toJson<String?>(supplementaryImagePath2),
       'supplementaryImagePath3':
           serializer.toJson<String?>(supplementaryImagePath3),
+      'imagePathsJson': serializer.toJson<String?>(imagePathsJson),
       'mealType': serializer
           .toJson<int>($FoodEntriesTable.$convertermealType.toJson(mealType)),
       'servingSize': serializer.toJson<double>(servingSize),
@@ -2541,6 +2568,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           Value<String?> imagePath = const Value.absent(),
           Value<String?> supplementaryImagePath2 = const Value.absent(),
           Value<String?> supplementaryImagePath3 = const Value.absent(),
+          Value<String?> imagePathsJson = const Value.absent(),
           MealType? mealType,
           double? servingSize,
           String? servingUnit,
@@ -2649,6 +2677,8 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
         supplementaryImagePath3: supplementaryImagePath3.present
             ? supplementaryImagePath3.value
             : this.supplementaryImagePath3,
+        imagePathsJson:
+            imagePathsJson.present ? imagePathsJson.value : this.imagePathsJson,
         mealType: mealType ?? this.mealType,
         servingSize: servingSize ?? this.servingSize,
         servingUnit: servingUnit ?? this.servingUnit,
@@ -2819,6 +2849,9 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
       supplementaryImagePath3: data.supplementaryImagePath3.present
           ? data.supplementaryImagePath3.value
           : this.supplementaryImagePath3,
+      imagePathsJson: data.imagePathsJson.present
+          ? data.imagePathsJson.value
+          : this.imagePathsJson,
       mealType: data.mealType.present ? data.mealType.value : this.mealType,
       servingSize:
           data.servingSize.present ? data.servingSize.value : this.servingSize,
@@ -3028,6 +3061,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           ..write('imagePath: $imagePath, ')
           ..write('supplementaryImagePath2: $supplementaryImagePath2, ')
           ..write('supplementaryImagePath3: $supplementaryImagePath3, ')
+          ..write('imagePathsJson: $imagePathsJson, ')
           ..write('mealType: $mealType, ')
           ..write('servingSize: $servingSize, ')
           ..write('servingUnit: $servingUnit, ')
@@ -3137,6 +3171,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
         imagePath,
         supplementaryImagePath2,
         supplementaryImagePath3,
+        imagePathsJson,
         mealType,
         servingSize,
         servingUnit,
@@ -3245,6 +3280,7 @@ class FoodEntryData extends DataClass implements Insertable<FoodEntryData> {
           other.imagePath == this.imagePath &&
           other.supplementaryImagePath2 == this.supplementaryImagePath2 &&
           other.supplementaryImagePath3 == this.supplementaryImagePath3 &&
+          other.imagePathsJson == this.imagePathsJson &&
           other.mealType == this.mealType &&
           other.servingSize == this.servingSize &&
           other.servingUnit == this.servingUnit &&
@@ -3351,6 +3387,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
   Value<String?> imagePath;
   Value<String?> supplementaryImagePath2;
   Value<String?> supplementaryImagePath3;
+  Value<String?> imagePathsJson;
   Value<MealType> mealType;
   Value<double> servingSize;
   Value<String> servingUnit;
@@ -3455,6 +3492,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.imagePath = const Value.absent(),
     this.supplementaryImagePath2 = const Value.absent(),
     this.supplementaryImagePath3 = const Value.absent(),
+    this.imagePathsJson = const Value.absent(),
     this.mealType = const Value.absent(),
     this.servingSize = const Value.absent(),
     this.servingUnit = const Value.absent(),
@@ -3560,6 +3598,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     this.imagePath = const Value.absent(),
     this.supplementaryImagePath2 = const Value.absent(),
     this.supplementaryImagePath3 = const Value.absent(),
+    this.imagePathsJson = const Value.absent(),
     required MealType mealType,
     required double servingSize,
     required String servingUnit,
@@ -3674,6 +3713,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     Expression<String>? imagePath,
     Expression<String>? supplementaryImagePath2,
     Expression<String>? supplementaryImagePath3,
+    Expression<String>? imagePathsJson,
     Expression<int>? mealType,
     Expression<double>? servingSize,
     Expression<String>? servingUnit,
@@ -3781,6 +3821,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
         'supplementary_image_path2': supplementaryImagePath2,
       if (supplementaryImagePath3 != null)
         'supplementary_image_path3': supplementaryImagePath3,
+      if (imagePathsJson != null) 'image_paths_json': imagePathsJson,
       if (mealType != null) 'meal_type': mealType,
       if (servingSize != null) 'serving_size': servingSize,
       if (servingUnit != null) 'serving_unit': servingUnit,
@@ -3895,6 +3936,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
       Value<String?>? imagePath,
       Value<String?>? supplementaryImagePath2,
       Value<String?>? supplementaryImagePath3,
+      Value<String?>? imagePathsJson,
       Value<MealType>? mealType,
       Value<double>? servingSize,
       Value<String>? servingUnit,
@@ -4001,6 +4043,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
           supplementaryImagePath2 ?? this.supplementaryImagePath2,
       supplementaryImagePath3:
           supplementaryImagePath3 ?? this.supplementaryImagePath3,
+      imagePathsJson: imagePathsJson ?? this.imagePathsJson,
       mealType: mealType ?? this.mealType,
       servingSize: servingSize ?? this.servingSize,
       servingUnit: servingUnit ?? this.servingUnit,
@@ -4128,6 +4171,9 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
     if (supplementaryImagePath3.present) {
       map['supplementary_image_path3'] =
           Variable<String>(supplementaryImagePath3.value);
+    }
+    if (imagePathsJson.present) {
+      map['image_paths_json'] = Variable<String>(imagePathsJson.value);
     }
     if (mealType.present) {
       map['meal_type'] = Variable<int>(
@@ -4438,6 +4484,7 @@ class FoodEntriesCompanion extends UpdateCompanion<FoodEntryData> {
           ..write('imagePath: $imagePath, ')
           ..write('supplementaryImagePath2: $supplementaryImagePath2, ')
           ..write('supplementaryImagePath3: $supplementaryImagePath3, ')
+          ..write('imagePathsJson: $imagePathsJson, ')
           ..write('mealType: $mealType, ')
           ..write('servingSize: $servingSize, ')
           ..write('servingUnit: $servingUnit, ')
@@ -5370,6 +5417,18 @@ class $MyMealsTable extends MyMeals with TableInfo<$MyMealsTable, MyMealData> {
   late final GeneratedColumn<String> imagePath = GeneratedColumn<String>(
       'image_path', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbnailUrlMeta =
+      const VerificationMeta('thumbnailUrl');
+  @override
+  late final GeneratedColumn<String> thumbnailUrl = GeneratedColumn<String>(
+      'thumbnail_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _thumbnailFirebasePathMeta =
+      const VerificationMeta('thumbnailFirebasePath');
+  @override
+  late final GeneratedColumn<String> thumbnailFirebasePath =
+      GeneratedColumn<String>('thumbnail_firebase_path', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _sourceMeta = const VerificationMeta('source');
   @override
   late final GeneratedColumn<String> source = GeneratedColumn<String>(
@@ -5410,6 +5469,8 @@ class $MyMealsTable extends MyMeals with TableInfo<$MyMealsTable, MyMealData> {
         totalFat,
         baseServingDescription,
         imagePath,
+        thumbnailUrl,
+        thumbnailFirebasePath,
         source,
         usageCount,
         createdAt,
@@ -5480,6 +5541,18 @@ class $MyMealsTable extends MyMeals with TableInfo<$MyMealsTable, MyMealData> {
       context.handle(_imagePathMeta,
           imagePath.isAcceptableOrUnknown(data['image_path']!, _imagePathMeta));
     }
+    if (data.containsKey('thumbnail_url')) {
+      context.handle(
+          _thumbnailUrlMeta,
+          thumbnailUrl.isAcceptableOrUnknown(
+              data['thumbnail_url']!, _thumbnailUrlMeta));
+    }
+    if (data.containsKey('thumbnail_firebase_path')) {
+      context.handle(
+          _thumbnailFirebasePathMeta,
+          thumbnailFirebasePath.isAcceptableOrUnknown(
+              data['thumbnail_firebase_path']!, _thumbnailFirebasePathMeta));
+    }
     if (data.containsKey('source')) {
       context.handle(_sourceMeta,
           source.isAcceptableOrUnknown(data['source']!, _sourceMeta));
@@ -5528,6 +5601,11 @@ class $MyMealsTable extends MyMeals with TableInfo<$MyMealsTable, MyMealData> {
           data['${effectivePrefix}base_serving_description'])!,
       imagePath: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}image_path']),
+      thumbnailUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_url']),
+      thumbnailFirebasePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}thumbnail_firebase_path']),
       source: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}source'])!,
       usageCount: attachedDatabase.typeMapping
@@ -5555,6 +5633,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
   double totalFat;
   String baseServingDescription;
   String? imagePath;
+  String? thumbnailUrl;
+  String? thumbnailFirebasePath;
   String source;
   int usageCount;
   DateTime createdAt;
@@ -5569,6 +5649,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
       required this.totalFat,
       required this.baseServingDescription,
       this.imagePath,
+      this.thumbnailUrl,
+      this.thumbnailFirebasePath,
       required this.source,
       required this.usageCount,
       required this.createdAt,
@@ -5588,6 +5670,12 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
     map['base_serving_description'] = Variable<String>(baseServingDescription);
     if (!nullToAbsent || imagePath != null) {
       map['image_path'] = Variable<String>(imagePath);
+    }
+    if (!nullToAbsent || thumbnailUrl != null) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl);
+    }
+    if (!nullToAbsent || thumbnailFirebasePath != null) {
+      map['thumbnail_firebase_path'] = Variable<String>(thumbnailFirebasePath);
     }
     map['source'] = Variable<String>(source);
     map['usage_count'] = Variable<int>(usageCount);
@@ -5610,6 +5698,12 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
       imagePath: imagePath == null && nullToAbsent
           ? const Value.absent()
           : Value(imagePath),
+      thumbnailUrl: thumbnailUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailUrl),
+      thumbnailFirebasePath: thumbnailFirebasePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thumbnailFirebasePath),
       source: Value(source),
       usageCount: Value(usageCount),
       createdAt: Value(createdAt),
@@ -5631,6 +5725,9 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
       baseServingDescription:
           serializer.fromJson<String>(json['baseServingDescription']),
       imagePath: serializer.fromJson<String?>(json['imagePath']),
+      thumbnailUrl: serializer.fromJson<String?>(json['thumbnailUrl']),
+      thumbnailFirebasePath:
+          serializer.fromJson<String?>(json['thumbnailFirebasePath']),
       source: serializer.fromJson<String>(json['source']),
       usageCount: serializer.fromJson<int>(json['usageCount']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -5651,6 +5748,9 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
       'baseServingDescription':
           serializer.toJson<String>(baseServingDescription),
       'imagePath': serializer.toJson<String?>(imagePath),
+      'thumbnailUrl': serializer.toJson<String?>(thumbnailUrl),
+      'thumbnailFirebasePath':
+          serializer.toJson<String?>(thumbnailFirebasePath),
       'source': serializer.toJson<String>(source),
       'usageCount': serializer.toJson<int>(usageCount),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -5668,6 +5768,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
           double? totalFat,
           String? baseServingDescription,
           Value<String?> imagePath = const Value.absent(),
+          Value<String?> thumbnailUrl = const Value.absent(),
+          Value<String?> thumbnailFirebasePath = const Value.absent(),
           String? source,
           int? usageCount,
           DateTime? createdAt,
@@ -5683,6 +5785,11 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
         baseServingDescription:
             baseServingDescription ?? this.baseServingDescription,
         imagePath: imagePath.present ? imagePath.value : this.imagePath,
+        thumbnailUrl:
+            thumbnailUrl.present ? thumbnailUrl.value : this.thumbnailUrl,
+        thumbnailFirebasePath: thumbnailFirebasePath.present
+            ? thumbnailFirebasePath.value
+            : this.thumbnailFirebasePath,
         source: source ?? this.source,
         usageCount: usageCount ?? this.usageCount,
         createdAt: createdAt ?? this.createdAt,
@@ -5706,6 +5813,12 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
           ? data.baseServingDescription.value
           : this.baseServingDescription,
       imagePath: data.imagePath.present ? data.imagePath.value : this.imagePath,
+      thumbnailUrl: data.thumbnailUrl.present
+          ? data.thumbnailUrl.value
+          : this.thumbnailUrl,
+      thumbnailFirebasePath: data.thumbnailFirebasePath.present
+          ? data.thumbnailFirebasePath.value
+          : this.thumbnailFirebasePath,
       source: data.source.present ? data.source.value : this.source,
       usageCount:
           data.usageCount.present ? data.usageCount.value : this.usageCount,
@@ -5726,6 +5839,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
           ..write('totalFat: $totalFat, ')
           ..write('baseServingDescription: $baseServingDescription, ')
           ..write('imagePath: $imagePath, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('thumbnailFirebasePath: $thumbnailFirebasePath, ')
           ..write('source: $source, ')
           ..write('usageCount: $usageCount, ')
           ..write('createdAt: $createdAt, ')
@@ -5745,6 +5860,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
       totalFat,
       baseServingDescription,
       imagePath,
+      thumbnailUrl,
+      thumbnailFirebasePath,
       source,
       usageCount,
       createdAt,
@@ -5762,6 +5879,8 @@ class MyMealData extends DataClass implements Insertable<MyMealData> {
           other.totalFat == this.totalFat &&
           other.baseServingDescription == this.baseServingDescription &&
           other.imagePath == this.imagePath &&
+          other.thumbnailUrl == this.thumbnailUrl &&
+          other.thumbnailFirebasePath == this.thumbnailFirebasePath &&
           other.source == this.source &&
           other.usageCount == this.usageCount &&
           other.createdAt == this.createdAt &&
@@ -5778,6 +5897,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
   Value<double> totalFat;
   Value<String> baseServingDescription;
   Value<String?> imagePath;
+  Value<String?> thumbnailUrl;
+  Value<String?> thumbnailFirebasePath;
   Value<String> source;
   Value<int> usageCount;
   Value<DateTime> createdAt;
@@ -5792,6 +5913,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
     this.totalFat = const Value.absent(),
     this.baseServingDescription = const Value.absent(),
     this.imagePath = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.thumbnailFirebasePath = const Value.absent(),
     this.source = const Value.absent(),
     this.usageCount = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -5807,6 +5930,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
     required double totalFat,
     required String baseServingDescription,
     this.imagePath = const Value.absent(),
+    this.thumbnailUrl = const Value.absent(),
+    this.thumbnailFirebasePath = const Value.absent(),
     required String source,
     this.usageCount = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -5828,6 +5953,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
     Expression<double>? totalFat,
     Expression<String>? baseServingDescription,
     Expression<String>? imagePath,
+    Expression<String>? thumbnailUrl,
+    Expression<String>? thumbnailFirebasePath,
     Expression<String>? source,
     Expression<int>? usageCount,
     Expression<DateTime>? createdAt,
@@ -5844,6 +5971,9 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
       if (baseServingDescription != null)
         'base_serving_description': baseServingDescription,
       if (imagePath != null) 'image_path': imagePath,
+      if (thumbnailUrl != null) 'thumbnail_url': thumbnailUrl,
+      if (thumbnailFirebasePath != null)
+        'thumbnail_firebase_path': thumbnailFirebasePath,
       if (source != null) 'source': source,
       if (usageCount != null) 'usage_count': usageCount,
       if (createdAt != null) 'created_at': createdAt,
@@ -5861,6 +5991,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
       Value<double>? totalFat,
       Value<String>? baseServingDescription,
       Value<String?>? imagePath,
+      Value<String?>? thumbnailUrl,
+      Value<String?>? thumbnailFirebasePath,
       Value<String>? source,
       Value<int>? usageCount,
       Value<DateTime>? createdAt,
@@ -5876,6 +6008,9 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
       baseServingDescription:
           baseServingDescription ?? this.baseServingDescription,
       imagePath: imagePath ?? this.imagePath,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      thumbnailFirebasePath:
+          thumbnailFirebasePath ?? this.thumbnailFirebasePath,
       source: source ?? this.source,
       usageCount: usageCount ?? this.usageCount,
       createdAt: createdAt ?? this.createdAt,
@@ -5914,6 +6049,13 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
     if (imagePath.present) {
       map['image_path'] = Variable<String>(imagePath.value);
     }
+    if (thumbnailUrl.present) {
+      map['thumbnail_url'] = Variable<String>(thumbnailUrl.value);
+    }
+    if (thumbnailFirebasePath.present) {
+      map['thumbnail_firebase_path'] =
+          Variable<String>(thumbnailFirebasePath.value);
+    }
     if (source.present) {
       map['source'] = Variable<String>(source.value);
     }
@@ -5941,6 +6083,8 @@ class MyMealsCompanion extends UpdateCompanion<MyMealData> {
           ..write('totalFat: $totalFat, ')
           ..write('baseServingDescription: $baseServingDescription, ')
           ..write('imagePath: $imagePath, ')
+          ..write('thumbnailUrl: $thumbnailUrl, ')
+          ..write('thumbnailFirebasePath: $thumbnailFirebasePath, ')
           ..write('source: $source, ')
           ..write('usageCount: $usageCount, ')
           ..write('createdAt: $createdAt, ')
@@ -6051,6 +6195,30 @@ class $MyMealIngredientsTable extends MyMealIngredients
   late final GeneratedColumn<String> detail = GeneratedColumn<String>(
       'detail', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _ingredientImagePathMeta =
+      const VerificationMeta('ingredientImagePath');
+  @override
+  late final GeneratedColumn<String> ingredientImagePath =
+      GeneratedColumn<String>('ingredient_image_path', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _ingredientArBoundingBoxMeta =
+      const VerificationMeta('ingredientArBoundingBox');
+  @override
+  late final GeneratedColumn<String> ingredientArBoundingBox =
+      GeneratedColumn<String>('ingredient_ar_bounding_box', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _ingredientArImageWidthMeta =
+      const VerificationMeta('ingredientArImageWidth');
+  @override
+  late final GeneratedColumn<int> ingredientArImageWidth = GeneratedColumn<int>(
+      'ingredient_ar_image_width', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _ingredientArImageHeightMeta =
+      const VerificationMeta('ingredientArImageHeight');
+  @override
+  late final GeneratedColumn<int> ingredientArImageHeight =
+      GeneratedColumn<int>('ingredient_ar_image_height', aliasedName, true,
+          type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -6067,7 +6235,11 @@ class $MyMealIngredientsTable extends MyMealIngredients
         parentId,
         depth,
         isComposite,
-        detail
+        detail,
+        ingredientImagePath,
+        ingredientArBoundingBox,
+        ingredientArImageWidth,
+        ingredientArImageHeight
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -6163,6 +6335,32 @@ class $MyMealIngredientsTable extends MyMealIngredients
       context.handle(_detailMeta,
           detail.isAcceptableOrUnknown(data['detail']!, _detailMeta));
     }
+    if (data.containsKey('ingredient_image_path')) {
+      context.handle(
+          _ingredientImagePathMeta,
+          ingredientImagePath.isAcceptableOrUnknown(
+              data['ingredient_image_path']!, _ingredientImagePathMeta));
+    }
+    if (data.containsKey('ingredient_ar_bounding_box')) {
+      context.handle(
+          _ingredientArBoundingBoxMeta,
+          ingredientArBoundingBox.isAcceptableOrUnknown(
+              data['ingredient_ar_bounding_box']!,
+              _ingredientArBoundingBoxMeta));
+    }
+    if (data.containsKey('ingredient_ar_image_width')) {
+      context.handle(
+          _ingredientArImageWidthMeta,
+          ingredientArImageWidth.isAcceptableOrUnknown(
+              data['ingredient_ar_image_width']!, _ingredientArImageWidthMeta));
+    }
+    if (data.containsKey('ingredient_ar_image_height')) {
+      context.handle(
+          _ingredientArImageHeightMeta,
+          ingredientArImageHeight.isAcceptableOrUnknown(
+              data['ingredient_ar_image_height']!,
+              _ingredientArImageHeightMeta));
+    }
     return context;
   }
 
@@ -6202,6 +6400,17 @@ class $MyMealIngredientsTable extends MyMealIngredients
           .read(DriftSqlType.bool, data['${effectivePrefix}is_composite'])!,
       detail: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}detail']),
+      ingredientImagePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}ingredient_image_path']),
+      ingredientArBoundingBox: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}ingredient_ar_bounding_box']),
+      ingredientArImageWidth: attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}ingredient_ar_image_width']),
+      ingredientArImageHeight: attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}ingredient_ar_image_height']),
     );
   }
 
@@ -6228,6 +6437,12 @@ class MyMealIngredientData extends DataClass
   int depth;
   bool isComposite;
   String? detail;
+
+  /// Per-row ingredient photo (e.g. sub from gallery) — phase 17
+  String? ingredientImagePath;
+  String? ingredientArBoundingBox;
+  int? ingredientArImageWidth;
+  int? ingredientArImageHeight;
   MyMealIngredientData(
       {required this.id,
       required this.myMealId,
@@ -6243,7 +6458,11 @@ class MyMealIngredientData extends DataClass
       this.parentId,
       required this.depth,
       required this.isComposite,
-      this.detail});
+      this.detail,
+      this.ingredientImagePath,
+      this.ingredientArBoundingBox,
+      this.ingredientArImageWidth,
+      this.ingredientArImageHeight});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -6265,6 +6484,20 @@ class MyMealIngredientData extends DataClass
     map['is_composite'] = Variable<bool>(isComposite);
     if (!nullToAbsent || detail != null) {
       map['detail'] = Variable<String>(detail);
+    }
+    if (!nullToAbsent || ingredientImagePath != null) {
+      map['ingredient_image_path'] = Variable<String>(ingredientImagePath);
+    }
+    if (!nullToAbsent || ingredientArBoundingBox != null) {
+      map['ingredient_ar_bounding_box'] =
+          Variable<String>(ingredientArBoundingBox);
+    }
+    if (!nullToAbsent || ingredientArImageWidth != null) {
+      map['ingredient_ar_image_width'] = Variable<int>(ingredientArImageWidth);
+    }
+    if (!nullToAbsent || ingredientArImageHeight != null) {
+      map['ingredient_ar_image_height'] =
+          Variable<int>(ingredientArImageHeight);
     }
     return map;
   }
@@ -6289,6 +6522,18 @@ class MyMealIngredientData extends DataClass
       isComposite: Value(isComposite),
       detail:
           detail == null && nullToAbsent ? const Value.absent() : Value(detail),
+      ingredientImagePath: ingredientImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ingredientImagePath),
+      ingredientArBoundingBox: ingredientArBoundingBox == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ingredientArBoundingBox),
+      ingredientArImageWidth: ingredientArImageWidth == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ingredientArImageWidth),
+      ingredientArImageHeight: ingredientArImageHeight == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ingredientArImageHeight),
     );
   }
 
@@ -6311,6 +6556,14 @@ class MyMealIngredientData extends DataClass
       depth: serializer.fromJson<int>(json['depth']),
       isComposite: serializer.fromJson<bool>(json['isComposite']),
       detail: serializer.fromJson<String?>(json['detail']),
+      ingredientImagePath:
+          serializer.fromJson<String?>(json['ingredientImagePath']),
+      ingredientArBoundingBox:
+          serializer.fromJson<String?>(json['ingredientArBoundingBox']),
+      ingredientArImageWidth:
+          serializer.fromJson<int?>(json['ingredientArImageWidth']),
+      ingredientArImageHeight:
+          serializer.fromJson<int?>(json['ingredientArImageHeight']),
     );
   }
   @override
@@ -6332,6 +6585,12 @@ class MyMealIngredientData extends DataClass
       'depth': serializer.toJson<int>(depth),
       'isComposite': serializer.toJson<bool>(isComposite),
       'detail': serializer.toJson<String?>(detail),
+      'ingredientImagePath': serializer.toJson<String?>(ingredientImagePath),
+      'ingredientArBoundingBox':
+          serializer.toJson<String?>(ingredientArBoundingBox),
+      'ingredientArImageWidth': serializer.toJson<int?>(ingredientArImageWidth),
+      'ingredientArImageHeight':
+          serializer.toJson<int?>(ingredientArImageHeight),
     };
   }
 
@@ -6350,7 +6609,11 @@ class MyMealIngredientData extends DataClass
           Value<int?> parentId = const Value.absent(),
           int? depth,
           bool? isComposite,
-          Value<String?> detail = const Value.absent()}) =>
+          Value<String?> detail = const Value.absent(),
+          Value<String?> ingredientImagePath = const Value.absent(),
+          Value<String?> ingredientArBoundingBox = const Value.absent(),
+          Value<int?> ingredientArImageWidth = const Value.absent(),
+          Value<int?> ingredientArImageHeight = const Value.absent()}) =>
       MyMealIngredientData(
         id: id ?? this.id,
         myMealId: myMealId ?? this.myMealId,
@@ -6367,6 +6630,18 @@ class MyMealIngredientData extends DataClass
         depth: depth ?? this.depth,
         isComposite: isComposite ?? this.isComposite,
         detail: detail.present ? detail.value : this.detail,
+        ingredientImagePath: ingredientImagePath.present
+            ? ingredientImagePath.value
+            : this.ingredientImagePath,
+        ingredientArBoundingBox: ingredientArBoundingBox.present
+            ? ingredientArBoundingBox.value
+            : this.ingredientArBoundingBox,
+        ingredientArImageWidth: ingredientArImageWidth.present
+            ? ingredientArImageWidth.value
+            : this.ingredientArImageWidth,
+        ingredientArImageHeight: ingredientArImageHeight.present
+            ? ingredientArImageHeight.value
+            : this.ingredientArImageHeight,
       );
   MyMealIngredientData copyWithCompanion(MyMealIngredientsCompanion data) {
     return MyMealIngredientData(
@@ -6390,6 +6665,18 @@ class MyMealIngredientData extends DataClass
       isComposite:
           data.isComposite.present ? data.isComposite.value : this.isComposite,
       detail: data.detail.present ? data.detail.value : this.detail,
+      ingredientImagePath: data.ingredientImagePath.present
+          ? data.ingredientImagePath.value
+          : this.ingredientImagePath,
+      ingredientArBoundingBox: data.ingredientArBoundingBox.present
+          ? data.ingredientArBoundingBox.value
+          : this.ingredientArBoundingBox,
+      ingredientArImageWidth: data.ingredientArImageWidth.present
+          ? data.ingredientArImageWidth.value
+          : this.ingredientArImageWidth,
+      ingredientArImageHeight: data.ingredientArImageHeight.present
+          ? data.ingredientArImageHeight.value
+          : this.ingredientArImageHeight,
     );
   }
 
@@ -6410,7 +6697,11 @@ class MyMealIngredientData extends DataClass
           ..write('parentId: $parentId, ')
           ..write('depth: $depth, ')
           ..write('isComposite: $isComposite, ')
-          ..write('detail: $detail')
+          ..write('detail: $detail, ')
+          ..write('ingredientImagePath: $ingredientImagePath, ')
+          ..write('ingredientArBoundingBox: $ingredientArBoundingBox, ')
+          ..write('ingredientArImageWidth: $ingredientArImageWidth, ')
+          ..write('ingredientArImageHeight: $ingredientArImageHeight')
           ..write(')'))
         .toString();
   }
@@ -6431,7 +6722,11 @@ class MyMealIngredientData extends DataClass
       parentId,
       depth,
       isComposite,
-      detail);
+      detail,
+      ingredientImagePath,
+      ingredientArBoundingBox,
+      ingredientArImageWidth,
+      ingredientArImageHeight);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6450,7 +6745,11 @@ class MyMealIngredientData extends DataClass
           other.parentId == this.parentId &&
           other.depth == this.depth &&
           other.isComposite == this.isComposite &&
-          other.detail == this.detail);
+          other.detail == this.detail &&
+          other.ingredientImagePath == this.ingredientImagePath &&
+          other.ingredientArBoundingBox == this.ingredientArBoundingBox &&
+          other.ingredientArImageWidth == this.ingredientArImageWidth &&
+          other.ingredientArImageHeight == this.ingredientArImageHeight);
 }
 
 class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
@@ -6469,6 +6768,10 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
   Value<int> depth;
   Value<bool> isComposite;
   Value<String?> detail;
+  Value<String?> ingredientImagePath;
+  Value<String?> ingredientArBoundingBox;
+  Value<int?> ingredientArImageWidth;
+  Value<int?> ingredientArImageHeight;
   MyMealIngredientsCompanion({
     this.id = const Value.absent(),
     this.myMealId = const Value.absent(),
@@ -6485,6 +6788,10 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
     this.depth = const Value.absent(),
     this.isComposite = const Value.absent(),
     this.detail = const Value.absent(),
+    this.ingredientImagePath = const Value.absent(),
+    this.ingredientArBoundingBox = const Value.absent(),
+    this.ingredientArImageWidth = const Value.absent(),
+    this.ingredientArImageHeight = const Value.absent(),
   });
   MyMealIngredientsCompanion.insert({
     this.id = const Value.absent(),
@@ -6502,6 +6809,10 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
     this.depth = const Value.absent(),
     this.isComposite = const Value.absent(),
     this.detail = const Value.absent(),
+    this.ingredientImagePath = const Value.absent(),
+    this.ingredientArBoundingBox = const Value.absent(),
+    this.ingredientArImageWidth = const Value.absent(),
+    this.ingredientArImageHeight = const Value.absent(),
   })  : myMealId = Value(myMealId),
         ingredientId = Value(ingredientId),
         ingredientName = Value(ingredientName),
@@ -6527,6 +6838,10 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
     Expression<int>? depth,
     Expression<bool>? isComposite,
     Expression<String>? detail,
+    Expression<String>? ingredientImagePath,
+    Expression<String>? ingredientArBoundingBox,
+    Expression<int>? ingredientArImageWidth,
+    Expression<int>? ingredientArImageHeight,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -6544,6 +6859,14 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
       if (depth != null) 'depth': depth,
       if (isComposite != null) 'is_composite': isComposite,
       if (detail != null) 'detail': detail,
+      if (ingredientImagePath != null)
+        'ingredient_image_path': ingredientImagePath,
+      if (ingredientArBoundingBox != null)
+        'ingredient_ar_bounding_box': ingredientArBoundingBox,
+      if (ingredientArImageWidth != null)
+        'ingredient_ar_image_width': ingredientArImageWidth,
+      if (ingredientArImageHeight != null)
+        'ingredient_ar_image_height': ingredientArImageHeight,
     });
   }
 
@@ -6562,7 +6885,11 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
       Value<int?>? parentId,
       Value<int>? depth,
       Value<bool>? isComposite,
-      Value<String?>? detail}) {
+      Value<String?>? detail,
+      Value<String?>? ingredientImagePath,
+      Value<String?>? ingredientArBoundingBox,
+      Value<int?>? ingredientArImageWidth,
+      Value<int?>? ingredientArImageHeight}) {
     return MyMealIngredientsCompanion(
       id: id ?? this.id,
       myMealId: myMealId ?? this.myMealId,
@@ -6579,6 +6906,13 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
       depth: depth ?? this.depth,
       isComposite: isComposite ?? this.isComposite,
       detail: detail ?? this.detail,
+      ingredientImagePath: ingredientImagePath ?? this.ingredientImagePath,
+      ingredientArBoundingBox:
+          ingredientArBoundingBox ?? this.ingredientArBoundingBox,
+      ingredientArImageWidth:
+          ingredientArImageWidth ?? this.ingredientArImageWidth,
+      ingredientArImageHeight:
+          ingredientArImageHeight ?? this.ingredientArImageHeight,
     );
   }
 
@@ -6630,6 +6964,22 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
     if (detail.present) {
       map['detail'] = Variable<String>(detail.value);
     }
+    if (ingredientImagePath.present) {
+      map['ingredient_image_path'] =
+          Variable<String>(ingredientImagePath.value);
+    }
+    if (ingredientArBoundingBox.present) {
+      map['ingredient_ar_bounding_box'] =
+          Variable<String>(ingredientArBoundingBox.value);
+    }
+    if (ingredientArImageWidth.present) {
+      map['ingredient_ar_image_width'] =
+          Variable<int>(ingredientArImageWidth.value);
+    }
+    if (ingredientArImageHeight.present) {
+      map['ingredient_ar_image_height'] =
+          Variable<int>(ingredientArImageHeight.value);
+    }
     return map;
   }
 
@@ -6650,7 +7000,11 @@ class MyMealIngredientsCompanion extends UpdateCompanion<MyMealIngredientData> {
           ..write('parentId: $parentId, ')
           ..write('depth: $depth, ')
           ..write('isComposite: $isComposite, ')
-          ..write('detail: $detail')
+          ..write('detail: $detail, ')
+          ..write('ingredientImagePath: $ingredientImagePath, ')
+          ..write('ingredientArBoundingBox: $ingredientArBoundingBox, ')
+          ..write('ingredientArImageWidth: $ingredientArImageWidth, ')
+          ..write('ingredientArImageHeight: $ingredientArImageHeight')
           ..write(')'))
         .toString();
   }
@@ -10226,6 +10580,7 @@ typedef $$FoodEntriesTableCreateCompanionBuilder = FoodEntriesCompanion
   Value<String?> imagePath,
   Value<String?> supplementaryImagePath2,
   Value<String?> supplementaryImagePath3,
+  Value<String?> imagePathsJson,
   required MealType mealType,
   required double servingSize,
   required String servingUnit,
@@ -10332,6 +10687,7 @@ typedef $$FoodEntriesTableUpdateCompanionBuilder = FoodEntriesCompanion
   Value<String?> imagePath,
   Value<String?> supplementaryImagePath2,
   Value<String?> supplementaryImagePath3,
+  Value<String?> imagePathsJson,
   Value<MealType> mealType,
   Value<double> servingSize,
   Value<String> servingUnit,
@@ -10460,6 +10816,10 @@ class $$FoodEntriesTableFilterComposer
 
   ColumnFilters<String> get supplementaryImagePath3 => $composableBuilder(
       column: $table.supplementaryImagePath3,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imagePathsJson => $composableBuilder(
+      column: $table.imagePathsJson,
       builder: (column) => ColumnFilters(column));
 
   ColumnWithTypeConverterFilters<MealType, MealType, int> get mealType =>
@@ -10812,6 +11172,10 @@ class $$FoodEntriesTableOrderingComposer
 
   ColumnOrderings<String> get supplementaryImagePath3 => $composableBuilder(
       column: $table.supplementaryImagePath3,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get imagePathsJson => $composableBuilder(
+      column: $table.imagePathsJson,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get mealType => $composableBuilder(
@@ -11175,6 +11539,9 @@ class $$FoodEntriesTableAnnotationComposer
   GeneratedColumn<String> get supplementaryImagePath3 => $composableBuilder(
       column: $table.supplementaryImagePath3, builder: (column) => column);
 
+  GeneratedColumn<String> get imagePathsJson => $composableBuilder(
+      column: $table.imagePathsJson, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<MealType, int> get mealType =>
       $composableBuilder(column: $table.mealType, builder: (column) => column);
 
@@ -11498,6 +11865,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> imagePath = const Value.absent(),
             Value<String?> supplementaryImagePath2 = const Value.absent(),
             Value<String?> supplementaryImagePath3 = const Value.absent(),
+            Value<String?> imagePathsJson = const Value.absent(),
             Value<MealType> mealType = const Value.absent(),
             Value<double> servingSize = const Value.absent(),
             Value<String> servingUnit = const Value.absent(),
@@ -11603,6 +11971,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             imagePath: imagePath,
             supplementaryImagePath2: supplementaryImagePath2,
             supplementaryImagePath3: supplementaryImagePath3,
+            imagePathsJson: imagePathsJson,
             mealType: mealType,
             servingSize: servingSize,
             servingUnit: servingUnit,
@@ -11708,6 +12077,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             Value<String?> imagePath = const Value.absent(),
             Value<String?> supplementaryImagePath2 = const Value.absent(),
             Value<String?> supplementaryImagePath3 = const Value.absent(),
+            Value<String?> imagePathsJson = const Value.absent(),
             required MealType mealType,
             required double servingSize,
             required String servingUnit,
@@ -11813,6 +12183,7 @@ class $$FoodEntriesTableTableManager extends RootTableManager<
             imagePath: imagePath,
             supplementaryImagePath2: supplementaryImagePath2,
             supplementaryImagePath3: supplementaryImagePath3,
+            imagePathsJson: imagePathsJson,
             mealType: mealType,
             servingSize: servingSize,
             servingUnit: servingUnit,
@@ -12282,6 +12653,8 @@ typedef $$MyMealsTableCreateCompanionBuilder = MyMealsCompanion Function({
   required double totalFat,
   required String baseServingDescription,
   Value<String?> imagePath,
+  Value<String?> thumbnailUrl,
+  Value<String?> thumbnailFirebasePath,
   required String source,
   Value<int> usageCount,
   Value<DateTime> createdAt,
@@ -12297,6 +12670,8 @@ typedef $$MyMealsTableUpdateCompanionBuilder = MyMealsCompanion Function({
   Value<double> totalFat,
   Value<String> baseServingDescription,
   Value<String?> imagePath,
+  Value<String?> thumbnailUrl,
+  Value<String?> thumbnailFirebasePath,
   Value<String> source,
   Value<int> usageCount,
   Value<DateTime> createdAt,
@@ -12339,6 +12714,13 @@ class $$MyMealsTableFilterComposer
 
   ColumnFilters<String> get imagePath => $composableBuilder(
       column: $table.imagePath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get thumbnailFirebasePath => $composableBuilder(
+      column: $table.thumbnailFirebasePath,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get source => $composableBuilder(
       column: $table.source, builder: (column) => ColumnFilters(column));
@@ -12392,6 +12774,14 @@ class $$MyMealsTableOrderingComposer
   ColumnOrderings<String> get imagePath => $composableBuilder(
       column: $table.imagePath, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get thumbnailFirebasePath => $composableBuilder(
+      column: $table.thumbnailFirebasePath,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get source => $composableBuilder(
       column: $table.source, builder: (column) => ColumnOrderings(column));
 
@@ -12441,6 +12831,12 @@ class $$MyMealsTableAnnotationComposer
   GeneratedColumn<String> get imagePath =>
       $composableBuilder(column: $table.imagePath, builder: (column) => column);
 
+  GeneratedColumn<String> get thumbnailUrl => $composableBuilder(
+      column: $table.thumbnailUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get thumbnailFirebasePath => $composableBuilder(
+      column: $table.thumbnailFirebasePath, builder: (column) => column);
+
   GeneratedColumn<String> get source =>
       $composableBuilder(column: $table.source, builder: (column) => column);
 
@@ -12486,6 +12882,8 @@ class $$MyMealsTableTableManager extends RootTableManager<
             Value<double> totalFat = const Value.absent(),
             Value<String> baseServingDescription = const Value.absent(),
             Value<String?> imagePath = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> thumbnailFirebasePath = const Value.absent(),
             Value<String> source = const Value.absent(),
             Value<int> usageCount = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -12501,6 +12899,8 @@ class $$MyMealsTableTableManager extends RootTableManager<
             totalFat: totalFat,
             baseServingDescription: baseServingDescription,
             imagePath: imagePath,
+            thumbnailUrl: thumbnailUrl,
+            thumbnailFirebasePath: thumbnailFirebasePath,
             source: source,
             usageCount: usageCount,
             createdAt: createdAt,
@@ -12516,6 +12916,8 @@ class $$MyMealsTableTableManager extends RootTableManager<
             required double totalFat,
             required String baseServingDescription,
             Value<String?> imagePath = const Value.absent(),
+            Value<String?> thumbnailUrl = const Value.absent(),
+            Value<String?> thumbnailFirebasePath = const Value.absent(),
             required String source,
             Value<int> usageCount = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -12531,6 +12933,8 @@ class $$MyMealsTableTableManager extends RootTableManager<
             totalFat: totalFat,
             baseServingDescription: baseServingDescription,
             imagePath: imagePath,
+            thumbnailUrl: thumbnailUrl,
+            thumbnailFirebasePath: thumbnailFirebasePath,
             source: source,
             usageCount: usageCount,
             createdAt: createdAt,
@@ -12572,6 +12976,10 @@ typedef $$MyMealIngredientsTableCreateCompanionBuilder
   Value<int> depth,
   Value<bool> isComposite,
   Value<String?> detail,
+  Value<String?> ingredientImagePath,
+  Value<String?> ingredientArBoundingBox,
+  Value<int?> ingredientArImageWidth,
+  Value<int?> ingredientArImageHeight,
 });
 typedef $$MyMealIngredientsTableUpdateCompanionBuilder
     = MyMealIngredientsCompanion Function({
@@ -12590,6 +12998,10 @@ typedef $$MyMealIngredientsTableUpdateCompanionBuilder
   Value<int> depth,
   Value<bool> isComposite,
   Value<String?> detail,
+  Value<String?> ingredientImagePath,
+  Value<String?> ingredientArBoundingBox,
+  Value<int?> ingredientArImageWidth,
+  Value<int?> ingredientArImageHeight,
 });
 
 class $$MyMealIngredientsTableFilterComposer
@@ -12646,6 +13058,22 @@ class $$MyMealIngredientsTableFilterComposer
 
   ColumnFilters<String> get detail => $composableBuilder(
       column: $table.detail, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get ingredientImagePath => $composableBuilder(
+      column: $table.ingredientImagePath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get ingredientArBoundingBox => $composableBuilder(
+      column: $table.ingredientArBoundingBox,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get ingredientArImageWidth => $composableBuilder(
+      column: $table.ingredientArImageWidth,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get ingredientArImageHeight => $composableBuilder(
+      column: $table.ingredientArImageHeight,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$MyMealIngredientsTableOrderingComposer
@@ -12703,6 +13131,22 @@ class $$MyMealIngredientsTableOrderingComposer
 
   ColumnOrderings<String> get detail => $composableBuilder(
       column: $table.detail, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get ingredientImagePath => $composableBuilder(
+      column: $table.ingredientImagePath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get ingredientArBoundingBox => $composableBuilder(
+      column: $table.ingredientArBoundingBox,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get ingredientArImageWidth => $composableBuilder(
+      column: $table.ingredientArImageWidth,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get ingredientArImageHeight => $composableBuilder(
+      column: $table.ingredientArImageHeight,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$MyMealIngredientsTableAnnotationComposer
@@ -12758,6 +13202,18 @@ class $$MyMealIngredientsTableAnnotationComposer
 
   GeneratedColumn<String> get detail =>
       $composableBuilder(column: $table.detail, builder: (column) => column);
+
+  GeneratedColumn<String> get ingredientImagePath => $composableBuilder(
+      column: $table.ingredientImagePath, builder: (column) => column);
+
+  GeneratedColumn<String> get ingredientArBoundingBox => $composableBuilder(
+      column: $table.ingredientArBoundingBox, builder: (column) => column);
+
+  GeneratedColumn<int> get ingredientArImageWidth => $composableBuilder(
+      column: $table.ingredientArImageWidth, builder: (column) => column);
+
+  GeneratedColumn<int> get ingredientArImageHeight => $composableBuilder(
+      column: $table.ingredientArImageHeight, builder: (column) => column);
 }
 
 class $$MyMealIngredientsTableTableManager extends RootTableManager<
@@ -12804,6 +13260,10 @@ class $$MyMealIngredientsTableTableManager extends RootTableManager<
             Value<int> depth = const Value.absent(),
             Value<bool> isComposite = const Value.absent(),
             Value<String?> detail = const Value.absent(),
+            Value<String?> ingredientImagePath = const Value.absent(),
+            Value<String?> ingredientArBoundingBox = const Value.absent(),
+            Value<int?> ingredientArImageWidth = const Value.absent(),
+            Value<int?> ingredientArImageHeight = const Value.absent(),
           }) =>
               MyMealIngredientsCompanion(
             id: id,
@@ -12821,6 +13281,10 @@ class $$MyMealIngredientsTableTableManager extends RootTableManager<
             depth: depth,
             isComposite: isComposite,
             detail: detail,
+            ingredientImagePath: ingredientImagePath,
+            ingredientArBoundingBox: ingredientArBoundingBox,
+            ingredientArImageWidth: ingredientArImageWidth,
+            ingredientArImageHeight: ingredientArImageHeight,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -12838,6 +13302,10 @@ class $$MyMealIngredientsTableTableManager extends RootTableManager<
             Value<int> depth = const Value.absent(),
             Value<bool> isComposite = const Value.absent(),
             Value<String?> detail = const Value.absent(),
+            Value<String?> ingredientImagePath = const Value.absent(),
+            Value<String?> ingredientArBoundingBox = const Value.absent(),
+            Value<int?> ingredientArImageWidth = const Value.absent(),
+            Value<int?> ingredientArImageHeight = const Value.absent(),
           }) =>
               MyMealIngredientsCompanion.insert(
             id: id,
@@ -12855,6 +13323,10 @@ class $$MyMealIngredientsTableTableManager extends RootTableManager<
             depth: depth,
             isComposite: isComposite,
             detail: detail,
+            ingredientImagePath: ingredientImagePath,
+            ingredientArBoundingBox: ingredientArBoundingBox,
+            ingredientArImageWidth: ingredientArImageWidth,
+            ingredientArImageHeight: ingredientArImageHeight,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
