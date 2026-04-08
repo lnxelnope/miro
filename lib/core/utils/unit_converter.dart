@@ -493,4 +493,62 @@ class UnitConverter {
       );
     }).toList();
   }
+
+  // ============================================================
+  // Imperial display helpers
+  // ============================================================
+
+  /// Map from metric unit → imperial equivalent for auto-conversion.
+  static const _metricToImperial = {
+    'g': 'oz',
+    'kg': 'lbs',
+    'mg': 'oz',
+    'ml': 'fl oz',
+    'l': 'fl oz',
+  };
+
+  /// Convert a weight/volume amount stored in [unitKey] into
+  /// the preferred display unit for [imperial] mode.
+  ///
+  /// Returns the original values unchanged if:
+  ///  - imperial == false
+  ///  - the unit is count/package (piece, plate, serving, ...)
+  ///
+  /// Example:
+  /// ```dart
+  /// final d = UnitConverter.imperialDisplay(200, 'g', imperial: true);
+  /// // d = (amount: 7.05, unit: 'oz')
+  /// ```
+  static ({double amount, String unit}) imperialDisplay(
+    double amount,
+    String unitKey, {
+    required bool imperial,
+  }) {
+    if (!imperial) return (amount: amount, unit: unitKey);
+
+    final targetKey = _metricToImperial[unitKey];
+    if (targetKey == null) return (amount: amount, unit: unitKey);
+
+    final converted = convert(amount, from: unitKey, to: targetKey);
+    if (converted == null) return (amount: amount, unit: unitKey);
+
+    return (amount: converted, unit: targetKey);
+  }
+
+  /// Format a weight/volume amount for display.
+  /// Automatically converts to imperial when [imperial] is true.
+  /// Returns e.g. "7.1 oz" or "200 g".
+  static String formatAmount(
+    double amount,
+    String unitKey, {
+    required bool imperial,
+    String locale = 'en',
+    int decimals = 1,
+  }) {
+    final d = imperialDisplay(amount, unitKey, imperial: imperial);
+    final formatted = d.amount == d.amount.roundToDouble()
+        ? d.amount.toInt().toString()
+        : d.amount.toStringAsFixed(decimals);
+    return '$formatted ${displayUnit(d.unit, locale)}';
+  }
 }

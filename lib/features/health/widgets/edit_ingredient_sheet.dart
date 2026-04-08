@@ -6,6 +6,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../l10n/app_localizations.dart';
@@ -309,7 +310,10 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                L10n.of(context)!.nutritionCalculatedPerBase(_baseAmountController.text, _baseUnit),
+                L10n.of(context)!.nutritionCalculatedPerBase(
+                  UnitConverter.formatAmount(double.tryParse(_baseAmountController.text) ?? 0, _baseUnit, imperial: ref.watch(isImperialProvider)),
+                  '',
+                ),
                 style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ),
@@ -387,7 +391,12 @@ class _EditIngredientSheetState extends ConsumerState<EditIngredientSheet> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(L10n.of(context)!.aiAnalyzedIngredient(ingredientName, baseAmount.toString(), _baseUnit, result.nutrition.calories.toInt())),
+              content: Text(L10n.of(context)!.aiAnalyzedIngredient(
+                ingredientName,
+                UnitConverter.formatAmount(baseAmount.toDouble(), _baseUnit, imperial: ref.read(isImperialProvider)),
+                '',
+                result.nutrition.calories.toInt(),
+              )),
               backgroundColor: AppColors.premium,
               duration: const Duration(seconds: 2),
             ),

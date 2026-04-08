@@ -3092,10 +3092,13 @@ class L10nTh extends L10n {
   String get mealNameHint => 'e.g. Pad Krapow with fried egg';
 
   @override
-  String get servingSizeLabel => 'Serving Size *';
+  String get servingSizeLabel => 'จำนวน serving *';
 
   @override
-  String get unitRequired => 'Unit *';
+  String get mealYieldHelper => 'ปริมาณรวมทั้งหมดของเมนูนี้';
+
+  @override
+  String get unitRequired => 'หน่วย *';
 
   @override
   String get ingredientsSectionTitle => 'Ingredients';
@@ -3110,7 +3113,15 @@ class L10nTh extends L10n {
   String get noIngredientsHint => 'ยังไม่มีวัตถุดิบ กดเพิ่มเพื่อบันทึก';
 
   @override
-  String get totalNutritionTitle => 'Total Nutrition';
+  String get totalNutritionTitle => 'สูตรทั้งหมด';
+
+  @override
+  String get perServingNutrition => 'ต่อ 1 serving';
+
+  @override
+  String perServingCalories(String calories) {
+    return '1 serving = $calories kcal';
+  }
 
   @override
   String get saveChangesButton => 'Save Changes';
@@ -4297,4 +4308,36 @@ class L10nTh extends L10n {
   @override
   String get parentAmountTooltip =>
       'เปลี่ยนเพื่อ scale วัตถุดิบย่อยทั้งหมดตามสัดส่วน';
+
+  @override
+  String get unitSystemSection => 'ระบบหน่วย';
+
+  @override
+  String get unitSystemMetric => 'เมตริก';
+
+  @override
+  String get unitSystemImperial => 'อิมพีเรียล';
+
+  @override
+  String get unitSystemMetricDesc => 'g, kg, ml';
+
+  @override
+  String get unitSystemImperialDesc => 'oz, lbs, fl oz';
+
+  @override
+  String get unitSystemPreference => 'หน่วยวัด';
+
+  @override
+  String get onboardingUnitSystem => 'ระบบหน่วยที่ชอบ:';
+
+  @override
+  String unitSystemChangedTo(Object system) {
+    return 'เปลี่ยนระบบหน่วยเป็น $system แล้ว';
+  }
+
+  @override
+  String get arScanPortraitOnlyTitle => 'รองรับแนวตั้งเท่านั้น';
+
+  @override
+  String get arScanPortraitOnlyMessage => 'กรุณาหมุนอุปกรณ์ให้เป็นแนวตั้ง';
 }

@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/widgets/search_mode_selector.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/ai/gemini_service.dart';
@@ -392,7 +393,7 @@ class _FoodPreviewScreenState extends ConsumerState<FoodPreviewScreen> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Text(
-                          '• ${ingredient.name} (${ingredient.amount}${ingredient.unit}) - ${ingredient.calories.toInt()} kcal',
+                          '• ${ingredient.name} (${UnitConverter.formatAmount(ingredient.amount, ingredient.unit, imperial: ref.watch(isImperialProvider))}) - ${ingredient.calories.toInt()} kcal',
                           style: const TextStyle(fontSize: 13),
                         ),
                       );

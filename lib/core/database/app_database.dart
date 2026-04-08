@@ -375,6 +375,10 @@ class UserProfiles extends Table {
   TextColumn get cuisinePreference =>
       text().withDefault(const Constant('international'))();
 
+  /// 'metric' (default) or 'imperial'
+  TextColumn get unitSystem =>
+      text().withDefault(const Constant('metric'))();
+
   // API Keys
   BoolColumn get hasGeminiApiKey =>
       boolean().withDefault(const Constant(false))();
@@ -448,7 +452,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -481,6 +485,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             await m.addColumn(myMeals, myMeals.thumbnailUrl);
             await m.addColumn(myMeals, myMeals.thumbnailFirebasePath);
+          }
+          if (from < 7) {
+            await m.addColumn(userProfiles, userProfiles.unitSystem);
           }
         },
         beforeOpen: (details) async {

@@ -1929,5 +1929,8 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "arScanPortraitOnlyTitle": "Nur Hochformat",
+  "arScanPortraitOnlyMessage": "Bitte drehen Sie Ihr Gerät ins Hochformat"
 }

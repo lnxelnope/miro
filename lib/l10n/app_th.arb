@@ -2443,5 +2443,24 @@
   "redeemErrorGeneric": "ไม่สามารถใช้โค้ดได้ กรุณาลองอีกครั้ง",
 
   "parentAmountHintWithSubs": "ปรับทั้งหมด",
-  "parentAmountTooltip": "เปลี่ยนเพื่อ scale วัตถุดิบย่อยทั้งหมดตามสัดส่วน"
+  "parentAmountTooltip": "เปลี่ยนเพื่อ scale วัตถุดิบย่อยทั้งหมดตามสัดส่วน",
+
+  "servingSizeLabel": "จำนวน serving *",
+  "mealYieldHelper": "ปริมาณรวมทั้งหมดของเมนูนี้",
+  "unitRequired": "หน่วย *",
+  "totalNutritionTitle": "สูตรทั้งหมด",
+  "perServingNutrition": "ต่อ 1 serving",
+  "perServingCalories": "1 serving = {calories} kcal",
+
+  "unitSystemSection": "ระบบหน่วย",
+  "unitSystemMetric": "เมตริก",
+  "unitSystemImperial": "อิมพีเรียล",
+  "unitSystemMetricDesc": "g, kg, ml",
+  "unitSystemImperialDesc": "oz, lbs, fl oz",
+  "unitSystemPreference": "หน่วยวัด",
+  "onboardingUnitSystem": "ระบบหน่วยที่ชอบ:",
+  "unitSystemChangedTo": "เปลี่ยนระบบหน่วยเป็น {system} แล้ว",
+
+  "arScanPortraitOnlyTitle": "รองรับแนวตั้งเท่านั้น",
+  "arScanPortraitOnlyMessage": "กรุณาหมุนอุปกรณ์ให้เป็นแนวตั้ง"
 }

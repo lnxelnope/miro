@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Download } from 'lucide-react';
 import { publicAsset } from '@/lib/publicAsset';
 
@@ -15,6 +16,8 @@ const navLinks = [
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const isThaiPage = pathname.includes('/th');
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-brand-100 bg-white/90 backdrop-blur-xl">
@@ -42,6 +45,21 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          {isThaiPage ? (
+            <Link
+              href="/"
+              className="text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900"
+            >
+              English
+            </Link>
+          ) : (
+            <Link
+              href="/th/"
+              className="text-sm font-semibold text-brand-700 transition-colors hover:text-brand-900"
+            >
+              ไทย
+            </Link>
+          )}
           <Link
             href="/#download"
             className="flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-700 hover:shadow-md hover:shadow-brand-500/20"
@@ -77,6 +95,23 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+            {isThaiPage ? (
+              <Link
+                href="/"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 font-semibold text-brand-800 transition-colors hover:bg-brand-50"
+              >
+                English
+              </Link>
+            ) : (
+              <Link
+                href="/th/"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 font-semibold text-brand-800 transition-colors hover:bg-brand-50"
+              >
+                ไทย
+              </Link>
+            )}
             <Link
               href="/#download"
               onClick={() => setMobileOpen(false)}

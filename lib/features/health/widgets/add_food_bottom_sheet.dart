@@ -7,6 +7,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/usage_limiter.dart';
@@ -66,6 +67,8 @@ class _EditableIngredient {
         baseCarbs = amount > 0 ? carbs / amount : carbs,
         baseFat = amount > 0 ? fat / amount : fat,
         subIngredients = subIngredients ?? [];
+
+  bool get hasBaseValues => baseAmount > 0 && baseCalories > 0;
 
   void saveBaseValues() {
     final amt = double.tryParse(amountController.text) ?? 0;
@@ -1855,7 +1858,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                 title: Text(ing.name,
                                     style: const TextStyle(fontSize: 13)),
                                 subtitle: Text(
-                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                   style: TextStyle(
                                       fontSize: 11,
                                       color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -1939,16 +1942,32 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
 
           // Row 2: Amount + Unit + kcal/macro
-          Row(
+          Builder(builder: (context) {
+            final isImp = ref.watch(isImperialProvider);
+            final impLocked = isImp && row.hasBaseValues;
+            final impDisp = impLocked
+                ? UnitConverter.imperialDisplay(
+                    double.tryParse(row.amountController.text) ?? 0,
+                    row.unit,
+                    imperial: true,
+                  )
+                : null;
+            return Row(
             children: [
               SizedBox(
                 width: 80,
                 child: TextField(
-                  controller: row.amountController,
+                  controller: impLocked
+                      ? TextEditingController(
+                          text: impDisp!.amount.toStringAsFixed(
+                            impDisp.amount == impDisp.amount.roundToDouble() ? 0 : 1,
+                          ))
+                      : row.amountController,
+                  readOnly: impLocked,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(fontSize: 13),
-                  onChanged: (_) {
+                  onChanged: impLocked ? null : (_) {
                     setState(() {
                       row.recalculate();
                       _recalculateParentFromSubs(row);
@@ -1957,6 +1976,10 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
+                    filled: impLocked,
+                    fillColor: impLocked
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                     hintText: row.subIngredients.isNotEmpty
                         ? L10n.of(context)!.parentAmountHintWithSubs
                         : L10n.of(context)!.amountHint,
@@ -1980,11 +2003,11 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm), // 6 -> 8 closest
+              const SizedBox(width: AppSpacing.sm),
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  value: UnitConverter.ensureValid(row.unit),
+                  value: impLocked ? impDisp!.unit : UnitConverter.ensureValid(row.unit),
                   isDense: true,
                   isExpanded: true,
                   style: TextStyle(fontSize: 12, color: isDark ? AppColors.textPrimaryDark : Colors.black87),
@@ -1992,7 +2015,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   decoration: InputDecoration(
                     isDense: true,
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm), // 6 -> 8 closest
+                        const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
                     border: OutlineInputBorder(
                         borderRadius: AppRadius.sm),
                     enabledBorder: OutlineInputBorder(
@@ -2001,7 +2024,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     ),
                   ),
                   items: UnitConverter.compactDropdownItems,
-                  onChanged: (v) {
+                  onChanged: impLocked ? null : (v) {
                     if (v != null) setState(() => row.unit = v);
                   },
                 ),
@@ -2059,7 +2082,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   ],
                 ),
             ],
-          ),
+          ); }),
 
           if (row.isFromDb) ...[
             const SizedBox(height: 4),
@@ -2248,7 +2271,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                                 title: Text(ing.name,
                                     style: const TextStyle(fontSize: 11)),
                                 subtitle: Text(
-                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                   style: TextStyle(
                                       fontSize: 9,
                                       color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -2335,18 +2358,34 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
           ),
           const SizedBox(height: AppSpacing.sm), // 6 -> 8 closest
           // Amount + Unit + Kcal
-          Row(
+          Builder(builder: (context) {
+            final isImp = ref.watch(isImperialProvider);
+            final subImpLocked = isImp && sub.hasBaseValues;
+            final subImpDisp = subImpLocked
+                ? UnitConverter.imperialDisplay(
+                    double.tryParse(sub.amountController.text) ?? 0,
+                    sub.unit,
+                    imperial: true,
+                  )
+                : null;
+            return Row(
             children: [
               const SizedBox(width: 12),
               SizedBox(
                 width: 50,
                 height: 28,
                 child: TextField(
-                  controller: sub.amountController,
+                  controller: subImpLocked
+                      ? TextEditingController(
+                          text: subImpDisp!.amount.toStringAsFixed(
+                            subImpDisp.amount == subImpDisp.amount.roundToDouble() ? 0 : 1,
+                          ))
+                      : sub.amountController,
+                  readOnly: subImpLocked,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(fontSize: 11),
                   textAlign: TextAlign.center,
-                  onChanged: (_) {
+                  onChanged: subImpLocked ? null : (_) {
                     setState(() {
                       sub.recalculate();
                       _recalculateParentFromSubs(parentRow);
@@ -2356,24 +2395,28 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
+                    filled: subImpLocked,
+                    fillColor: subImpLocked
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 4, vertical: 5),
                     hintText: L10n.of(context)!.amountShort,
                     hintStyle:
                         TextStyle(fontSize: 10, color: isDark ? Colors.white38 : AppColors.textTertiary),
                     border: OutlineInputBorder(
-                      borderRadius: AppRadius.sm, // 6 -> 8 closest
+                      borderRadius: AppRadius.sm,
                       borderSide: const BorderSide(color: AppColors.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: AppRadius.sm, // 6 -> 8 closest
+                      borderRadius: AppRadius.sm,
                       borderSide: const BorderSide(color: AppColors.divider),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(sub.unit,
+              Text(subImpLocked ? subImpDisp!.unit : sub.unit,
                   style:
                       TextStyle(fontSize: 10, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary)),
               const SizedBox(width: 8),
@@ -2392,7 +2435,7 @@ class _AddFoodBottomSheetState extends ConsumerState<AddFoodBottomSheet> {
                     TextStyle(fontSize: 9, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
               ),
             ],
-          ),
+          ); }),
         ],
       ),
     );

@@ -198,6 +198,70 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     parent['protein'] = p;
     parent['carbs'] = cb;
     parent['fat'] = f;
+
+    final agg = _aggregateCompatibleSubAmountsMap(subs);
+    if (agg != null && agg.total > 0) {
+      parent['amount'] = agg.total;
+      parent['unit'] = agg.unit;
+    }
+  }
+
+  /// รวมปริมาณจาก sub-ingredients เมื่อหน่วยเข้ากันได้
+  ({double total, String unit})? _aggregateCompatibleSubAmountsMap(
+      List<Map<String, dynamic>> subs) {
+    if (subs.isEmpty) return null;
+    final units = subs
+        .map((s) => UnitConverter.ensureValid((s['unit'] as String?) ?? 'g'))
+        .toList();
+    if (units.toSet().length == 1) {
+      var sum = 0.0;
+      for (final s in subs) {
+        sum += (s['amount'] as num?)?.toDouble() ?? 0;
+      }
+      return (total: sum, unit: units.first);
+    }
+    final first = UnitConverter.find(units[0]);
+    if (first?.category == UnitCategory.weight) {
+      var ok = true;
+      var sumG = 0.0;
+      for (final s in subs) {
+        final su = UnitConverter.find(
+            UnitConverter.ensureValid((s['unit'] as String?) ?? 'g'));
+        if (su?.category != UnitCategory.weight) {
+          ok = false;
+          break;
+        }
+        final amt = (s['amount'] as num?)?.toDouble() ?? 0;
+        final g = UnitConverter.convert(amt, from: su!.key, to: 'g');
+        if (g == null) {
+          ok = false;
+          break;
+        }
+        sumG += g;
+      }
+      if (ok) return (total: sumG, unit: 'g');
+    }
+    if (first?.category == UnitCategory.volume) {
+      var ok = true;
+      var sumMl = 0.0;
+      for (final s in subs) {
+        final su = UnitConverter.find(
+            UnitConverter.ensureValid((s['unit'] as String?) ?? 'ml'));
+        if (su?.category != UnitCategory.volume) {
+          ok = false;
+          break;
+        }
+        final amt = (s['amount'] as num?)?.toDouble() ?? 0;
+        final ml = UnitConverter.convert(amt, from: su!.key, to: 'ml');
+        if (ml == null) {
+          ok = false;
+          break;
+        }
+        sumMl += ml;
+      }
+      if (ok) return (total: sumMl, unit: 'ml');
+    }
+    return null;
   }
 
   /// คง `_baseIngredients` ให้สอดคล้องกับ `_ingredients` ที่ปริมาณรวมปัจจุบัน
@@ -350,6 +414,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             parent['protein'] = 0.0;
             parent['carbs'] = 0.0;
             parent['fat'] = 0.0;
+            parent['amount'] = 0.0;
             _expandedIngredientRoots.remove(rootIndex);
           } else {
             parent['sub_ingredients'] = subs;
@@ -399,6 +464,8 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     final oldAmount = (ing['amount'] as num?)?.toDouble() ?? 0;
     final name = ing['name'] as String? ?? '';
     final unit = ing['unit'] as String? ?? 'g';
+    final impMode = ref.read(isImperialProvider);
+    final dispUnit = UnitConverter.imperialDisplay(1, unit, imperial: impMode).unit;
     final controller = TextEditingController(
       text: oldAmount == oldAmount.roundToDouble()
           ? oldAmount.toInt().toString()
@@ -416,7 +483,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: '${L10n.of(context)!.quantity} ($unit)',
+              labelText: '${L10n.of(context)!.quantity} ($dispUnit)',
               border: OutlineInputBorder(borderRadius: AppRadius.md),
               isDense: true,
             ),
@@ -762,7 +829,7 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
                             title: Text(ing.name,
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                             subtitle: Text(
-                              '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toInt()} ${ing.baseUnit}',
+                              '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                               style: const TextStyle(fontSize: 11),
                             ),
                             onTap: () => selectFromDb(ing),
@@ -1726,9 +1793,15 @@ class _SimpleFoodDetailSheetState extends ConsumerState<SimpleFoodDetailSheet> {
     VoidCallback? onToggleSubs,
   }) {
     final name = ing['name'] as String? ?? '';
-    final amount = (ing['amount'] as num?)?.toDouble();
-    final unit = ing['unit'] as String? ?? 'g';
+    final rawAmount = (ing['amount'] as num?)?.toDouble();
+    final rawUnit = ing['unit'] as String? ?? 'g';
     final kcal = (ing['calories'] as num?)?.toInt();
+    final imp = ref.watch(isImperialProvider);
+    final d = rawAmount != null && rawAmount > 0
+        ? UnitConverter.imperialDisplay(rawAmount, rawUnit, imperial: imp)
+        : null;
+    final amount = d?.amount ?? rawAmount;
+    final unit = d?.unit ?? rawUnit;
     final amountStr = amount != null && amount > 0
         ? amount.toStringAsFixed(amount == amount.roundToDouble() ? 0 : 1)
         : null;

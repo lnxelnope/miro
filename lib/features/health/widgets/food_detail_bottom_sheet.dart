@@ -700,7 +700,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                           ),
                           const Spacer(),
                           Text(
-                            '${entry.servingSize % 1 == 0 ? entry.servingSize.toInt() : entry.servingSize} ${entry.servingUnit}',
+                            UnitConverter.formatAmount(entry.servingSize, entry.servingUnit, imperial: ref.watch(isImperialProvider)),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -1232,7 +1232,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                                 ),
                               ),
                               Text(
-                                '${ingredient.amount % 1 == 0 ? ingredient.amount.toInt() : ingredient.amount} ${ingredient.unit}',
+                                UnitConverter.formatAmount(ingredient.amount, ingredient.unit, imperial: ref.watch(isImperialProvider)),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isDark ? Colors.white38 : AppColors.textTertiary,
@@ -1330,7 +1330,7 @@ class _FoodDetailBottomSheetState extends ConsumerState<FoodDetailBottomSheet>
                         ),
                       ),
                       Text(
-                        '${sub.amount % 1 == 0 ? sub.amount.toInt() : sub.amount} ${sub.unit}',
+                        UnitConverter.formatAmount(sub.amount, sub.unit, imperial: ref.watch(isImperialProvider)),
                         style: TextStyle(
                           fontSize: 10,
                           color: isDark ? Colors.white30 : AppColors.textTertiary,

@@ -17,6 +17,8 @@ import '../widgets/ingredient_card.dart';
 import '../widgets/create_meal_sheet.dart';
 import '../widgets/log_from_meal_sheet.dart';
 import '../widgets/edit_ingredient_sheet.dart';
+import '../../profile/providers/profile_provider.dart';
+import '../../../core/utils/unit_converter.dart';
 
 class HealthMyMealTab extends ConsumerStatefulWidget {
   const HealthMyMealTab({super.key});
@@ -277,6 +279,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 final ingredient = ingredients[index];
                 return IngredientCard(
                   ingredient: ingredient,
+                  imperial: ref.watch(isImperialProvider),
                   onEdit: () => _editIngredient(ingredient),
                   onDelete: () => _deleteIngredient(ingredient),
                   onUse: () => _logFromIngredient(ingredient),
@@ -595,7 +598,11 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                         fontSize: 16, fontWeight: FontWeight.w600,
                         color: isDark ? AppColors.textPrimaryDark : null),
                     decoration: InputDecoration(
-                      labelText: L10n.of(context)!.ingredientAmount(ingredient.baseUnit),
+                      labelText: L10n.of(context)!.ingredientAmount(
+                        ref.read(isImperialProvider)
+                            ? (UnitConverter.imperialDisplay(1, ingredient.baseUnit, imperial: true).unit)
+                            : ingredient.baseUnit,
+                      ),
                       labelStyle: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
@@ -1120,7 +1127,10 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     BuildContext context,
   ) {
     final l10n = L10n.of(context)!;
-    final amt = _formatMealDetailAmount(ing.amount);
+    final imp = ref.watch(isImperialProvider);
+    final _d = UnitConverter.imperialDisplay(ing.amount, ing.unit, imperial: imp);
+    final amt = _formatMealDetailAmount(_d.amount);
+    final displayUnit = _d.unit;
     final primary = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.xs),
@@ -1155,7 +1165,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$amt ${ing.unit}',
+                  '$amt $displayUnit',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -1188,7 +1198,9 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
     BuildContext context,
   ) {
     final l10n = L10n.of(context)!;
-    final amt = _formatMealDetailAmount(ing.amount);
+    final imp = ref.watch(isImperialProvider);
+    final _dSub = UnitConverter.imperialDisplay(ing.amount, ing.unit, imperial: imp);
+    final amt = _formatMealDetailAmount(_dSub.amount);
     final nameColor =
         isDark ? AppColors.textPrimaryDark.withValues(alpha: 0.92) : AppColors.textPrimary;
     return Padding(
@@ -1233,7 +1245,7 @@ class _HealthMyMealTabState extends ConsumerState<HealthMyMealTab>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '$amt ${ing.unit}',
+                    '$amt ${_dSub.unit}',
                     style: TextStyle(
                       fontSize: 11,
                       color: isDark

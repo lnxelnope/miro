@@ -53,7 +53,6 @@ class _ImageAnalysisPreviewScreenState
   late MealType _selectedMealType;
   String? _permanentImagePath;
   final bool _isAnalyzing = false;
-  bool _showDetails = false;
   File? _currentImageFile;
 
   // AR Scale state
@@ -468,7 +467,9 @@ class _ImageAnalysisPreviewScreenState
       final parsed = double.tryParse(quantityText);
       if (parsed == null || parsed <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid quantity'), duration: Duration(seconds: 2)),
+          const SnackBar(
+              content: Text('Please enter a valid quantity'),
+              duration: Duration(seconds: 2)),
         );
         return;
       }
@@ -489,18 +490,17 @@ class _ImageAnalysisPreviewScreenState
       supPath3 = paths.length > 2 ? paths[2] : null;
       imagePathsJson = paths.length > 3 ? jsonEncode(paths) : null;
     } else {
-      imagePath = _hasImage
-          ? (_permanentImagePath ?? _currentImageFile!.path)
-          : null;
+      imagePath =
+          _hasImage ? (_permanentImagePath ?? _currentImageFile!.path) : null;
     }
 
     final date = widget.selectedDate ?? DateTime.now();
     final now = DateTime.now();
-    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+    final entryTimestamp =
+        DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
-    final calibration = _hasMultiImages
-        ? _bestCalibrationAcrossImages()
-        : _calibrationResult;
+    final calibration =
+        _hasMultiImages ? _bestCalibrationAcrossImages() : _calibrationResult;
 
     final isAr = _hasMultiImages;
     final source = !_hasImage
@@ -624,7 +624,8 @@ class _ImageAnalysisPreviewScreenState
 
     final date = widget.selectedDate ?? DateTime.now();
     final now = DateTime.now();
-    final entryTimestamp = DateTime(date.year, date.month, date.day, now.hour, now.minute);
+    final entryTimestamp =
+        DateTime(date.year, date.month, date.day, now.hour, now.minute);
 
     String? imagePath;
     String? supPath2;
@@ -637,9 +638,8 @@ class _ImageAnalysisPreviewScreenState
       supPath3 = paths.length > 2 ? paths[2] : null;
       imagePathsJson = paths.length > 3 ? jsonEncode(paths) : null;
     } else {
-      imagePath = _hasImage
-          ? (_permanentImagePath ?? _currentImageFile!.path)
-          : null;
+      imagePath =
+          _hasImage ? (_permanentImagePath ?? _currentImageFile!.path) : null;
     }
 
     final effectiveName = foodName.isEmpty ? '--' : foodName;
@@ -671,7 +671,8 @@ class _ImageAnalysisPreviewScreenState
       isVerified: false,
       searchMode: _searchMode,
       arLabelsJson: _objectLabels.isNotEmpty
-          ? DetectedObjectLabel.encode(_objectLabels) : null,
+          ? DetectedObjectLabel.encode(_objectLabels)
+          : null,
       arImageWidth: _imageSize.width > 0 ? _imageSize.width : null,
       arImageHeight: _imageSize.height > 0 ? _imageSize.height : null,
       arPixelPerCm: _calibrationResult?.pixelPerCm,
@@ -722,245 +723,229 @@ class _ImageAnalysisPreviewScreenState
           title: Text(l10n.addFoodTitle),
           elevation: 0,
         ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Image Preview
-            if (_hasImage)
-              Container(
-                height: 300,
-                color: isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant,
-                child: _hasMultiImages
-                    ? _buildMultiImagePreview()
-                    : _buildSingleImagePreview(),
-              ),
-            // แสดง detection status หรือ tip
-            if (_currentImageFile != null) ...[
-              const SizedBox(height: 8),
-              if (_objectLabels.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'Detected ${_objectLabels.length} object${_objectLabels.length > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.green[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                )
-              else if (!_isDetecting)
-                const ReferenceGuideTip(compact: true),
-            ],
-
-            // No Image — show camera/gallery options
-            if (!_hasImage)
-              Container(
-                margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.04),
-                  borderRadius: AppRadius.lg,
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.15),
-                    style: BorderStyle.solid,
-                  ),
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Image Preview
+              if (_hasImage)
+                Container(
+                  height: 300,
+                  color: isDark
+                      ? AppColors.surfaceVariantDark
+                      : AppColors.surfaceVariant,
+                  child: _hasMultiImages
+                      ? _buildMultiImagePreview()
+                      : _buildSingleImagePreview(),
                 ),
-                child: Column(
-                  children: [
-                    Icon(Icons.add_a_photo_rounded, size: 40,
-                        color: AppColors.primary.withValues(alpha: 0.4)),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.foodNameQuantityAndModeImprovesAccuracy,
-                      textAlign: TextAlign.center,
+              // แสดง detection status หรือ tip
+              if (_currentImageFile != null) ...[
+                const SizedBox(height: 8),
+                if (_objectLabels.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Detected ${_objectLabels.length} object${_objectLabels.length > 1 ? 's' : ''}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondary,
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _pickImageFromCamera,
-                            icon: const Icon(Icons.camera_alt_rounded, size: 20),
-                            label: Text(l10n.navCamera),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: AppRadius.md,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _pickImageFromGallery,
-                            icon: const Icon(Icons.photo_library_rounded, size: 20),
-                            label: Text(l10n.navGallery),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                              side: const BorderSide(color: AppColors.primary),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: AppRadius.md,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                  )
+                else if (!_isDetecting)
+                  const ReferenceGuideTip(compact: true),
+              ],
 
-            const SizedBox(height: 24),
-
-            // Input Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Food Name Input (always visible)
-                  Text(
-                    l10n.foodNameLabel,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
-                      fontSize: 16,
+              // No Image — show camera/gallery options
+              if (!_hasImage)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.04),
+                    borderRadius: AppRadius.lg,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      style: BorderStyle.solid,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _foodNameController,
-                    autofocus: !_hasImage,
-                    style: TextStyle(
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: _hasImage ? l10n.imageFoodNameHint : l10n.foodNameHint,
-                      hintStyle: TextStyle(
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textTertiary,
-                      ),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        size: 20,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondary,
-                      ),
-                      fillColor: isDark
-                          ? AppColors.surfaceVariantDark
-                          : AppColors.surfaceVariant,
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
+                  child: Column(
+                    children: [
+                      Icon(Icons.add_a_photo_rounded,
+                          size: 40,
+                          color: AppColors.primary.withValues(alpha: 0.4)),
+                      const SizedBox(height: 12),
+                      Text(
+                        l10n.foodNameQuantityAndModeImprovesAccuracy,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
                           color: isDark
-                              ? AppColors.dividerDark
-                              : AppColors.divider,
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
                         ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-
-                  // Helper Text
-                  if (_hasImage)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, bottom: 4),
-                      child: Row(
+                      const SizedBox(height: 16),
+                      Row(
                         children: [
-                          Icon(
-                            Icons.lightbulb_outline,
-                            size: 14,
-                            color: isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondary,
-                          ),
-                          const SizedBox(width: 6),
                           Expanded(
-                            child: Text(
-                              l10n.foodNameQuantityAndModeImprovesAccuracy,
-                              style: TextStyle(
-                                color: isDark
-                                    ? AppColors.textSecondaryDark
-                                    : AppColors.textSecondary,
-                                fontSize: 11,
+                            child: OutlinedButton.icon(
+                              onPressed: _pickImageFromCamera,
+                              icon: const Icon(Icons.camera_alt_rounded,
+                                  size: 20),
+                              label: Text(l10n.navCamera),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side:
+                                    const BorderSide(color: AppColors.primary),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _pickImageFromGallery,
+                              icon: const Icon(Icons.photo_library_rounded,
+                                  size: 20),
+                              label: Text(l10n.navGallery),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side:
+                                    const BorderSide(color: AppColors.primary),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.md,
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-
-                  const SizedBox(height: 16),
-
-                  // ===== Search Mode (visible by default) =====
-                  Text(
-                    l10n.searchModeLabel,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
-                      fontSize: 16,
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  SearchModeSelector(
-                    selectedMode: _searchMode,
-                    onChanged: (mode) => setState(() => _searchMode = mode),
-                  ),
+                ),
 
-                  const SizedBox(height: 8),
+              const SizedBox(height: 24),
 
-                  // Show/Hide details toggle
-                  GestureDetector(
-                    onTap: () => setState(() => _showDetails = !_showDetails),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _showDetails ? Icons.expand_less : Icons.expand_more,
-                          size: 20,
-                          color: AppColors.primary,
+              // Input Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Food Name Input (always visible)
+                    Text(
+                      l10n.foodNameLabel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _foodNameController,
+                      autofocus: !_hasImage,
+                      style: TextStyle(
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: _hasImage
+                            ? l10n.imageFoodNameHint
+                            : l10n.foodNameHint,
+                        hintStyle: TextStyle(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textTertiary,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _showDetails ? l10n.hideDetails : l10n.showDetails,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w500,
+                        prefixIcon: Icon(
+                          Icons.search,
+                          size: 20,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
+                        ),
+                        fillColor: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.surfaceVariant,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.divider,
                           ),
                         ),
-                      ],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
                     ),
-                  ),
 
-                  // Collapsible details section
-                  if (_showDetails) ...[
+                    // Helper Text
+                    if (_hasImage)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, bottom: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_outline,
+                              size: 14,
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                l10n.foodNameQuantityAndModeImprovesAccuracy,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondary,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    // ===== Search Mode (visible by default) =====
+                    Text(
+                      l10n.searchModeLabel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SearchModeSelector(
+                      selectedMode: _searchMode,
+                      onChanged: (mode) => setState(() => _searchMode = mode),
+                    ),
+
                     const SizedBox(height: 16),
 
                     // Quantity and Unit Row
@@ -1044,9 +1029,8 @@ class _ImageAnalysisPreviewScreenState
                                 vertical: 12,
                               ),
                             ),
-                            dropdownColor: isDark
-                                ? AppColors.surfaceDark
-                                : Colors.white,
+                            dropdownColor:
+                                isDark ? AppColors.surfaceDark : Colors.white,
                             style: TextStyle(
                               color: isDark
                                   ? AppColors.textPrimaryDark
@@ -1100,9 +1084,11 @@ class _ImageAnalysisPreviewScreenState
                           ),
                           selected: isSelected,
                           onSelected: (selected) {
-                            if (selected) setState(() => _selectedMealType = type);
+                            if (selected)
+                              setState(() => _selectedMealType = type);
                           },
-                          selectedColor: AppColors.health.withValues(alpha: 0.2),
+                          selectedColor:
+                              AppColors.health.withValues(alpha: 0.2),
                           backgroundColor: isDark
                               ? AppColors.surfaceVariantDark
                               : AppColors.surfaceVariant,
@@ -1114,84 +1100,85 @@ class _ImageAnalysisPreviewScreenState
                         );
                       }).toList(),
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // Save & Analyze Button (always visible)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: _isAnalyzing ? null : _saveAndAnalyze,
+                        icon: _isAnalyzing
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.auto_awesome_rounded, size: 24),
+                        label: Text(
+                          _isAnalyzing
+                              ? l10n.analyzingButton
+                              : l10n.saveAndAnalyzeButton,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Save to Diary button (always visible)
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: _isAnalyzing ? null : _saveToDiary,
+                        icon: const Icon(Icons.bookmark_add_outlined, size: 20),
+                        label: Text(
+                          l10n.saveWithoutAnalysis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondary,
+                          side: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.divider,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
                   ],
-
-                  const SizedBox(height: 16),
-
-                  // Save & Analyze Button (always visible)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: _isAnalyzing ? null : _saveAndAnalyze,
-                      icon: _isAnalyzing
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.auto_awesome_rounded, size: 24),
-                      label: Text(
-                        _isAnalyzing ? l10n.analyzingButton : l10n.saveAndAnalyzeButton,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Save to Diary button (always visible)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: _isAnalyzing ? null : _saveToDiary,
-                      icon: const Icon(Icons.bookmark_add_outlined, size: 20),
-                      label: Text(
-                        l10n.saveWithoutAnalysis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondary,
-                        side: BorderSide(
-                          color: isDark
-                              ? AppColors.dividerDark
-                              : AppColors.divider,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
@@ -1340,8 +1327,10 @@ int _readJpegExifOrientation(Uint8List bytes) {
     if (marker == 0xE1) {
       final exifStart = offset + 4;
       if (exifStart + 6 > bytes.length) return 1;
-      if (bytes[exifStart] != 0x45 || bytes[exifStart + 1] != 0x78 ||
-          bytes[exifStart + 2] != 0x69 || bytes[exifStart + 3] != 0x66) {
+      if (bytes[exifStart] != 0x45 ||
+          bytes[exifStart + 1] != 0x78 ||
+          bytes[exifStart + 2] != 0x69 ||
+          bytes[exifStart + 3] != 0x66) {
         return 1;
       }
 

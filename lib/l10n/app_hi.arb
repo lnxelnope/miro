@@ -1937,5 +1937,8 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "arScanPortraitOnlyTitle": "केवल पोर्ट्रेट मोड",
+  "arScanPortraitOnlyMessage": "कृपया अपने डिवाइस को पोर्ट्रेट ओरिएंटेशन में घुमाएं"
 }

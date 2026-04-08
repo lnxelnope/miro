@@ -14,6 +14,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../core/services/image_picker_service.dart';
 import '../../../core/services/thumbnail_service.dart';
@@ -188,51 +189,9 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
     _recalculateTotal();
   }
 
-  /// When serving size changes, scale all ingredients proportionally
+  /// Serving = "สูตรนี้ทำได้กี่ serving" — ไม่ scale วัตถุดิบ
+  /// แค่ rebuild UI เพื่ออัพเดท per-serving display
   void _onServingSizeChanged() {
-    if (!_isEditMode ||
-        _originalServingSize == null ||
-        _originalServingSize == 0) {
-      return;
-    }
-
-    final newSize = double.tryParse(_servingSizeController.text);
-    if (newSize == null || newSize <= 0) return;
-
-    final ratio = newSize / _originalServingSize!;
-
-    // Scale all ingredients
-    for (final row in _ingredients) {
-      if (row.hasSubIngredients) {
-        for (final sub in row.subIngredients!) {
-          if (sub.baseAmount > 0) {
-            final newAmount = sub.baseAmount * ratio;
-            sub.suppressAmountListener = true;
-            sub.amountController.text = newAmount.toStringAsFixed(1);
-            sub.suppressAmountListener = false;
-            if (sub.hasBaseValues) {
-              sub.recalculate();
-            } else {
-              final r = newAmount / sub.baseAmount;
-              sub.calController.text = (sub.baseCal * r).round().toString();
-              sub.proteinController.text =
-                  (sub.baseProtein * r).round().toString();
-              sub.carbsController.text =
-                  (sub.baseCarbs * r).round().toString();
-              sub.fatController.text = (sub.baseFat * r).round().toString();
-            }
-          }
-        }
-        _recalculateIngredientRow(row);
-      } else if (row.hasBaseValues) {
-        final newAmount = row.baseAmount * ratio;
-        row.suppressAmountListener = true;
-        row.amountController.text = newAmount.toStringAsFixed(1);
-        row.suppressAmountListener = false;
-        row.recalculate();
-      }
-    }
-
     setState(() {});
   }
 
@@ -595,7 +554,6 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             // Base Serving Size + Unit (2 fields)
             Row(
               children: [
-                // Serving Size (number)
                 Expanded(
                   flex: 2,
                   child: TextField(
@@ -605,29 +563,29 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     decoration: InputDecoration(
                       labelText: L10n.of(context)!.servingSizeLabel,
                       hintText: '1',
+                      helperText: L10n.of(context)!.mealYieldHelper,
+                      helperStyle: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.premium.withValues(alpha: 0.6),
+                      ),
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
-                // Serving Unit (dropdown)
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<String>(
                     initialValue: _getValidUnit(_servingUnit),
                     items: UnitConverter.allDropdownItems,
-                    onChanged: _ingredients.isNotEmpty
-                        ? null
-                        : (newUnit) {
-                            if (newUnit != null) {
-                              setState(() => _servingUnit = newUnit);
-                            }
-                          },
+                    onChanged: (newUnit) {
+                      if (newUnit != null) {
+                        setState(() => _servingUnit = newUnit);
+                      }
+                    },
                     decoration: InputDecoration(
-                      labelText: _ingredients.isNotEmpty
-                          ? '${L10n.of(context)!.unitRequired} 🔒'
-                          : L10n.of(context)!.unitRequired,
+                      labelText: L10n.of(context)!.unitRequired,
                       border: OutlineInputBorder(
                           borderRadius: AppRadius.md),
                     ),
@@ -695,7 +653,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             }),
             const SizedBox(height: 16),
 
-            // Total nutrition (calculated or manual)
+            // Total nutrition (entire recipe)
             Container(
               padding: AppSpacing.paddingMd,
               decoration: BoxDecoration(
@@ -737,6 +695,75 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                 ],
               ),
             ),
+
+            // Per 1 Serving section
+            if (_totalCalories > 0) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Builder(builder: (_) {
+                final ss = double.tryParse(_servingSizeController.text) ?? 1;
+                final divisor = ss > 0 ? ss : 1.0;
+                final perCal = (_totalCalories / divisor).toInt();
+                final perP = (_totalProtein / divisor).toInt();
+                final perC = (_totalCarbs / divisor).toInt();
+                final perF = (_totalFat / divisor).toInt();
+                return Container(
+                  padding: AppSpacing.paddingMd,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: AppRadius.md,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.restaurant_menu_rounded,
+                              size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            L10n.of(context)!.perServingNutrition,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(AppIcons.calories,
+                                  size: 16, color: AppIcons.caloriesColor),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$perCal kcal',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text('P:${perP}g',
+                              style: const TextStyle(fontSize: 12)),
+                          Text('C:${perC}g',
+                              style: const TextStyle(fontSize: 12)),
+                          Text('F:${perF}g',
+                              style: const TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
             const SizedBox(height: 24),
 
             // Save button
@@ -807,68 +834,90 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
           const SizedBox(height: 8),
 
           // ===== Row 2: Amount + Unit =====
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: TextField(
-                  controller: row.amountController,
-                  readOnly: hasSubs,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: L10n.of(context)!.amountLabel,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
-                    border: OutlineInputBorder(
-                        borderRadius: AppRadius.sm),
-                    helperText: hasSubs
-                        ? L10n.of(context)!.parentIngredientDrivenBySubs
-                        : (row.hasBaseValues
-                            ? L10n.of(context)!.kcalAutoCalculated
-                            : null),
-                    helperStyle:
-                        TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
+          Builder(builder: (context) {
+            final isImp = ref.watch(isImperialProvider);
+            final impLocked = isImp && row.hasBaseValues;
+            final impDisp = impLocked
+                ? UnitConverter.imperialDisplay(
+                    double.tryParse(row.amountController.text) ?? 0,
+                    row.unit,
+                    imperial: true,
+                  )
+                : null;
+            final locked = hasSubs || impLocked;
+
+            return Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: impLocked
+                        ? TextEditingController(
+                            text: impDisp!.amount.toStringAsFixed(
+                              impDisp.amount == impDisp.amount.roundToDouble() ? 0 : 1,
+                            ))
+                        : row.amountController,
+                    readOnly: locked,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: L10n.of(context)!.amountLabel,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
+                      border: OutlineInputBorder(
+                          borderRadius: AppRadius.sm),
+                      filled: impLocked,
+                      fillColor: impLocked
+                          ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                          : null,
+                      helperText: hasSubs
+                          ? L10n.of(context)!.parentIngredientDrivenBySubs
+                          : (row.hasBaseValues
+                              ? L10n.of(context)!.kcalAutoCalculated
+                              : null),
+                      helperStyle:
+                          TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
+                    ),
+                    style: const TextStyle(fontSize: 14),
+                    onChanged: impLocked ? null : (_) {
+                      if (row.suppressAmountListener) return;
+                      row.recalculate();
+                      setState(() {});
+                    },
                   ),
-                  style: const TextStyle(fontSize: 14),
-                  onChanged: (_) {
-                    if (row.suppressAmountListener) return;
-                    row.recalculate();
-                    setState(() {});
-                  },
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('unit_${row.key}_${row.unit}'),
-                  initialValue: _getValidUnit(row.unit),
-                  items: UnitConverter.compactDropdownItems,
-                  onChanged: hasSubs
-                      ? null
-                      : (newUnit) {
-                          if (newUnit != null) {
-                            setState(() => row.unit = newUnit);
-                          }
-                        },
-                  decoration: InputDecoration(
-                    labelText: hasSubs
-                        ? '${L10n.of(context)!.unitLabel} 🔒'
-                        : L10n.of(context)!.unitLabel,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
-                    border: OutlineInputBorder(
-                        borderRadius: AppRadius.sm),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    key: ValueKey('unit_${row.key}_${row.unit}_$impLocked'),
+                    initialValue: impLocked ? impDisp!.unit : _getValidUnit(row.unit),
+                    items: UnitConverter.compactDropdownItems,
+                    onChanged: locked
+                        ? null
+                        : (newUnit) {
+                            if (newUnit != null) {
+                              setState(() => row.unit = newUnit);
+                            }
+                          },
+                    decoration: InputDecoration(
+                      labelText: locked
+                          ? '${L10n.of(context)!.unitLabel} 🔒'
+                          : L10n.of(context)!.unitLabel,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md - 2, vertical: AppSpacing.md - 2),
+                      border: OutlineInputBorder(
+                          borderRadius: AppRadius.sm),
+                    ),
+                    style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : Colors.black),
+                    dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                   ),
-                  style: TextStyle(fontSize: 14, color: isDark ? AppColors.textPrimaryDark : Colors.black),
-                  dropdownColor: isDark ? Theme.of(context).cardColor : Colors.white,
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          }),
 
           const SizedBox(height: 8),
 
@@ -969,7 +1018,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
-                L10n.of(context)!.baseNutritionInfo(row.baseCal.toInt().toString(), row.baseAmount.toStringAsFixed(0), row.unit),
+                L10n.of(context)!.baseNutritionInfo(row.baseCal.toInt().toString(), UnitConverter.formatAmount(row.baseAmount, row.unit, imperial: ref.watch(isImperialProvider)), ''),
                 style: TextStyle(fontSize: 10, color: AppColors.premium.withValues(alpha: 0.6)),
               ),
             ),
@@ -1123,7 +1172,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                                 title: Text(ing.name,
                                                     style: const TextStyle(fontSize: 11)),
                                                 subtitle: Text(
-                                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                                   style: TextStyle(
                                                       fontSize: 9,
                                                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -1252,12 +1301,28 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                           ),
                           const SizedBox(height: 6),
                           // Row 2: Amount + Unit + Kcal + Macros
-                          Row(
+                          Builder(builder: (context) {
+                            final isImp = ref.watch(isImperialProvider);
+                            final subImpLocked = isImp && sub.hasBaseValues;
+                            final subImpDisp = subImpLocked
+                                ? UnitConverter.imperialDisplay(
+                                    double.tryParse(sub.amountController.text) ?? 0,
+                                    sub.unit,
+                                    imperial: true,
+                                  )
+                                : null;
+                            return Row(
                             children: [
                               SizedBox(
                                 width: 60,
                                 child: TextField(
-                                  controller: sub.amountController,
+                                  controller: subImpLocked
+                                      ? TextEditingController(
+                                          text: subImpDisp!.amount.toStringAsFixed(
+                                            subImpDisp.amount == subImpDisp.amount.roundToDouble() ? 0 : 1,
+                                          ))
+                                      : sub.amountController,
+                                  readOnly: subImpLocked,
                                   keyboardType: TextInputType.number,
                                   style: const TextStyle(fontSize: 12),
                                   decoration: InputDecoration(
@@ -1267,8 +1332,12 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                     ),
+                                    filled: subImpLocked,
+                                    fillColor: subImpLocked
+                                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                                        : null,
                                   ),
-                                  onChanged: (_) {
+                                  onChanged: subImpLocked ? null : (_) {
                                     setState(() {
                                       sub.recalculate();
                                       _recalculateIngredientRow(row);
@@ -1286,7 +1355,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                   borderRadius: BorderRadius.circular(AppSpacing.sm - 2),
                                 ),
                                 child: Text(
-                                  sub.unit,
+                                  subImpLocked ? subImpDisp!.unit : sub.unit,
                                   style: TextStyle(
                                     fontSize: 11,
                                     color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
@@ -1309,7 +1378,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                                     fontSize: 9, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                               ),
                             ],
-                          ),
+                          ); }),
                         ],
                       ),
                     );
@@ -1383,7 +1452,7 @@ class _CreateMealSheetState extends ConsumerState<CreateMealSheet> {
                     dense: true,
                     title: Text(ing.name, style: const TextStyle(fontSize: 13)),
                     subtitle: Text(
-                      '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                      '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                       style: TextStyle(
                           fontSize: 11, color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary),
                     ),

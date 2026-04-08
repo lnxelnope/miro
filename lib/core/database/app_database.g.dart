@@ -8642,6 +8642,14 @@ class $UserProfilesTable extends UserProfiles
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           defaultValue: const Constant('international'));
+  static const VerificationMeta _unitSystemMeta =
+      const VerificationMeta('unitSystem');
+  @override
+  late final GeneratedColumn<String> unitSystem = GeneratedColumn<String>(
+      'unit_system', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('metric'));
   static const VerificationMeta _hasGeminiApiKeyMeta =
       const VerificationMeta('hasGeminiApiKey');
   @override
@@ -8787,6 +8795,7 @@ class $UserProfilesTable extends UserProfiles
         isDarkMode,
         locale,
         cuisinePreference,
+        unitSystem,
         hasGeminiApiKey,
         isGoogleCalendarConnected,
         isHealthConnectConnected,
@@ -8903,6 +8912,12 @@ class $UserProfilesTable extends UserProfiles
           _cuisinePreferenceMeta,
           cuisinePreference.isAcceptableOrUnknown(
               data['cuisine_preference']!, _cuisinePreferenceMeta));
+    }
+    if (data.containsKey('unit_system')) {
+      context.handle(
+          _unitSystemMeta,
+          unitSystem.isAcceptableOrUnknown(
+              data['unit_system']!, _unitSystemMeta));
     }
     if (data.containsKey('has_gemini_api_key')) {
       context.handle(
@@ -9034,6 +9049,8 @@ class $UserProfilesTable extends UserProfiles
           .read(DriftSqlType.string, data['${effectivePrefix}locale']),
       cuisinePreference: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}cuisine_preference'])!,
+      unitSystem: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit_system'])!,
       hasGeminiApiKey: attachedDatabase.typeMapping.read(
           DriftSqlType.bool, data['${effectivePrefix}has_gemini_api_key'])!,
       isGoogleCalendarConnected: attachedDatabase.typeMapping.read(
@@ -9098,6 +9115,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   bool isDarkMode;
   String? locale;
   String cuisinePreference;
+
+  /// 'metric' (default) or 'imperial'
+  String unitSystem;
   bool hasGeminiApiKey;
   bool isGoogleCalendarConnected;
   bool isHealthConnectConnected;
@@ -9133,6 +9153,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       required this.isDarkMode,
       this.locale,
       required this.cuisinePreference,
+      required this.unitSystem,
       required this.hasGeminiApiKey,
       required this.isGoogleCalendarConnected,
       required this.isHealthConnectConnected,
@@ -9176,6 +9197,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       map['locale'] = Variable<String>(locale);
     }
     map['cuisine_preference'] = Variable<String>(cuisinePreference);
+    map['unit_system'] = Variable<String>(unitSystem);
     map['has_gemini_api_key'] = Variable<bool>(hasGeminiApiKey);
     map['is_google_calendar_connected'] =
         Variable<bool>(isGoogleCalendarConnected);
@@ -9237,6 +9259,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       locale:
           locale == null && nullToAbsent ? const Value.absent() : Value(locale),
       cuisinePreference: Value(cuisinePreference),
+      unitSystem: Value(unitSystem),
       hasGeminiApiKey: Value(hasGeminiApiKey),
       isGoogleCalendarConnected: Value(isGoogleCalendarConnected),
       isHealthConnectConnected: Value(isHealthConnectConnected),
@@ -9291,6 +9314,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       isDarkMode: serializer.fromJson<bool>(json['isDarkMode']),
       locale: serializer.fromJson<String?>(json['locale']),
       cuisinePreference: serializer.fromJson<String>(json['cuisinePreference']),
+      unitSystem: serializer.fromJson<String>(json['unitSystem']),
       hasGeminiApiKey: serializer.fromJson<bool>(json['hasGeminiApiKey']),
       isGoogleCalendarConnected:
           serializer.fromJson<bool>(json['isGoogleCalendarConnected']),
@@ -9335,6 +9359,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'isDarkMode': serializer.toJson<bool>(isDarkMode),
       'locale': serializer.toJson<String?>(locale),
       'cuisinePreference': serializer.toJson<String>(cuisinePreference),
+      'unitSystem': serializer.toJson<String>(unitSystem),
       'hasGeminiApiKey': serializer.toJson<bool>(hasGeminiApiKey),
       'isGoogleCalendarConnected':
           serializer.toJson<bool>(isGoogleCalendarConnected),
@@ -9376,6 +9401,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           bool? isDarkMode,
           Value<String?> locale = const Value.absent(),
           String? cuisinePreference,
+          String? unitSystem,
           bool? hasGeminiApiKey,
           bool? isGoogleCalendarConnected,
           bool? isHealthConnectConnected,
@@ -9412,6 +9438,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
         isDarkMode: isDarkMode ?? this.isDarkMode,
         locale: locale.present ? locale.value : this.locale,
         cuisinePreference: cuisinePreference ?? this.cuisinePreference,
+        unitSystem: unitSystem ?? this.unitSystem,
         hasGeminiApiKey: hasGeminiApiKey ?? this.hasGeminiApiKey,
         isGoogleCalendarConnected:
             isGoogleCalendarConnected ?? this.isGoogleCalendarConnected,
@@ -9471,6 +9498,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       cuisinePreference: data.cuisinePreference.present
           ? data.cuisinePreference.value
           : this.cuisinePreference,
+      unitSystem:
+          data.unitSystem.present ? data.unitSystem.value : this.unitSystem,
       hasGeminiApiKey: data.hasGeminiApiKey.present
           ? data.hasGeminiApiKey.value
           : this.hasGeminiApiKey,
@@ -9527,6 +9556,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('isDarkMode: $isDarkMode, ')
           ..write('locale: $locale, ')
           ..write('cuisinePreference: $cuisinePreference, ')
+          ..write('unitSystem: $unitSystem, ')
           ..write('hasGeminiApiKey: $hasGeminiApiKey, ')
           ..write('isGoogleCalendarConnected: $isGoogleCalendarConnected, ')
           ..write('isHealthConnectConnected: $isHealthConnectConnected, ')
@@ -9567,6 +9597,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
         isDarkMode,
         locale,
         cuisinePreference,
+        unitSystem,
         hasGeminiApiKey,
         isGoogleCalendarConnected,
         isHealthConnectConnected,
@@ -9606,6 +9637,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.isDarkMode == this.isDarkMode &&
           other.locale == this.locale &&
           other.cuisinePreference == this.cuisinePreference &&
+          other.unitSystem == this.unitSystem &&
           other.hasGeminiApiKey == this.hasGeminiApiKey &&
           other.isGoogleCalendarConnected == this.isGoogleCalendarConnected &&
           other.isHealthConnectConnected == this.isHealthConnectConnected &&
@@ -9643,6 +9675,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
   Value<bool> isDarkMode;
   Value<String?> locale;
   Value<String> cuisinePreference;
+  Value<String> unitSystem;
   Value<bool> hasGeminiApiKey;
   Value<bool> isGoogleCalendarConnected;
   Value<bool> isHealthConnectConnected;
@@ -9678,6 +9711,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     this.isDarkMode = const Value.absent(),
     this.locale = const Value.absent(),
     this.cuisinePreference = const Value.absent(),
+    this.unitSystem = const Value.absent(),
     this.hasGeminiApiKey = const Value.absent(),
     this.isGoogleCalendarConnected = const Value.absent(),
     this.isHealthConnectConnected = const Value.absent(),
@@ -9714,6 +9748,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     this.isDarkMode = const Value.absent(),
     this.locale = const Value.absent(),
     this.cuisinePreference = const Value.absent(),
+    this.unitSystem = const Value.absent(),
     this.hasGeminiApiKey = const Value.absent(),
     this.isGoogleCalendarConnected = const Value.absent(),
     this.isHealthConnectConnected = const Value.absent(),
@@ -9750,6 +9785,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     Expression<bool>? isDarkMode,
     Expression<String>? locale,
     Expression<String>? cuisinePreference,
+    Expression<String>? unitSystem,
     Expression<bool>? hasGeminiApiKey,
     Expression<bool>? isGoogleCalendarConnected,
     Expression<bool>? isHealthConnectConnected,
@@ -9788,6 +9824,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
       if (isDarkMode != null) 'is_dark_mode': isDarkMode,
       if (locale != null) 'locale': locale,
       if (cuisinePreference != null) 'cuisine_preference': cuisinePreference,
+      if (unitSystem != null) 'unit_system': unitSystem,
       if (hasGeminiApiKey != null) 'has_gemini_api_key': hasGeminiApiKey,
       if (isGoogleCalendarConnected != null)
         'is_google_calendar_connected': isGoogleCalendarConnected,
@@ -9830,6 +9867,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
       Value<bool>? isDarkMode,
       Value<String?>? locale,
       Value<String>? cuisinePreference,
+      Value<String>? unitSystem,
       Value<bool>? hasGeminiApiKey,
       Value<bool>? isGoogleCalendarConnected,
       Value<bool>? isHealthConnectConnected,
@@ -9866,6 +9904,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
       isDarkMode: isDarkMode ?? this.isDarkMode,
       locale: locale ?? this.locale,
       cuisinePreference: cuisinePreference ?? this.cuisinePreference,
+      unitSystem: unitSystem ?? this.unitSystem,
       hasGeminiApiKey: hasGeminiApiKey ?? this.hasGeminiApiKey,
       isGoogleCalendarConnected:
           isGoogleCalendarConnected ?? this.isGoogleCalendarConnected,
@@ -9944,6 +9983,9 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
     if (cuisinePreference.present) {
       map['cuisine_preference'] = Variable<String>(cuisinePreference.value);
     }
+    if (unitSystem.present) {
+      map['unit_system'] = Variable<String>(unitSystem.value);
+    }
     if (hasGeminiApiKey.present) {
       map['has_gemini_api_key'] = Variable<bool>(hasGeminiApiKey.value);
     }
@@ -10021,6 +10063,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfileData> {
           ..write('isDarkMode: $isDarkMode, ')
           ..write('locale: $locale, ')
           ..write('cuisinePreference: $cuisinePreference, ')
+          ..write('unitSystem: $unitSystem, ')
           ..write('hasGeminiApiKey: $hasGeminiApiKey, ')
           ..write('isGoogleCalendarConnected: $isGoogleCalendarConnected, ')
           ..write('isHealthConnectConnected: $isHealthConnectConnected, ')
@@ -14092,6 +14135,7 @@ typedef $$UserProfilesTableCreateCompanionBuilder = UserProfilesCompanion
   Value<bool> isDarkMode,
   Value<String?> locale,
   Value<String> cuisinePreference,
+  Value<String> unitSystem,
   Value<bool> hasGeminiApiKey,
   Value<bool> isGoogleCalendarConnected,
   Value<bool> isHealthConnectConnected,
@@ -14129,6 +14173,7 @@ typedef $$UserProfilesTableUpdateCompanionBuilder = UserProfilesCompanion
   Value<bool> isDarkMode,
   Value<String?> locale,
   Value<String> cuisinePreference,
+  Value<String> unitSystem,
   Value<bool> hasGeminiApiKey,
   Value<bool> isGoogleCalendarConnected,
   Value<bool> isHealthConnectConnected,
@@ -14211,6 +14256,9 @@ class $$UserProfilesTableFilterComposer
   ColumnFilters<String> get cuisinePreference => $composableBuilder(
       column: $table.cuisinePreference,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get unitSystem => $composableBuilder(
+      column: $table.unitSystem, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get hasGeminiApiKey => $composableBuilder(
       column: $table.hasGeminiApiKey,
@@ -14335,6 +14383,9 @@ class $$UserProfilesTableOrderingComposer
       column: $table.cuisinePreference,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get unitSystem => $composableBuilder(
+      column: $table.unitSystem, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get hasGeminiApiKey => $composableBuilder(
       column: $table.hasGeminiApiKey,
       builder: (column) => ColumnOrderings(column));
@@ -14455,6 +14506,9 @@ class $$UserProfilesTableAnnotationComposer
   GeneratedColumn<String> get cuisinePreference => $composableBuilder(
       column: $table.cuisinePreference, builder: (column) => column);
 
+  GeneratedColumn<String> get unitSystem => $composableBuilder(
+      column: $table.unitSystem, builder: (column) => column);
+
   GeneratedColumn<bool> get hasGeminiApiKey => $composableBuilder(
       column: $table.hasGeminiApiKey, builder: (column) => column);
 
@@ -14550,6 +14604,7 @@ class $$UserProfilesTableTableManager extends RootTableManager<
             Value<bool> isDarkMode = const Value.absent(),
             Value<String?> locale = const Value.absent(),
             Value<String> cuisinePreference = const Value.absent(),
+            Value<String> unitSystem = const Value.absent(),
             Value<bool> hasGeminiApiKey = const Value.absent(),
             Value<bool> isGoogleCalendarConnected = const Value.absent(),
             Value<bool> isHealthConnectConnected = const Value.absent(),
@@ -14586,6 +14641,7 @@ class $$UserProfilesTableTableManager extends RootTableManager<
             isDarkMode: isDarkMode,
             locale: locale,
             cuisinePreference: cuisinePreference,
+            unitSystem: unitSystem,
             hasGeminiApiKey: hasGeminiApiKey,
             isGoogleCalendarConnected: isGoogleCalendarConnected,
             isHealthConnectConnected: isHealthConnectConnected,
@@ -14622,6 +14678,7 @@ class $$UserProfilesTableTableManager extends RootTableManager<
             Value<bool> isDarkMode = const Value.absent(),
             Value<String?> locale = const Value.absent(),
             Value<String> cuisinePreference = const Value.absent(),
+            Value<String> unitSystem = const Value.absent(),
             Value<bool> hasGeminiApiKey = const Value.absent(),
             Value<bool> isGoogleCalendarConnected = const Value.absent(),
             Value<bool> isHealthConnectConnected = const Value.absent(),
@@ -14658,6 +14715,7 @@ class $$UserProfilesTableTableManager extends RootTableManager<
             isDarkMode: isDarkMode,
             locale: locale,
             cuisinePreference: cuisinePreference,
+            unitSystem: unitSystem,
             hasGeminiApiKey: hasGeminiApiKey,
             isGoogleCalendarConnected: isGoogleCalendarConnected,
             isHealthConnectConnected: isHealthConnectConnected,

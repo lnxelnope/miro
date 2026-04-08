@@ -1937,5 +1937,8 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "arScanPortraitOnlyTitle": "세로 모드만 지원",
+  "arScanPortraitOnlyMessage": "기기를 세로 방향으로 회전해 주세요"
 }

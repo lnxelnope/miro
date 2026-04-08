@@ -10,6 +10,7 @@ import '../../../core/constants/enums.dart';
 import '../../../core/ai/gemini_service.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../features/energy/providers/energy_provider.dart';
 import '../../../core/database/app_database.dart';
@@ -104,6 +105,8 @@ class _EditableIngredient {
       baseFatWithoutSubs = fat - subF;
     }
   }
+
+  bool get hasBaseValues => baseAmount > 0 && baseCalories > 0;
 
   void saveBaseValues() {
     final amt = double.tryParse(amountController.text) ?? 0;
@@ -1543,7 +1546,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                 title: Text(ing.name,
                                     style: const TextStyle(fontSize: 13)),
                                 subtitle: Text(
-                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                   style: TextStyle(
                                       fontSize: 11,
                                       color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -1628,16 +1631,32 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
           const SizedBox(height: AppSpacing.sm - 2),
 
           // Row 2: ปริมาณ + หน่วย + kcal/macro
-          Row(
+          Builder(builder: (context) {
+            final isImp = ref.watch(isImperialProvider);
+            final impLocked = isImp && row.hasBaseValues;
+            final impDisp = impLocked
+                ? UnitConverter.imperialDisplay(
+                    double.tryParse(row.amountController.text) ?? 0,
+                    row.unit,
+                    imperial: true,
+                  )
+                : null;
+            return Row(
             children: [
               SizedBox(
                 width: 80,
                 child: TextField(
-                  controller: row.amountController,
+                  controller: impLocked
+                      ? TextEditingController(
+                          text: impDisp!.amount.toStringAsFixed(
+                            impDisp.amount == impDisp.amount.roundToDouble() ? 0 : 1,
+                          ))
+                      : row.amountController,
+                  readOnly: impLocked,
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),
                   style: const TextStyle(fontSize: 13),
-                  onChanged: (_) {
+                  onChanged: impLocked ? null : (_) {
                     setState(() {
                       row.recalculate();
                       _recalculateParentFromSubs(row);
@@ -1646,6 +1665,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   },
                   decoration: InputDecoration(
                     isDense: true,
+                    filled: impLocked,
+                    fillColor: impLocked
+                        ? (isDark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                        : null,
                     hintText: row.subIngredients.isNotEmpty
                         ? L10n.of(context)!.parentAmountHintWithSubs
                         : L10n.of(context)!.amountHint,
@@ -1673,7 +1696,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<String>(
-                  value: _getValidUnit(row.unit),
+                  value: impLocked ? impDisp!.unit : _getValidUnit(row.unit),
                   isDense: true,
                   isExpanded: true,
                   style: TextStyle(fontSize: 12, color: isDark ? AppColors.textPrimaryDark : Colors.black87),
@@ -1690,7 +1713,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                     ),
                   ),
                   items: _buildCompactUnitItems(),
-                  onChanged: (v) {
+                  onChanged: impLocked ? null : (v) {
                     if (v != null) setState(() => row.unit = v);
                   },
                 ),
@@ -1747,7 +1770,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                   ],
                 ),
             ],
-          ),
+          ); }),
 
           if (row.isFromDb) ...[
             const SizedBox(height: AppSpacing.xs),
@@ -1912,7 +1935,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                                 title: Text(ing.name,
                                                     style: const TextStyle(fontSize: 11)),
                                                 subtitle: Text(
-                                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                                   style: TextStyle(
                                                       fontSize: 9,
                                                       color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
@@ -2001,18 +2024,34 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                           ),
                           const SizedBox(height: 6),
                           // Row 2: Amount + Unit + Kcal
-                          Row(
+                          Builder(builder: (context) {
+                            final isImp = ref.watch(isImperialProvider);
+                            final subImpLocked = isImp && sub.hasBaseValues;
+                            final subImpDisp = subImpLocked
+                                ? UnitConverter.imperialDisplay(
+                                    double.tryParse(sub.amountController.text) ?? 0,
+                                    sub.unit,
+                                    imperial: true,
+                                  )
+                                : null;
+                            return Row(
                             children: [
                               const SizedBox(width: AppSpacing.md),
                               SizedBox(
                                 width: 50,
                                 height: 28,
                                 child: TextField(
-                                  controller: sub.amountController,
+                                  controller: subImpLocked
+                                      ? TextEditingController(
+                                          text: subImpDisp!.amount.toStringAsFixed(
+                                            subImpDisp.amount == subImpDisp.amount.roundToDouble() ? 0 : 1,
+                                          ))
+                                      : sub.amountController,
+                                  readOnly: subImpLocked,
                                   keyboardType: TextInputType.number,
                                   style: const TextStyle(fontSize: 11),
                                   textAlign: TextAlign.center,
-                                  onChanged: (_) {
+                                  onChanged: subImpLocked ? null : (_) {
                                     setState(() {
                                       sub.recalculate();
                                       _recalculateParentFromSubs(row);
@@ -2022,6 +2061,10 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                   },
                                   decoration: InputDecoration(
                                     isDense: true,
+                                    filled: subImpLocked,
+                                    fillColor: subImpLocked
+                                        ? (isDarkLocal ? AppColors.surfaceVariantDark : AppColors.surfaceVariant)
+                                        : null,
                                     contentPadding: const EdgeInsets.symmetric(
                                         horizontal: AppSpacing.xs, vertical: AppSpacing.xs + 1),
                                     hintText: L10n.of(context)!.amountShort,
@@ -2039,7 +2082,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.xs),
-                              Text(sub.unit,
+                              Text(subImpLocked ? subImpDisp!.unit : sub.unit,
                                   style: TextStyle(
                                       fontSize: 10, color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary)),
                               const SizedBox(width: AppSpacing.sm),
@@ -2058,7 +2101,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                     fontSize: 9, color: isDarkLocal ? AppColors.textSecondaryDark : AppColors.textSecondary),
                               ),
                             ],
-                          ),
+                          ); }),
                         ],
                       ),
                     );
@@ -2381,7 +2424,7 @@ class _EditFoodBottomSheetState extends ConsumerState<EditFoodBottomSheet> {
                                       : null,
                                 )),
                             subtitle: Text(
-                              '$amt ${ing.unit}  •  ${ing.calories.round()} kcal',
+                              '${UnitConverter.formatAmount(double.tryParse(amt) ?? 0, ing.unit, imperial: ref.watch(isImperialProvider))}  •  ${ing.calories.round()} kcal',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: checked[i]

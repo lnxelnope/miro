@@ -112,3 +112,10 @@ final profileNotifierProvider =
     StateNotifierProvider<ProfileNotifier, AsyncValue<UserProfile>>((ref) {
   return ProfileNotifier();
 });
+
+/// Whether the user prefers imperial units (oz, lbs, fl oz).
+/// Derived from the profile's unitSystem field.
+final isImperialProvider = Provider<bool>((ref) {
+  final profile = ref.watch(profileNotifierProvider);
+  return profile.valueOrNull?.unitSystem == 'imperial';
+});

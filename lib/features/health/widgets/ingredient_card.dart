@@ -3,6 +3,7 @@ import '../../../core/database/model_extensions.dart';
 import '../../../core/theme/app_icons.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/utils/unit_converter.dart';
 class IngredientCard extends StatelessWidget {
   final Ingredient ingredient;
   final VoidCallback onEdit;
@@ -10,6 +11,7 @@ class IngredientCard extends StatelessWidget {
   final VoidCallback onUse;
   final int depth;
   final String? detail;
+  final bool imperial;
 
   const IngredientCard({
     super.key,
@@ -18,6 +20,7 @@ class IngredientCard extends StatelessWidget {
     required this.onDelete,
     required this.onUse,
     this.depth = 0,
+    this.imperial = false,
     this.detail,
   });
 
@@ -143,7 +146,7 @@ class IngredientCard extends StatelessWidget {
                               Row(
                                 children: [
                                   Text(
-                                    '${ingredient.baseAmount.toStringAsFixed(0)} ${ingredient.baseUnit}',
+                                    UnitConverter.formatAmount(ingredient.baseAmount, ingredient.baseUnit, imperial: imperial),
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,

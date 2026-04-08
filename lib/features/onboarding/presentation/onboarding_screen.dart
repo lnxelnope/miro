@@ -28,8 +28,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
 
-  // Page 2: Cuisine + Calorie Goal
+  // Page 2: Cuisine + Calorie Goal + Unit System
   String _selectedCuisine = 'international';
+  String _selectedUnitSystem = 'metric';
   final _calorieGoalController = TextEditingController(text: '2000');
 
   @override
@@ -357,9 +358,97 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
 
+          const SizedBox(height: 32),
+
+          Text(
+            L10n.of(context)!.onboardingUnitSystem,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _buildUnitSystemOption(
+                  key: 'metric',
+                  label: L10n.of(context)!.unitSystemMetric,
+                  desc: L10n.of(context)!.unitSystemMetricDesc,
+                  icon: Icons.straighten_rounded,
+                  isDark: isDark,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildUnitSystemOption(
+                  key: 'imperial',
+                  label: L10n.of(context)!.unitSystemImperial,
+                  desc: L10n.of(context)!.unitSystemImperialDesc,
+                  icon: Icons.square_foot_rounded,
+                  isDark: isDark,
+                ),
+              ),
+            ],
+          ),
+
           const SizedBox(height: AppSpacing.xxxxl),
           _buildNextButton(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildUnitSystemOption({
+    required String key,
+    required String label,
+    required String desc,
+    required IconData icon,
+    required bool isDark,
+  }) {
+    final isSelected = _selectedUnitSystem == key;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedUnitSystem = key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1)
+              : isDark ? AppColors.surfaceDark : Colors.white,
+          borderRadius: AppRadius.lg,
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: isSelected ? AppColors.primary : Colors.grey),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isSelected
+                    ? AppColors.primary
+                    : isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              desc,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -786,6 +875,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           mealSuggestionsEnabled: true,
           isDarkMode: false,
           cuisinePreference: 'thai',
+          unitSystem: 'metric',
           hasGeminiApiKey: false,
           isGoogleCalendarConnected: false,
           isHealthConnectConnected: false,
@@ -798,6 +888,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         );
 
     profile.cuisinePreference = _selectedCuisine;
+    profile.unitSystem = _selectedUnitSystem;
     final calorieGoal = double.tryParse(_calorieGoalController.text) ?? 2000.0;
     profile.calorieGoal = calorieGoal;
     profile.onboardingComplete = true;

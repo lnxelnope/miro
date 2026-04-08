@@ -161,6 +161,9 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -196,6 +199,46 @@ class _ARscanScreenState extends ConsumerState<ARscanScreen>
               MultiAngleCaptureOverlay(
                 controller: _captureController,
                 streamController: _streamController,
+              ),
+              if (isLandscape) _buildLandscapeWarning(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLandscapeWarning() {
+    final l10n = L10n.of(context)!;
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withValues(alpha: 0.85),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.screen_rotation_rounded,
+                color: Colors.white,
+                size: 64,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                l10n.arScanPortraitOnlyTitle,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.arScanPortraitOnlyMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 14,
+                ),
               ),
             ],
           ),

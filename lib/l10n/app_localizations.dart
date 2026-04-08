@@ -5536,8 +5536,14 @@ abstract class L10n {
   /// No description provided for @servingSizeLabel.
   ///
   /// In en, this message translates to:
-  /// **'Serving Size *'**
+  /// **'Servings *'**
   String get servingSizeLabel;
+
+  /// No description provided for @mealYieldHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Total amount of this entire recipe'**
+  String get mealYieldHelper;
 
   /// No description provided for @unitRequired.
   ///
@@ -5572,8 +5578,20 @@ abstract class L10n {
   /// No description provided for @totalNutritionTitle.
   ///
   /// In en, this message translates to:
-  /// **'Total Nutrition'**
+  /// **'Total Recipe'**
   String get totalNutritionTitle;
+
+  /// No description provided for @perServingNutrition.
+  ///
+  /// In en, this message translates to:
+  /// **'Per 1 Serving'**
+  String get perServingNutrition;
+
+  /// No description provided for @perServingCalories.
+  ///
+  /// In en, this message translates to:
+  /// **'1 serving = {calories} kcal'**
+  String perServingCalories(String calories);
 
   /// No description provided for @saveChangesButton.
   ///
@@ -7687,6 +7705,66 @@ abstract class L10n {
   /// In en, this message translates to:
   /// **'Change to scale all sub-ingredients proportionally'**
   String get parentAmountTooltip;
+
+  /// No description provided for @unitSystemSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit System'**
+  String get unitSystemSection;
+
+  /// No description provided for @unitSystemMetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric'**
+  String get unitSystemMetric;
+
+  /// No description provided for @unitSystemImperial.
+  ///
+  /// In en, this message translates to:
+  /// **'Imperial'**
+  String get unitSystemImperial;
+
+  /// No description provided for @unitSystemMetricDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'g, kg, ml'**
+  String get unitSystemMetricDesc;
+
+  /// No description provided for @unitSystemImperialDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'oz, lbs, fl oz'**
+  String get unitSystemImperialDesc;
+
+  /// No description provided for @unitSystemPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement Units'**
+  String get unitSystemPreference;
+
+  /// No description provided for @onboardingUnitSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred unit system:'**
+  String get onboardingUnitSystem;
+
+  /// No description provided for @unitSystemChangedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit system changed to {system}'**
+  String unitSystemChangedTo(Object system);
+
+  /// No description provided for @arScanPortraitOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Portrait Mode Only'**
+  String get arScanPortraitOnlyTitle;
+
+  /// No description provided for @arScanPortraitOnlyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please rotate your device to portrait orientation'**
+  String get arScanPortraitOnlyMessage;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

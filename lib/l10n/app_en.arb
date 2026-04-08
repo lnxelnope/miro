@@ -2102,13 +2102,21 @@
   "mealSourceManualShort": "Manual",
   "mealNameLabel": "Meal Name *",
   "mealNameHint": "e.g. Pad Krapow with fried egg",
-  "servingSizeLabel": "Serving Size *",
+  "servingSizeLabel": "Servings *",
+  "mealYieldHelper": "Total amount of this entire recipe",
   "unitRequired": "Unit *",
   "ingredientsSectionTitle": "Ingredients",
   "aiAllButton": "AI All",
   "addButton": "Add",
   "noIngredientsHint": "Tap \"Add\" button to add ingredients\nOr enter total nutrition below",
-  "totalNutritionTitle": "Total Nutrition",
+  "totalNutritionTitle": "Total Recipe",
+  "perServingNutrition": "Per 1 Serving",
+  "perServingCalories": "1 serving = {calories} kcal",
+  "@perServingCalories": {
+    "placeholders": {
+      "calories": { "type": "String" }
+    }
+  },
   "saveChangesButton": "Save Changes",
   "saveMealButton": "Save Meal",
   "kcalAutoCalculated": "kcal auto-calculated",
@@ -2722,5 +2730,17 @@
   "redeemErrorGeneric": "Failed to redeem code. Please try again.",
 
   "parentAmountHintWithSubs": "Scale all",
-  "parentAmountTooltip": "Change to scale all sub-ingredients proportionally"
+  "parentAmountTooltip": "Change to scale all sub-ingredients proportionally",
+
+  "unitSystemSection": "Unit System",
+  "unitSystemMetric": "Metric",
+  "unitSystemImperial": "Imperial",
+  "unitSystemMetricDesc": "g, kg, ml",
+  "unitSystemImperialDesc": "oz, lbs, fl oz",
+  "unitSystemPreference": "Measurement Units",
+  "onboardingUnitSystem": "Preferred unit system:",
+  "unitSystemChangedTo": "Unit system changed to {system}",
+
+  "arScanPortraitOnlyTitle": "Portrait Mode Only",
+  "arScanPortraitOnlyMessage": "Please rotate your device to portrait orientation"
 }

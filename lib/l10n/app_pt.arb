@@ -1937,5 +1937,8 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "arScanPortraitOnlyTitle": "Apenas modo retrato",
+  "arScanPortraitOnlyMessage": "Por favor, gire seu dispositivo para orientação retrato"
 }

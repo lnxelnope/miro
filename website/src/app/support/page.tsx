@@ -15,46 +15,46 @@ import { StoreOutboundLink } from '@/components/StoreOutboundLink';
 import { APP_STORE_URL, PLAY_STORE_URL } from '@/lib/storeUrls';
 
 export const metadata: Metadata = {
-  title: 'Support — MiRO',
+  title: 'Support — ArCal',
   description:
-    'Get help with MiRO, the AI food tracker. Browse FAQs, troubleshooting guides, and contact our support team.',
+    'Get help with ArCal, the AI food tracker. Browse FAQs, troubleshooting guides, and contact our support team.',
 };
 
 const faqs = [
   {
-    question: 'How do I get started with MiRO?',
+    question: 'How do I get started with ArCal?',
     answer:
-      'Download MiRO from Google Play or the App Store. No sign-up or account creation needed! You\'ll receive 10 free Energy tokens to try AI features right away. Just snap a photo of your food or type what you ate.',
+      'Download ArCal from Google Play or the App Store. No sign-up or account creation needed! You\'ll receive 10 free Energy tokens to try AI features right away. Just snap a photo of your food or type what you ate.',
     icon: Smartphone,
   },
   {
     question: 'What is Energy and how does it work?',
     answer:
-      'Energy is MiRO\'s in-app currency for AI features. 1 Energy = 1 AI analysis (photo, label scan, or text lookup). Energy tokens never expire once purchased. Manual food logging is always free and doesn\'t cost any Energy.',
+      'Energy is ArCal\'s in-app currency for AI features. 1 Energy = 1 AI analysis (photo, label scan, or text lookup). Energy tokens never expire once purchased. Manual food logging is always free and doesn\'t cost any Energy.',
     icon: Zap,
   },
   {
     question: 'How accurate is the AI food analysis?',
     answer:
-      'MiRO uses Google Gemini AI with 5 layers of precision: ingredient decomposition, sub-ingredient breakdown, cuisine preference bias, search mode selection, and user editing. The result is accuracy that no single AI model achieves alone. You can always fine-tune results by editing, adding, or removing ingredients.',
+      'ArCal uses Google Gemini AI with 5 layers of precision: ingredient decomposition, sub-ingredient breakdown, cuisine preference bias, search mode selection, and user editing. The result is accuracy that no single AI model achieves alone. You can always fine-tune results by editing, adding, or removing ingredients.',
     icon: Camera,
   },
   {
     question: 'Is my data private and secure?',
     answer:
-      'Absolutely. MiRO is offline-first — all your food data is stored locally on your device. No account is required, no login, and no personal information is collected. We can\'t see your data even if we wanted to. The only data sent to the cloud is when you use AI analysis (the photo is processed by Google Gemini and not stored).',
+      'Absolutely. ArCal is offline-first — all your food data is stored locally on your device. No account is required, no login, and no personal information is collected. We can\'t see your data even if we wanted to. The only data sent to the cloud is when you use AI analysis (the photo is processed by Google Gemini and not stored).',
     icon: Shield,
   },
   {
     question: 'How do I transfer my data to a new device?',
     answer:
-      'Go to Settings → Backup & Restore. You can create a backup file or generate a one-time Transfer Key (valid for 30 days). On your new device, install MiRO and use the restore option to import your data, Energy balance, and food history.',
+      'Go to Settings → Backup & Restore. You can create a backup file or generate a one-time Transfer Key (valid for 30 days). On your new device, install ArCal and use the restore option to import your data, Energy balance, and food history.',
     icon: RefreshCw,
   },
   {
     question: 'How does Health Sync work?',
     answer:
-      'MiRO syncs two-way with Apple Health (iOS) and Google Health Connect (Android). Every food entry is automatically written to your Health app with full nutrition data. Active Energy burned is pulled back into MiRO to adjust your daily calorie goal in real time. Enable it in Settings → Health Sync.',
+      'ArCal syncs two-way with Apple Health (iOS) and Google Health Connect (Android). Every food entry is automatically written to your Health app with full nutrition data. Active Energy burned is pulled back into ArCal to adjust your daily calorie goal in real time. Enable it in Settings → Health Sync.',
     icon: Settings,
   },
   {
@@ -64,9 +64,9 @@ const faqs = [
     icon: HelpCircle,
   },
   {
-    question: 'Why does MiRO need camera permission?',
+    question: 'Why does ArCal need camera permission?',
     answer:
-      'MiRO uses your camera to photograph food for AI analysis. Photos are processed locally or sent securely to Google Gemini for analysis. MiRO also optionally accesses your photo gallery to find food photos you\'ve already taken (Gallery Auto-Scan feature). You can deny gallery access and still use the camera for direct snaps.',
+      'ArCal uses your camera to photograph food for AI analysis. Photos are processed locally or sent securely to Google Gemini for analysis. ArCal also optionally accesses your photo gallery to find food photos you\'ve already taken (Gallery Auto-Scan feature). You can deny gallery access and still use the camera for direct snaps.',
     icon: Camera,
   },
 ];
@@ -106,7 +106,7 @@ export default function SupportPage() {
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-400">
             Find answers to common questions or reach out to our support team.
-            We&apos;re here to help you get the most out of MiRO.
+            We&apos;re here to help you get the most out of ArCal.
           </p>
         </div>
       </section>
@@ -218,8 +218,8 @@ export default function SupportPage() {
                   • Ensure Health Connect (Android) or Apple Health (iOS) is installed
                 </li>
                 <li>• Grant all required permissions when prompted</li>
-                <li>• Enable Health Sync in MiRO Settings</li>
-                <li>• Check that MiRO has write permission in your Health app</li>
+                <li>• Enable Health Sync in ArCal Settings</li>
+                <li>• Check that ArCal has write permission in your Health app</li>
               </ul>
             </div>
           </div>

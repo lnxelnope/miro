@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/utils/unit_converter.dart';
 /// Widget สำหรับแสดง MyMealIngredient พร้อมรองรับ nested structure
 class MyMealIngredientCard extends StatelessWidget {
   final MyMealIngredient ingredient;
-  final int depth; // NEW — ระดับความลึก (0 = root, 1 = sub, 2 = sub-sub)
-  final String? detail; // NEW — คำอธิบายเพิ่มเติม (nullable)
+  final int depth;
+  final String? detail;
+  final bool imperial;
 
   const MyMealIngredientCard({
     super.key,
     required this.ingredient,
-    this.depth = 0, // NEW — default = root level
-    this.detail, // NEW — optional detail
+    this.depth = 0,
+    this.detail,
+    this.imperial = false,
   });
 
   @override
@@ -96,7 +99,7 @@ class MyMealIngredientCard extends StatelessWidget {
                       if (depth > 0)
                         const SizedBox(width: 16), // indent สำหรับ sub
                       Text(
-                        '${ingredient.amount.toStringAsFixed(0)} ${ingredient.unit}',
+                        UnitConverter.formatAmount(ingredient.amount, ingredient.unit, imperial: imperial),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,

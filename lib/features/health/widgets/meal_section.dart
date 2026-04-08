@@ -8,7 +8,9 @@ import '../../../core/theme/app_icons.dart';
 import '../../../core/constants/enums.dart';
 import '../../../core/widgets/food_entry_image.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/unit_converter.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/database/database_service.dart';
 import '../../../core/database/model_extensions.dart';
@@ -981,7 +983,7 @@ class _MealSectionState extends ConsumerState<MealSection> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${food.servingSize % 1 == 0 ? food.servingSize.toInt() : food.servingSize} ${food.servingUnit}',
+                        UnitConverter.formatAmount(food.servingSize, food.servingUnit, imperial: ref.watch(isImperialProvider)),
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark ? Colors.white38 : AppColors.textSecondary,

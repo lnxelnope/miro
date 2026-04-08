@@ -9,6 +9,7 @@ import '../../../core/ai/gemini_service.dart';
 import '../../../core/nutrition/ingredients_codec.dart';
 import '../../../core/nutrition/ingredients_models.dart';
 import '../../../core/utils/unit_converter.dart';
+import '../../profile/providers/profile_provider.dart';
 import '../../../core/nutrition/ingredients_entry_codec.dart';
 import '../../../core/services/usage_limiter.dart';
 import '../../../core/utils/logger.dart';
@@ -1194,7 +1195,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                                     title: Text(ing.name,
                                         style: const TextStyle(fontSize: 13)),
                                     subtitle: Text(
-                                      '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                      '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                       style: const TextStyle(
                                           fontSize: 11,
                                           color: AppColors.textSecondary),
@@ -1602,7 +1603,7 @@ class _GeminiAnalysisSheetState extends ConsumerState<GeminiAnalysisSheet> {
                                 title: Text(ing.name,
                                     style: const TextStyle(fontSize: 12)),
                                 subtitle: Text(
-                                  '${ing.caloriesPerBase.toInt()} kcal / ${ing.baseAmount.toStringAsFixed(0)} ${ing.baseUnit}',
+                                  '${ing.caloriesPerBase.toInt()} kcal / ${UnitConverter.formatAmount(ing.baseAmount, ing.baseUnit, imperial: ref.watch(isImperialProvider))}',
                                   style: const TextStyle(
                                       fontSize: 10,
                                       color: AppColors.textSecondary),

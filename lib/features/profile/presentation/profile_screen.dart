@@ -55,6 +55,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _healthGoalsExpanded = true;
   bool _languageExpanded = false;
   bool _cuisineExpanded = false;
+  bool _unitSystemExpanded = false;
   bool _photoScanExpanded = false;
   bool _accountExpanded = false;
   bool _healthSyncExpanded = false;
@@ -132,6 +133,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onToggle: () =>
                         setState(() => _cuisineExpanded = !_cuisineExpanded),
                     child: _buildCuisinePreferenceCard(context, profile),
+                  ),
+
+                  // ──────────────────────────────────────────────
+                  // Unit System (collapsed by default)
+                  // ──────────────────────────────────────────────
+                  _buildCollapsibleSection(
+                    title: L10n.of(context)!.unitSystemSection,
+                    icon: Icons.straighten_rounded,
+                    iconColor: AppColors.info,
+                    isExpanded: _unitSystemExpanded,
+                    onToggle: () => setState(
+                        () => _unitSystemExpanded = !_unitSystemExpanded),
+                    child: _buildUnitSystemCard(context, profile),
                   ),
 
                   // ──────────────────────────────────────────────
@@ -1138,6 +1152,126 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         style: const TextStyle(fontSize: 20),
       ),
       onTap: () => _showCuisineDialog(context, profile),
+    );
+  }
+
+  Widget _buildUnitSystemCard(BuildContext context, profile) {
+    final isImperial = profile.unitSystem == 'imperial';
+    return _buildSettingCard(
+      context: context,
+      title: L10n.of(context)!.unitSystemPreference,
+      subtitle: isImperial
+          ? '${L10n.of(context)!.unitSystemImperial} (${L10n.of(context)!.unitSystemImperialDesc})'
+          : '${L10n.of(context)!.unitSystemMetric} (${L10n.of(context)!.unitSystemMetricDesc})',
+      leading: Icon(
+        isImperial ? Icons.square_foot_rounded : Icons.straighten_rounded,
+        size: 24,
+        color: AppColors.info,
+      ),
+      onTap: () => _showUnitSystemDialog(context, profile),
+    );
+  }
+
+  Future<void> _showUnitSystemDialog(BuildContext context, profile) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(L10n.of(context)!.unitSystemPreference),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildUnitSystemOption(
+              ctx: ctx,
+              profile: profile,
+              key: 'metric',
+              label: L10n.of(context)!.unitSystemMetric,
+              desc: L10n.of(context)!.unitSystemMetricDesc,
+              icon: Icons.straighten_rounded,
+              isSelected: profile.unitSystem != 'imperial',
+              isDark: isDark,
+            ),
+            const SizedBox(height: 8),
+            _buildUnitSystemOption(
+              ctx: ctx,
+              profile: profile,
+              key: 'imperial',
+              label: L10n.of(context)!.unitSystemImperial,
+              desc: L10n.of(context)!.unitSystemImperialDesc,
+              icon: Icons.square_foot_rounded,
+              isSelected: profile.unitSystem == 'imperial',
+              isDark: isDark,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnitSystemOption({
+    required BuildContext ctx,
+    required dynamic profile,
+    required String key,
+    required String label,
+    required String desc,
+    required IconData icon,
+    required bool isSelected,
+    required bool isDark,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        profile.unitSystem = key;
+        ref.read(profileNotifierProvider.notifier).updateProfile(profile);
+        Navigator.pop(ctx);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(L10n.of(context)!.unitSystemChangedTo(label))),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 24, color: isSelected ? AppColors.primary : Colors.grey),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? AppColors.primary : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary),
+                  ),
+                ),
+                Text(
+                  desc,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const Spacer(),
+            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+          ],
+        ),
+      ),
     );
   }
 

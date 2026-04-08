@@ -2,26 +2,33 @@
 
 เอกสารนี้ใช้สำหรับตรวจสอบความถูกต้องของ Build Version ก่อน Deploy ไป Google Play Store
 
-**อัปเดตล่าสุด:** 2026-03-30 (Build 77)
+**อัปเดตล่าสุด:** 2026-04-08 (Build 78)
 
 ---
 
-## ✅ Build 77 (v2.0.0) - Status: READY FOR RELEASE
+## ✅ Build 78 (v2.0.0) - Status: READY FOR RELEASE
 
 ### 📋 Checklist
 
-- [ ] **pubspec.yaml** - Version format ถูกต้อง (`2.0.0+77`)
-- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 77`, `versionName = "2.0.0"`)
+- [ ] **pubspec.yaml** - Version format ถูกต้อง (`2.0.0+78`)
+- [ ] **android/app/build.gradle.kts** - Version sync ตรงกัน (`versionCode = 78`, `versionName = "2.0.0"`)
 - [ ] **lib/features/profile/presentation/profile_screen.dart** - Version display in Settings (`'2.0.0'`)
 - [ ] **Google Play Billing Library** - รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)
 - [ ] **Target SDK** - 35 (Android 15)
 - [ ] **Compile SDK** - 36 (Android 16)
 - [ ] **Version Naming** - ตาม Semantic Versioning (`2.0.0`)
-- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v2.0.0+77)
+- [ ] **CHANGELOG.md** - อัปเดตแล้ว (v2.0.0+78)
 - [ ] **AdMob Compliance** - AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
-- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (77)
+- [ ] **iOS** - `flutter build ipa` ใช้ `FLUTTER_BUILD_NUMBER` จาก pubspec (78)
 
 ### ✨ Changes in this version:
+- Bump build 77→78 — AR Scan: คำเตือนแนวตั้งเมื่อหมุนกล้องแนวนอน (L10n หลายภาษา); Create Meal: helper ปริมาณรวมเมนูชัดขึ้น
+
+---
+
+## ✅ Build 77 (v2.0.0) - Status: RELEASED
+
+### ✨ Changes in that version:
 - Bump build 76→77 — ส่ง Store แก้บั๊ก (เช่น Basic mode: merge แล้วเปลี่ยนชื่อ → บันทึกเป็น My Meal)
 
 ---
@@ -762,11 +769,11 @@ subtitle: '2.0.0',  // แก้ให้ตรงกับ versionName
 
 ## 🚀 ก่อน Deploy ไป Google Play
 
-### Pre-flight Checklist (Build 76 / v2.0.0):
-- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`2.0.0+76`)
-- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (75 → 76)
+### Pre-flight Checklist (Build 77 / v2.0.0):
+- [ ] Version ใน pubspec.yaml และ build.gradle.kts ตรงกัน (`2.0.0+77`)
+- [ ] versionCode เพิ่มขึ้นจากเวอร์ชันก่อนหน้า (76 → 77)
 - [ ] **profile_screen.dart เลขเวอร์ชันอัปเดตแล้ว** ⚠️ (`'2.0.0'`)
-- [ ] CHANGELOG.md อัปเดตแล้ว (v2.0.0+76)
+- [ ] CHANGELOG.md อัปเดตแล้ว (v2.0.0+77)
 - [x] AdMob: AD_ID permission ใน AndroidManifest.xml (`com.google.android.gms.permission.AD_ID`)
 - [x] Target SDK 35 (Android 15) และ Compile SDK 36 (Android 16)
 - [x] Google Play Billing Library รองรับ 7.0+ (Billing Library 7.1.1 ใน AndroidManifest.xml)

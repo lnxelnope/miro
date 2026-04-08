@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:miro_hybrid/core/database/model_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/utils/unit_converter.dart';
 /// Expandable card สำหรับแสดง ingredient พร้อม sub-ingredients
 class ExpandableIngredientCard extends StatefulWidget {
   final MyMealIngredient ingredient;
   final List<MyMealIngredient> children;
   final int depth;
   final bool isEditable;
+  final bool imperial;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
@@ -17,6 +19,7 @@ class ExpandableIngredientCard extends StatefulWidget {
     required this.children,
     this.depth = 0,
     this.isEditable = false,
+    this.imperial = false,
     this.onTap,
     this.onDelete,
   });
@@ -161,7 +164,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                   // Amount
                   const SizedBox(height: 4),
                   Text(
-                    '${widget.ingredient.amount.toStringAsFixed(0)} ${widget.ingredient.unit}',
+                    UnitConverter.formatAmount(widget.ingredient.amount, widget.ingredient.unit, imperial: widget.imperial),
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
@@ -264,7 +267,7 @@ class _ExpandableIngredientCardState extends State<ExpandableIngredientCard>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${child.amount.toStringAsFixed(0)} ${child.unit}',
+                  UnitConverter.formatAmount(child.amount, child.unit, imperial: widget.imperial),
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,

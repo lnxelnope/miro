@@ -330,6 +330,7 @@ class DataSyncService {
         fatGoal: 65,
         waterGoal: 2500,
         cuisinePreference: 'general',
+        unitSystem: 'metric',
         customBmr: 1500,
         tdee: 0,
         breakfastBudget: 500,
@@ -376,6 +377,9 @@ class DataSyncService {
       }
       if (profileJson['cu'] != null) {
         profile.cuisinePreference = profileJson['cu'] as String;
+      }
+      if (profileJson['us'] != null) {
+        profile.unitSystem = profileJson['us'] as String;
       }
       if (profileJson['td'] != null) {
         profile.tdee = (profileJson['td'] as num).toDouble();
@@ -616,6 +620,7 @@ class DataSyncService {
       'cg': _round(p.carbGoal),
       'fg': _round(p.fatGoal),
       'cu': p.cuisinePreference,
+      'us': p.unitSystem,
       'bb': _round(p.breakfastBudget),
       'lb': _round(p.lunchBudget),
       'db': _round(p.dinnerBudget),

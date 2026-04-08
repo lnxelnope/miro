@@ -56,6 +56,14 @@ export function Footer() {
                   Download
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/th/"
+                  className="text-gray-400 transition-colors hover:text-white"
+                >
+                  ภาษาไทย — ลดน้ำหนัก ขี้เกียจนับแคล
+                </Link>
+              </li>
             </ul>
           </div>
 

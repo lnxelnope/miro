@@ -3167,7 +3167,10 @@ class L10nId extends L10n {
   String get mealNameHint => 'e.g. Pad Krapow with fried egg';
 
   @override
-  String get servingSizeLabel => 'Serving Size *';
+  String get servingSizeLabel => 'Servings *';
+
+  @override
+  String get mealYieldHelper => 'Total amount of this entire recipe';
 
   @override
   String get unitRequired => 'Unit *';
@@ -3185,7 +3188,15 @@ class L10nId extends L10n {
   String get noIngredientsHint => 'No ingredients yet. Tap add to record.';
 
   @override
-  String get totalNutritionTitle => 'Total Nutrition';
+  String get totalNutritionTitle => 'Total Recipe';
+
+  @override
+  String get perServingNutrition => 'Per 1 Serving';
+
+  @override
+  String perServingCalories(String calories) {
+    return '1 serving = $calories kcal';
+  }
 
   @override
   String get saveChangesButton => 'Save Changes';
@@ -4385,4 +4396,37 @@ class L10nId extends L10n {
   @override
   String get parentAmountTooltip =>
       'Change to scale all sub-ingredients proportionally';
+
+  @override
+  String get unitSystemSection => 'Unit System';
+
+  @override
+  String get unitSystemMetric => 'Metric';
+
+  @override
+  String get unitSystemImperial => 'Imperial';
+
+  @override
+  String get unitSystemMetricDesc => 'g, kg, ml';
+
+  @override
+  String get unitSystemImperialDesc => 'oz, lbs, fl oz';
+
+  @override
+  String get unitSystemPreference => 'Measurement Units';
+
+  @override
+  String get onboardingUnitSystem => 'Preferred unit system:';
+
+  @override
+  String unitSystemChangedTo(Object system) {
+    return 'Unit system changed to $system';
+  }
+
+  @override
+  String get arScanPortraitOnlyTitle => 'Hanya mode potret';
+
+  @override
+  String get arScanPortraitOnlyMessage =>
+      'Silakan putar perangkat Anda ke orientasi potret';
 }
